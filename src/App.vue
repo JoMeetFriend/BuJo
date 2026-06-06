@@ -1,11 +1,9 @@
-<script setup></script>
+<script setup>
+import ProfileEditPage from './components/ProfileEditPage.vue'
+</script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <ProfileEditPage />
 </template>
 
 <style scoped></style>
