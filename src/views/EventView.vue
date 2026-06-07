@@ -216,7 +216,7 @@ const goToDetail = (id) => {
   <div class="max-w-7xl mx-auto p-6 bg-[#FAF8F4] min-h-screen">
     <h1 class="text-[28px] font-extrabold tracking-tight text-[#2B2E24] mb-6">所有活動</h1>
 
-    <ul class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <li
         v-for="activity in activities"
         :key="activity.id"
