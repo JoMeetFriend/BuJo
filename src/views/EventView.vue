@@ -192,22 +192,18 @@ const STATUS_MAP = {
   registered: {
     text: '已報名',
     className: 'bg-[#87C06D] text-[#FFFFFF] border-[#87C06D]',
-    bgClass: 'bg-[#87C06D]',
   },
   open: {
     text: '揪團中',
     className: 'bg-[#D9F0A8] text-[#2B2E24] border-[#D9F0A8]',
-    bgClass: 'bg-[#D9F0A8]',
   },
   interested: {
     text: '有興趣',
     className: 'bg-[#F9CE9A] text-[#2B2E24] border-[#F9CE9A]',
-    bgClass: 'bg-[#F9CE9A]',
   },
   unregistered: {
     text: '未報名',
     className: 'bg-[#FAF8F4] text-[#9DBD86] border-[#DEF4CD]',
-    bgClass: 'bg-[#FAF8F4]',
   },
 }
 
@@ -217,21 +213,19 @@ const goToDetail = (id) => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto p-6 bg-slate-50 min-h-screen">
-    <h1 class="text-2xl font-bold text-slate-800 mb-6">所有活動</h1>
+  <div class="max-w-7xl mx-auto p-6 bg-[#FAF8F4] min-h-screen">
+    <h1 class="text-[28px] font-extrabold tracking-tight text-[#2B2E24] mb-6">所有活動</h1>
 
     <ul class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <li
         v-for="activity in activities"
         :key="activity.id"
         @click="goToDetail(activity.id)"
-        class="border-[1.5px] border-[#DEF4CD] rounded-none bg-white transition flex flex-col justify-between cursor-pointer overflow-hidden"
+        class="border-[1.5px] border-[#DEF4CD] rounded-[16px] bg-white transition flex flex-col justify-between cursor-pointer overflow-hidden"
       >
-        <div class="p-4 flex flex-col gap-3" :class="STATUS_MAP[activity.status]?.bgClass">
+        <div class="p-4 flex flex-col gap-3 bg-white">
           <div class="flex items-center gap-3">
-            <div
-              class="w-8 h-8 rounded-none bg-white/20 flex items-center justify-center text-[#2B2E24] shrink-0"
-            >
+            <div class="text-[#9DBD86] shrink-0">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-5 w-5"
@@ -247,7 +241,7 @@ const goToDetail = (id) => {
                 />
               </svg>
             </div>
-            <h2 class="text-xl font-bold text-[#2B2E24] truncate">{{ activity.title }}</h2>
+            <h2 class="text-2xl font-bold text-[#2B2E24] truncate">{{ activity.title }}</h2>
           </div>
         </div>
 
@@ -263,20 +257,20 @@ const goToDetail = (id) => {
               <img
                 v-for="participant in activity.participants"
                 :key="participant.id"
-                class="inline-block h-8 w-8 rounded-none ring-1 ring-white object-cover"
+                class="inline-block h-8 w-8 rounded-full ring-1 ring-white object-cover"
                 :src="participant.avatar"
                 alt="Avatar"
               />
               <div
                 v-if="activity.totalParticipants - activity.participants.length > 0"
-                class="flex items-center justify-center h-8 w-8 rounded-none ring-1 ring-white bg-[#FAF8F4] text-[10px] font-bold text-[#4A5040]"
+                class="flex items-center justify-center h-8 w-8 rounded-full ring-1 ring-white bg-[#FAF8F4] text-[10px] font-bold text-[#4A5040]"
               >
                 +{{ activity.totalParticipants - activity.participants.length }}
               </div>
             </div>
 
             <span
-              class="inline-flex items-center px-3 py-1 rounded-none text-xs font-bold border"
+              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border"
               :class="STATUS_MAP[activity.status]?.className"
             >
               {{ STATUS_MAP[activity.status]?.text }}
