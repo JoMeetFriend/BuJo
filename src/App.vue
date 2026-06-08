@@ -1,11 +1,22 @@
-<script setup></script>
+<script setup>
+import { ref } from 'vue'
+import AppSidebar from './components/AppSidebar.vue'
+import CalendarMain from './components/CalendarMain.vue'
+
+const sidebarOpen = ref(true)
+</script>
+
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
-</template>
+  <!-- 主頁面日曆 -->
+  <div class="flex h-screen bg-[#FEF7E8] overflow-hidden">
+     <!-- 左側導覽列 -->
+    <AppSidebar :isOpen="sidebarOpen" />
 
-<style scoped></style>
+    <!-- 右側主內容 -->
+    <main class="flex-1 overflow-hidden flex flex-col px-12 pb-20 md:px-16 md:pb-20">
+    
+      <CalendarMain @toggle-sidebar="sidebarOpen = !sidebarOpen" :sidebarOpen="sidebarOpen" />
+    </main>
+  </div>
+</template>
