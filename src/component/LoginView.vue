@@ -90,6 +90,20 @@
         使用 Google 帳號快速登入
       </button>
 
+      <!-- LINE 登入 -->
+      <button
+        @click="handleLineLogin"
+        class="w-full border border-[#9DBD86] rounded-xl py-3 text-sm text-[#3D2E1E] flex items-center justify-center gap-2 hover:bg-[#D9F0A8] transition-colors mt-3"
+      >
+        <!-- LINE SVG -->
+        <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
+          <rect width="48" height="48" rx="10" fill="#00B900"/>
+          <path d="M40 22.2C40 15.1 32.8 9.3 24 9.3S8 15.1 8 22.2c0 6.4 5.7 11.7 13.3 12.7.5.1 1.2.3 1.4.8.2.4.1 1 .1 1.4l-.2 1.4c-.1.5-.4 1.8 1.6.99 2-.8 10.8-6.4 14.7-10.9C39.1 26.1 40 24.3 40 22.2z" fill="white"/>
+          <path d="M20.3 19.5h-1.2c-.2 0-.4.2-.4.4v7.4c0 .2.2.4.4.4h1.2c.2 0 .4-.2.4-.4v-7.4c0-.2-.2-.4-.4-.4zM29.1 19.5h-1.2c-.2 0-.4.2-.4.4v4.4l-3.4-4.6c0-.1-.1-.1-.1-.2h-1.3c-.2 0-.4.2-.4.4v7.4c0 .2.2.4.4.4H24c.2 0 .4-.2.4-.4v-4.4l3.4 4.6c.1.1.2.2.3.2h1.2c.2 0 .4-.2.4-.4v-7.4c-.2-.2-.4-.4-.6-.4zM17.4 25.7h-3.3v-5.8c0-.2-.2-.4-.4-.4h-1.2c-.2 0-.4.2-.4.4v7.4c0 .1.1.2.1.3.1.1.2.1.3.1h4.9c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4zM35.9 21.5c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4H31c-.1 0-.2 0-.3.1-.1.1-.1.2-.1.3v7.4c0 .1 0 .2.1.3.1.1.2.1.3.1h4.9c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4h-3.3v-1.3h3.3c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4h-3.3v-1.3h3.3z" fill="#00B900"/>
+        </svg>
+        使用 LINE 登入
+      </button>
+
       <!-- 註冊連結 -->
       <p class="text-center text-sm text-[#4A5040] mt-5">
         還沒有帳號？
@@ -119,5 +133,10 @@ const handleLogin = () => {
 const handleGoogleLogin = () => {
   // TODO: 串接 Google OAuth
   console.log('Google 登入')
+}
+
+const handleLineLogin = () => {
+  // TODO: 串接 LINE Login OAuth
+  console.log('LINE 登入')
 }
 </script>
