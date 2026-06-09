@@ -5,7 +5,7 @@ const activities = ref([
   {
     id: 1,
     title: '上課',
-    date: '2026-07-15',
+    date: '6/11',
     time: '9:30 - 16:30',
     location: '臺北市中正區黎明里衡陽路7號5樓',
     status: 'registered',
@@ -22,13 +22,29 @@ const activities = ref([
         id: 103,
         avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
       },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 105,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 106,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 107,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
     ],
     totalParticipants: 8,
   },
   {
     id: 2,
     title: '來揪來揪來揪',
-    date: '2026-08-01',
+    date: '6/12',
     time: '09:00 - 17:00',
     location: '台北某某某某地',
     status: 'open',
@@ -51,10 +67,10 @@ const activities = ref([
   {
     id: 3,
     title: '吃下午茶',
-    date: '2026-09-10',
+    date: '6/13',
     time: '15:00 - 17:00',
     location: '某地',
-    status: 'interested',
+    status: 'success',
     participants: [
       {
         id: 101,
@@ -66,144 +82,37 @@ const activities = ref([
       },
       {
         id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 105,
         avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
       },
     ],
     totalParticipants: 5,
   },
-  {
-    id: 4,
-    title: '唱歌',
-    date: '2026-09-10',
-    time: '18:00',
-    location: '新北市.................',
-    status: 'unregistered',
-    participants: [
-      {
-        id: 101,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 102,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 103,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-    ],
-    totalParticipants: 3,
-  },
-  {
-    id: 5,
-    title: '上課',
-    date: '2026-07-15',
-    time: '18:00 - 22:00',
-    location: '臺北市中正區黎明里衡陽路7號5樓',
-    status: 'registered',
-    participants: [
-      {
-        id: 101,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 102,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 103,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-    ],
-    totalParticipants: 8,
-  },
-  {
-    id: 6,
-    title: '打羽球',
-    date: '2026-08-01',
-    time: '09:00 - 17:00',
-    location: '台北市..........',
-    status: 'open',
-    participants: [
-      {
-        id: 101,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 102,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 103,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-    ],
-    totalParticipants: 14,
-  },
-  {
-    id: 7,
-    title: '吃飯',
-    date: '2026-09-10',
-    time: '18:00',
-    location: '台北',
-    status: 'interested',
-    participants: [
-      {
-        id: 101,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 102,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 103,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-    ],
-    totalParticipants: 3,
-  },
-  {
-    id: 8,
-    title: '打球',
-    date: '2026-09-10',
-    time: '17:00',
-    location: '台北',
-    status: 'unregistered',
-    participants: [
-      {
-        id: 101,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 102,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 103,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-    ],
-    totalParticipants: 3,
-  },
 ])
 
+// 對應圖片右下角狀態標籤底色（文字統一 #4A5040）
 const STATUS_MAP = {
   registered: {
     text: '已報名',
-    className: 'bg-[#87C06D] text-[#FFFFFF] border-[#87C06D]',
+    topBg: '#F9CE9A', // 比照圖片
+    badgeBg: 'bg-[#F9CE9A]', // Warm Peach 點綴色
   },
   open: {
     text: '揪團中',
-    className: 'bg-[#D9F0A8] text-[#2B2E24] border-[#D9F0A8]',
+    topBg: '#DEF4CD', // Primary Pale
+    badgeBg: 'bg-[#87C06D]', // Primary Green
   },
-  interested: {
-    text: '有興趣',
-    className: 'bg-[#F9CE9A] text-[#2B2E24] border-[#F9CE9A]',
-  },
-  unregistered: {
-    text: '未報名',
-    className: 'bg-[#FAF8F4] text-[#9DBD86] border-[#DEF4CD]',
+  success: {
+    text: '已成團',
+    topBg: '#D9F0A8', // 已成團活動條底色
+    badgeBg: 'bg-[#D9F0A8]', // Primary Light
   },
 }
 
@@ -213,71 +122,99 @@ const goToDetail = (id) => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto p-6 bg-[#FAF8F4] min-h-screen">
-    <h1 class="text-[28px] font-extrabold tracking-tight text-[#2B2E24] mb-6">所有活動</h1>
+  <div class="max-w-7xl mx-auto p-6 bg-[#FEF7E8] min-h-screen text-[#4A5040] font-cubic11">
+    <div class="flex items-baseline gap-4 mb-6">
+      <h1 class="text-4xl font-extrabold text-[#4A5040] tracking-wider">活動</h1>
+      <span class="text-xl font-pixel text-[#9DBD86] tracking-widest uppercase"> ACTIVITY </span>
+    </div>
 
-    <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <li
         v-for="activity in activities"
         :key="activity.id"
         @click="goToDetail(activity.id)"
-        class="border-[1.5px] border-[#DEF4CD] rounded-[16px] bg-white transition flex flex-col justify-between cursor-pointer overflow-hidden"
+        class="border-[1.5px] border-[#9DBD86] rounded-none bg-white flex flex-col justify-between cursor-pointer overflow-hidden transition-transform active:translate-y-0.5"
       >
-        <div class="p-4 flex flex-col gap-3 bg-white">
-          <div class="flex items-center gap-3">
-            <div class="text-[#9DBD86] shrink-0">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-            <h2 class="text-2xl font-bold text-[#2B2E24] truncate">{{ activity.title }}</h2>
-          </div>
+        <div
+          class="h-20 flex items-center justify-center border-b-[1.5px] border-[#9DBD86] shrink-0"
+          :style="{ backgroundColor: STATUS_MAP[activity.status]?.topBg }"
+        >
+          <svg class="h-10 w-10 text-[#4A5040]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M4 2h16v2H4V2zm2 4h12v2H6V6zm-2 4h16v2H4v-2zm4 4h8v2H8v-2zm-6 4h20v2H2v-2z" />
+          </svg>
         </div>
 
-        <div class="p-4 flex flex-col gap-4 bg-white">
-          <div class="flex flex-col gap-y-1.5 text-sm text-[#4A5040]">
-            <div>📅 {{ activity.date }}</div>
-            <div>⏰ {{ activity.time }}</div>
-            <div class="truncate">📍 {{ activity.location }}</div>
+        <div class="p-4 flex flex-col flex-grow bg-white justify-between gap-4">
+          <div class="flex flex-col gap-2">
+            <h2 class="text-xl font-bold text-[#4A5040] truncate">{{ activity.title }}</h2>
+
+            <div
+              class="flex flex-col gap-y-1.5 text-sm text-[#4A5040] font-['Nunito'] font-semibold"
+            >
+              <div class="flex items-center gap-1.5">
+                <span>🕒</span>
+                <span>{{ activity.date }} {{ activity.time }}</span>
+              </div>
+              <div class="flex items-center gap-1.5 truncate">
+                <span>📍</span>
+                <span class="truncate font-cubic11">{{ activity.location }}</span>
+              </div>
+            </div>
           </div>
 
-          <div class="flex items-center justify-between border-t border-[#DEF4CD] pt-3">
-            <div class="flex -space-x-1 overflow-hidden">
+          <div class="flex items-end justify-between border-t border-[#DEF4CD] pt-3">
+            <div class="flex gap-2 items-center overflow-hidden h-7">
               <img
-                v-for="participant in activity.participants"
+                v-for="participant in activity.participants.slice(0, 5)"
                 :key="participant.id"
-                class="inline-block h-8 w-8 rounded-full ring-1 ring-white object-cover"
+                class="inline-block h-6 w-6 rounded-none border border-[#4A5040] object-cover"
                 :src="participant.avatar"
                 alt="Avatar"
               />
+
               <div
-                v-if="activity.totalParticipants - activity.participants.length > 0"
-                class="flex items-center justify-center h-8 w-8 rounded-full ring-1 ring-white bg-[#FAF8F4] text-[10px] font-bold text-[#4A5040]"
+                v-if="activity.participants.length > 5"
+                class="flex items-center justify-center h-6 w-6 rounded-none border border-[#4A5040] bg-[#FEF7E8] text-[10px] font-bold text-[#4A5040]"
               >
-                +{{ activity.totalParticipants - activity.participants.length }}
+                +{{ activity.participants.length - 5 }}
               </div>
             </div>
 
-            <span
-              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border"
-              :class="STATUS_MAP[activity.status]?.className"
-            >
-              {{ STATUS_MAP[activity.status]?.text }}
-            </span>
+            <div class="flex flex-col items-end gap-1.5">
+              <span
+                v-if="activity.status === 'success'"
+                class="text-[11px] font-bold border border-[#4A5040] py-0.5 bg-white text-[#4A5040] w-[76px] text-center block whitespace-nowrap"
+              >
+                已成團
+              </span>
+              <span
+                v-else-if="activity.totalParticipants - activity.participants.length > 0"
+                class="text-[11px] font-bold border border-[#4A5040] py-0.5 bg-white text-[#4A5040] w-[76px] text-center block whitespace-nowrap font-['Nunito']"
+              >
+                還差 {{ activity.totalParticipants - activity.participants.length }} 人
+              </span>
+
+              <span
+                class="inline-flex items-center justify-center py-0.5 rounded-none text-xs font-bold border border-[#4A5040] w-[76px] text-center whitespace-nowrap text-[#4A5040]"
+                :class="STATUS_MAP[activity.status]?.badgeBg"
+              >
+                {{ STATUS_MAP[activity.status]?.text }}
+              </span>
+            </div>
           </div>
         </div>
       </li>
     </ul>
   </div>
 </template>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@600&display=swap');
+
+.font-cubic11 {
+  font-family: 'cubic11', sans-serif;
+}
+.font-pixel {
+  font-family: 'Press Start 2P', monospace;
+}
+</style>
