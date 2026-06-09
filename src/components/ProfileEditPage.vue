@@ -14,7 +14,7 @@ const handleAvatarChange = (event) => {
 
 <template>
   <main class="min-h-screen bg-[#FAF8F4] px-4 py-3 font-[cubic11] text-[#2B2E24] sm:px-9 sm:py-4">
-    <header class="mb-3 flex items-start gap-3 sm:gap-4">
+    <header class="mb-3 flex items-center gap-3 sm:gap-4">
       <button
         class="grid size-8 shrink-0 place-items-center border-[3px] border-[#2B2E24] bg-white text-lg text-[#2B2E24] shadow-[3px_3px_0_#9DBD86] transition hover:-translate-y-0.5 hover:bg-[#FEF7E8] hover:shadow-[4px_4px_0_#9DBD86]"
         type="button"
@@ -23,36 +23,11 @@ const handleAvatarChange = (event) => {
         ←
       </button>
 
-      <div class="grid gap-1.5">
-        <div
-          class="w-fit border-[3px] border-[#2B2E24] bg-[#D9F0A8] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.16em] text-[#2B2E24] shadow-[2px_2px_0_#9DBD86]"
-        >
-          player profile
-        </div>
-
-        <div class="relative w-fit">
-          <div
-            class="absolute left-1 top-1 h-full w-full border-[3px] border-[#2B2E24] bg-[#9DBD86]"
-            aria-hidden="true"
-          ></div>
-          <div
-            class="relative border-[3px] border-[#2B2E24] bg-white px-3 py-2 shadow-[inset_-3px_-3px_0_#DEF4CD] sm:px-4 sm:py-2.5"
-          >
-            <div class="mb-1 flex gap-1" aria-hidden="true">
-              <span class="size-1.5 bg-[#87C06D]"></span>
-              <span class="size-1.5 bg-[#F9CE9A]"></span>
-              <span class="size-1.5 bg-[#E9EF6E]"></span>
-            </div>
-            <h1 class="text-xl leading-none tracking-[0.05em] text-[#2B2E24] sm:text-3xl">
-              個人編輯
-            </h1>
-            <p
-              class="mt-1.5 text-[9px] font-black uppercase tracking-[0.14em] text-[#87C06D] sm:text-[10px]"
-            >
-              edit account settings
-            </p>
-          </div>
-        </div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-xl font-bold leading-none tracking-[0.05em] text-[#2B2E24] sm:text-3xl">
+          個人編輯
+        </h1>
+        <span class="text-sm leading-none tracking-[0.08em] text-[#87C06D] sm:text-lg">ME</span>
       </div>
     </header>
 
