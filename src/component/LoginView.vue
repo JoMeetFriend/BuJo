@@ -1,60 +1,58 @@
 <!-- src/views/LoginView.vue -->
 <template>
-  <div class="min-h-screen bg-[#FAF8F4] flex items-center justify-center p-6">
-    <div class="bg-white rounded-2xl p-10 w-full max-w-sm border border-[#9DBD86]">
-      
+  <div class="min-h-screen bg-page-bg flex items-center justify-center p-6">
+    <div class="bg-white w-full max-w-sm p-10 border-[1.5px] border-primary-mid">
+
       <!-- Logo -->
       <div class="flex items-center gap-4 mb-8">
-        <div class="w-14 h-14 bg-[#87C06D] rounded-2xl flex items-center justify-center shrink-0">
-          <!-- 之後把這行換成 <img src="@/assets/logo.png" class="w-10 h-10" /> -->
-          <span class="text-white text-2xl">🗓</span>
+        <div class="w-14 h-14 bg-primary-green flex items-center justify-center shrink-0 border-2 border-brand-text shadow-pixel-sm">
+          <!-- 之後換成 <img src="@/assets/logo.png" class="w-10 h-10" /> -->
+          <span class="text-page-bg text-2xl">🗓</span>
         </div>
         <div>
-        <h1 class="text-2xl font-medium text-[#2B2E24]">BuJo 日曆</h1>
-        <p class="text-sm text-[#4A5040] mt-1">登入後即可查看個人與揪團行事曆</p>
+          <h1 class="text-2xl font-medium text-brand-text font-cubic11">BuJo 日曆</h1>
+          <p class="text-sm text-brand-text mt-1">登入後即可查看個人與揪團行事曆</p>
         </div>
       </div>
 
       <!-- 表單 -->
       <form @submit.prevent="handleLogin" class="space-y-4">
-        
+
         <!-- 電子郵件 -->
         <div>
-          <label class="block text-sm text-[#2B2E24] mb-1.5">電子郵件</label>
-          <div class="flex items-center gap-2 border border-[#9DBD86] rounded-xl px-3 bg-[#DEF4CD]">
-            <span class="text-[#9B8C7A]">✉</span>
+          <label class="block text-sm text-brand-text mb-1.5">電子郵件</label>
+          <div class="flex items-center gap-2 border-[1.5px] border-primary-mid px-3 bg-primary-pale">
+            <span class="text-brand-text">✉</span>
             <input
               v-model="form.email"
               type="email"
               placeholder="user@gmail.com"
-              class="flex-1 bg-transparent outline-none py-2.5 text-sm text-[#4A5040]"
+              class="flex-1 bg-transparent outline-none py-2.5 text-sm text-brand-text"
             />
           </div>
         </div>
 
         <!-- 密碼 -->
         <div>
-          <label class="block text-sm text-[#2B2E24] mb-1.5">密碼</label>
-          <div class="flex items-center gap-2 border border-[#9DBD86] rounded-xl px-3 bg-[#DEF4CD]">
-            <span class="text-[#9B8C7A]"></span>
+          <label class="block text-sm text-brand-text mb-1.5">密碼</label>
+          <div class="flex items-center gap-2 border-[1.5px] border-primary-mid px-3 bg-primary-pale">
+            <span class="text-brand-text"></span>
             <input
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
               placeholder="••••••••"
-              class="flex-1 bg-transparent outline-none py-2.5 text-sm text-[#4A5040]"
+              class="flex-1 bg-transparent outline-none py-2.5 text-sm text-brand-text"
             />
-            <button type="button" @click="showPassword = !showPassword" class="text-[#9B8C7A]">
+            <button type="button" @click="showPassword = !showPassword" class="text-brand-text">
               <EyeIcon v-if="!showPassword" class="w-4 h-4" />
               <EyeSlashIcon v-else class="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <!--忘記密碼 -->
-        <div class="flex justify-between items-center">
-          <label class="flex items-center gap-2 text-sm text-[#6B5C4C] cursor-pointer">
-          </label>
-          <router-link to="/forgot-password" class="text-sm text-[#9DBD86]">
+        <!-- 忘記密碼 -->
+        <div class="flex justify-end">
+          <router-link to="/forgot-password" class="text-sm text-brand-text underline">
             忘記密碼？
           </router-link>
         </div>
@@ -62,25 +60,24 @@
         <!-- 登入按鈕 -->
         <button
           type="submit"
-          class="w-full bg-[#87C06D] text-[#2B2E24] rounded-xl py-3 text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#D9F0A8] transition-colors"
+          class="w-full bg-primary-green text-brand-text py-3 text-sm font-semibold flex items-center justify-center gap-2 border-2 border-brand-text shadow-pixel hover:shadow-pixel-pressed hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100"
         >
-          登入 
+          登入
         </button>
       </form>
 
       <!-- 分隔線 -->
       <div class="flex items-center gap-3 my-5">
-        <div class="flex-1 h-px bg-[#DEF4CD]"></div>
-        <span class="text-xs text-[#9DBD86]">或</span>
-        <div class="flex-1 h-px bg-[#DEF4CD]"></div>
+        <div class="flex-1 h-px bg-primary-pale"></div>
+        <span class="text-xs text-primary-mid">或</span>
+        <div class="flex-1 h-px bg-primary-pale"></div>
       </div>
 
       <!-- Google 登入 -->
       <button
         @click="handleGoogleLogin"
-        class="w-full border border-[#9DBD86] rounded-xl py-3 text-sm text-[#3D2E1E] flex items-center justify-center gap-2 hover:bg-[#D9F0A8] transition-colors"
+        class="w-full border-[1.5px] border-primary-mid py-3 text-sm text-brand-text flex items-center justify-center gap-2 hover:bg-primary-light transition-colors"
       >
-        <!-- Google SVG -->
         <svg width="18" height="18" viewBox="0 0 48 48">
           <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
           <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -93,9 +90,8 @@
       <!-- LINE 登入 -->
       <button
         @click="handleLineLogin"
-        class="w-full border border-[#9DBD86] rounded-xl py-3 text-sm text-[#3D2E1E] flex items-center justify-center gap-2 hover:bg-[#D9F0A8] transition-colors mt-3"
+        class="w-full border-[1.5px] border-primary-mid py-3 text-sm text-brand-text flex items-center justify-center gap-2 hover:bg-primary-light transition-colors mt-3"
       >
-        <!-- LINE SVG -->
         <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
           <rect width="48" height="48" rx="10" fill="#00B900"/>
           <path d="M40 22.2C40 15.1 32.8 9.3 24 9.3S8 15.1 8 22.2c0 6.4 5.7 11.7 13.3 12.7.5.1 1.2.3 1.4.8.2.4.1 1 .1 1.4l-.2 1.4c-.1.5-.4 1.8 1.6.99 2-.8 10.8-6.4 14.7-10.9C39.1 26.1 40 24.3 40 22.2z" fill="white"/>
@@ -105,9 +101,9 @@
       </button>
 
       <!-- 註冊連結 -->
-      <p class="text-center text-sm text-[#4A5040] mt-5">
+      <p class="text-center text-sm text-brand-text mt-5">
         還沒有帳號？
-        <router-link to="/register" class="text-[#9DBD86] font-medium">前往註冊</router-link>
+        <router-link to="/register" class="text-brand-text font-semibold underline">前往註冊</router-link>
       </p>
     </div>
   </div>
@@ -122,7 +118,6 @@ const showPassword = ref(false)
 const form = reactive({
   email: '',
   password: '',
-  remember: false,
 })
 
 const handleLogin = () => {

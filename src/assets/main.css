@@ -1,3 +1,20 @@
+/* 中文像素字型 */
+@font-face {
+  font-family: 'cubic11';
+  src: url('https://cdn.jsdelivr.net/gh/ACh-K/Cubic-11@v1.451/fonts/web/Cubic_11.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #FEF7E8;
+    color: #4A5040;
+    font-family: 'cubic11', sans-serif;
+  }
+}
