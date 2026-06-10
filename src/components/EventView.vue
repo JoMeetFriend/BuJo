@@ -97,22 +97,21 @@ const activities = ref([
   },
 ])
 
-// 對應圖片右下角狀態標籤底色（文字統一 #4A5040）
 const STATUS_MAP = {
   registered: {
     text: '已報名',
-    topBg: '#F9CE9A', // 比照圖片
-    badgeBg: 'bg-[#F9CE9A]', // Warm Peach 點綴色
+    topBg: '#F9CE9A',
+    badgeBg: 'bg-[#F9CE9A]',
   },
   open: {
     text: '揪團中',
-    topBg: '#DEF4CD', // Primary Pale
-    badgeBg: 'bg-[#87C06D]', // Primary Green
+    topBg: '#DEF4CD',
+    badgeBg: 'bg-[#87C06D]',
   },
   success: {
     text: '已成團',
-    topBg: '#D9F0A8', // 已成團活動條底色
-    badgeBg: 'bg-[#D9F0A8]', // Primary Light
+    topBg: '#D9F0A8',
+    badgeBg: 'bg-[#D9F0A8]',
   },
 }
 
@@ -133,7 +132,7 @@ const goToDetail = (id) => {
         v-for="activity in activities"
         :key="activity.id"
         @click="goToDetail(activity.id)"
-        class="border-[1.5px] border-[#9DBD86] rounded-none bg-white flex flex-col justify-between cursor-pointer overflow-hidden transition-transform active:translate-y-0.5"
+        class="border-[1.5px] border-[#4A5040] rounded-none bg-white flex flex-col justify-between cursor-pointer overflow-hidden transition-all duration-200 ease-in-out shadow-[4px_4px_0px_0px_#4A5040] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_#4A5040] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_0px_#4A5040]"
       >
         <div
           class="h-20 flex items-center justify-center border-b-[1.5px] border-[#9DBD86] shrink-0"
@@ -145,20 +144,16 @@ const goToDetail = (id) => {
         </div>
 
         <div class="p-4 flex flex-col flex-grow bg-white justify-between gap-4">
-          <div class="flex flex-col gap-2">
-            <h2 class="text-xl font-bold text-[#4A5040] truncate">{{ activity.title }}</h2>
+          <h2 class="text-xl font-bold text-[#4A5040] truncate mb-2">{{ activity.title }}</h2>
 
-            <div
-              class="flex flex-col gap-y-1.5 text-sm text-[#4A5040] font-['Nunito'] font-semibold"
-            >
-              <div class="flex items-center gap-1.5">
-                <span>🕒</span>
-                <span>{{ activity.date }} {{ activity.time }}</span>
-              </div>
-              <div class="flex items-center gap-1.5 truncate">
-                <span>📍</span>
-                <span class="truncate font-cubic11">{{ activity.location }}</span>
-              </div>
+          <div class="flex flex-col gap-y-1.5 text-sm text-[#4A5040] font-['Nunito'] font-semibold">
+            <div class="flex items-center gap-1.5">
+              <span>🕒</span>
+              <span>{{ activity.date }} {{ activity.time }}</span>
+            </div>
+            <div class="flex items-center gap-1.5 truncate">
+              <span>📍</span>
+              <span class="truncate font-cubic11">{{ activity.location }}</span>
             </div>
           </div>
 
@@ -172,24 +167,23 @@ const goToDetail = (id) => {
                 alt="Avatar"
               />
 
-              <div
+              <span
                 v-if="activity.participants.length > 5"
                 class="flex items-center justify-center h-6 w-6 rounded-none border border-[#4A5040] bg-[#FEF7E8] text-[10px] font-bold text-[#4A5040]"
               >
                 +{{ activity.participants.length - 5 }}
-              </div>
+              </span>
             </div>
 
             <div class="flex flex-col items-end gap-1.5">
               <span
-                v-if="activity.status === 'success'"
-                class="text-[11px] font-bold border border-[#4A5040] py-0.5 bg-white text-[#4A5040] w-[76px] text-center block whitespace-nowrap"
-              >
-                已成團
-              </span>
-              <span
-                v-else-if="activity.totalParticipants - activity.participants.length > 0"
                 class="text-[11px] font-bold border border-[#4A5040] py-0.5 bg-white text-[#4A5040] w-[76px] text-center block whitespace-nowrap font-['Nunito']"
+                :class="
+                  activity.status !== 'success' &&
+                  activity.totalParticipants - activity.participants.length > 0
+                    ? 'visible'
+                    : 'invisible'
+                "
               >
                 還差 {{ activity.totalParticipants - activity.participants.length }} 人
               </span>
