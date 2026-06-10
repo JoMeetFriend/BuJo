@@ -1,5 +1,5 @@
 <script setup>
-import EventPage from './components/event-page.vue'
+import EventPage from './components/EventPage.vue/index.js'
 </script>
 
 <template>
