@@ -2,6 +2,8 @@
 import { ref } from 'vue'
 import AppSidebar from './components/AppSidebar.vue'
 import { RouterView } from 'vue-router'
+import EventPage from './components/EventPage.vue'
+import ProfileEditPage from './components/ProfileEditPage.vue'
 
 const sidebarOpen = ref(true)
 const filters = ref({ joined: true, formed: true, personal: true })

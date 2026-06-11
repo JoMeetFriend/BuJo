@@ -5,7 +5,8 @@
 /* 中文像素字型 */
 @font-face {
   font-family: 'cubic11';
-  src: url('https://cdn.jsdelivr.net/gh/ACh-K/Cubic-11@v1.451/fonts/web/Cubic_11.woff2') format('woff2');
+  src: url('https://cdn.jsdelivr.net/gh/ACh-K/Cubic-11@v1.451/fonts/web/Cubic_11.woff2')
+    format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
