@@ -5,6 +5,7 @@ const emit = defineEmits(['close', 'submit'])
 
 const eventTypes = ['吃飯', '運動', '讀書', '逛街', '看展', '其他']
 const dateFields = ['startDate', 'endDate']
+const timeFields = ['startTime', 'endTime']
 const scheduleRows = [
   {
     label: '開始：',
@@ -33,9 +34,9 @@ const form = reactive({
   location: '',
   allDay: false,
   startDate: '2026/06/11',
-  startTime: '12:00',
+  startTime: '下午 12:00',
   endDate: '2026/06/11',
-  endTime: '13:00',
+  endTime: '下午 1:00',
   note: '',
 })
 
@@ -55,9 +56,14 @@ const selectedDate = ref(parseDateValue(form.startDate))
 const visibleMonth = ref(startOfMonth(selectedDate.value ?? new Date()))
 
 const weekdays = ['日', '一', '二', '三', '四', '五', '六']
+const timeOptions = createTimeOptions()
 
 const activeDateField = computed(() =>
   dateFields.includes(activePicker.value) ? activePicker.value : 'startDate',
+)
+
+const activeTimeField = computed(() =>
+  timeFields.includes(activePicker.value) ? activePicker.value : 'startTime',
 )
 
 const monthTitle = computed(() => {
@@ -138,22 +144,9 @@ function selectDate(date) {
   closePicker()
 }
 
-function handleTimeInput(event, field) {
-  const digits = event.target.value.replace(/\D/g, '').slice(0, 4)
-  form[field] = digits.length > 2 ? `${digits.slice(0, 2)}:${digits.slice(2)}` : digits
-  event.target.value = form[field]
-}
-
-function handleTimeBlur(event, field) {
-  const digits = form[field].replace(/\D/g, '')
-  if (!digits) {
-    form[field] = '00:00'
-    return
-  }
-  const h = Math.min(23, parseInt(digits.slice(0, 2)) || 0)
-  const mStr = (digits.slice(2, 4) || '00').padEnd(2, '0')
-  const m = Math.min(59, parseInt(mStr) || 0)
-  form[field] = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+function selectTime(time) {
+  form[activeTimeField.value] = time
+  closePicker()
 }
 
 function syncVisibleMonthFromValue(field) {
@@ -202,6 +195,17 @@ function isSameDate(firstDate, secondDate) {
   )
 }
 
+function createTimeOptions() {
+  return Array.from({ length: 48 }, (_, index) => {
+    const hour = Math.floor(index / 2)
+    const minute = index % 2 === 0 ? '00' : '30'
+    const period = hour < 12 ? '上午' : '下午'
+    const displayHour = String(hour % 12 || 12)
+
+    return `${period} ${displayHour}:${minute}`
+  })
+}
+
 function dateButtonClass(cell) {
   return [
     'h-8 border-[1.5px] font-cubic11 text-[16px] leading-none transition-colors',
@@ -211,6 +215,12 @@ function dateButtonClass(cell) {
     !cell.isCurrentMonth && 'text-[#A7AB9A]',
     cell.isToday && !cell.isSelected && 'border-[#7DB968] bg-[#F3F9D8]',
   ]
+}
+
+function timeButtonClass(time, field) {
+  return {
+    'border-text-main bg-[#7FBE69] text-[#FFF8E8]': form[field] === time,
+  }
 }
 
 onMounted(() => {
@@ -230,7 +240,7 @@ onBeforeUnmount(() => {
     aria-label="建立揪團活動表單"
   >
     <div
-      class="w-[min(100%,520px)] border-[3px] border-text-main bg-[#FFF8E8] shadow-[10px_10px_0_#4A5040] [zoom:0.85] max-sm:shadow-[6px_6px_0_#4A5040]"
+      class="w-[min(100%,520px)] border-[3px] border-text-main bg-[#FFF8E8] shadow-[10px_10px_0_#4A5040] max-sm:shadow-[6px_6px_0_#4A5040]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="event-title"
@@ -345,7 +355,7 @@ onBeforeUnmount(() => {
             <span :class="[fieldLabelClass, 'pt-2 text-right']">{{ row.label }}</span>
             <div
               class="grid gap-2"
-              :class="form.allDay ? 'grid-cols-1' : 'grid-cols-[1fr_100px] max-sm:grid-cols-1'"
+              :class="form.allDay ? 'grid-cols-1' : 'grid-cols-[1fr_150px] max-sm:grid-cols-1'"
             >
               <span class="relative block">
                 <button
@@ -406,20 +416,41 @@ onBeforeUnmount(() => {
                 </div>
               </span>
 
-              <input
-                v-if="!form.allDay"
-                :id="row.timeButtonId"
-                :value="form[row.timeField]"
-                :class="[pickerButtonClass, 'w-full text-center']"
-                type="text"
-                inputmode="numeric"
-                maxlength="5"
-                placeholder="HH:MM"
-                :aria-label="row.timeMenuLabel"
-                @focus="(e) => e.target.select()"
-                @input="handleTimeInput($event, row.timeField)"
-                @blur="handleTimeBlur($event, row.timeField)"
-              />
+              <span v-if="!form.allDay" class="relative block">
+                <button
+                  :id="row.timeButtonId"
+                  :class="[pickerButtonClass, 'w-full']"
+                  type="button"
+                  :data-time-field="row.timeField"
+                  @click="openPicker(row.timeField)"
+                >
+                  {{ form[row.timeField] }}
+                </button>
+
+                <div
+                  v-if="activePicker === row.timeField"
+                  :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
+                  role="listbox"
+                  :aria-label="row.timeMenuLabel"
+                >
+                  <div class="max-h-[208px] overflow-y-auto pr-1">
+                    <button
+                      v-for="time in timeOptions"
+                      :key="time"
+                      class="mb-1 block min-h-9 w-full border-[1.5px] border-[#D8E6C8] bg-[#FFFDF4] px-3 py-1.5 text-left font-cubic11 text-[17px] leading-none text-text-main last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
+                      :class="timeButtonClass(time, row.timeField)"
+                      type="button"
+                      role="option"
+                      :aria-selected="form[row.timeField] === time"
+                      :aria-label="time"
+                      :data-time="time"
+                      @click="selectTime(time)"
+                    >
+                      {{ time }}
+                    </button>
+                  </div>
+                </div>
+              </span>
             </div>
           </div>
         </div>
