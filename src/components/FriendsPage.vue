@@ -29,9 +29,9 @@ const friends = [
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
       <div
         v-for="friend in friends" :key="friend.id"
-        class="flex items-center gap-3 p-3 border-[1.5px] border-[#9DBD86] bg-white"
+        class="flex items-center gap-3 p-3 border-[2px] border-[#9DBD86] bg-white"
       >
-        <div class="w-10 h-10 bg-[#DEF4CD] shrink-0"></div>
+        <div class="w-10 h-10 bg-[#DEF4CD] border-[2px] border-[#4A5040] shrink-0"></div>
         <div class="flex flex-col gap-[2px]">
           <span class="font-[cubic11] font-semibold text-[#4A5040] text-sm">{{ friend.name }}</span>
           <span class="font-[cubic11] text-[#9DBD86] text-xs">好友</span>
