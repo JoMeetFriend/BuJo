@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const activities = ref([
   {
@@ -115,6 +115,22 @@ const STATUS_MAP = {
   },
 }
 
+const filters = [
+  { key: 'all', text: '全部' },
+  { key: 'registered', text: '已報名' },
+  { key: 'open', text: '揪團中' },
+  { key: 'success', text: '已成團' },
+]
+
+const currentFilter = ref('all')
+
+const filteredActivities = computed(() => {
+  if (currentFilter.value === 'all') {
+    return activities.value
+  }
+  return activities.value.filter((act) => act.status === currentFilter.value)
+})
+
 const goToDetail = (id) => {
   alert(`準備進入活動 ID: ${id} 的詳情頁面！`)
 }
@@ -122,17 +138,38 @@ const goToDetail = (id) => {
 
 <template>
   <div class="max-w-7xl mx-auto p-6 bg-[#FEF7E8] min-h-screen text-[#4A5040] font-cubic11">
-    <div class="flex items-baseline gap-4 mb-6">
-      <h1 class="text-4xl font-extrabold text-[#4A5040] tracking-wider">活動</h1>
-      <span class="text-xl font-pixel text-[#9DBD86] tracking-widest uppercase"> ACTIVITY </span>
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-4 mb-6 pb-4">
+      <div class="flex items-baseline gap-4">
+        <h1 class="text-4xl font-extrabold text-[#4A5040] tracking-wider">活動</h1>
+        <span class="text-xl font-pixel text-[#9DBD86] tracking-widest uppercase"> ACTIVITY </span>
+      </div>
+
+      <div class="flex gap-2.5 self-end sm:self-auto">
+        <button
+          v-for="item in filters"
+          :key="item.key"
+          @click="currentFilter = item.key"
+          class="px-4 py-1 text-sm font-bold border border-[#4A5040] transition-all duration-150 ease-out select-none"
+          :class="
+            currentFilter === item.key
+              ? 'bg-[#87C06D] text-white -translate-x-[2px] -translate-y-[2px] shadow-[2px_2px_0px_0px_#4A5040]'
+              : 'bg-white text-[#4A5040] shadow-none hover:bg-[#FEF7E8]'
+          "
+        >
+          {{ item.text }}
+        </button>
+      </div>
     </div>
 
-    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <ul
+      v-if="filteredActivities.length > 0"
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
       <li
-        v-for="activity in activities"
+        v-for="activity in filteredActivities"
         :key="activity.id"
         @click="goToDetail(activity.id)"
-        class="border-[1.5px] border-[#4A5040] rounded-none bg-white flex flex-col justify-between cursor-pointer overflow-hidden transition-all duration-200 ease-in-out shadow-[4px_4px_0px_0px_#4A5040] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_#4A5040] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_0px_#4A5040]"
+        class="border-[1.5px] border-[#9DBD86] rounded-none bg-white flex flex-col justify-between cursor-pointer overflow-hidden transition-all duration-200 ease-in-out hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_#9DBD86] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_0px_#4A5040]"
       >
         <div
           class="h-20 flex items-center justify-center border-b-[1.5px] border-[#9DBD86] shrink-0"
@@ -199,6 +236,10 @@ const goToDetail = (id) => {
         </div>
       </li>
     </ul>
+
+    <div v-else class="text-center py-12 text-lg border border-dashed border-[#4A5040] bg-white">
+      目前沒有相關活動
+    </div>
   </div>
 </template>
 
