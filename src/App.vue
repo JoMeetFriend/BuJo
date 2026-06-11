@@ -6,6 +6,7 @@ import ProfileEditPage from './components/ProfileEditPage.vue'
 <template>
   <EventPage />
   <ProfileEditPage />
+  <router-view />
 </template>
 
 <style scoped></style>
