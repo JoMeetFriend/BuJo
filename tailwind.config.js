@@ -17,6 +17,7 @@ export default {
         bg: '#FAF8F4',
       },
       fontFamily: {
+        cubic11: ['cubic11', 'Nunito', 'sans-serif'],
         pixel: ['"Press Start 2P"', 'monospace'],
         syne: ['Syne', 'sans-serif'],
         nunito: ['Nunito', 'sans-serif'],
