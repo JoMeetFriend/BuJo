@@ -1,19 +1,12 @@
 <script setup>
-defineProps({ isOpen: Boolean })
-const emit = defineEmits(['update-filters'])
+defineProps({
+  isOpen: Boolean,
+  filters: Object,
+})
+const emit = defineEmits(['toggle-filter'])
 
 import { ref } from 'vue'
 const drawerOpen = ref(false)
-const filters = ref({
-  joined: true,
-  formed: true,
-  personal: true,
-})
-
-function toggleFilter(key) {
-  filters.value[key] = !filters.value[key]
-  emit('update-filters', { ...filters.value })
-}
 </script>
 
 <template>
@@ -59,7 +52,7 @@ function toggleFilter(key) {
             { key: 'formed', label: '成團！', color: '#5e9b57', opacity: false },
             { key: 'personal', label: '個人行程', color: '#F9CE9A', opacity: false },
           ]" :key="item.key"
-          @click="toggleFilter(item.key)"
+          @click="emit('toggle-filter', item.key)"
           class="flex items-center gap-2 transition-opacity"
           :class="filters[item.key] ? 'opacity-100' : 'opacity-40'"
         >
@@ -92,7 +85,7 @@ function toggleFilter(key) {
           { key: 'formed', label: '成團！', color: '#5e9b57', opacity: false },
           { key: 'personal', label: '個人行程', color: '#F9CE9A', opacity: false },
         ]" :key="item.key"
-        @click="toggleFilter(item.key)"
+        @click="emit('toggle-filter', item.key)"
         class="flex items-center gap-3 transition-opacity"
         :class="filters[item.key] ? 'opacity-100' : 'opacity-40'"
       >

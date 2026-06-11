@@ -73,6 +73,7 @@ const calendarDays = computed(() => {
 
   // 後月補空格（不顯示數字），補滿 42 格
   const remaining = 42 - days.length
+  // 後月補空格（不顯示數字），補滿到剛好的週數（5 或 6 列）
   for (let i = 0; i < remaining; i++) {
     days.push({ date: null, day: null, faded: true })
   }
@@ -102,7 +103,7 @@ function isToday(date) {
 <template>
   <!-- 手機版：置中佈局 -->
 
-  <div class="flex flex-col gap-3 h-full px-4 pb-8 md:px-28 md:pt-4 md:pb-24">
+  <div class="flex flex-col gap-3 flex-1 min-h-0 px-4 pb-8 md:px-28 md:pt-4 md:pb-20">
     <MarqueeBanner />
     <div class="md:hidden h-5"></div>
 
@@ -125,13 +126,13 @@ function isToday(date) {
         <span class="font-pixel text-[#9DBD86] text-xs md:text-sm">{{ currentYear }}</span>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1">
         <button @click="prevMonth" class="font-['Syne'] font-bold text-[#4A5040] w-8 h-8 flex items-center justify-center hover:text-[#87C06D]">&lt;</button>
         <button @click="nextMonth" class="font-['Syne'] font-bold text-[#4A5040] w-8 h-8 flex items-center justify-center hover:text-[#87C06D]">&gt;</button>
 
-        <!-- 揪一團按鈕：桌機版文字+圖示，手機版只有方塊佔位 -->
-        <button class="hidden md:flex items-center gap-1 mx-2 bg-[#87C06D] text-[#4A5040] font-[cubic11] font-black text-[12px] px-4 py-2 border-2 border-[#4A5040] shadow-[3px_3px_0px_#4A5040] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all">
-          ＋ 揪一團
+        <!-- 揪一團按鈕 -->
+        <button class="flex items-center justify-center mx-2 bg-[#87C06D] text-[#4A5040] font-[cubic11] font-black text-[12px] w-6 h-6 md:w-auto md:h-auto md:px-4 md:py-2 border-2 border-[#4A5040] shadow-[3px_3px_0px_#4A5040] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all">
+          ＋<span class="hidden md:inline"> 揪一團</span>
         </button>
 
         <!-- 頭像佔位 -->
@@ -153,10 +154,10 @@ function isToday(date) {
       </div>
 
       <!-- 格子 -->
-      <div class="grid grid-cols-7 grid-rows-6 md:h-full" style="grid-auto-rows: clamp(56px, 11vw, 90px);">
+      <div class="grid grid-cols-7 md:flex-1 md:min-h-0" :style="{ gridTemplateRows: isMobile ? 'repeat(6, clamp(50px, 8.4vh, 110px))' : 'repeat(6, 1fr)' }">
         <div
           v-for="(cell, index) in calendarDays" :key="index"
-          class="border-r-[1px] border-b-[1px] border-[#DEF4CD] flex flex-col overflow-hidden justify-start relative"
+          class="border-r-[1px] border-b-[1px] border-[#DEF4CD] flex flex-col overflow-hidden justify-start relative pb-2"
           :class="[
             cell.date && isToday(cell.date) ? 'bg-[#D9F0A8]' : cell.faded ? 'bg-[#FAF8F4]' : 'bg-white'
           ]"
@@ -169,7 +170,7 @@ function isToday(date) {
           </div>
 
           <!-- 活動條 -->
-          <div class="flex flex-col gap-[2px] px-1 pb-1 relative">
+          <div class="flex flex-col gap-[2px] px-1 pb-1 md:pb-3">
             <template v-for="(event, i) in getEvents(cell.date)" :key="event.id">
               <div
                 v-if="(isMobile && i < 2) || (!isMobile && i < 3)"
@@ -181,14 +182,14 @@ function isToday(date) {
                 <div class="w-3 h-3 bg-white/40 shrink-0 ml-auto hidden md:block"></div>
               </div>
             </template>
-          
-            <!-- +N -->
-            <div
-              v-if="getEvents(cell.date).length > (isMobile ? 2 : 3)"
-              class="absolute bottom-1 right-1 text-[6px] font-['Press_Start_2P'] text-[#4A5040] bg-white/80 px-[2px] py-[1px] md:text-[8px]"
-            >
-              +{{ getEvents(cell.date).length - (isMobile ? 2 : 3) }}
-            </div>
+          </div>
+
+          <!-- +N：定位相對格子，不受 events 容器高度影響 -->
+          <div
+            v-if="getEvents(cell.date).length > (isMobile ? 2 : 3)"
+            class="absolute bottom-1 right-1 text-[6px] font-['Press_Start_2P'] text-[#4A5040] bg-white/80 px-[2px] py-[1px] md:text-[8px]"
+          >
+            +{{ getEvents(cell.date).length - (isMobile ? 2 : 3) }}
           </div>
         </div>
       </div>
