@@ -1,14 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-/*登入頁面*/
-import LoginView from '../components/LoginView.vue'
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
       redirect: { name: 'friend-add' },
+      redirect: '/calendar',
+    },
+    {
+      path: '/calendar',
+      name: 'calendar',
+      component: () => import('../components/CalendarMain.vue'),
     },
     {
       path: '/profile/edit',
@@ -28,7 +31,7 @@ const router = createRouter({
     //登入頁面
     {
       path: '/login',
-      component: LoginView,
+      component: () => import('../components/LoginView.vue'),
     },
   ],
 })
