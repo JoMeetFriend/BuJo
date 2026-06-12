@@ -149,7 +149,7 @@ const goToDetail = (id) => {
           v-for="item in filters"
           :key="item.key"
           @click="currentFilter = item.key"
-          class="px-4 py-1 text-sm font-bold border border-[#4A5040] transition-all duration-150 ease-out select-none"
+          class="px-4 py-1 text-sm font-bold border-[#4A5040] transition-all duration-150 ease-out select-none"
           :class="
             currentFilter === item.key
               ? 'bg-[#87C06D] text-white -translate-x-[2px] -translate-y-[2px] shadow-[2px_2px_0px_0px_#4A5040]'
