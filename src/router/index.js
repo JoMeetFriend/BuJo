@@ -1,5 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+/*登入頁面*/
+import LoginView from '../components/LoginView.vue'
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -21,6 +24,11 @@ const router = createRouter({
       path: '/friends/new',
       name: 'friend-add',
       component: () => import('../components/FriendAddModal.vue'),
+    },
+    //登入頁面
+    {
+      path: '/login',
+      component: LoginView,
     },
   ],
 })
