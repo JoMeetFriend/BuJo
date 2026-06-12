@@ -1,22 +1,72 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import NotFound from '../components/NotFound.vue'
+import EventView from '../components/EventView.vue'
 
-const routes = [
-  {
-    path: '/404',
-    name: 'not-found-test',
-    component: NotFound,
-  },
-  {
-    path: '/:pathMatch(.*)*',
-    name: 'not-found',
-    component: NotFound,
-  },
-]
+/*登入頁面*/
+import LoginView from '../components/LoginView.vue'
+/*註冊頁面*/
+
+import FriendsPage from '../components/FriendsPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: routes,
+  routes: [
+    {
+      path: '/',
+      name: 'calendar',
+      redirect: '/calendar',
+      component: () => import('../components/CalendarMain.vue'),
+    },
+    {
+      path: '/friend-add',
+      name: 'friend-add',
+    },
+
+    {
+      path: '/profile/edit',
+      name: 'profile-edit',
+      component: () => import('../components/ProfileEditPage.vue'),
+    },
+    {
+      path: '/events/new',
+      name: 'event-new',
+      component: () => import('../components/EventPage.vue'),
+    },
+    {
+      path: '/friends-page',
+      name: 'friends-page',
+      component: FriendsPage,
+    },
+    {
+      path: '/friends/new',
+      name: 'friend-add',
+      component: () => import('../components/FriendAddModal.vue'),
+    },
+    //登入頁面
+    {
+      path: '/login',
+      component: LoginView,
+    },
+    //註冊頁面
+    {
+      path: '/register',
+      component: () => import('../components/RegisterViews.vue'),
+    },
+    {
+      path: '/event',
+      name: 'event',
+      component: EventView,
+    },
+    {
+      path: '/404',
+      name: 'not-found-test',
+      component: NotFound,
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFound,
+    },
+  ],
 })
 
 export default router
