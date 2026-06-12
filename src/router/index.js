@@ -1,7 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import CalendarMain from '../components/CalendarMain.vue'
-import EventPage from '../components/EventPage.vue'
-import ProfileEditPage from '../components/ProfileEditPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,20 +10,26 @@ const router = createRouter({
     {
       path: '/calendar',
       name: 'calendar',
-      component: CalendarMain,
+      component: () => import('../components/CalendarMain.vue'),
     },
     {
-      path: '/eventPage',
-      name: 'eventPage',
-      component: EventPage,
+      path: '/profile/edit',
+      name: 'profile-edit',
+      component: () => import('../components/ProfileEditPage.vue'),
     },
     {
-      path: '/profileEditPage',
-      name: 'profileEditPage',
-      component: ProfileEditPage,
+      path: '/events/new',
+      name: 'event-new',
+      component: () => import('../components/EventPage.vue'),
     },
-
+    {
+      path: '/login',
+      component: () => import('../components/LoginView.vue'),
+    }
   ],
 })
 
 export default router
+
+
+
