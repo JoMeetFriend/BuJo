@@ -11,10 +11,11 @@
   font-style: normal;
   font-display: swap;
 
-@layer base {
-  body {
-    background-color: #FEF7E8;
-    color: #4A5040;
-    font-family: 'cubic11', sans-serif;
+  @layer base {
+    body {
+      background-color: #fef7e8;
+      color: #4a5040;
+      font-family: 'cubic11', sans-serif;
+    }
   }
 }

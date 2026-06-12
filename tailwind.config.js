@@ -27,9 +27,9 @@ export default {
         'brand-text': '#4A5040',
       },
       fontFamily: {
-        'cubic11': ['cubic11', 'sans-serif'],
-        'nunito': ['Nunito', 'sans-serif'],
-        'syne': ['Syne', 'sans-serif'],
+        cubic11: ['cubic11', 'sans-serif'],
+        nunito: ['Nunito', 'sans-serif'],
+        syne: ['Syne', 'sans-serif'],
         pixel: ['"Press Start 2P"', 'monospace'],
       },
       boxShadow: {
