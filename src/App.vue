@@ -1,7 +1,7 @@
 <script setup>
+import { RouterView } from 'vue-router'
 import { ref } from 'vue'
 import AppSidebar from './components/AppSidebar.vue'
-import { RouterView } from 'vue-router'
 
 const sidebarOpen = ref(true)
 const filters = ref({ joined: true, formed: true, personal: true })

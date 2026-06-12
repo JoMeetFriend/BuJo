@@ -5,6 +5,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      redirect: { name: 'friend-add' },
       redirect: '/calendar',
     },
     {
@@ -23,13 +24,16 @@ const router = createRouter({
       component: () => import('../components/EventPage.vue'),
     },
     {
+      path: '/friends/new',
+      name: 'friend-add',
+      component: () => import('../components/FriendAddModal.vue'),
+    },
+    //登入頁面
+    {
       path: '/login',
       component: () => import('../components/LoginView.vue'),
-    }
+    },
   ],
 })
 
 export default router
-
-
-
