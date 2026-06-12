@@ -137,7 +137,7 @@ const goToDetail = (id) => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto p-6 bg-[#FEF7E8] min-h-screen text-[#4A5040] font-cubic11">
+  <div class="w-full max-w-7xl mx-auto p-6 bg-[#FEF7E8] min-h-screen text-[#4A5040] font-cubic11">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-4 mb-6 pb-4">
       <div class="flex items-baseline gap-4">
         <h1 class="text-4xl font-extrabold text-[#4A5040] tracking-wider">活動</h1>
