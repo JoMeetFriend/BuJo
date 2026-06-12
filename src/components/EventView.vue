@@ -1,0 +1,255 @@
+<script setup>
+import { ref, computed } from 'vue'
+
+const activities = ref([
+  {
+    id: 1,
+    title: '上課',
+    date: '6/11',
+    time: '9:30 - 16:30',
+    location: '臺北市中正區黎明里衡陽路7號5樓',
+    status: 'registered',
+    participants: [
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 105,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 106,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 107,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+    ],
+    totalParticipants: 8,
+  },
+  {
+    id: 2,
+    title: '來揪來揪來揪',
+    date: '6/12',
+    time: '09:00 - 17:00',
+    location: '台北某某某某地',
+    status: 'open',
+    participants: [
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+    ],
+    totalParticipants: 14,
+  },
+  {
+    id: 3,
+    title: '吃下午茶',
+    date: '6/13',
+    time: '15:00 - 17:00',
+    location: '某地',
+    status: 'success',
+    participants: [
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 105,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+    ],
+    totalParticipants: 5,
+  },
+])
+
+const STATUS_MAP = {
+  registered: {
+    text: '已報名',
+    topBg: '#F9CE9A',
+    badgeBg: 'bg-[#F9CE9A]',
+  },
+  open: {
+    text: '揪團中',
+    topBg: '#DEF4CD',
+    badgeBg: 'bg-[#87C06D]',
+  },
+  success: {
+    text: '已成團',
+    topBg: '#D9F0A8',
+    badgeBg: 'bg-[#D9F0A8]',
+  },
+}
+
+const filters = [
+  { key: 'all', text: '全部' },
+  { key: 'registered', text: '已報名' },
+  { key: 'open', text: '揪團中' },
+  { key: 'success', text: '已成團' },
+]
+
+const currentFilter = ref('all')
+
+const filteredActivities = computed(() => {
+  if (currentFilter.value === 'all') {
+    return activities.value
+  }
+  return activities.value.filter((act) => act.status === currentFilter.value)
+})
+
+const goToDetail = (id) => {
+  alert(`準備進入活動 ID: ${id} 的詳情頁面！`)
+}
+</script>
+
+<template>
+  <div class="max-w-7xl mx-auto p-6 bg-[#FEF7E8] min-h-screen text-[#4A5040] font-cubic11">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-4 mb-6 pb-4">
+      <div class="flex items-baseline gap-4">
+        <h1 class="text-4xl font-extrabold text-[#4A5040] tracking-wider">活動</h1>
+        <span class="text-xl font-pixel text-[#9DBD86] tracking-widest uppercase"> ACTIVITY </span>
+      </div>
+
+      <div class="flex gap-2.5 self-end sm:self-auto">
+        <button
+          v-for="item in filters"
+          :key="item.key"
+          @click="currentFilter = item.key"
+          class="px-4 py-1 text-sm font-bold border-[#4A5040] transition-all duration-150 ease-out select-none"
+          :class="
+            currentFilter === item.key
+              ? 'bg-[#87C06D] text-white -translate-x-[2px] -translate-y-[2px] shadow-[2px_2px_0px_0px_#4A5040]'
+              : 'bg-white text-[#4A5040] shadow-none hover:bg-[#FEF7E8]'
+          "
+        >
+          {{ item.text }}
+        </button>
+      </div>
+    </div>
+
+    <ul
+      v-if="filteredActivities.length > 0"
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
+      <li
+        v-for="activity in filteredActivities"
+        :key="activity.id"
+        @click="goToDetail(activity.id)"
+        class="border-[1.5px] border-[#9DBD86] rounded-none bg-white flex flex-col justify-between cursor-pointer overflow-hidden transition-all duration-200 ease-in-out hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_#9DBD86] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_0px_#4A5040]"
+      >
+        <div
+          class="h-20 flex items-center justify-center border-b-[1.5px] border-[#9DBD86] shrink-0"
+          :style="{ backgroundColor: STATUS_MAP[activity.status]?.topBg }"
+        >
+          <svg class="h-10 w-10 text-[#4A5040]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M4 2h16v2H4V2zm2 4h12v2H6V6zm-2 4h16v2H4v-2zm4 4h8v2H8v-2zm-6 4h20v2H2v-2z" />
+          </svg>
+        </div>
+
+        <div class="p-4 flex flex-col flex-grow bg-white justify-between gap-4">
+          <h2 class="text-xl font-bold text-[#4A5040] truncate mb-2">{{ activity.title }}</h2>
+
+          <div class="flex flex-col gap-y-1.5 text-sm text-[#4A5040] font-['Nunito'] font-semibold">
+            <div class="flex items-center gap-1.5">
+              <span>🕒</span>
+              <span>{{ activity.date }} {{ activity.time }}</span>
+            </div>
+            <div class="flex items-center gap-1.5 truncate">
+              <span>📍</span>
+              <span class="truncate font-cubic11">{{ activity.location }}</span>
+            </div>
+          </div>
+
+          <div class="flex items-end justify-between border-t border-[#DEF4CD] pt-3">
+            <div class="flex gap-2 items-center overflow-hidden h-7">
+              <img
+                v-for="participant in activity.participants.slice(0, 5)"
+                :key="participant.id"
+                class="inline-block h-6 w-6 rounded-none border border-[#4A5040] object-cover"
+                :src="participant.avatar"
+                alt="Avatar"
+              />
+
+              <span
+                v-if="activity.participants.length > 5"
+                class="flex items-center justify-center h-6 w-6 rounded-none border border-[#4A5040] bg-[#FEF7E8] text-[10px] font-bold text-[#4A5040]"
+              >
+                +{{ activity.participants.length - 5 }}
+              </span>
+            </div>
+
+            <div class="flex flex-col items-end gap-1.5">
+              <span
+                class="text-[11px] font-bold border border-[#4A5040] py-0.5 bg-white text-[#4A5040] w-[76px] text-center block whitespace-nowrap font-['Nunito']"
+                :class="
+                  activity.status !== 'success' &&
+                  activity.totalParticipants - activity.participants.length > 0
+                    ? 'visible'
+                    : 'invisible'
+                "
+              >
+                還差 {{ activity.totalParticipants - activity.participants.length }} 人
+              </span>
+
+              <span
+                class="inline-flex items-center justify-center py-0.5 rounded-none text-xs font-bold border border-[#4A5040] w-[76px] text-center whitespace-nowrap text-[#4A5040]"
+                :class="STATUS_MAP[activity.status]?.badgeBg"
+              >
+                {{ STATUS_MAP[activity.status]?.text }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+
+    <div v-else class="text-center py-12 text-lg border border-dashed border-[#4A5040] bg-white">
+      目前沒有相關活動
+    </div>
+  </div>
+</template>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@600&display=swap');
+
+.font-cubic11 {
+  font-family: 'cubic11', sans-serif;
+}
+.font-pixel {
+  font-family: 'Press Start 2P', monospace;
+}
+</style>
