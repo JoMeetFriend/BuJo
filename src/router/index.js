@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 /*登入頁面*/
-import LoginView from "../component/LoginView.vue"
+import LoginView from "../components/LoginView.vue"
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
