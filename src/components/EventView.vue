@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import EventDetailModal from './EventDetailModal.vue'
 
 const activities = ref([
   {
@@ -39,6 +40,7 @@ const activities = ref([
         avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
       },
     ],
+    currentCount: 7,
     totalParticipants: 8,
   },
   {
@@ -62,6 +64,7 @@ const activities = ref([
         avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
       },
     ],
+    currentCount: 3,
     totalParticipants: 14,
   },
   {
@@ -93,6 +96,7 @@ const activities = ref([
         avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
       },
     ],
+    currentCount: 5,
     totalParticipants: 5,
   },
 ])
@@ -131,8 +135,12 @@ const filteredActivities = computed(() => {
   return activities.value.filter((act) => act.status === currentFilter.value)
 })
 
+const isModalOpen = ref(false)
+const selectedActivityId = ref(null)
+
 const goToDetail = (id) => {
-  alert(`準備進入活動 ID: ${id} 的詳情頁面！`)
+  selectedActivityId.value = id
+  isModalOpen.value = true
 }
 </script>
 
@@ -169,7 +177,7 @@ const goToDetail = (id) => {
         v-for="activity in filteredActivities"
         :key="activity.id"
         @click="goToDetail(activity.id)"
-        class="border-[1.5px] border-[#9DBD86] rounded-none bg-white flex flex-col justify-between cursor-pointer overflow-hidden transition-all duration-200 ease-in-out hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_#9DBD86] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0px_0px_#4A5040]"
+        class="border-[1.5px] border-[#9DBD86] rounded-none bg-white flex flex-col justify-between cursor-pointer overflow-hidden transition-all duration-200 ease-in-out hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_#9DBD86]"
       >
         <div
           class="h-20 flex items-center justify-center border-b-[1.5px] border-[#9DBD86] shrink-0"
@@ -195,20 +203,20 @@ const goToDetail = (id) => {
           </div>
 
           <div class="flex items-end justify-between border-t border-[#DEF4CD] pt-3">
-            <div class="flex gap-2 items-center overflow-hidden h-7">
+            <div class="flex items-center overflow-hidden h-7">
               <img
                 v-for="participant in activity.participants.slice(0, 5)"
                 :key="participant.id"
-                class="inline-block h-6 w-6 rounded-none border border-[#4A5040] object-cover"
+                class="inline-block h-6 w-6 rounded-none border border-[#4A5040] object-cover shrink-0"
                 :src="participant.avatar"
                 alt="Avatar"
               />
 
               <span
-                v-if="activity.participants.length > 5"
-                class="flex items-center justify-center h-6 w-6 rounded-none border border-[#4A5040] bg-[#FEF7E8] text-[10px] font-bold text-[#4A5040]"
+                v-if="activity.currentCount > 5"
+                class="flex items-center justify-center h-6 w-6 rounded-none border border-[#4A5040] bg-[#FEF7E8] text-[10px] font-bold text-[#4A5040] shrink-0"
               >
-                +{{ activity.participants.length - 5 }}
+                +{{ activity.currentCount - 5 }}
               </span>
             </div>
 
@@ -217,12 +225,12 @@ const goToDetail = (id) => {
                 class="text-[11px] font-bold border border-[#4A5040] py-0.5 bg-white text-[#4A5040] w-[76px] text-center block whitespace-nowrap font-['Nunito']"
                 :class="
                   activity.status !== 'success' &&
-                  activity.totalParticipants - activity.participants.length > 0
+                  activity.totalParticipants - activity.currentCount > 0
                     ? 'visible'
                     : 'invisible'
                 "
               >
-                還差 {{ activity.totalParticipants - activity.participants.length }} 人
+                還差 {{ activity.totalParticipants - activity.currentCount }} 人
               </span>
 
               <span
@@ -240,6 +248,12 @@ const goToDetail = (id) => {
     <div v-else class="text-center py-12 text-lg border border-dashed border-[#4A5040] bg-white">
       目前沒有相關活動
     </div>
+
+    <EventDetailModal
+      :is-open="isModalOpen"
+      :activity-id="selectedActivityId"
+      @close="isModalOpen = false"
+    />
   </div>
 </template>
 

@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div class="fixed inset-0 bg-[#4A5040]/40 cursor-pointer" @click="handleOutsideClick"></div>
+      <div class="fixed inset-0 bg-[#4A5040]/40 cursor-pointer" @click="handleClose"></div>
 
       <div
         v-if="currentActivity"
@@ -48,6 +48,11 @@
             <div>
               <div class="text-sm text-[#4A5040] font-pixel mb-0.5">地點</div>
               <div>{{ currentActivity.location }}</div>
+            </div>
+
+            <div>
+              <div class="text-sm text-[#4A5040] font-pixel mb-0.5">費用</div>
+              <div>{{ currentActivity.cost }} 元</div>
             </div>
 
             <div>
@@ -124,7 +129,7 @@ const props = defineProps({
   activityId: Number,
 })
 
-const emit = defineEmits(['close', 'save-draft', 'sign-up'])
+const emit = defineEmits(['close'])
 
 const detailedActivitiesMock = [
   {
@@ -135,6 +140,7 @@ const detailedActivitiesMock = [
     location: '臺北市中正區黎明里衡陽路7號5樓',
     host: 'AAA',
     memo: '記得帶筆電...................................！',
+    cost: '100',
     currentCount: 7,
     maxParticipants: 10,
   },
@@ -146,6 +152,7 @@ const detailedActivitiesMock = [
     location: '台北大安森林公園大草皮',
     host: '小美',
     memo: '週末野餐趴！請自行攜帶野餐墊與一份你想跟大家分享的零食，下雨的話就改去室內桌遊店喔。',
+    cost: '150',
     currentCount: 3,
     maxParticipants: 6,
   },
@@ -157,32 +164,22 @@ const detailedActivitiesMock = [
     location: '某某像素風格咖啡廳',
     host: '老王',
     memo: '這家咖啡廳超難訂位！好不容易搶到 5 個人的位子，這次主要聊聊.........。',
+    cost: '200',
     currentCount: 5,
     maxParticipants: 5,
   },
 ]
 
 const currentActivity = computed(() => {
-  // if (props.activityId) {
-  //   return detailedActivitiesMock.find((act) => Number(act.id) === Number(props.activityId)) || null
-  // }
-
-  // return detailedActivitiesMock[0]
-
   return detailedActivitiesMock.find((act) => act.id === props.activityId) || null
 })
-
-const handleOutsideClick = () => {
-  emit('save-draft')
-  emit('close')
-}
 
 const handleClose = () => {
   emit('close')
 }
 
 const handleSignUp = () => {
-  emit('sign-up')
+  // 點擊報名參加時
 }
 </script>
 
