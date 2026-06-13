@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import EventDetailModal from './EventDetailModal.vue'
+import ActivityDetailModal from './ActivityDetailModal.vue'
 
 const activities = ref([
   {
@@ -249,7 +249,7 @@ const goToDetail = (id) => {
       目前沒有相關活動
     </div>
 
-    <EventDetailModal
+    <ActivityDetailModal
       :is-open="isModalOpen"
       :activity-id="selectedActivityId"
       @close="isModalOpen = false"
