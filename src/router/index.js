@@ -6,6 +6,7 @@ import LoginView from '../components/LoginView.vue'
 /*註冊頁面*/
 
 import FriendsPage from '../components/FriendsPage.vue'
+import AvailabilityPickerModal from '@/components/AvailabilityPickerModal.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -55,6 +56,11 @@ const router = createRouter({
       path: '/event',
       name: 'event',
       component: EventView,
+    },
+    {
+      path: '/availability-picker',
+      name: 'availability-picker',
+      component: AvailabilityPickerModal,
     },
   ],
 })
