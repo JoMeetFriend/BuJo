@@ -1,6 +1,8 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 
+const modalBody = ref(null)
+
 const props = defineProps({
   modelValue: Boolean,
   rangeStart: { type: String, default: '2026-07-10' },
@@ -147,6 +149,13 @@ function resetAllDay() {
   selectedDates.value[activeDate.value] = null
 }
 
+function onTimeInputFocus(evt) {
+  if (window.innerWidth >= 768) return
+  setTimeout(() => {
+    evt.target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, 150)
+}
+
 // ── 摘要 ──
 const summaryItems = computed(() =>
   Object.entries(selectedDates.value)
@@ -206,7 +215,7 @@ function handleConfirm() {
         </div>
 
         <!-- Body -->
-        <div class="flex md:flex-row flex-col flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
+        <div ref="modalBody" class="flex md:flex-row flex-col flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
 
           <!-- 日曆區 -->
           <div class="border-b-2 md:border-b-0 md:border-r-2 border-[#DEF4CD] p-3 md:p-4 w-full md:flex-1 flex flex-col">
@@ -291,6 +300,8 @@ function handleConfirm() {
                              font-bold text-[#4A5040] outline-none focus:border-[#87C06D]
                              focus:bg-white transition-colors"
                       style="font-size:13px"
+                      @focus="onTimeInputFocus"
+                      @click="$event.target.showPicker?.()"
                     >
                     <span class="text-[12px] text-[#9DBD86] font-bold shrink-0">→</span>
                     <input
@@ -300,6 +311,8 @@ function handleConfirm() {
                              font-bold text-[#4A5040] outline-none focus:border-[#87C06D]
                              focus:bg-white transition-colors"
                       style="font-size:13px"
+                      @focus="onTimeInputFocus"
+                      @click="$event.target.showPicker?.()"
                     >
                     <button
                       @click="removeRange(i)"
