@@ -61,11 +61,6 @@ const router = createRouter({
       component: EventView,
     },
     {
-      path: '/404',
-      name: 'not-found-test',
-      component: NotFound,
-    },
-    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: NotFound,
