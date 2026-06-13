@@ -57,7 +57,9 @@
 
             <div>
               <div class="text-sm text-[#4A5040] font-pixel mb-0.5">備註</div>
-              <div class="text-base">
+              <div
+                class="text-base break-words whitespace-pre-wrap max-h-[4.5rem] overflow-y-auto pr-2 custom-scrollbar"
+              >
                 {{ currentActivity.memo }}
               </div>
             </div>
@@ -151,7 +153,7 @@ const detailedActivitiesMock = [
     time: '09:00 - 17:00',
     location: '台北大安森林公園大草皮',
     host: '小美',
-    memo: '週末野餐趴！請自行攜帶野餐墊與一份你想跟大家分享的零食，下雨的話就改去室內桌遊店喔。',
+    memo: '週末野餐趴！請自行攜帶野餐墊與一份你想跟大家分享的零食，下雨的話就改去室內桌遊店喔。週末野餐趴！請自行攜帶野餐墊與一份你想跟大家分享的零食，下雨的話就改去室內桌遊店喔。週末野餐趴！請自行攜帶野餐墊與一份你想跟大家分享的零食，下雨的話就改去室內桌遊店喔。',
     cost: '150',
     currentCount: 3,
     maxParticipants: 6,
@@ -191,5 +193,22 @@ const handleSignUp = () => {
 }
 .font-pixel {
   font-family: 'Press Start 2P', monospace;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4a5040;
+  border: 1px solid #fef7e8;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #87c06d;
 }
 </style>
