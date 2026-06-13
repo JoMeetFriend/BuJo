@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import EventView from '../components/EventView.vue'
+import NotFound from '../components/NotFound.vue'
 
 /*登入頁面*/
 import LoginView from '../components/LoginView.vue'
@@ -12,8 +13,11 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'calendar',
       redirect: '/calendar',
+    },
+    {
+      path: '/calendar',
+      name: 'calendar',
       component: () => import('../components/CalendarMain.vue'),
     },
     {
