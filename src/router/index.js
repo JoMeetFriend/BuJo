@@ -12,8 +12,11 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'calendar',
       redirect: '/calendar',
+    },
+    {
+      path: '/calendar',
+      name: 'calendar',
       component: () => import('../components/CalendarMain.vue'),
     },
     {
@@ -55,6 +58,11 @@ const router = createRouter({
       path: '/event',
       name: 'event',
       component: EventView,
+    },
+    {
+      path: '/itinerary-detail',
+      name: 'itinerary-detail',
+      component: () => import('../components/ItineraryDetailModal.vue'),
     },
   ],
 })
