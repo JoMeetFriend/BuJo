@@ -41,7 +41,7 @@ const activities = ref([
       },
     ],
     currentCount: 7,
-    totalParticipants: 8,
+    maxParticipants: 8,
   },
   {
     id: 2,
@@ -65,7 +65,7 @@ const activities = ref([
       },
     ],
     currentCount: 3,
-    totalParticipants: 14,
+    maxParticipants: 14,
   },
   {
     id: 3,
@@ -97,7 +97,7 @@ const activities = ref([
       },
     ],
     currentCount: 5,
-    totalParticipants: 5,
+    maxParticipants: 5,
   },
 ])
 
@@ -146,18 +146,20 @@ const goToDetail = (id) => {
 
 <template>
   <div class="w-full max-w-7xl mx-auto p-6 bg-[#FEF7E8] min-h-screen text-[#4A5040] font-cubic11">
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-4 mb-6 pb-4">
+    <div class="flex flex-col lg:flex-row lg:justify-between sm:items-baseline gap-4 mb-6 pb-4">
       <div class="flex items-baseline gap-4">
-        <h1 class="text-4xl font-extrabold text-[#4A5040] tracking-wider">活動</h1>
-        <span class="text-xl font-pixel text-[#9DBD86] tracking-widest uppercase"> ACTIVITY </span>
+        <h1 class="text-3xl font-extrabold text-[#4A5040] tracking-wider">活動</h1>
+        <span class="text-base font-pixel text-[#9DBD86] tracking-widest uppercase">
+          ACTIVITY
+        </span>
       </div>
 
-      <div class="flex gap-2.5 self-end sm:self-auto">
+      <div class="flex gap-2.5 self-end lg:self-auto">
         <button
           v-for="item in filters"
           :key="item.key"
           @click="currentFilter = item.key"
-          class="px-4 py-1 text-sm font-bold border-[#4A5040] transition-all duration-150 ease-out select-none"
+          class="px-3 sm:px-4 py-1 text-sm font-bold border border-[#4A5040] transition-all duration-150 ease-out select-none whitespace-nowrap"
           :class="
             currentFilter === item.key
               ? 'bg-[#87C06D] text-white -translate-x-[2px] -translate-y-[2px] shadow-[2px_2px_0px_0px_#4A5040]'
@@ -171,7 +173,7 @@ const goToDetail = (id) => {
 
     <ul
       v-if="filteredActivities.length > 0"
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+      class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
     >
       <li
         v-for="activity in filteredActivities"
@@ -191,14 +193,14 @@ const goToDetail = (id) => {
         <div class="p-4 flex flex-col flex-grow bg-white justify-between gap-4">
           <h2 class="text-xl font-bold text-[#4A5040] truncate mb-2">{{ activity.title }}</h2>
 
-          <div class="flex flex-col gap-y-1.5 text-sm text-[#4A5040] font-['Nunito'] font-semibold">
+          <div class="flex flex-col gap-y-1.5 text-sm text-[#4A5040]">
             <div class="flex items-center gap-1.5">
               <span>🕒</span>
               <span>{{ activity.date }} {{ activity.time }}</span>
             </div>
             <div class="flex items-center gap-1.5 truncate">
               <span>📍</span>
-              <span class="truncate font-cubic11">{{ activity.location }}</span>
+              <span class="truncate">{{ activity.location }}</span>
             </div>
           </div>
 
@@ -222,15 +224,15 @@ const goToDetail = (id) => {
 
             <div class="flex flex-col items-end gap-1.5">
               <span
-                class="text-[11px] font-bold border border-[#4A5040] py-0.5 bg-white text-[#4A5040] w-[76px] text-center block whitespace-nowrap font-['Nunito']"
+                class="text-[11px] border border-[#4A5040] py-0.5 bg-white text-[#4A5040] w-[76px] text-center block whitespace-nowrap"
                 :class="
                   activity.status !== 'success' &&
-                  activity.totalParticipants - activity.currentCount > 0
+                  activity.maxParticipants - activity.currentCount > 0
                     ? 'visible'
                     : 'invisible'
                 "
               >
-                還差 {{ activity.totalParticipants - activity.currentCount }} 人
+                還差 {{ activity.maxParticipants - activity.currentCount }} 人
               </span>
 
               <span

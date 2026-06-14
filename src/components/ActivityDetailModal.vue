@@ -30,7 +30,7 @@
             </svg>
           </div>
 
-          <div class="flex items-center gap-2 text-sm font-semibold">
+          <div class="flex items-center gap-2 text-sm">
             <div class="w-6 h-6 border border-[#4A5040] flex items-center justify-center bg-white">
               <span class="text-xs">⭐</span>
             </div>
@@ -39,24 +39,22 @@
 
           <div class="flex flex-col gap-3 text-base">
             <div>
-              <div class="text-sm text-[#4A5040] font-pixel mb-0.5">時間</div>
-              <div class="font-['Nunito'] font-semibold">
-                {{ currentActivity.date }} {{ currentActivity.time }}
-              </div>
+              <div class="text-sm text-[#4A5040] mb-0.5">時間</div>
+              <div>{{ currentActivity.date }} {{ currentActivity.time }}</div>
             </div>
 
             <div>
-              <div class="text-sm text-[#4A5040] font-pixel mb-0.5">地點</div>
+              <div class="text-sm text-[#4A5040] mb-0.5">地點</div>
               <div>{{ currentActivity.location }}</div>
             </div>
 
             <div>
-              <div class="text-sm text-[#4A5040] font-pixel mb-0.5">費用</div>
+              <div class="text-sm text-[#4A5040] mb-0.5">費用</div>
               <div>{{ currentActivity.cost }} 元</div>
             </div>
 
             <div>
-              <div class="text-sm text-[#4A5040] font-pixel mb-0.5">備註</div>
+              <div class="text-sm text-[#4A5040] mb-0.5">備註</div>
               <div
                 class="text-base break-words whitespace-pre-wrap max-h-[4.5rem] overflow-y-auto pr-2 custom-scrollbar"
               >
@@ -65,37 +63,33 @@
             </div>
           </div>
 
-          <div class="flex items-end justify-between border-t border-[#DEF4CD] pt-4">
+          <div class="flex items-end justify-between border-b border-[#DEF4CD] pb-4">
             <div class="flex flex-col gap-2">
-              <div class="text-sm font-bold">
+              <div class="text-sm text-[#4A5040] mb-0.5">
                 已報名 {{ currentActivity.currentCount }} / {{ currentActivity.maxParticipants }}
               </div>
 
               <div class="flex gap-1.5 items-center h-6">
-                <div
-                  class="w-6 h-6 border border-[#4A5040] bg-[#DEF4CD] flex items-center justify-center font-['Nunito'] text-[10px] font-bold"
-                >
-                  A1
-                </div>
-                <div
-                  class="w-6 h-6 border border-[#4A5040] bg-[#F9CE9A] flex items-center justify-center font-['Nunito'] text-[10px] font-bold"
-                >
-                  A2
-                </div>
-                <div
-                  class="w-6 h-6 border border-[#4A5040] bg-[#E9EF6E] flex items-center justify-center font-['Nunito'] text-[10px] font-bold"
-                >
-                  A3
+                <div class="flex items-center overflow-hidden h-7">
+                  <img
+                    v-for="participant in currentActivity.participants.slice(0, 5)"
+                    :key="participant.id"
+                    class="inline-block h-6 w-6 rounded-none border border-[#4A5040] object-cover shrink-0"
+                    :src="participant.avatar"
+                    alt="Avatar"
+                  />
+
+                  <span
+                    v-if="currentActivity.currentCount > 5"
+                    class="flex items-center justify-center h-6 w-6 rounded-none border border-[#4A5040] bg-[#FEF7E8] text-[10px] font-bold text-[#4A5040] shrink-0"
+                  >
+                    +{{ currentActivity.currentCount - 5 }}
+                  </span>
                 </div>
 
                 <span
-                  class="flex items-center justify-center h-6 w-6 rounded-none border border-[#4A5040] bg-[#FEF7E8] text-[10px] font-bold text-[#4A5040] font-['Nunito']"
-                >
-                  A4
-                </span>
-                <span
                   v-if="currentActivity.maxParticipants - currentActivity.currentCount > 0"
-                  class="text-[11px] font-bold border border-[#4A5040] px-2 py-0.5 bg-[#87C06D] text-white font-['Nunito'] tracking-wider"
+                  class="text-[11px] font-bold border border-[#4A5040] px-2 py-0.5 bg-[#87C06D] text-white tracking-wider"
                 >
                   還差 {{ currentActivity.maxParticipants - currentActivity.currentCount }} 人
                 </span>
@@ -104,7 +98,7 @@
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 px-6 pb-6 pt-2">
+        <div class="flex justify-end gap-3 px-6 pb-6">
           <button
             @click="handleClose"
             class="bg-white border-2 border-[#4A5040] shadow-[3px_3px_0_#4A5040] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_#4A5040] px-5 py-1.5 text-sm font-bold transition-all"
@@ -133,7 +127,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
-const detailedActivitiesMock = [
+const mockActivities = [
   {
     id: 1,
     title: '上課',
@@ -141,8 +135,38 @@ const detailedActivitiesMock = [
     time: '9:30 - 16:30',
     location: '臺北市中正區黎明里衡陽路7號5樓',
     host: 'AAA',
-    memo: '記得帶筆電...................................！',
+    memo: '無',
     cost: '100',
+    participants: [
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 105,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 106,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 107,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+    ],
     currentCount: 7,
     maxParticipants: 10,
   },
@@ -155,6 +179,20 @@ const detailedActivitiesMock = [
     host: '小美',
     memo: '週末野餐趴！請自行攜帶野餐墊與一份你想跟大家分享的零食，下雨的話就改去室內桌遊店喔。週末野餐趴！請自行攜帶野餐墊與一份你想跟大家分享的零食，下雨的話就改去室內桌遊店喔。週末野餐趴！請自行攜帶野餐墊與一份你想跟大家分享的零食，下雨的話就改去室內桌遊店喔。',
     cost: '150',
+    participants: [
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+    ],
     currentCount: 3,
     maxParticipants: 6,
   },
@@ -167,13 +205,35 @@ const detailedActivitiesMock = [
     host: '老王',
     memo: '這家咖啡廳超難訂位！好不容易搶到 5 個人的位子，這次主要聊聊.........。',
     cost: '200',
+    participants: [
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 105,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+    ],
     currentCount: 5,
     maxParticipants: 5,
   },
 ]
 
 const currentActivity = computed(() => {
-  return detailedActivitiesMock.find((act) => act.id === props.activityId) || null
+  return mockActivities.find((act) => act.id === props.activityId) || null
 })
 
 const handleClose = () => {
