@@ -112,6 +112,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
+import { googleTokenLogin } from 'vue3-google-login'
 
 const showPassword = ref(false)
 
@@ -125,10 +126,51 @@ const handleLogin = () => {
   console.log('登入資料：', form)
 }
 
-const handleGoogleLogin = () => {
-  // TODO: 串接 Google OAuth
-  console.log('Google 登入')
-}
+
+
+//!
+  const handleGoogleLogin = async () => {
+    try {
+      // response.access_token 就是 Google 給的通行證
+      const response = await googleTokenLogin()
+      console.log('成功！token：', response.access_token)
+      // 現在先印出來確認有沒有拿到，後端建好再補送 API
+    }catch (error) {
+      // 這裡處理「在 Google 那一關就失敗」的情況：
+     // 使用者關掉視窗、網路連不到 Google、Google 本身壞掉
+      if (error?.type !== 'popup_closed') {
+      // popup_closed = 視窗正常關閉，不是真正的錯誤
+      console.error('Google 登入失敗', error)
+
+      }
+    }
+  } 
+
+
+  // 有後端後改這段 ↓
+  // const handleGoogleLogin = async () => {
+  //   try {   
+  //     // 第一步：跟 Google 拿 token（現在就有）
+  //     const response = await googleTokenLogin()
+  
+  //     // 第二步：把 token 送去你的後端驗證（後端建好再加這段）
+  //     const result = await fetch('/api/auth/google', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ token: response.access_token })
+  //     })
+  //     const data = await result.json()
+  //     // data.token 是後端給我們的 JWT（會員卡）
+  //     // 之後第八課教你怎麼存這個
+
+  //   } catch (error) {
+  //     // Google 失敗 或 後端失敗，都會進這裡
+  //     console.error('登入失敗', error)
+  //   }
+  // }
+
+
+
 
 const handleLineLogin = () => {
   // TODO: 串接 LINE Login OAuth
