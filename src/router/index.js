@@ -59,11 +59,6 @@ const router = createRouter({
       name: 'event',
       component: EventView,
     },
-    {
-      path: '/itinerary-detail',
-      name: 'itinerary-detail',
-      component: () => import('../components/ItineraryDetailModal.vue'),
-    },
   ],
 })
 

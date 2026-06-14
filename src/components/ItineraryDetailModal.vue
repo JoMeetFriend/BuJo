@@ -98,14 +98,8 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  isOpen: {
-    type: Boolean,
-    default: true,
-  },
-  activityId: {
-    type: Number,
-    default: 1,
-  },
+  isOpen: Boolean,
+  activityId: Number,
 })
 
 const emit = defineEmits(['close'])
@@ -113,11 +107,127 @@ const emit = defineEmits(['close'])
 const mockActivities = [
   {
     id: 1,
-    title: '爬山',
-    date: '6/11',
+    title: 'KTV',
+    date: '2026-06-02',
     time: '9:30 - 16:30',
     location: '臺北市中正區黎明里衡陽路7號5樓',
-    status: 'success',
+    status: 'joined',
+    participants: [
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+    ],
+
+    currentCount: 4,
+    maxParticipants: 6,
+  },
+  {
+    id: 2,
+    title: '小酌',
+    date: '2026-06-04',
+    time: '9:30 - 16:30',
+    location: '臺北市中正區黎明里衡陽路7號5樓',
+    status: 'personal',
+    participants: [
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+    ],
+
+    currentCount: 4,
+    maxParticipants: 6,
+  },
+  {
+    id: 3,
+    title: '晚餐',
+    date: '2026-06-05',
+    time: '9:30 - 16:30',
+    location: '臺北市中正區黎明里衡陽路7號5樓',
+    status: 'formed',
+    participants: [
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+    ],
+
+    currentCount: 4,
+    maxParticipants: 6,
+  },
+  {
+    id: 4,
+    title: '爬山',
+    date: '2026-06-10',
+    time: '9:30 - 16:30',
+    location: '臺北市中正區黎明里衡陽路7號5樓',
+    status: 'joined',
+    participants: [
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+    ],
+
+    currentCount: 4,
+    maxParticipants: 6,
+  },
+  {
+    id: 6,
+    title: '歌唱',
+    date: '2026-06-18',
+    time: '9:30 - 16:30',
+    location: '臺北市中正區黎明里衡陽路7號5樓',
+    status: 'formed',
     participants: [
       {
         id: 101,
@@ -143,12 +253,12 @@ const mockActivities = [
 ]
 
 const STATUS_MAP = {
-  registered: {
+  joined: {
     text: '已報名',
     color: '#FEF7E8',
     badgeBg: 'bg-[#87C06D]',
   },
-  success: {
+  formed: {
     text: '已成團',
     color: '#4A5040',
     badgeBg: 'bg-[#D9F0A8]',
