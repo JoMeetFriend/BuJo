@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 
 const modalBody = ref(null)
 
@@ -118,8 +118,14 @@ function onMouseup() {
   dragState.hovering = new Set()
 }
 
-onMounted(()   => window.addEventListener('mouseup', onMouseup))
-onUnmounted(() => window.removeEventListener('mouseup', onMouseup))
+onMounted(() => {
+  window.addEventListener('mouseup', onMouseup)
+  document.addEventListener('click', handleDocumentClickTimePicker)
+})
+onUnmounted(() => {
+  window.removeEventListener('mouseup', onMouseup)
+  document.removeEventListener('click', handleDocumentClickTimePicker)
+})
 
 // ── 時段操作 ──
 function isAllDay(dateKey) {
@@ -149,11 +155,37 @@ function resetAllDay() {
   selectedDates.value[activeDate.value] = null
 }
 
-function onTimeInputFocus(evt) {
-  if (window.innerWidth >= 768) return
-  setTimeout(() => {
-    evt.target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, 150)
+const hourOptions = Array.from({ length: 24 }, (_, hour) => {
+  const period = hour < 12 ? '上午' : '下午'
+  const display = String(hour % 12 || 12)
+  const value = String(hour).padStart(2, '0') + ':00'
+  return { label: `${period} ${display}:00`, value }
+})
+
+const activeTimePicker = ref(null)
+
+function toLabel(value) {
+  if (!value) return ''
+  const hour = parseInt(value.split(':')[0])
+  const period = hour < 12 ? '上午' : '下午'
+  const display = String(hour % 12 || 12)
+  return `${period} ${display}:00`
+}
+
+function openTimePicker(key, containerEl) {
+  activeTimePicker.value = activeTimePicker.value === key ? null : key
+  if (activeTimePicker.value === key) {
+    nextTick(() => {
+      const el = containerEl?.querySelector('[data-hour="9"]')
+      el?.scrollIntoView({ block: 'center' })
+    })
+  }
+}
+
+function handleDocumentClickTimePicker(e) {
+  if (!e.target.closest('.time-picker-wrap')) {
+    activeTimePicker.value = null
+  }
 }
 
 // ── 摘要 ──
@@ -293,27 +325,63 @@ function handleConfirm() {
                     v-for="(range, i) in selectedDates[activeDate]" :key="i"
                     class="flex items-center gap-1.5 shrink-0 min-w-0"
                   >
-                    <input
-                      type="time"
-                      v-model="range.from"
-                      class="flex-1 min-w-0 border-2 border-[#DEF4CD] bg-[#fafdf7] px-1.5 py-1.5
-                             font-bold text-[#4A5040] outline-none focus:border-[#87C06D]
-                             focus:bg-white transition-colors"
-                      style="font-size:13px"
-                      @focus="onTimeInputFocus"
-                      @click="$event.target.showPicker?.()"
-                    >
+                    <div class="relative time-picker-wrap flex-1 min-w-0" @click.stop>
+                      <button
+                        class="w-full border-2 border-[#DEF4CD] bg-[#fafdf7] px-1.5 py-1.5
+                               font-bold text-[#4A5040] text-[13px] outline-none transition-colors
+                               hover:border-[#87C06D] text-left"
+                        :class="{ 'border-[#87C06D]': activeTimePicker === `from-${i}` }"
+                        type="button"
+                        @click="openTimePicker(`from-${i}`, $el.parentElement)"
+                      >{{ toLabel(range.from) }}</button>
+                      <div
+                        v-if="activeTimePicker === `from-${i}`"
+                        class="absolute top-[calc(100%+4px)] left-0 z-50 border-2 border-[#9DBD86]
+                               bg-[#fafdf7] shadow-[4px_4px_0_#DEF4CD] w-[130px] max-h-[200px] overflow-y-auto"
+                      >
+                        <button
+                          v-for="opt in hourOptions" :key="opt.value"
+                          :data-hour="parseInt(opt.value)"
+                          class="block w-full px-2 py-1.5 text-left text-[12px] font-bold font-cubic11
+                                 border-b border-[#DEF4CD] last:border-b-0 transition-colors
+                                 hover:bg-[#f0fae5]"
+                          :class="range.from === opt.value
+                            ? 'bg-[#87C06D] text-white'
+                            : 'text-[#9DBD86] bg-[#fafdf7]'"
+                          type="button"
+                          @click="range.from = opt.value; activeTimePicker = null"
+                        >{{ opt.label }}</button>
+                      </div>
+                    </div>
                     <span class="text-[12px] text-[#9DBD86] font-bold shrink-0">→</span>
-                    <input
-                      type="time"
-                      v-model="range.to"
-                      class="flex-1 min-w-0 border-2 border-[#DEF4CD] bg-[#fafdf7] px-1.5 py-1.5
-                             font-bold text-[#4A5040] outline-none focus:border-[#87C06D]
-                             focus:bg-white transition-colors"
-                      style="font-size:13px"
-                      @focus="onTimeInputFocus"
-                      @click="$event.target.showPicker?.()"
-                    >
+                    <div class="relative time-picker-wrap flex-1 min-w-0" @click.stop>
+                      <button
+                        class="w-full border-2 border-[#DEF4CD] bg-[#fafdf7] px-1.5 py-1.5
+                               font-bold text-[#4A5040] text-[13px] outline-none transition-colors
+                               hover:border-[#87C06D] text-left"
+                        :class="{ 'border-[#87C06D]': activeTimePicker === `to-${i}` }"
+                        type="button"
+                        @click="openTimePicker(`to-${i}`, $el.parentElement)"
+                      >{{ toLabel(range.to) }}</button>
+                      <div
+                        v-if="activeTimePicker === `to-${i}`"
+                        class="absolute top-[calc(100%+4px)] left-0 z-50 border-2 border-[#9DBD86]
+                               bg-[#fafdf7] shadow-[4px_4px_0_#DEF4CD] w-[130px] max-h-[200px] overflow-y-auto"
+                      >
+                        <button
+                          v-for="opt in hourOptions" :key="opt.value"
+                          :data-hour="parseInt(opt.value)"
+                          class="block w-full px-2 py-1.5 text-left text-[12px] font-bold font-cubic11
+                                 border-b border-[#DEF4CD] last:border-b-0 transition-colors
+                                 hover:bg-[#f0fae5]"
+                          :class="range.to === opt.value
+                            ? 'bg-[#87C06D] text-white'
+                            : 'text-[#9DBD86] bg-[#fafdf7]'"
+                          type="button"
+                          @click="range.to = opt.value; activeTimePicker = null"
+                        >{{ opt.label }}</button>
+                      </div>
+                    </div>
                     <button
                       @click="removeRange(i)"
                       class="w-6 h-6 bg-[#DEF4CD] border-2 border-[#9DBD86] text-[11px]
