@@ -38,4 +38,11 @@ __screenshots__/
 # Vite
 *.timestamp-*-*.mjs
 
+docs/superpowers
+.superpowers/
+
+
 .env
+.env.local
+.env.*.local
+
