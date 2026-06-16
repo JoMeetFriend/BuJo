@@ -1,14 +1,14 @@
 <template>
   <Teleport to="body">
     <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div class="fixed inset-0 bg-[#4A5040]/40 cursor-pointer" @click="handleClose"></div>
+      <div class="fixed inset-0 bg-brand-text/40 cursor-pointer" @click="handleClose"></div>
 
       <div
         v-if="currentActivity"
-        class="relative w-full max-w-[560px] bg-[#FEF7E8] border-[1.5px] border-[#4A5040] shadow-[6px_6px_0px_0px_#4A5040] z-10 flex flex-col font-cubic11 text-[#4A5040] select-none"
+        class="relative w-full max-w-[560px] bg-page-bg border-[1.5px] border-brand-text shadow-[6px_6px_0px_0px_theme(colors.brand-text)] z-10 flex flex-col font-cubic11 text-brand-text select-none"
       >
         <div
-          class="flex justify-between items-center px-4 py-3 border-b-[1.5px] border-[#4A5040] bg-[#D9F0A8]"
+          class="flex justify-between items-center px-4 py-3 border-b-[1.5px] border-brand-text bg-primary-light"
         >
           <h3 class="text-xl font-bold tracking-wider">{{ currentActivity.title }}</h3>
           <button
@@ -21,9 +21,9 @@
 
         <div class="p-6 flex flex-col gap-5">
           <div
-            class="h-32 flex items-center justify-center border-[1.5px] border-[#4A5040] bg-[#DEF4CD]"
+            class="h-32 flex items-center justify-center border-[1.5px] border-brand-text bg-primary-pale"
           >
-            <svg class="h-12 w-12 text-[#4A5040]" fill="currentColor" viewBox="0 0 24 24">
+            <svg class="h-12 w-12 text-brand-text" fill="currentColor" viewBox="0 0 24 24">
               <path
                 d="M4 2h16v2H4V2zm2 4h12v2H6V6zm-2 4h16v2H4v-2zm4 4h8v2H8v-2zm-6 4h20v2H2v-2z"
               />
@@ -31,7 +31,7 @@
           </div>
 
           <div class="flex items-center gap-2 text-sm">
-            <div class="w-6 h-6 border border-[#4A5040] flex items-center justify-center bg-white">
+            <div class="w-6 h-6 border border-brand-text flex items-center justify-center bg-white">
               <span class="text-xs">⭐</span>
             </div>
             <span>{{ currentActivity.host }} 發起</span>
@@ -39,22 +39,22 @@
 
           <div class="flex flex-col gap-3 text-base">
             <div>
-              <div class="text-sm text-[#4A5040] mb-0.5">時間</div>
+              <div class="text-sm text-brand-text mb-0.5">時間</div>
               <div>{{ currentActivity.date }} {{ currentActivity.time }}</div>
             </div>
 
             <div>
-              <div class="text-sm text-[#4A5040] mb-0.5">地點</div>
+              <div class="text-sm text-brand-text mb-0.5">地點</div>
               <div>{{ currentActivity.location }}</div>
             </div>
 
             <div>
-              <div class="text-sm text-[#4A5040] mb-0.5">費用</div>
+              <div class="text-sm text-brand-text mb-0.5">費用</div>
               <div>{{ currentActivity.cost }} 元</div>
             </div>
 
             <div>
-              <div class="text-sm text-[#4A5040] mb-0.5">備註</div>
+              <div class="text-sm text-brand-text mb-0.5">備註</div>
               <div
                 class="text-base break-words whitespace-pre-wrap max-h-[4.5rem] overflow-y-auto pr-2 custom-scrollbar"
               >
@@ -63,9 +63,9 @@
             </div>
           </div>
 
-          <div class="flex items-end justify-between border-b border-[#DEF4CD] pb-4">
+          <div class="flex items-end justify-between border-b border-primary-pale pb-4">
             <div class="flex flex-col gap-2">
-              <div class="text-sm text-[#4A5040] mb-0.5">
+              <div class="text-sm text-brand-text mb-0.5">
                 已報名 {{ currentActivity.currentCount }} / {{ currentActivity.maxParticipants }}
               </div>
 
@@ -74,14 +74,14 @@
                   <img
                     v-for="participant in currentActivity.participants.slice(0, 5)"
                     :key="participant.id"
-                    class="inline-block h-6 w-6 rounded-none border border-[#4A5040] object-cover shrink-0"
+                    class="inline-block h-6 w-6 rounded-none border border-brand-text object-cover shrink-0"
                     :src="participant.avatar"
                     alt="Avatar"
                   />
 
                   <span
                     v-if="currentActivity.currentCount > 5"
-                    class="flex items-center justify-center h-6 w-6 rounded-none border border-[#4A5040] bg-[#FEF7E8] text-[10px] font-bold text-[#4A5040] shrink-0"
+                    class="flex items-center justify-center h-6 w-6 rounded-none border border-brand-text bg-page-bg text-[10px] font-bold text-brand-text shrink-0"
                   >
                     +{{ currentActivity.currentCount - 5 }}
                   </span>
@@ -89,7 +89,7 @@
 
                 <span
                   v-if="currentActivity.maxParticipants - currentActivity.currentCount > 0"
-                  class="text-[11px] font-bold border border-[#4A5040] px-2 py-0.5 bg-[#87C06D] text-white tracking-wider"
+                  class="text-[11px] font-bold border border-brand-text px-2 py-0.5 bg-primary-green text-white tracking-wider"
                 >
                   還差 {{ currentActivity.maxParticipants - currentActivity.currentCount }} 人
                 </span>
@@ -101,13 +101,13 @@
         <div class="flex justify-end gap-3 px-6 pb-6">
           <button
             @click="handleClose"
-            class="bg-white border-2 border-[#4A5040] shadow-[3px_3px_0_#4A5040] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_#4A5040] px-5 py-1.5 text-sm font-bold transition-all"
+            class="bg-white border-2 border-brand-text shadow-pixel active:translate-x-[2px] active:translate-y-[2px] active:shadow-pixel-pressed px-5 py-1.5 text-sm font-bold transition-all"
           >
             關閉
           </button>
           <button
             @click="handleSignUp"
-            class="bg-[#87C06D] text-white border-2 border-[#4A5040] shadow-[3px_3px_0_#4A5040] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_#4A5040] px-5 py-1.5 text-sm font-bold transition-all"
+            class="bg-primary-green text-white border-2 border-brand-text shadow-pixel active:translate-x-[2px] active:translate-y-[2px] active:shadow-pixel-pressed px-5 py-1.5 text-sm font-bold transition-all"
           >
             報名參加
           </button>
@@ -255,11 +255,11 @@ const handleSignUp = () => {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #4a5040;
-  border: 1px solid #fef7e8;
+  background: theme('colors.brand-text');
+  border: 1px solid theme('colors.page-bg');
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #87c06d;
+  background: theme('colors.primary-green');
 }
 </style>
