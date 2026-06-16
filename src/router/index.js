@@ -12,7 +12,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/calendar',
+      path: '/',
       name: 'calendar-page',
       component: () => import('../components/CalendarMain.vue'),
     },

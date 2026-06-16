@@ -113,7 +113,11 @@
 import { ref, reactive } from 'vue'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 import { googleTokenLogin } from 'vue3-google-login'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
+const router = useRouter()
+const authStore = useAuthStore()
 const showPassword = ref(false)
 
 const form = reactive({
@@ -129,46 +133,46 @@ const handleLogin = () => {
 
 
 //!
-  const handleGoogleLogin = async () => {
-    try {
-      // response.access_token 就是 Google 給的通行證
-      const response = await googleTokenLogin()
-      console.log('成功！token：', response.access_token)
-      // 現在先印出來確認有沒有拿到，後端建好再補送 API
-    }catch (error) {
-      // 這裡處理「在 Google 那一關就失敗」的情況：
-     // 使用者關掉視窗、網路連不到 Google、Google 本身壞掉
-      if (error?.type !== 'popup_closed') {
-      // popup_closed = 視窗正常關閉，不是真正的錯誤
-      console.error('Google 登入失敗', error)
-
-      }
+const handleGoogleLogin = async () => {
+  try {
+    const response = await googleTokenLogin()
+    const result = await fetch('http://localhost:3000/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: response.access_token })
+    })
+    const data = await result.json()
+    authStore.login(data.token, data.user)
+    router.push('/')
+  } catch (error) {
+    if (error?.type !== 'popup_closed') {
+      console.error('登入失敗', error)
     }
-  } 
+  }
+}
 
+// 有後端後改這段 ↓
+// const handleGoogleLogin = async () => {
+//   try {
+//     // 跟 Google 拿 token
+//     const response = await googleTokenLogin()
 
-  // 有後端後改這段 ↓
-  // const handleGoogleLogin = async () => {
-  //   try {   
-  //     // 第一步：跟 Google 拿 token（現在就有）
-  //     const response = await googleTokenLogin()
-  
-  //     // 第二步：把 token 送去你的後端驗證（後端建好再加這段）
-  //     const result = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ token: response.access_token })
-  //     })
-  //     const data = await result.json()
-  //     // data.token 是後端給我們的 JWT（會員卡）
-  //     // 之後第八課教你怎麼存這個
-
-  //   } catch (error) {
-  //     // Google 失敗 或 後端失敗，都會進這裡
-  //     console.error('登入失敗', error)
-  //   }
-  // }
-
+//     // 第二步：把 token 送去你的後端驗證
+//     const result = await fetch('${import.meta.env.VITE_API_URL}/api/auth/google', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ token: response.access_token })
+//     })
+//     // data.token 是後端給我們的 JWT（會員卡）
+//     const data = await result.json()
+//     authStore.login(data.token, data.user)
+//     router.push('/')
+//   } catch (error) {
+//     if (error?.type !== 'popup_closed') {
+//       console.error('登入失敗', error)
+//     }
+//   }
+// }
 
 
 
