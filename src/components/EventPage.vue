@@ -196,13 +196,11 @@ function isSameDate(firstDate, secondDate) {
 }
 
 function createTimeOptions() {
-  return Array.from({ length: 48 }, (_, index) => {
-    const hour = Math.floor(index / 2)
-    const minute = index % 2 === 0 ? '00' : '30'
+  return Array.from({ length: 24 }, (_, hour) => {
     const period = hour < 12 ? '上午' : '下午'
     const displayHour = String(hour % 12 || 12)
 
-    return `${period} ${displayHour}:${minute}`
+    return `${period} ${displayHour}:00`
   })
 }
 
