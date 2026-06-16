@@ -13,10 +13,8 @@ function toggleFilter(key) {
 
 <template>
   <div class="flex h-screen bg-[#FEF7E8] overflow-hidden">
-    <!-- 左側導覽列（每頁共用） -->
     <AppSidebar :isOpen="sidebarOpen" :filters="filters" @toggle-filter="toggleFilter" />
 
-    <!-- 右側主內容：pb-20 = 為手機版 fixed 底部導覽列（AppSidebar）保留空間 -->
     <main class="flex-1 overflow-hidden flex flex-col pb-20">
       <RouterView v-slot="{ Component }">
         <component
@@ -27,5 +25,6 @@ function toggleFilter(key) {
         />
       </RouterView>
     </main>
+
   </div>
 </template>
