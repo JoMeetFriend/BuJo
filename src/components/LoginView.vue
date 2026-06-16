@@ -154,7 +154,7 @@ const handleLogin = () => {
   //     const response = await googleTokenLogin()
   
   //     // 第二步：把 token 送去你的後端驗證（後端建好再加這段）
-  //     const result = await fetch('/api/auth/google', {
+  //     const result = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
   //       method: 'POST',
   //       headers: { 'Content-Type': 'application/json' },
   //       body: JSON.stringify({ token: response.access_token })
