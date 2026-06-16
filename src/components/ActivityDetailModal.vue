@@ -246,15 +246,6 @@ const handleSignUp = () => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@600&display=swap');
-
-.font-cubic11 {
-  font-family: 'cubic11', sans-serif;
-}
-.font-pixel {
-  font-family: 'Press Start 2P', monospace;
-}
-
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
 }
