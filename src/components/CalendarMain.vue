@@ -2,32 +2,56 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import DateEventsModal from './DateEventsModal.vue'
 import MarqueeBanner from './MarqueeBanner.vue'
+import ProfileAccountModal from './ProfileAccountModal.vue'
 
 const props = defineProps({
   sidebarOpen: Boolean,
   filters: {
     type: Object,
-    default: () => ({ joined: true, formed: true, personal: true })
-  }
+    default: () => ({ joined: true, formed: true, personal: true }),
+  },
 })
 const emit = defineEmits(['toggle-sidebar'])
 const isMobile = ref(window.innerWidth < 768)
-const handleResize = () => { isMobile.value = window.innerWidth < 768 }
+const showProfileModal = ref(false)
+const handleResize = () => {
+  isMobile.value = window.innerWidth < 768
+}
+
 onMounted(() => window.addEventListener('resize', handleResize))
 onUnmounted(() => window.removeEventListener('resize', handleResize))
 const currentYear = ref(2026)
 const currentMonth = ref(5)
 const selectedDate = ref(null)
 
-const monthNames = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE',
-  'JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER']
-const weekDays = ['一','二','三','四','五','六','日']
+const monthNames = [
+  'JANUARY',
+  'FEBRUARY',
+  'MARCH',
+  'APRIL',
+  'MAY',
+  'JUNE',
+  'JULY',
+  'AUGUST',
+  'SEPTEMBER',
+  'OCTOBER',
+  'NOVEMBER',
+  'DECEMBER',
+]
+const weekDays = ['一', '二', '三', '四', '五', '六', '日']
 
 const events = ref([
   { id: 1, date: '2026-06-02', title: 'KTV', status: 'joined' },
   { id: 2, date: '2026-06-04', title: '小酌', status: 'personal' },
   { id: 3, date: '2026-06-05', title: '晚餐', status: 'formed' },
-  { id: 4, date: '2026-06-10', title: '爬山', status: 'joined', time: '06:00 – 14:00', location: '象山步道' },
+  {
+    id: 4,
+    date: '2026-06-10',
+    title: '爬山',
+    status: 'joined',
+    time: '06:00 – 14:00',
+    location: '象山步道',
+  },
   { id: 5, date: '2026-06-12', title: '桌遊', status: 'recruiting' },
   { id: 6, date: '2026-06-18', title: '歌唱', status: 'formed' },
   { id: 7, date: '2026-06-02', title: 'KTV', status: 'joined' },
@@ -35,22 +59,25 @@ const events = ref([
   { id: 9, date: '2026-06-02', title: '晚餐', status: 'formed' },
 ])
 
-
 const statusStyle = {
-  joined:     'bg-[#87C06D]/40 text-[#4A5040]/40',
-  formed:     'bg-[#5e9b57] text-white',
-  personal:   'bg-[#F9CE9A] text-[#4A5040]',
+  joined: 'bg-[#87C06D]/40 text-[#4A5040]/40',
+  formed: 'bg-[#5e9b57] text-white',
+  personal: 'bg-[#F9CE9A] text-[#4A5040]',
   recruiting: '',
-  none:       'bg-[#FAF8F4] text-[#9DBD86] border border-[#DEF4CD]',
+  none: 'bg-[#FAF8F4] text-[#9DBD86] border border-[#DEF4CD]',
 }
 
 function prevMonth() {
-  if (currentMonth.value === 0) { currentMonth.value = 11; currentYear.value-- }
-  else currentMonth.value--
+  if (currentMonth.value === 0) {
+    currentMonth.value = 11
+    currentYear.value--
+  } else currentMonth.value--
 }
 function nextMonth() {
-  if (currentMonth.value === 11) { currentMonth.value = 0; currentYear.value++ }
-  else currentMonth.value++
+  if (currentMonth.value === 11) {
+    currentMonth.value = 0
+    currentYear.value++
+  } else currentMonth.value++
 }
 
 function openDateModal(date) {
@@ -94,7 +121,7 @@ const calendarDays = computed(() => {
 
 function getEvents(date) {
   if (!date) return []
-  return events.value.filter(e => {
+  return events.value.filter((e) => {
     if (e.date !== date) return false
     if (e.status === 'recruiting') return false
     if (e.status === 'joined' && !props.filters.joined) return false
@@ -108,7 +135,7 @@ const selectedDateEvents = computed(() => getEvents(selectedDate.value))
 
 function isToday(date) {
   const today = new Date()
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
   return date === todayStr
 }
 </script>
@@ -133,33 +160,55 @@ function isToday(date) {
           <span class="block w-5 h-[2px] bg-[#4A5040]"></span>
         </button>
 
-        <h1 class="font-pixel font-extrabold text-[20px] md:text-[28px] tracking-[-1px] text-[#4A5040]" style="text-shadow: 2px 2px 0px #e4ded1;">
+        <h1
+          class="font-pixel font-extrabold text-[20px] md:text-[28px] tracking-[-1px] text-[#4A5040]"
+          style="text-shadow: 2px 2px 0px #e4ded1"
+        >
           {{ monthNames[currentMonth] }}
         </h1>
         <span class="font-pixel text-[#9DBD86] text-xs md:text-sm">{{ currentYear }}</span>
       </div>
 
       <div class="flex items-center gap-1">
-        <button @click="prevMonth" class="font-['Syne'] font-bold text-[#4A5040] w-8 h-8 flex items-center justify-center hover:text-[#87C06D]">&lt;</button>
-        <button @click="nextMonth" class="font-['Syne'] font-bold text-[#4A5040] w-8 h-8 flex items-center justify-center hover:text-[#87C06D]">&gt;</button>
+        <button
+          @click="prevMonth"
+          class="font-['Syne'] font-bold text-[#4A5040] w-8 h-8 flex items-center justify-center hover:text-[#87C06D]"
+        >
+          &lt;
+        </button>
+        <button
+          @click="nextMonth"
+          class="font-['Syne'] font-bold text-[#4A5040] w-8 h-8 flex items-center justify-center hover:text-[#87C06D]"
+        >
+          &gt;
+        </button>
 
         <!-- 揪一團按鈕 -->
-        <button class="flex items-center justify-center mx-2 bg-[#87C06D] text-[#4A5040] font-[cubic11] font-black text-[12px] w-6 h-6 md:w-auto md:h-auto md:px-4 md:py-2 border-2 border-[#4A5040] shadow-[3px_3px_0px_#4A5040] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all">
+        <button
+          class="flex items-center justify-center mx-2 bg-[#87C06D] text-[#4A5040] font-[cubic11] font-black text-[12px] w-6 h-6 md:w-auto md:h-auto md:px-4 md:py-2 border-2 border-[#4A5040] shadow-[3px_3px_0px_#4A5040] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all"
+        >
           ＋<span class="hidden md:inline"> 揪一團</span>
         </button>
 
-        <!-- 頭像佔位 -->
-        <button class="w-10 h-10 bg-[#DEF4CD] border-2 border-[#4A5040] hidden md:flex"></button>
+        <!-- 個人帳號 -->
+        <button
+          type="button"
+          class="hidden h-10 w-10 items-center justify-center border-2 border-[#4A5040] bg-[#DEF4CD] shadow-[3px_3px_0px_#87C06D] transition-all hover:bg-[#D9F0A8] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none md:flex"
+          aria-label="開啟個人帳號"
+          @click="showProfileModal = true"
+        >
+          <span class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
+        </button>
       </div>
     </div>
 
     <!-- 行事曆本體 -->
     <div class="border-[1.5px] border-[#DEF4CD] overflow-hidden md:flex-1 md:flex md:flex-col">
-
       <!-- 星期標題 -->
       <div class="grid grid-cols-7 bg-[#D9F0A8] border-b-[1.5px] border-[#DEF4CD]">
         <div
-          v-for="day in weekDays" :key="day"
+          v-for="day in weekDays"
+          :key="day"
           class="py-2 text-center font-[cubic11] font-semibold text-[#4A5040] text-[10px] md:text-sm"
         >
           {{ day }}
@@ -167,12 +216,22 @@ function isToday(date) {
       </div>
 
       <!-- 格子 -->
-      <div class="grid grid-cols-7 md:flex-1 md:min-h-0" :style="{ gridTemplateRows: isMobile ? 'repeat(6, clamp(50px, 8.4vh, 110px))' : 'repeat(6, 1fr)' }">
+      <div
+        class="grid grid-cols-7 md:flex-1 md:min-h-0"
+        :style="{
+          gridTemplateRows: isMobile ? 'repeat(6, clamp(50px, 8.4vh, 110px))' : 'repeat(6, 1fr)',
+        }"
+      >
         <div
-          v-for="(cell, index) in calendarDays" :key="index"
+          v-for="(cell, index) in calendarDays"
+          :key="index"
           class="border-r-[1px] border-b-[1px] border-[#DEF4CD] flex flex-col overflow-hidden justify-start relative pb-2"
           :class="[
-            cell.date && isToday(cell.date) ? 'bg-[#D9F0A8]' : cell.faded ? 'bg-[#FAF8F4]' : 'bg-white'
+            cell.date && isToday(cell.date)
+              ? 'bg-[#D9F0A8]'
+              : cell.faded
+                ? 'bg-[#FAF8F4]'
+                : 'bg-white',
           ]"
           :role="cell.date ? 'button' : undefined"
           :tabindex="cell.date ? 0 : undefined"
@@ -182,7 +241,10 @@ function isToday(date) {
         >
           <!-- 日期數字（只有當月才顯示） -->
           <div class="w-full p-1 md:p-2">
-            <span v-if="cell.day" class="block font-['Press_Start_2P'] text-[8px] md:text-[10px] leading-none text-[#4A5040]">
+            <span
+              v-if="cell.day"
+              class="block font-['Press_Start_2P'] text-[8px] md:text-[10px] leading-none text-[#4A5040]"
+            >
               {{ cell.day }}
             </span>
           </div>
@@ -211,7 +273,6 @@ function isToday(date) {
           </div>
         </div>
       </div>
-
     </div>
 
     <DateEventsModal
@@ -221,4 +282,45 @@ function isToday(date) {
       @close="closeDateModal"
     />
   </div>
+
+  <ProfileAccountModal v-if="showProfileModal" @close="showProfileModal = false" />
 </template>
+
+<style scoped>
+.profile-pixel-face {
+  position: relative;
+  display: block;
+  width: 32px;
+  height: 32px;
+  background:
+    linear-gradient(#4a5040 0 0) 8px 4px / 16px 4px no-repeat,
+    linear-gradient(#4a5040 0 0) 4px 8px / 4px 16px no-repeat,
+    linear-gradient(#4a5040 0 0) 24px 8px / 4px 16px no-repeat,
+    linear-gradient(#4a5040 0 0) 8px 24px / 16px 4px no-repeat,
+    linear-gradient(#4a5040 0 0) 12px 12px / 4px 4px no-repeat,
+    linear-gradient(#4a5040 0 0) 20px 12px / 4px 4px no-repeat,
+    linear-gradient(#4a5040 0 0) 16px 20px / 4px 4px no-repeat;
+}
+
+.profile-pixel-face::before,
+.profile-pixel-face::after {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  background: #4a5040;
+  content: '';
+}
+
+.profile-pixel-face::before {
+  left: 4px;
+}
+
+.profile-pixel-face::after {
+  right: 4px;
+}
+
+.profile-pixel-face--small {
+  transform: scale(0.78);
+}
+</style>
