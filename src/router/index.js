@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import EventView from '../components/EventView.vue'
+
+import ActivityView from '../components/ActivityView.vue'
 import NotFound from '../components/NotFound.vue'
 
 /*登入頁面*/
@@ -44,9 +45,9 @@ const router = createRouter({
       component: () => import('../components/RegisterViews.vue'),
     },
     {
-      path: '/event',
-      name: 'event',
-      component: EventView,
+      path: '/activity',
+      name: 'activity',
+      component: ActivityView,
     },
     {
       path: '/:pathMatch(.*)*',
