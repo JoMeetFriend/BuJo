@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import DateEventsModal from './DateEventsModal.vue'
 import MarqueeBanner from './MarqueeBanner.vue'
 import ItineraryDetailModal from './ItineraryDetailModal.vue'
 
@@ -28,6 +29,7 @@ onMounted(() => window.addEventListener('resize', handleResize))
 onUnmounted(() => window.removeEventListener('resize', handleResize))
 const currentYear = ref(2026)
 const currentMonth = ref(5)
+const selectedDate = ref(null)
 
 const monthNames = [
   'JANUARY',
@@ -49,7 +51,14 @@ const events = ref([
   { id: 1, date: '2026-06-02', title: 'KTV', status: 'joined' },
   { id: 2, date: '2026-06-04', title: '小酌', status: 'personal' },
   { id: 3, date: '2026-06-05', title: '晚餐', status: 'formed' },
-  { id: 4, date: '2026-06-10', title: '爬山', status: 'joined' },
+  {
+    id: 4,
+    date: '2026-06-10',
+    title: '爬山',
+    status: 'joined',
+    time: '06:00 – 14:00',
+    location: '象山步道',
+  },
   { id: 5, date: '2026-06-12', title: '桌遊', status: 'recruiting' },
   { id: 6, date: '2026-06-18', title: '歌唱', status: 'formed' },
   { id: 7, date: '2026-06-02', title: 'KTV', status: 'joined' },
@@ -76,6 +85,15 @@ function nextMonth() {
     currentMonth.value = 0
     currentYear.value++
   } else currentMonth.value++
+}
+
+function openDateModal(date) {
+  if (!date) return
+  selectedDate.value = date
+}
+
+function closeDateModal() {
+  selectedDate.value = null
 }
 
 const calendarDays = computed(() => {
@@ -119,6 +137,8 @@ function getEvents(date) {
     return true
   })
 }
+
+const selectedDateEvents = computed(() => getEvents(selectedDate.value))
 
 function isToday(date) {
   const today = new Date()
@@ -213,6 +233,11 @@ function isToday(date) {
                 ? 'bg-[#FAF8F4]'
                 : 'bg-white',
           ]"
+          :role="cell.date ? 'button' : undefined"
+          :tabindex="cell.date ? 0 : undefined"
+          @click="openDateModal(cell.date)"
+          @keydown.enter.prevent="openDateModal(cell.date)"
+          @keydown.space.prevent="openDateModal(cell.date)"
         >
           <!-- 日期數字（只有當月才顯示） -->
           <div class="w-full p-1 md:p-2">
@@ -250,6 +275,13 @@ function isToday(date) {
         </div>
       </div>
     </div>
+
+    <DateEventsModal
+      v-if="selectedDate"
+      :date="selectedDate"
+      :events="selectedDateEvents"
+      @close="closeDateModal"
+    />
   </div>
 
   <ItineraryDetailModal
