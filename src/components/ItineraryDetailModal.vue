@@ -78,6 +78,13 @@
 
         <div class="flex justify-end gap-3 px-6 pb-6 pt-2">
           <button
+            v-if="currentActivity?.status === 'personal'"
+            class="mr-auto bg-warm-peach hover:bg-[#D65A5A] text-white border-2 border-brand-text shadow-pixel active:translate-x-[2px] active:translate-y-[2px] active:shadow-pixel-pressed px-5 py-1.5 text-sm font-bold transition-all"
+          >
+            刪除行程
+          </button>
+
+          <button
             @click="handleClose"
             class="bg-page-bg border-2 border-brand-text shadow-pixel active:translate-x-[2px] active:translate-y-[2px] active:shadow-pixel-pressed px-5 py-1.5 text-sm font-bold transition-all"
           >
