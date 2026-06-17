@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import EventView from '../components/EventView.vue'
 import { useAuthStore } from '@/stores/auth'
+import ActivityView from '../components/ActivityView.vue'
+import NotFound from '../components/NotFound.vue'
 
 /*登入頁面*/
 import LoginView from '../components/LoginView.vue'
@@ -25,13 +26,13 @@ const router = createRouter({
       name: 'profile-edit',
       component: () => import('../components/ProfileEditPage.vue'),
     },
-    
+
     {
       path: '/friends-page',
       name: 'friends-page',
       component: FriendsPage,
     },
-    
+
     //登入頁面
     {
       path: '/login',
@@ -43,11 +44,15 @@ const router = createRouter({
       component: () => import('../components/RegisterViews.vue'),
     },
     {
-      path: '/event',
-      name: 'event',
-      component: EventView,
+      path: '/activity',
+      name: 'activity',
+      component: ActivityView,
     },
-    // 以下為彈窗頁面
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFound,
+    },
     {
       path: '/friends/new',
       name: 'friend-add',
