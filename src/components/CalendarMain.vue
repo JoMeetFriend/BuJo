@@ -3,6 +3,9 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import DateEventsModal from './DateEventsModal.vue'
 import MarqueeBanner from './MarqueeBanner.vue'
 import ProfileAccountModal from './ProfileAccountModal.vue'
+import EventPage from './EventPage.vue'
+
+const showEventModal = ref(false)
 
 const props = defineProps({
   sidebarOpen: Boolean,
@@ -186,6 +189,7 @@ function isToday(date) {
 
         <!-- 揪一團按鈕 -->
         <button
+          @click="showEventModal = true"
           class="flex items-center justify-center mx-2 bg-[#87C06D] text-[#4A5040] font-[cubic11] font-black text-[12px] w-6 h-6 md:w-auto md:h-auto md:px-4 md:py-2 border-2 border-[#4A5040] shadow-[3px_3px_0px_#4A5040] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all"
         >
           ＋<span class="hidden md:inline"> 揪一團</span>
@@ -285,6 +289,8 @@ function isToday(date) {
   </div>
 
   <ProfileAccountModal v-if="showProfileModal" @close="showProfileModal = false" />
+
+  <EventPage v-if="showEventModal" @close="showEventModal = false" />
 </template>
 
 <style scoped>
