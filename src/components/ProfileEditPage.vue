@@ -1,5 +1,11 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const goBack = () => {
+  router.back()
+}
 
 const avatarUrl = ref('')
 
@@ -19,6 +25,7 @@ const handleAvatarChange = (event) => {
         class="grid size-8 shrink-0 place-items-center border-[3px] border-[#2B2E24] bg-white text-lg text-[#2B2E24] shadow-[3px_3px_0_#9DBD86] transition hover:-translate-y-0.5 hover:bg-[#FEF7E8] hover:shadow-[4px_4px_0_#9DBD86]"
         type="button"
         aria-label="返回"
+        @click="goBack"
       >
         ←
       </button>

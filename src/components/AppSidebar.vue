@@ -33,7 +33,7 @@ import { RouterLink } from 'vue-router'
         <RouterLink
           v-for="item in [
             { label: '月曆', sub: 'CALENDAR', to: '/calendar' },
-            { label: '活動', sub: 'ACTIVITY', to: '/event' }, //這裡合併時改名
+            { label: '活動', sub: 'ACTIVITY', to: '/activity' },
             { label: '好友', sub: 'FRIENDS', to: '/friends-page' },
             { label: '通知', sub: 'ALERTS', to: '/alerts' },
           ]"
@@ -127,7 +127,7 @@ import { RouterLink } from 'vue-router'
       <RouterLink
         v-for="item in [
           { name: '月曆', to: '/calendar' },
-          { name: '活動', to: '/event' }, //這裡合併時改名
+          { name: '活動', to: 'activity' },
           { name: '好友', to: '/friends-page' },
           { name: '通知', to: '/alerts' },
           { name: 'Me', to: '/profile/edit' },
