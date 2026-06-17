@@ -12,6 +12,7 @@ const props = defineProps({
   },
 })
 const emit = defineEmits(['toggle-sidebar'])
+
 const isMobile = ref(window.innerWidth < 768)
 const showProfileModal = ref(false)
 const handleResize = () => {
@@ -367,7 +368,7 @@ function isToday(date) {
             <template v-for="(event, i) in getEvents(cell.date)" :key="event.id">
               <div
                 v-if="(isMobile && i < 2) || (!isMobile && i < 3)"
-                class="flex items-center text-[10px] px-1 h-[18px] overflow-hidden"
+                class="flex items-center text-[10px] px-1 h-[18px] overflow-hidden cursor-pointer"
                 :class="statusStyle[event.status]"
               >
                 <div class="w-2 h-2 md:w-3 md:h-3 bg-white/40 shrink-0"></div>
