@@ -2,7 +2,6 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import DateEventsModal from './DateEventsModal.vue'
 import MarqueeBanner from './MarqueeBanner.vue'
-import ItineraryDetailModal from './ItineraryDetailModal.vue'
 
 const props = defineProps({
   sidebarOpen: Boolean,
@@ -12,14 +11,6 @@ const props = defineProps({
   },
 })
 const emit = defineEmits(['toggle-sidebar'])
-
-const isModalOpen = ref(false)
-const selectedActivityId = ref(null)
-
-const goToDetail = (id) => {
-  selectedActivityId.value = id
-  isModalOpen.value = true
-}
 
 const isMobile = ref(window.innerWidth < 768)
 const handleResize = () => {
@@ -256,7 +247,6 @@ function isToday(date) {
                 v-if="(isMobile && i < 2) || (!isMobile && i < 3)"
                 class="flex items-center text-[10px] px-1 h-[18px] overflow-hidden cursor-pointer"
                 :class="statusStyle[event.status]"
-                @click="goToDetail(event.id)"
               >
                 <div class="w-2 h-2 md:w-3 md:h-3 bg-white/40 shrink-0"></div>
                 <span class="truncate font-[cubic11] font-semibold ml-1">{{ event.title }}</span>
@@ -283,10 +273,4 @@ function isToday(date) {
       @close="closeDateModal"
     />
   </div>
-
-  <ItineraryDetailModal
-    :is-open="isModalOpen"
-    :activity-id="selectedActivityId"
-    @close="isModalOpen = false"
-  />
 </template>
