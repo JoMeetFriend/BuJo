@@ -6,6 +6,7 @@ const activities = ref([
   {
     id: 1,
     title: '上課',
+    isMine: true,
     date: '6/11',
     time: '9:30 - 16:30',
     location: '臺北市中正區黎明里衡陽路7號5樓',
@@ -46,6 +47,7 @@ const activities = ref([
   {
     id: 2,
     title: '來揪來揪來揪',
+    isMine: false,
     date: '6/12',
     time: '09:00 - 17:00',
     location: '台北某某某某地',
@@ -70,6 +72,7 @@ const activities = ref([
   {
     id: 3,
     title: '吃下午茶',
+    isMine: false,
     date: '6/13',
     time: '15:00 - 17:00',
     location: '某地',
@@ -121,6 +124,7 @@ const STATUS_MAP = {
 
 const filters = [
   { key: 'all', text: '全部' },
+  { key: 'mine', text: '我建立的活動' },
   { key: 'registered', text: '已報名' },
   { key: 'open', text: '揪團中' },
   { key: 'success', text: '已成團' },
@@ -131,6 +135,9 @@ const currentFilter = ref('all')
 const filteredActivities = computed(() => {
   if (currentFilter.value === 'all') {
     return activities.value
+  }
+  if (currentFilter.value === 'mine') {
+    return activities.value.filter((act) => act.isMine)
   }
   return activities.value.filter((act) => act.status === currentFilter.value)
 })
@@ -254,6 +261,7 @@ const goToDetail = (id) => {
     <ActivityDetailModal
       :is-open="isModalOpen"
       :activity-id="selectedActivityId"
+      :is-owner-view="currentFilter === 'mine'"
       @close="isModalOpen = false"
     />
   </div>
