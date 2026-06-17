@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import EventView from '../components/EventView.vue'
+import NotFound from '../components/NotFound.vue'
 
 /*登入頁面*/
 import LoginView from '../components/LoginView.vue'
@@ -48,7 +49,11 @@ const router = createRouter({
       name: 'event',
       component: EventView,
     },
-    // 以下為彈窗頁面
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFound,
+    },
     {
       path: '/friends/new',
       name: 'friend-add',
