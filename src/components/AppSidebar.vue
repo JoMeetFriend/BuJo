@@ -13,7 +13,7 @@ const drawerOpen = ref(false)
   <!-- 桌機版側邊欄 -->
   <aside
     class="hidden md:flex flex-col justify-between bg-[#87C06D] border-r-0 py-6 transition-all duration-300 overflow-hidden"
-    :class="isOpen ? 'w-[180px] px-4' : 'w-0 px-0'"
+    :class="isOpen ? 'w-[210px] px-4' : 'w-0 px-0'"
   >
     <div>
       <!-- Logo -->
