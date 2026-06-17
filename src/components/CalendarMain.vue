@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import DateEventsModal from './DateEventsModal.vue'
 import MarqueeBanner from './MarqueeBanner.vue'
+import ProfileAccountModal from './ProfileAccountModal.vue'
 
 const props = defineProps({
   sidebarOpen: Boolean,
@@ -13,9 +14,11 @@ const props = defineProps({
 const emit = defineEmits(['toggle-sidebar'])
 
 const isMobile = ref(window.innerWidth < 768)
+const showProfileModal = ref(false)
 const handleResize = () => {
   isMobile.value = window.innerWidth < 768
 }
+
 onMounted(() => window.addEventListener('resize', handleResize))
 onUnmounted(() => window.removeEventListener('resize', handleResize))
 const currentYear = ref(2026)
@@ -188,8 +191,15 @@ function isToday(date) {
           ＋<span class="hidden md:inline"> 揪一團</span>
         </button>
 
-        <!-- 頭像佔位 -->
-        <button class="w-10 h-10 bg-[#DEF4CD] border-2 border-[#4A5040] hidden md:flex"></button>
+        <!-- 個人帳號 -->
+        <button
+          type="button"
+          class="hidden h-10 w-10 items-center justify-center border-2 border-[#4A5040] bg-[#DEF4CD] shadow-[3px_3px_0px_#87C06D] transition-all hover:bg-[#D9F0A8] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none md:flex"
+          aria-label="開啟個人帳號"
+          @click="showProfileModal = true"
+        >
+          <span class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
+        </button>
       </div>
     </div>
 
@@ -273,4 +283,45 @@ function isToday(date) {
       @close="closeDateModal"
     />
   </div>
+
+  <ProfileAccountModal v-if="showProfileModal" @close="showProfileModal = false" />
 </template>
+
+<style scoped>
+.profile-pixel-face {
+  position: relative;
+  display: block;
+  width: 32px;
+  height: 32px;
+  background:
+    linear-gradient(#4a5040 0 0) 8px 4px / 16px 4px no-repeat,
+    linear-gradient(#4a5040 0 0) 4px 8px / 4px 16px no-repeat,
+    linear-gradient(#4a5040 0 0) 24px 8px / 4px 16px no-repeat,
+    linear-gradient(#4a5040 0 0) 8px 24px / 16px 4px no-repeat,
+    linear-gradient(#4a5040 0 0) 12px 12px / 4px 4px no-repeat,
+    linear-gradient(#4a5040 0 0) 20px 12px / 4px 4px no-repeat,
+    linear-gradient(#4a5040 0 0) 16px 20px / 4px 4px no-repeat;
+}
+
+.profile-pixel-face::before,
+.profile-pixel-face::after {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  background: #4a5040;
+  content: '';
+}
+
+.profile-pixel-face::before {
+  left: 4px;
+}
+
+.profile-pixel-face::after {
+  right: 4px;
+}
+
+.profile-pixel-face--small {
+  transform: scale(0.78);
+}
+</style>
