@@ -123,10 +123,19 @@
       </div>
     </div>
   </Teleport>
+
+  <AvailabilityPickerModal :isOpen="isModalOpen" @close="isModalOpen = false" />
+  <AvailabilityPickerModal
+    v-model="showPicker"
+    rangeStart="2026-06-11"
+    rangeEnd="2026-06-17"
+    @confirm="handleConfirmTimes"
+  />
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import AvailabilityPickerModal from './AvailabilityPickerModal.vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -135,6 +144,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
+
+const showPicker = ref(false)
 
 const mockActivities = [
   {
@@ -253,7 +264,7 @@ const handleClose = () => {
 }
 
 const handleSignUp = () => {
-  // 點擊報名參加時
+  showPicker.value = true
 }
 
 const handleCancelActivity = () => {

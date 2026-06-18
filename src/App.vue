@@ -15,7 +15,7 @@ function toggleFilter(key) {
   <div class="flex h-screen bg-[#FEF7E8] overflow-hidden">
     <AppSidebar :isOpen="sidebarOpen" :filters="filters" @toggle-filter="toggleFilter" />
 
-    <main class="flex-1 overflow-hidden flex flex-col pb-20">
+    <main class="flex-1 overflow-auto flex flex-col pb-20">
       <RouterView v-slot="{ Component }">
         <component
           :is="Component"
@@ -25,6 +25,5 @@ function toggleFilter(key) {
         />
       </RouterView>
     </main>
-
   </div>
 </template>
