@@ -2,9 +2,8 @@
   <Teleport to="body">
     <section
       v-if="isOpen"
-      class="grid min-h-screen place-items-center bg-brand-text/40 px-4 py-6 font-cubic11 text-text-main fixed inset-0 z-50 cursor-pointer"
+      class="grid min-h-screen place-items-center bg-brand-text/40 px-4 py-6 font-cubic11 text-text-main fixed inset-0 z-50"
       aria-label="新增好友彈窗"
-      @click="handleClose"
     >
       <div
         class="w-[min(100%,560px)] border-[3px] border-text-main bg-[#FFF8E8] shadow-[9px_9px_0_#4A5040] max-sm:shadow-[6px_6px_0_#4A5040]"
