@@ -15,11 +15,6 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'calendar',
-      redirect: '/calendar',
-    },
-    {
-      path: '/calendar',
       name: 'calendar-page',
       component: () => import('../components/CalendarMain.vue'),
     },
