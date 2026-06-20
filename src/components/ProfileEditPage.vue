@@ -1,57 +1,36 @@
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
-const goBack = () => {
-  router.back()
-}
+import PixelButton from './ui/PixelButton.vue'
 
 const avatarUrl = ref('')
-
 const handleAvatarChange = (event) => {
   const file = event.target.files?.[0]
-
   if (!file) return
-
   avatarUrl.value = URL.createObjectURL(file)
 }
 </script>
 
 <template>
-  <main class="min-h-screen bg-[#FAF8F4] px-4 py-3 font-[cubic11] text-[#2B2E24] sm:px-9 sm:py-4">
-    <header class="mb-3 flex items-center gap-3 sm:gap-4">
-      <button
-        class="grid size-8 shrink-0 place-items-center border-[3px] border-[#2B2E24] bg-white text-lg text-[#2B2E24] shadow-[3px_3px_0_#9DBD86] transition hover:-translate-y-0.5 hover:bg-[#FEF7E8] hover:shadow-[4px_4px_0_#9DBD86]"
-        type="button"
-        aria-label="返回"
-        @click="goBack"
-      >
-        ←
-      </button>
-
-      <div class="flex items-center gap-2">
-        <h1 class="text-xl font-bold leading-none tracking-[0.05em] text-[#2B2E24] sm:text-3xl">
-          個人編輯
-        </h1>
-        <span class="text-sm leading-none tracking-[0.08em] text-[#87C06D] sm:text-lg">ME</span>
-      </div>
+  <main class="min-h-screen bg-[#FEF7E8] px-5 pt-8 pb-4 md:px-14 font-[cubic11] text-[#4A5040]">
+    <!-- 頁首 -->
+    <header class="mb-5 flex items-baseline gap-4">
+      <h1
+        class="font-[cubic11] font-bold text-[#4A5040] text-2xl md:text-3xl"
+        style="text-shadow: 2px 2px 0px #e4ded1"
+      >個人編輯</h1>
+      <span class="font-['Press_Start_2P'] text-[#9DBD86] text-base tracking-widest uppercase">ME</span>
     </header>
 
-    <section
-      class="w-full max-w-[920px] border-4 border-[#DEF4CD] bg-white p-4 shadow-[8px_8px_0_#D9F0A8] sm:p-5"
-    >
-      <div class="mb-4 grid gap-3">
-        <span
-          class="w-fit border-4 border-[#DEF4CD] bg-[#87C06D] px-3 py-1 text-sm text-white shadow-[3px_3px_0_#9DBD86]"
-        >
-          頭像
-        </span>
+    <!-- 主卡片 -->
+    <section class="w-full max-w-[800px] border-2 border-[#4A5040] bg-white shadow-[6px_6px_0_#4A5040] max-sm:shadow-[4px_4px_0_#4A5040]">
 
+      <!-- 頭像 -->
+      <header class="flex items-center border-b-2 border-[#DEF4CD] bg-[#D9F0A8] px-5 py-3">
+        <h2 class="text-base leading-none md:text-lg" style="-webkit-text-stroke: 0.5px #4A5040">頭像</h2>
+      </header>
+      <div class="px-5 py-4">
         <div class="flex flex-col items-start gap-4 md:flex-row md:items-center md:gap-8">
-          <div
-            class="size-24 shrink-0 overflow-hidden border-4 border-[#D9F0A8] bg-[#DEF4CD] shadow-[6px_6px_0_#9DBD86] md:size-28"
-          >
+          <div class="size-24 shrink-0 overflow-hidden border-2 border-[#4A5040] bg-[#DEF4CD] shadow-[4px_4px_0_#4A5040] md:size-28">
             <img
               v-if="avatarUrl"
               :src="avatarUrl"
@@ -59,37 +38,29 @@ const handleAvatarChange = (event) => {
               class="size-full object-cover"
             />
           </div>
-
           <div class="grid gap-2">
             <label
-              class="inline-flex h-10 w-fit cursor-pointer items-center justify-center gap-2 border-4 border-[#DEF4CD] bg-[#87C06D] px-4 text-[15px] text-white shadow-[4px_4px_0_#9DBD86] transition hover:-translate-y-0.5 hover:bg-[#D9F0A8] hover:text-[#2B2E24] hover:shadow-[5px_5px_0_#9DBD86]"
+              class="inline-flex h-9 w-fit cursor-pointer items-center justify-center gap-2 border-2 border-[#4A5040] bg-[#87C06D] px-4 text-[12px] text-white shadow-[3px_3px_0_#4A5040] transition-all duration-150 hover:bg-[#69AD76] hover:border-[#0E7490] hover:shadow-[3px_3px_0_#0E7490]"
             >
-              <input
-                class="hidden"
-                type="file"
-                accept="image/png, image/jpeg"
-                @change="handleAvatarChange"
-              />
-              <span class="text-xl leading-none">▲</span>
-              上傳照片
+              <input class="hidden" type="file" accept="image/png, image/jpeg" @change="handleAvatarChange" />
+              ▲ 上傳照片
             </label>
             <p class="text-xs text-[#9DBD86]">支援 JPG、PNG，建議使用正方形圖片。</p>
           </div>
         </div>
       </div>
 
-      <form class="grid gap-4" @submit.prevent>
-        <span
-          class="w-fit border-4 border-[#DEF4CD] bg-[#87C06D] px-3 py-1 text-sm text-white shadow-[3px_3px_0_#9DBD86]"
-        >
-          基本資料
-        </span>
+      <!-- 基本資料 -->
+      <header class="flex items-center border-y-2 border-[#DEF4CD] bg-[#D9F0A8] px-5 py-3">
+        <h2 class="text-base leading-none md:text-lg" style="-webkit-text-stroke: 0.5px #4A5040">基本資料</h2>
+      </header>
+      <form class="px-5 py-4 grid gap-4" @submit.prevent>
         <label class="grid gap-1.5">
-          <span class="text-sm text-[#2B2E24]">
-            修改顯示名稱 <strong class="text-[#87C06D]">*</strong>
+          <span class="text-xs field-label">
+            修改顯示名稱 <strong class="text-[#87C06D]" style="-webkit-text-stroke: 0">*</strong>
           </span>
           <input
-            class="h-10 w-full border-4 border-[#DEF4CD] bg-[#FEF7E8] px-4 text-[15px] text-[#2B2E24] outline-none shadow-[4px_4px_0_#D9F0A8] transition placeholder:text-[#9DBD86] focus:bg-white focus:placeholder:text-transparent focus:shadow-[6px_6px_0_#D9F0A8]"
+            class="h-9 w-full border-2 border-[#4A5040] bg-[#FEF7E8] px-4 text-[12px] shadow-[3px_3px_0_#4A5040] outline-none transition-all duration-150 placeholder:text-[#9DBD86] focus:bg-white focus:shadow-[4px_4px_0_#4A5040]"
             type="text"
             placeholder="請輸入顯示名稱"
           />
@@ -97,29 +68,23 @@ const handleAvatarChange = (event) => {
         </label>
 
         <div class="grid gap-1.5">
-          <span class="text-sm text-[#2B2E24]">電子郵件</span>
-          <div
-            class="flex h-10 w-full items-center border-4 border-[#DEF4CD] bg-[#FEF7E8] px-4 text-[15px] text-[#6F7567] shadow-[4px_4px_0_#D9F0A8]"
-          >
+          <span class="text-xs field-label">電子郵件</span>
+          <div class="flex h-9 w-full items-center border-2 border-[#DEF4CD] bg-[#FEF7E8] px-4 text-[12px] text-[#9DBD86]">
             bujo.user@example.com
           </div>
         </div>
 
         <div class="mt-1 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button
-            class="h-10 min-w-28 border-4 border-[#DEF4CD] bg-white px-5 text-[15px] text-[#2B2E24] shadow-[4px_4px_0_#D9F0A8] transition hover:-translate-y-0.5 hover:bg-[#FEF7E8] hover:shadow-[5px_5px_0_#D9F0A8]"
-            type="button"
-          >
-            取消
-          </button>
-          <button
-            class="h-10 min-w-32 border-4 border-[#DEF4CD] bg-[#87C06D] px-5 text-[15px] text-white shadow-[4px_4px_0_#9DBD86] transition hover:-translate-y-0.5 hover:bg-[#D9F0A8] hover:text-[#2B2E24] hover:shadow-[5px_5px_0_#9DBD86]"
-            type="submit"
-          >
-            儲存變更
-          </button>
+          <PixelButton variant="white" type="button">取消</PixelButton>
+          <PixelButton type="submit">儲存變更</PixelButton>
         </div>
       </form>
     </section>
   </main>
 </template>
+
+<style scoped>
+.field-label {
+  -webkit-text-stroke: 0.5px #4A5040;
+}
+</style>
