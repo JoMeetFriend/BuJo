@@ -1,5 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import BaseModal from './ui/BaseModal.vue'
+import PixelButton from './ui/PixelButton.vue'
 
 defineProps({ isOpen: Boolean })
 const emit = defineEmits(['close', 'submit'])
@@ -234,43 +236,13 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div
-      v-if="isOpen"
-      class="fixed inset-0 z-[80] flex items-center justify-center bg-[#4A5040]/35 px-4"
-      @click="closeForm"
-    >
-      <div
-        class="relative w-full max-w-[440px] border-2 border-[#4A5040] bg-[#FEF7E8] font-[cubic11] text-[#4A5040] shadow-[6px_6px_0_#4A5040] max-sm:shadow-[4px_4px_0_#4A5040] flex flex-col max-h-[80vh]"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="event-title"
-        @click.stop
+  <BaseModal :isOpen="isOpen" title="建立揪團活動" scrollable @close="closeForm">
+    <template #default>
+      <form
+        id="event-form"
+        class="grid gap-4"
+        @submit.prevent="submitForm"
       >
-        <header
-          class="sticky top-0 shrink-0 flex items-center justify-between gap-6 max-sm:gap-3 border-b-2 border-[#DEF4CD] bg-[#D9F0A8] px-4 py-3"
-        >
-          <h1
-            id="event-title"
-            class="m-0 text-lg leading-none text-[#4A5040]"
-          >
-            建立揪團活動
-          </h1>
-          <button
-            class="grid h-7 w-7 max-sm:h-6 max-sm:w-6 place-items-center text-lg leading-none text-[#4A5040] transition hover:bg-[#DEF4CD]"
-            type="button"
-            aria-label="關閉建立活動表單"
-            @click="closeForm"
-          >
-            ×
-          </button>
-        </header>
-
-        <form
-          class="flex flex-col flex-1 overflow-hidden"
-          @submit.prevent="submitForm"
-        >
-          <div class="overflow-y-auto overflow-x-hidden flex-1 grid gap-4 px-4 py-4">
             <label :class="[fieldClass, 'col-span-full']" for="event-name">
               <span :class="fieldLabelClass"
                 >活動名稱 <span class="text-[#75AF61]" aria-hidden="true">*</span></span
@@ -468,33 +440,18 @@ onBeforeUnmount(() => {
                 placeholder="補充說明，例如裝備、費用..."
               ></textarea>
             </label>
-          </div>
+      </form>
+    </template>
 
-          <footer
-            class="shrink-0 flex justify-end gap-4 max-sm:gap-3 border-t-2 border-[#DEF4CD] bg-[#FEF7E8] px-4 py-3 max-sm:py-2"
-          >
-            <button
-              class="min-h-[32px] cursor-pointer rounded-none border-2 border-[#4A5040] bg-white px-4 py-1 max-sm:py-2 font-[cubic11] text-[13px] font-bold leading-none text-[#4A5040] shadow-[4px_4px_0_#4A5040] max-sm:shadow-[3px_3px_0_#4A5040] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_#4A5040] max-sm:active:shadow-[1px_1px_0_#4A5040]"
-              type="button"
-              @click="closeForm"
-            >
-              取消
-            </button>
-            <button
-              class="min-h-[32px] cursor-pointer rounded-none border-2 border-[#4A5040] bg-[#7FBE69] px-4 py-1 max-sm:py-2 font-[cubic11] text-[13px] font-bold leading-none text-[#FEF7E8] shadow-[4px_4px_0_#4A5040] max-sm:shadow-[3px_3px_0_#4A5040] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_#4A5040] max-sm:active:shadow-[1px_1px_0_#4A5040]"
-              type="submit"
-            >
-              送出揪團
-            </button>
-          </footer>
-        </form>
-      </div>
-    </div>
-  </Teleport>
+    <template #footer>
+      <PixelButton variant="white" type="button" @click="closeForm">取消</PixelButton>
+      <PixelButton form="event-form" type="submit">送出揪團</PixelButton>
+    </template>
+  </BaseModal>
 </template>
 
 <style scoped>
-.field-label, header h1 {
+.field-label {
   -webkit-text-stroke: 0.5px #4A5040;
 }
 </style>
