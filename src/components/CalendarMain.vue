@@ -403,7 +403,7 @@ function isToday(date) {
 
   <ProfileAccountModal v-if="showProfileModal" @close="showProfileModal = false" />
 
-  <EventPage v-if="showEventModal" @close="showEventModal = false" />
+  <EventPage :isOpen="showEventModal" @close="showEventModal = false" />
 </template>
 
 <style scoped>
