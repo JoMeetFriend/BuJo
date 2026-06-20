@@ -47,11 +47,13 @@ function onAnimationEnd() {
 <template>
   <button
     v-bind="attrsWithoutClick"
-    class="inline-flex items-center justify-center gap-1 font-[cubic11] font-black text-[12px] px-4 py-2 border-2 border-[#4A5040] shadow-[3px_3px_0px_#4A5040] transition-colors cursor-pointer"
+    class="inline-flex items-center justify-center gap-1 font-[cubic11] font-black text-[12px] px-4 py-2 border-2 border-[#4A5040] shadow-[3px_3px_0px_#4A5040] hover:border-[#0E7490] hover:shadow-[3px_3px_0_#0E7490] transition-all duration-150 cursor-pointer"
     :class="[
       props.variant === 'white'
-        ? 'bg-white text-[#4A5040] hover:bg-[#FEF7E8]'
-        : 'bg-[#87C06D] text-white hover:bg-[#98CF7E]',
+        ? 'bg-white text-[#4A5040] hover:bg-[#D9EEF2] hover:text-[#0E7490]'
+      : props.variant === 'danger'
+        ? 'bg-[#F9CE9A] text-[#4A5040] hover:bg-[rgba(185,64,64,0.12)] hover:border-[#9B3030] hover:shadow-[3px_3px_0_#9B3030] hover:text-[#9B3030]'
+      : 'bg-[#87C06D] text-white hover:bg-[#69AD76]',
       { 'btn-bounce': isBouncing }
     ]"
     @click="handleClick"

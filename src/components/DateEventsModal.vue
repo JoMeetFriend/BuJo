@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import BaseModal from './ui/BaseModal.vue'
 import ItineraryDetailModal from './ItineraryDetailModal.vue'
 
 const isModalOpen = ref(false)
@@ -50,48 +51,20 @@ const statusClass = {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-40 flex items-center justify-center px-4 pb-16 md:pb-0">
-    <button
-      type="button"
-      class="absolute inset-0 cursor-pointer bg-[#4A5040]/25"
-      aria-label="關閉日期彈窗"
-      @click="emit('close')"
-    ></button>
-
-    <section
-      class="relative z-10 w-full max-w-[440px] border-2 border-[#4A5040] bg-[#FEF7E8] shadow-[5px_5px_0_#4A5040]"
-      role="dialog"
-      aria-modal="true"
-      :aria-label="formattedDate"
-    >
-      <header
-        class="flex h-[62px] items-center justify-between border-b border-[#9DBD86] bg-[#DEF4CD] px-4 md:px-5"
+  <BaseModal :isOpen="true" :title="formattedDate" @close="emit('close')">
+    <template #header-actions>
+      <button
+        type="button"
+        class="grid h-7 w-7 place-items-center text-lg leading-none text-[#4A5040] transition hover:bg-[#DEF4CD]"
+        aria-label="新增行程"
+        @click="emit('add')"
       >
-        <h2 class="font-[cubic11] text-[20px] font-black tracking-[0.16em] text-[#4A5040]">
-          {{ formattedDate }}
-        </h2>
+        +
+      </button>
+    </template>
 
-        <div class="flex items-center gap-5 text-[#4A5040]">
-          <button
-            type="button"
-            class="font-[cubic11] text-[18px] leading-none hover:opacity-70"
-            aria-label="新增行程"
-            @click="emit('add')"
-          >
-            +
-          </button>
-          <button
-            type="button"
-            class="font-[cubic11] text-[18px] leading-none hover:opacity-70"
-            aria-label="關閉"
-            @click="emit('close')"
-          >
-            ×
-          </button>
-        </div>
-      </header>
-
-      <div class="min-h-[114px] px-4 py-4 md:px-[18px]">
+    <template #default>
+      <div class="min-h-[114px]">
         <div v-if="events.length" class="flex flex-col gap-3">
           <article
             v-for="event in events"
@@ -137,8 +110,8 @@ const statusClass = {
           <p class="mt-1 text-[12px]">點右上角 ＋ 新增</p>
         </div>
       </div>
-    </section>
-  </div>
+    </template>
+  </BaseModal>
 
   <ItineraryDetailModal
     :is-open="isModalOpen"
