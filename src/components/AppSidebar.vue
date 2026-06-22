@@ -1,14 +1,22 @@
 <script setup>
-defineProps({
-  isOpen: Boolean,
-  filters: Object,
-})
+import { ref, computed } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
+import ProfileAccountModal from './ProfileAccountModal.vue'
+
+defineProps({ isOpen: Boolean, filters: Object })
 const emit = defineEmits(['toggle-filter'])
 
-import { ref } from 'vue'
-const drawerOpen = ref(false)
+const route = useRoute()
+const isCalendarPage = computed(() => route.path === '/')
 
-import { RouterLink } from 'vue-router'
+const drawerOpen = ref(false)
+const profileBtnBouncing = ref(false)
+const showProfileModal = ref(false)
+
+function onProfileAnimEnd() {
+  profileBtnBouncing.value = false
+  showProfileModal.value = true
+}
 </script>
 
 <template>
@@ -90,7 +98,7 @@ import { RouterLink } from 'vue-router'
   <div class="md:hidden">
     <!-- 篩選抽屜 -->
     <div
-      v-if="drawerOpen"
+      v-if="isCalendarPage && drawerOpen"
       class="fixed bottom-0 left-0 right-0 bg-[#87C06D] px-6 pt-4 flex flex-col gap-3 z-50 pb-[80px]"
     >
       <button
@@ -116,8 +124,9 @@ import { RouterLink } from 'vue-router'
     <nav
       class="fixed bottom-0 left-0 right-0 bg-[#87C06D] flex justify-around items-center py-3 z-50"
     >
-      <!-- 箭頭按鈕：浮在導覽列上緣正中間 -->
+      <!-- 箭頭按鈕：僅月曆頁顯示 -->
       <button
+        v-if="isCalendarPage"
         @click="drawerOpen = !drawerOpen"
         class="absolute left-1/2 -translate-x-1/2 bottom-full w-8 h-6 bg-[#87C06D] flex items-center justify-center text-[#4A5040] text-[10px] font-['Press_Start_2P']"
       >
@@ -127,10 +136,9 @@ import { RouterLink } from 'vue-router'
       <RouterLink
         v-for="item in [
           { name: '月曆', to: '/' },
-          { name: '活動', to: 'activity' },
+          { name: '活動', to: '/activity' },
           { name: '好友', to: '/friends-page' },
           { name: '通知', to: '/alerts' },
-          { name: 'Me', to: '/profile/edit' },
         ]"
         :key="item.name"
         :to="item.to"
@@ -139,6 +147,55 @@ import { RouterLink } from 'vue-router'
       >
         <div class="w-8 h-8 bg-[#DEF4CD]"></div>
       </RouterLink>
+
+      <!-- 個人帳號按鈕 -->
+      <button
+        type="button"
+        class="flex h-10 w-10 items-center justify-center border-2 border-[#4A5040] bg-[#DEF4CD] shadow-[3px_3px_0px_#87C06D] transition-colors hover:bg-[#D9F0A8]"
+        :class="{ 'btn-bounce-green': profileBtnBouncing }"
+        @click="profileBtnBouncing = true"
+        @animationend="onProfileAnimEnd"
+        aria-label="開啟個人帳號"
+      >
+        <span class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
+      </button>
     </nav>
   </div>
+  <ProfileAccountModal v-if="showProfileModal" @close="showProfileModal = false" />
 </template>
+
+<style scoped>
+.profile-pixel-face {
+  position: relative;
+  display: block;
+  width: 32px;
+  height: 32px;
+  background:
+    linear-gradient(#4a5040 0 0) 8px 4px / 16px 4px no-repeat,
+    linear-gradient(#4a5040 0 0) 4px 8px / 4px 16px no-repeat,
+    linear-gradient(#4a5040 0 0) 24px 8px / 4px 16px no-repeat,
+    linear-gradient(#4a5040 0 0) 8px 24px / 16px 4px no-repeat,
+    linear-gradient(#4a5040 0 0) 12px 12px / 4px 4px no-repeat,
+    linear-gradient(#4a5040 0 0) 20px 12px / 4px 4px no-repeat,
+    linear-gradient(#4a5040 0 0) 16px 20px / 4px 4px no-repeat;
+}
+.profile-pixel-face::before,
+.profile-pixel-face::after {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  background: #4a5040;
+  content: '';
+}
+.profile-pixel-face::before { left: 4px; }
+.profile-pixel-face::after  { right: 4px; }
+.profile-pixel-face--small  { transform: scale(0.78); }
+
+@keyframes pixel-bounce-green {
+  0%   { transform: translate(0, 0);     box-shadow: 3px 3px 0 #87C06D; }
+  40%  { transform: translate(3px, 3px); box-shadow: 0 0 0 #87C06D; }
+  100% { transform: translate(0, 0);     box-shadow: 3px 3px 0 #87C06D; }
+}
+.btn-bounce-green { animation: pixel-bounce-green 0.2s ease-in-out; }
+</style>

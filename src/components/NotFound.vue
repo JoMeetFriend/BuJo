@@ -12,13 +12,12 @@
       </p>
 
       <div class="mt-6 flex items-center justify-center">
-        <router-link
-          to="/"
-          class="bg-primary-green border-2 border-brand-text shadow-pixel px-6 py-3 text-sm font-semibold text-brand-text active:translate-x-[1px] active:translate-y-[1px] active:shadow-pixel-pressed transition-all duration-70"
-        >
-          帶我回首頁
-        </router-link>
+        <PixelButton @click="$router.push('/')">帶我回首頁</PixelButton>
       </div>
     </div>
   </div>
 </template>
+
+<script setup>
+import PixelButton from './ui/PixelButton.vue'
+</script>
