@@ -152,32 +152,31 @@ const goToDetail = (id) => {
 </script>
 
 <template>
-  <div class="w-full max-w-7xl mx-auto p-6 bg-page-bg min-h-screen text-brand-text font-cubic11">
-    <div class="flex flex-col lg:flex-row lg:justify-between sm:items-baseline gap-4 mb-6 pb-4">
+  <div class="w-full max-w-7xl mx-auto bg-page-bg text-brand-text font-cubic11">
+    <!-- Sticky Header -->
+    <header class="sticky top-0 z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 px-5 pt-8 pb-4 md:px-14 bg-page-bg">
       <div class="flex items-baseline gap-4">
-        <h1 class="text-3xl font-extrabold text-brand-text tracking-wider">活動</h1>
+        <h1 class="font-[cubic11] font-bold text-[#4A5040] text-2xl md:text-3xl" style="text-shadow: 2px 2px 0px #e4ded1">活動</h1>
         <span class="text-base font-pixel text-primary-mid tracking-widest uppercase">
           ACTIVITY
         </span>
       </div>
 
-      <div class="flex gap-2.5 self-end lg:self-auto">
+      <div class="flex gap-2.5 overflow-x-auto scrollbar-hide pb-0.5 touch-pan-x">
         <button
           v-for="item in filters"
           :key="item.key"
           @click="currentFilter = item.key"
-          class="px-3 sm:px-4 py-1 text-sm font-bold border border-brand-text transition-all duration-150 ease-out select-none whitespace-nowrap"
-          :class="
-            currentFilter === item.key
-              ? 'bg-primary-green text-white -translate-x-[2px] -translate-y-[2px] shadow-[2px_2px_0px_0px_theme(colors.brand-text)]'
-              : 'bg-white text-brand-text shadow-none hover:bg-page-bg'
-          "
+          class="filter-btn"
+          :class="currentFilter === item.key ? 'filter-btn--active' : 'filter-btn--inactive'"
         >
           {{ item.text }}
         </button>
       </div>
-    </div>
+    </header>
 
+    <!-- 內容區 -->
+    <div class="px-5 pt-2 pb-4 md:px-14 md:py-4">
     <ul
       v-if="filteredActivities.length > 0"
       class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
@@ -186,21 +185,21 @@ const goToDetail = (id) => {
         v-for="activity in filteredActivities"
         :key="activity.id"
         @click="goToDetail(activity.id)"
-        class="border-[1.5px] border-primary-mid rounded-none bg-white flex flex-col justify-between cursor-pointer overflow-hidden transition-all duration-200 ease-in-out hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_theme(colors.primary-mid)]"
+        class="border-[1.5px] border-[#4A5040] rounded-none bg-white flex flex-col justify-between cursor-pointer overflow-hidden transition-all duration-200 ease-in-out hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_#4A5040]"
       >
         <div
-          class="h-20 flex items-center justify-center border-b-[1.5px] border-primary-mid shrink-0"
+          class="h-14 flex items-center justify-center border-b-[1.5px] border-[#4A5040] shrink-0"
           :class="STATUS_MAP[activity.status]?.topBg"
         >
-          <svg class="h-10 w-10 text-brand-text" fill="currentColor" viewBox="0 0 24 24">
+          <svg class="h-6 w-6 text-brand-text" fill="currentColor" viewBox="0 0 24 24">
             <path d="M4 2h16v2H4V2zm2 4h12v2H6V6zm-2 4h16v2H4v-2zm4 4h8v2H8v-2zm-6 4h20v2H2v-2z" />
           </svg>
         </div>
 
         <div class="p-4 flex flex-col flex-grow bg-white justify-between gap-4">
-          <h2 class="text-xl font-bold text-brand-text truncate mb-2">{{ activity.title }}</h2>
+          <h2 class="card-title truncate mb-2">{{ activity.title }}</h2>
 
-          <div class="flex flex-col gap-y-1.5 text-sm text-brand-text">
+          <div class="flex flex-col gap-y-1.5 text-xs text-brand-text">
             <div class="flex items-center gap-1.5">
               <span>🕒</span>
               <span>{{ activity.date }} {{ activity.time }}</span>
@@ -211,7 +210,7 @@ const goToDetail = (id) => {
             </div>
           </div>
 
-          <div class="flex items-end justify-between border-t border-primary-pale pt-3">
+          <div class="flex items-end justify-between border-t border-[#4A5040] pt-3">
             <div class="flex items-center overflow-hidden h-7">
               <img
                 v-for="participant in activity.participants.slice(0, 5)"
@@ -264,5 +263,53 @@ const goToDetail = (id) => {
       :is-owner-view="currentFilter === 'mine'"
       @close="isModalOpen = false"
     />
+    </div>
   </div>
 </template>
+
+<style scoped>
+.card-title {
+  font-family: cubic11, monospace;
+  font-weight: 900;
+  font-size: 0.875rem;
+  color: #4A5040;
+  -webkit-text-stroke: 0.5px #4A5040;
+}
+
+.scrollbar-hide { scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+.filter-btn {
+  font-family: cubic11, monospace;
+  font-weight: 900;
+  font-size: 12px;
+  padding: 6px 16px;
+  border: 2px solid #4A5040;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out,
+              background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.filter-btn--active {
+  background: #87C06D;
+  color: white;
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 #4A5040;
+}
+
+.filter-btn--inactive {
+  background: white;
+  color: #4A5040;
+  box-shadow: 3px 3px 0 #4A5040;
+}
+
+.filter-btn--inactive:hover {
+  background: #D9EEF2;
+  color: #0E7490;
+  border-color: #0E7490;
+  box-shadow: 3px 3px 0 #0E7490;
+}
+</style>
+

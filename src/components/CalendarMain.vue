@@ -1,11 +1,18 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import PixelButton from './ui/PixelButton.vue'
 import DateEventsModal from './DateEventsModal.vue'
 import MarqueeBanner from './MarqueeBanner.vue'
 import ProfileAccountModal from './ProfileAccountModal.vue'
 import EventPage from './EventPage.vue'
 
 const showEventModal = ref(false)
+const profileBtnBouncing = ref(false)
+
+function openProfileModal() {
+  showProfileModal.value = true
+  profileBtnBouncing.value = true
+}
 
 const props = defineProps({
   sidebarOpen: Boolean,
@@ -301,19 +308,18 @@ function isToday(date) {
         </button>
 
         <!-- 揪一團按鈕 -->
-        <button
-          @click="showEventModal = true"
-          class="flex items-center justify-center mx-2 bg-[#87C06D] text-[#4A5040] font-[cubic11] font-black text-[12px] w-6 h-6 md:w-auto md:h-auto md:px-4 md:py-2 border-2 border-[#4A5040] shadow-[3px_3px_0px_#4A5040] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all"
-        >
+        <PixelButton class="mx-2" @click="showEventModal = true">
           ＋<span class="hidden md:inline"> 揪一團</span>
-        </button>
+        </PixelButton>
 
         <!-- 個人帳號 -->
         <button
           type="button"
-          class="hidden h-10 w-10 items-center justify-center border-2 border-[#4A5040] bg-[#DEF4CD] shadow-[3px_3px_0px_#87C06D] transition-all hover:bg-[#D9F0A8] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none md:flex"
+          class="hidden h-10 w-10 items-center justify-center border-2 border-[#4A5040] bg-[#DEF4CD] shadow-[3px_3px_0px_#87C06D] transition-colors hover:bg-[#D9F0A8] md:flex"
+          :class="{ 'btn-bounce-green': profileBtnBouncing }"
+          @animationend="profileBtnBouncing = false"
           aria-label="開啟個人帳號"
-          @click="showProfileModal = true"
+          @click="openProfileModal"
         >
           <span class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
         </button>
@@ -398,12 +404,13 @@ function isToday(date) {
       :date="selectedDate"
       :events="selectedDateEvents"
       @close="closeDateModal"
+      @add="closeDateModal(); showEventModal = true"
     />
   </div>
 
   <ProfileAccountModal v-if="showProfileModal" @close="showProfileModal = false" />
 
-  <EventPage v-if="showEventModal" @close="showEventModal = false" />
+  <EventPage :isOpen="showEventModal" @close="showEventModal = false" />
 </template>
 
 <style scoped>
@@ -443,4 +450,11 @@ function isToday(date) {
 .profile-pixel-face--small {
   transform: scale(0.78);
 }
+
+@keyframes pixel-bounce-green {
+  0%   { transform: translate(0, 0);     box-shadow: 3px 3px 0 #87C06D; }
+  40%  { transform: translate(3px, 3px); box-shadow: 0 0 0 #87C06D; }
+  100% { transform: translate(0, 0);     box-shadow: 3px 3px 0 #87C06D; }
+}
+.btn-bounce-green { animation: pixel-bounce-green 0.2s ease-in-out; }
 </style>
