@@ -160,10 +160,7 @@
       :date="selectedDate"
       :events="selectedDateEvents"
       @close="closeDateModal"
-      @add="
-        closeDateModal()
-        showEventModal = true
-      "
+      @add="closeDateModal(); showEventModal = true"
     />
   </div>
 

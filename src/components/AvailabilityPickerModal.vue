@@ -138,10 +138,7 @@
                               : 'text-[#9DBD86] bg-[#fafdf7]'
                           "
                           type="button"
-                          @click="
-                            range.from = opt.value
-                            activeTimePicker = null
-                          "
+                          @click="range.from = opt.value; activeTimePicker = null"
                         >
                           {{ opt.label }}
                         </button>
@@ -172,10 +169,7 @@
                               : 'text-[#9DBD86] bg-[#fafdf7]'
                           "
                           type="button"
-                          @click="
-                            range.to = opt.value
-                            activeTimePicker = null
-                          "
+                          @click="range.to = opt.value; activeTimePicker = null"
                         >
                           {{ opt.label }}
                         </button>
