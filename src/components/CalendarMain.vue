@@ -29,7 +29,7 @@ const handleResize = () => {
   isMobile.value = window.innerWidth < 768
 }
 
-const COLORS = [ '#da90c7', '#5ea5e1','#56b597']
+const COLORS = ['#da90c7', '#5ea5e1', '#56b597']
 const overlayRef = ref(null)
 const calendarRef = ref(null)
 const dots = ref([])
@@ -47,8 +47,8 @@ function initDots() {
     h: calRect.height,
   }
 
-  const topRegion    = { minY: 0,             maxY: cal.y }
-  const bottomRegion = { minY: cal.y + cal.h, maxY: H     }
+  const topRegion = { minY: 0, maxY: cal.y }
+  const bottomRegion = { minY: cal.y + cal.h, maxY: H }
 
   function posInRegion(region, size) {
     return {
@@ -80,8 +80,7 @@ function initDots() {
 }
 
 function hitsCalendar(x, y, size, cal) {
-  return x < cal.x + cal.w && x + size > cal.x &&
-         y < cal.y + cal.h && y + size > cal.y
+  return x < cal.x + cal.w && x + size > cal.x && y < cal.y + cal.h && y + size > cal.y
 }
 
 function tickDots() {
@@ -98,7 +97,7 @@ function tickDots() {
     h: calRect.height,
   }
 
-  dots.value.forEach(dot => {
+  dots.value.forEach((dot) => {
     const newX = dot.x + dot.dx
     const newY = dot.y + dot.dy
 
@@ -253,8 +252,15 @@ function isToday(date) {
 <template>
   <!-- 手機版：置中佈局 -->
 
-  <div class="flex flex-col gap-3 flex-1 min-h-0 px-4 pb-8 md:px-28 md:pt-4 md:pb-20 relative isolate">
-    <div ref="overlayRef" class="absolute left-0 right-0 top-0 pointer-events-none" style="z-index: -1; bottom: -5rem;" aria-hidden="true">
+  <div
+    class="flex flex-col gap-3 flex-1 min-h-0 px-4 pb-8 md:px-28 md:pt-4 md:pb-20 relative isolate"
+  >
+    <div
+      ref="overlayRef"
+      class="absolute left-0 right-0 top-0 pointer-events-none"
+      style="z-index: -1; bottom: -5rem"
+      aria-hidden="true"
+    >
       <div
         v-for="dot in dots"
         :key="dot.id"
@@ -327,7 +333,10 @@ function isToday(date) {
     </div>
 
     <!-- 行事曆本體 -->
-    <div ref="calendarRef" class="border-[1.5px] border-[#DEF4CD] overflow-hidden md:flex-1 md:flex md:flex-col">
+    <div
+      ref="calendarRef"
+      class="border-[1.5px] border-[#DEF4CD] overflow-hidden md:flex-1 md:flex md:flex-col"
+    >
       <!-- 星期標題 -->
       <div class="grid grid-cols-7 bg-[#D9F0A8] border-b-[1.5px] border-[#DEF4CD]">
         <div
@@ -404,7 +413,10 @@ function isToday(date) {
       :date="selectedDate"
       :events="selectedDateEvents"
       @close="closeDateModal"
-      @add="closeDateModal(); showEventModal = true"
+      @add="
+        closeDateModal()
+        showEventModal = true
+      "
     />
   </div>
 
@@ -452,9 +464,20 @@ function isToday(date) {
 }
 
 @keyframes pixel-bounce-green {
-  0%   { transform: translate(0, 0);     box-shadow: 3px 3px 0 #87C06D; }
-  40%  { transform: translate(3px, 3px); box-shadow: 0 0 0 #87C06D; }
-  100% { transform: translate(0, 0);     box-shadow: 3px 3px 0 #87C06D; }
+  0% {
+    transform: translate(0, 0);
+    box-shadow: 3px 3px 0 #87c06d;
+  }
+  40% {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 #87c06d;
+  }
+  100% {
+    transform: translate(0, 0);
+    box-shadow: 3px 3px 0 #87c06d;
+  }
 }
-.btn-bounce-green { animation: pixel-bounce-green 0.2s ease-in-out; }
+.btn-bounce-green {
+  animation: pixel-bounce-green 0.2s ease-in-out;
+}
 </style>

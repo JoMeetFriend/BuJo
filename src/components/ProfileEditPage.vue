@@ -17,20 +17,29 @@ const handleAvatarChange = (event) => {
       <h1
         class="font-[cubic11] font-bold text-[#4A5040] text-2xl md:text-3xl"
         style="text-shadow: 2px 2px 0px #e4ded1"
-      >個人編輯</h1>
-      <span class="font-['Press_Start_2P'] text-[#9DBD86] text-base tracking-widest uppercase">ME</span>
+      >
+        個人編輯
+      </h1>
+      <span class="font-['Press_Start_2P'] text-[#9DBD86] text-base tracking-widest uppercase"
+        >ME</span
+      >
     </header>
 
     <!-- 主卡片 -->
-    <section class="w-full max-w-[800px] border-2 border-[#4A5040] bg-white shadow-[6px_6px_0_#4A5040] max-sm:shadow-[4px_4px_0_#4A5040]">
-
+    <section
+      class="w-full max-w-[800px] border-2 border-[#4A5040] bg-white shadow-[6px_6px_0_#4A5040] max-sm:shadow-[4px_4px_0_#4A5040]"
+    >
       <!-- 頭像 -->
       <header class="flex items-center border-b-2 border-[#DEF4CD] bg-[#D9F0A8] px-5 py-3">
-        <h2 class="text-base leading-none md:text-lg" style="-webkit-text-stroke: 0.5px #4A5040">頭像</h2>
+        <h2 class="text-base leading-none md:text-lg" style="-webkit-text-stroke: 0.5px #4a5040">
+          頭像
+        </h2>
       </header>
       <div class="px-5 py-4">
         <div class="flex flex-col items-start gap-4 md:flex-row md:items-center md:gap-8">
-          <div class="size-24 shrink-0 overflow-hidden border-2 border-[#4A5040] bg-[#DEF4CD] shadow-[4px_4px_0_#4A5040] md:size-28">
+          <div
+            class="size-24 shrink-0 overflow-hidden border-2 border-[#4A5040] bg-[#DEF4CD] shadow-[4px_4px_0_#4A5040] md:size-28"
+          >
             <img
               v-if="avatarUrl"
               :src="avatarUrl"
@@ -42,7 +51,12 @@ const handleAvatarChange = (event) => {
             <label
               class="inline-flex h-9 w-fit cursor-pointer items-center justify-center gap-2 border-2 border-[#4A5040] bg-[#87C06D] px-4 text-[12px] text-white shadow-[3px_3px_0_#4A5040] transition-all duration-150 hover:bg-[#69AD76] hover:border-[#0E7490] hover:shadow-[3px_3px_0_#0E7490]"
             >
-              <input class="hidden" type="file" accept="image/png, image/jpeg" @change="handleAvatarChange" />
+              <input
+                class="hidden"
+                type="file"
+                accept="image/png, image/jpeg"
+                @change="handleAvatarChange"
+              />
               ▲ 上傳照片
             </label>
             <p class="text-xs text-[#9DBD86]">支援 JPG、PNG，建議使用正方形圖片。</p>
@@ -52,7 +66,9 @@ const handleAvatarChange = (event) => {
 
       <!-- 基本資料 -->
       <header class="flex items-center border-y-2 border-[#DEF4CD] bg-[#D9F0A8] px-5 py-3">
-        <h2 class="text-base leading-none md:text-lg" style="-webkit-text-stroke: 0.5px #4A5040">基本資料</h2>
+        <h2 class="text-base leading-none md:text-lg" style="-webkit-text-stroke: 0.5px #4a5040">
+          基本資料
+        </h2>
       </header>
       <form class="px-5 py-4 grid gap-4" @submit.prevent>
         <label class="grid gap-1.5">
@@ -69,7 +85,9 @@ const handleAvatarChange = (event) => {
 
         <div class="grid gap-1.5">
           <span class="text-xs field-label">電子郵件</span>
-          <div class="flex h-9 w-full items-center border-2 border-[#DEF4CD] bg-[#FEF7E8] px-4 text-[12px] text-[#9DBD86]">
+          <div
+            class="flex h-9 w-full items-center border-2 border-[#DEF4CD] bg-[#FEF7E8] px-4 text-[12px] text-[#9DBD86]"
+          >
             bujo.user@example.com
           </div>
         </div>
@@ -85,6 +103,6 @@ const handleAvatarChange = (event) => {
 
 <style scoped>
 .field-label {
-  -webkit-text-stroke: 0.5px #4A5040;
+  -webkit-text-stroke: 0.5px #4a5040;
 }
 </style>

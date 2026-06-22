@@ -1,28 +1,38 @@
 <!-- src/views/RegisterViews.vue -->
 <template>
-  <div class="min-h-screen relative bg-page-bg bg-dot-pattern flex items-center justify-center p-6 overflow-hidden">
+  <div
+    class="min-h-screen relative bg-page-bg bg-dot-pattern flex items-center justify-center p-6 overflow-hidden"
+  >
     <div class="register-bg" :style="{ backgroundImage: `url(${registerBg})` }"></div>
-    <div class="relative z-10 bg-page-bg w-full max-w-[26.4rem] p-7 border-2 border-brand-text shadow-pixel hover:shadow-pixel-pressed hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100">
-
+    <div
+      class="relative z-10 bg-page-bg w-full max-w-[26.4rem] p-7 border-2 border-brand-text shadow-pixel hover:shadow-pixel-pressed hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100"
+    >
       <!-- Logo -->
       <div class="flex flex-col items-center mb-6">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-primary-green flex items-center justify-center shrink-0 border-2 border-brand-text shadow-pixel-sm">
+          <div
+            class="w-10 h-10 bg-primary-green flex items-center justify-center shrink-0 border-2 border-brand-text shadow-pixel-sm"
+          >
             <!-- 之後換成 <img src="@/assets/logo.png" class="w-10 h-10" /> -->
             <span class="text-page-bg text-2xl">🗓</span>
           </div>
-          <h1 class="text-4xl font-bold text-primary-green font-cubic11 tracking-[0.6px] [text-shadow:2px_2px_0_#4A5040]">BuJo</h1>
+          <h1
+            class="text-4xl font-bold text-primary-green font-cubic11 tracking-[0.6px] [text-shadow:2px_2px_0_#4A5040]"
+          >
+            BuJo
+          </h1>
         </div>
         <p class="text-sm text-primary-mid mt-1 relative top-[0.25em]">不揪喔～說完，你就揪到了</p>
       </div>
 
       <!-- 表單 -->
       <form @submit.prevent="handleRegister" class="space-y-3">
-
         <!-- 暱稱 -->
         <div>
           <label class="block text-sm text-brand-text mb-1">暱稱</label>
-          <div class="flex items-center gap-2 border-[1.5px] border-primary-mid px-3 bg-primary-pale">
+          <div
+            class="flex items-center gap-2 border-[1.5px] border-primary-mid px-3 bg-primary-pale"
+          >
             <span class="text-brand-text">👤</span>
             <input
               v-model="form.name"
@@ -36,7 +46,9 @@
         <!-- 電子郵件 -->
         <div>
           <label class="block text-sm text-brand-text mb-1">電子郵件</label>
-          <div class="flex items-center gap-2 border-[1.5px] border-primary-mid px-3 bg-primary-pale">
+          <div
+            class="flex items-center gap-2 border-[1.5px] border-primary-mid px-3 bg-primary-pale"
+          >
             <span class="text-brand-text">✉</span>
             <input
               v-model="form.email"
@@ -50,7 +62,9 @@
         <!-- 密碼 -->
         <div>
           <label class="block text-sm text-brand-text mb-1">密碼</label>
-          <div class="flex items-center gap-2 border-[1.5px] border-primary-mid px-3 bg-primary-pale">
+          <div
+            class="flex items-center gap-2 border-[1.5px] border-primary-mid px-3 bg-primary-pale"
+          >
             <span class="text-brand-text"></span>
             <input
               v-model="form.password"
@@ -68,7 +82,9 @@
         <!-- 確認密碼 -->
         <div>
           <label class="block text-sm text-brand-text mb-1">確認密碼</label>
-          <div class="flex items-center gap-2 border-[1.5px] border-primary-mid px-3 bg-primary-pale">
+          <div
+            class="flex items-center gap-2 border-[1.5px] border-primary-mid px-3 bg-primary-pale"
+          >
             <span class="text-brand-text"></span>
             <input
               v-model="form.confirmPassword"
@@ -76,7 +92,11 @@
               placeholder="••••••••"
               class="flex-1 bg-transparent outline-none py-2 text-sm text-brand-text"
             />
-            <button type="button" @click="showConfirmPassword = !showConfirmPassword" class="text-brand-text">
+            <button
+              type="button"
+              @click="showConfirmPassword = !showConfirmPassword"
+              class="text-brand-text"
+            >
               <EyeIcon v-if="!showConfirmPassword" class="w-4 h-4" />
               <EyeSlashIcon v-else class="w-4 h-4" />
             </button>

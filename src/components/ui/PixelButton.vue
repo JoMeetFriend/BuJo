@@ -51,10 +51,10 @@ function onAnimationEnd() {
     :class="[
       props.variant === 'white'
         ? 'bg-white text-[#4A5040] hover:bg-[#D9EEF2] hover:text-[#0E7490]'
-      : props.variant === 'danger'
-        ? 'bg-[#F9CE9A] text-[#4A5040] hover:bg-[rgba(185,64,64,0.12)] hover:border-[#9B3030] hover:shadow-[3px_3px_0_#9B3030] hover:text-[#9B3030]'
-      : 'bg-[#87C06D] text-white hover:bg-[#69AD76]',
-      { 'btn-bounce': isBouncing }
+        : props.variant === 'danger'
+          ? 'bg-[#F9CE9A] text-[#4A5040] hover:bg-[rgba(185,64,64,0.12)] hover:border-[#9B3030] hover:shadow-[3px_3px_0_#9B3030] hover:text-[#9B3030]'
+          : 'bg-[#87C06D] text-white hover:bg-[#69AD76]',
+      { 'btn-bounce': isBouncing },
     ]"
     @click="handleClick"
     @animationend="onAnimationEnd"
@@ -65,12 +65,20 @@ function onAnimationEnd() {
 
 <style scoped>
 @keyframes pixel-bounce {
-  0%   { transform: translate(0, 0);     box-shadow: 3px 3px 0 #4A5040; }
-  40%  { transform: translate(3px, 3px); box-shadow: 0 0 0 #4A5040; }
-  100% { transform: translate(0, 0);     box-shadow: 3px 3px 0 #4A5040; }
+  0% {
+    transform: translate(0, 0);
+    box-shadow: 3px 3px 0 #4a5040;
+  }
+  40% {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 #4a5040;
+  }
+  100% {
+    transform: translate(0, 0);
+    box-shadow: 3px 3px 0 #4a5040;
+  }
 }
 .btn-bounce {
   animation: pixel-bounce 0.2s ease-in-out;
 }
 </style>
-

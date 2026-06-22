@@ -53,9 +53,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
-const titleId = computed(
-  () => `modal-title-${props.title.replace(/[\s\W]+/g, '-').toLowerCase()}`,
-)
+const titleId = computed(() => `modal-title-${props.title.replace(/[\s\W]+/g, '-').toLowerCase()}`)
 
 function handleKeydown(e) {
   if (e.key === 'Escape') emit('close')
@@ -89,7 +87,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
           <h2
             :id="titleId"
             class="m-0 text-base md:text-lg leading-none"
-            style="-webkit-text-stroke: 0.5px #4A5040"
+            style="-webkit-text-stroke: 0.5px #4a5040"
           >
             {{ title }}
           </h2>

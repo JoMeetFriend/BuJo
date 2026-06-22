@@ -2,7 +2,9 @@
   <BaseModal :isOpen="isOpen" title="新增好友" @close="emit('close')">
     <div class="grid gap-4">
       <label class="grid gap-2" for="friend-search">
-        <span class="text-sm leading-none" style="-webkit-text-stroke: 0.5px #4A5040">搜尋好友</span>
+        <span class="text-sm leading-none" style="-webkit-text-stroke: 0.5px #4a5040"
+          >搜尋好友</span
+        >
         <input
           id="friend-search"
           class="min-h-[44px] w-full rounded-none border-[1.5px] border-[#A8C893] bg-white px-4 font-[cubic11] text-sm leading-none text-[#4A5040] outline-none placeholder:text-[#858A7A] focus:border-[#7DB968] focus:shadow-[inset_0_0_0_1px_#7DB968]"
@@ -27,9 +29,7 @@
           </div>
 
           <div class="min-w-0">
-            <h2 class="m-0 truncate text-sm font-semibold leading-tight text-[#4A5040]">
-              朋友1號
-            </h2>
+            <h2 class="m-0 truncate text-sm font-semibold leading-tight text-[#4A5040]">朋友1號</h2>
           </div>
 
           <button
