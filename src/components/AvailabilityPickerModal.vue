@@ -1,228 +1,3 @@
-<script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
-
-const modalBody = ref(null)
-
-const props = defineProps({
-  modelValue: Boolean,
-  rangeStart: { type: String, default: '2026-07-10' },
-  rangeEnd: { type: String, default: '2026-07-16' },
-})
-const emit = defineEmits(['update:modelValue', 'confirm'])
-
-// ── 狀態 ──
-// key = 'YYYY-MM-DD', value = null（整天）或 [{from,to},...]
-const selectedDates = ref({})
-const activeDate = ref(null)
-const dragState = reactive({ active: false, startDate: null, hovering: new Set() })
-
-// ── 日曆 computed ──
-const DOW_LABELS = ['一', '二', '三', '四', '五', '六', '日']
-
-const calYear = computed(() => parseInt(props.rangeStart.split('-')[0]))
-const calMonth = computed(() => parseInt(props.rangeStart.split('-')[1]))
-
-const firstDayOffset = computed(() => {
-  const d = new Date(calYear.value, calMonth.value - 1, 1).getDay()
-  return d === 0 ? 6 : d - 1
-})
-
-const daysInMonth = computed(() => new Date(calYear.value, calMonth.value, 0).getDate())
-
-const rangeStartDay = computed(() => parseInt(props.rangeStart.split('-')[2]))
-const rangeEndDay = computed(() => parseInt(props.rangeEnd.split('-')[2]))
-const calRows = computed(() => Math.ceil((firstDayOffset.value + daysInMonth.value) / 7))
-
-function toDateKey(day) {
-  return `${calYear.value}-${String(calMonth.value).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-}
-
-function formatChip(dateKey) {
-  const parts = dateKey.split('-')
-  return `${parseInt(parts[1])}/${parseInt(parts[2])}`
-}
-
-const sortedSelectedDates = computed(() => Object.keys(selectedDates.value).sort())
-
-// ── 日期格樣式 ──
-function dayClass(day) {
-  const inRange = day >= rangeStartDay.value && day <= rangeEndDay.value
-  const key = toDateKey(day)
-  const sel = key in selectedDates.value
-  const isActive = activeDate.value === key
-  const isDragHov = dragState.active && dragState.hovering.has(day)
-
-  if (!inRange)
-    return 'text-[13px] md:text-[14px] font-bold text-center border-2 border-transparent text-[#ccc] cursor-default h-full min-h-[36px] flex items-center justify-center'
-
-  return [
-    'text-[13px] md:text-[14px] font-bold text-center border-2 cursor-pointer transition-colors select-none h-full min-h-[36px] flex items-center justify-center',
-    !sel && !isDragHov
-      ? 'bg-[#f0fae5] border-transparent hover:bg-[#DEF4CD] hover:border-[#87C06D]'
-      : '',
-    isDragHov && !sel ? 'bg-[#DEF4CD] border-[#87C06D]' : '',
-    sel && !isActive ? 'bg-[#87C06D] text-white border-[#5e9b57]' : '',
-    sel && isActive ? 'bg-[#4A5040] text-white border-[#4A5040]' : '',
-  ]
-    .filter(Boolean)
-    .join(' ')
-}
-
-// ── 拖曳選取 ──
-function onDayMousedown(day) {
-  const inRange = day >= rangeStartDay.value && day <= rangeEndDay.value
-  if (!inRange) return
-
-  const key = toDateKey(day)
-  if (key in selectedDates.value) {
-    if (activeDate.value === key) {
-      // 已聚焦 → 取消選取
-      activeDate.value = null
-      delete selectedDates.value[key]
-    } else {
-      // 已選但非聚焦 → 切換聚焦到此日期
-      activeDate.value = key
-    }
-    return
-  }
-
-  dragState.active = true
-  dragState.startDate = day
-  dragState.hovering = new Set([day])
-}
-
-function onDayMouseover(day) {
-  if (!dragState.active) return
-  const inRange = day >= rangeStartDay.value && day <= rangeEndDay.value
-  if (!inRange) return
-
-  const lo = Math.min(dragState.startDate, day)
-  const hi = Math.max(dragState.startDate, day)
-  dragState.hovering = new Set()
-  for (let d = lo; d <= hi; d++) {
-    if (d >= rangeStartDay.value && d <= rangeEndDay.value) dragState.hovering.add(d)
-  }
-}
-
-function onMouseup() {
-  if (!dragState.active) return
-
-  dragState.hovering.forEach((day) => {
-    const key = toDateKey(day)
-    if (!(key in selectedDates.value)) {
-      selectedDates.value[key] = null
-    }
-  })
-
-  const last = Math.max(...dragState.hovering)
-  activeDate.value = toDateKey(last)
-
-  dragState.active = false
-  dragState.hovering = new Set()
-}
-
-onMounted(() => {
-  window.addEventListener('mouseup', onMouseup)
-  document.addEventListener('click', handleDocumentClickTimePicker)
-})
-onUnmounted(() => {
-  window.removeEventListener('mouseup', onMouseup)
-  document.removeEventListener('click', handleDocumentClickTimePicker)
-})
-
-// ── 時段操作 ──
-function isAllDay(dateKey) {
-  const val = selectedDates.value[dateKey]
-  return val === null || (Array.isArray(val) && val.length === 0)
-}
-
-function startCustom() {
-  selectedDates.value[activeDate.value] = [{ from: '09:00', to: '17:00' }]
-}
-
-function addRange() {
-  if (!Array.isArray(selectedDates.value[activeDate.value])) {
-    selectedDates.value[activeDate.value] = []
-  }
-  selectedDates.value[activeDate.value].push({ from: '09:00', to: '17:00' })
-}
-
-function removeRange(i) {
-  selectedDates.value[activeDate.value].splice(i, 1)
-  if (selectedDates.value[activeDate.value].length === 0) {
-    selectedDates.value[activeDate.value] = null
-  }
-}
-
-function resetAllDay() {
-  selectedDates.value[activeDate.value] = null
-}
-
-const hourOptions = Array.from({ length: 24 }, (_, hour) => {
-  const period = hour < 12 ? '上午' : '下午'
-  const display = String(hour % 12 || 12)
-  const value = String(hour).padStart(2, '0') + ':00'
-  return { label: `${period} ${display}:00`, value }
-})
-
-const activeTimePicker = ref(null)
-
-function toLabel(value) {
-  if (!value) return ''
-  const hour = parseInt(value.split(':')[0])
-  const period = hour < 12 ? '上午' : '下午'
-  const display = String(hour % 12 || 12)
-  return `${period} ${display}:00`
-}
-
-function openTimePicker(key, containerEl) {
-  activeTimePicker.value = activeTimePicker.value === key ? null : key
-  if (activeTimePicker.value === key) {
-    nextTick(() => {
-      const el = containerEl?.querySelector('[data-hour="9"]')
-      el?.scrollIntoView({ block: 'center' })
-    })
-  }
-}
-
-function handleDocumentClickTimePicker(e) {
-  if (!e.target.closest('.time-picker-wrap')) {
-    activeTimePicker.value = null
-  }
-}
-
-// ── 摘要 ──
-const summaryItems = computed(() =>
-  Object.entries(selectedDates.value)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, ranges]) => ({
-      date,
-      chip: formatChip(date),
-      label:
-        !ranges || ranges.length === 0
-          ? '整天'
-          : ranges.map((r) => `${r.from}–${r.to}`).join(' / '),
-    })),
-)
-
-// ── Modal 控制 ──
-function close() {
-  selectedDates.value = {}
-  activeDate.value = null
-  emit('update:modelValue', false)
-}
-
-function handleConfirm() {
-  const result = Object.entries(selectedDates.value).map(([date, ranges]) => ({
-    date,
-    allDay: ranges === null || ranges.length === 0,
-    timeRanges: ranges ?? [],
-  }))
-  emit('confirm', result)
-  close()
-}
-</script>
-
 <template>
   <Teleport to="body">
     <div
@@ -485,3 +260,226 @@ function handleConfirm() {
     </div>
   </Teleport>
 </template>
+
+<script setup>
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
+
+const modalBody = ref(null)
+
+const props = defineProps({
+  modelValue: Boolean,
+  rangeStart: { type: String, default: '2026-07-10' },
+  rangeEnd: { type: String, default: '2026-07-16' },
+})
+const emit = defineEmits(['update:modelValue', 'confirm'])
+
+// ── 狀態 ──
+// key = 'YYYY-MM-DD', value = null（整天）或 [{from,to},...]
+const selectedDates = ref({})
+const activeDate = ref(null)
+const dragState = reactive({ active: false, startDate: null, hovering: new Set() })
+
+// ── 日曆 computed ──
+const DOW_LABELS = ['一', '二', '三', '四', '五', '六', '日']
+
+const calYear = computed(() => parseInt(props.rangeStart.split('-')[0]))
+const calMonth = computed(() => parseInt(props.rangeStart.split('-')[1]))
+
+const firstDayOffset = computed(() => {
+  const d = new Date(calYear.value, calMonth.value - 1, 1).getDay()
+  return d === 0 ? 6 : d - 1
+})
+
+const daysInMonth = computed(() => new Date(calYear.value, calMonth.value, 0).getDate())
+
+const rangeStartDay = computed(() => parseInt(props.rangeStart.split('-')[2]))
+const rangeEndDay = computed(() => parseInt(props.rangeEnd.split('-')[2]))
+const calRows = computed(() => Math.ceil((firstDayOffset.value + daysInMonth.value) / 7))
+
+function toDateKey(day) {
+  return `${calYear.value}-${String(calMonth.value).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+function formatChip(dateKey) {
+  const parts = dateKey.split('-')
+  return `${parseInt(parts[1])}/${parseInt(parts[2])}`
+}
+
+const sortedSelectedDates = computed(() => Object.keys(selectedDates.value).sort())
+
+// ── 日期格樣式 ──
+function dayClass(day) {
+  const inRange = day >= rangeStartDay.value && day <= rangeEndDay.value
+  const key = toDateKey(day)
+  const sel = key in selectedDates.value
+  const isActive = activeDate.value === key
+  const isDragHov = dragState.active && dragState.hovering.has(day)
+
+  if (!inRange)
+    return 'text-[13px] md:text-[14px] font-bold text-center border-2 border-transparent text-[#ccc] cursor-default h-full min-h-[36px] flex items-center justify-center'
+
+  return [
+    'text-[13px] md:text-[14px] font-bold text-center border-2 cursor-pointer transition-colors select-none h-full min-h-[36px] flex items-center justify-center',
+    !sel && !isDragHov
+      ? 'bg-[#f0fae5] border-transparent hover:bg-[#DEF4CD] hover:border-[#87C06D]'
+      : '',
+    isDragHov && !sel ? 'bg-[#DEF4CD] border-[#87C06D]' : '',
+    sel && !isActive ? 'bg-[#87C06D] text-white border-[#5e9b57]' : '',
+    sel && isActive ? 'bg-[#4A5040] text-white border-[#4A5040]' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+}
+
+// ── 拖曳選取 ──
+function onDayMousedown(day) {
+  const inRange = day >= rangeStartDay.value && day <= rangeEndDay.value
+  if (!inRange) return
+
+  const key = toDateKey(day)
+  if (key in selectedDates.value) {
+    if (activeDate.value === key) {
+      activeDate.value = null
+      delete selectedDates.value[key]
+    } else {
+      activeDate.value = key
+    }
+    return
+  }
+
+  dragState.active = true
+  dragState.startDate = day
+  dragState.hovering = new Set([day])
+}
+
+function onDayMouseover(day) {
+  if (!dragState.active) return
+  const inRange = day >= rangeStartDay.value && day <= rangeEndDay.value
+  if (!inRange) return
+
+  const lo = Math.min(dragState.startDate, day)
+  const hi = Math.max(dragState.startDate, day)
+  dragState.hovering = new Set()
+  for (let d = lo; d <= hi; d++) {
+    if (d >= rangeStartDay.value && d <= rangeEndDay.value) dragState.hovering.add(d)
+  }
+}
+
+function onMouseup() {
+  if (!dragState.active) return
+
+  dragState.hovering.forEach((day) => {
+    const key = toDateKey(day)
+    if (!(key in selectedDates.value)) {
+      selectedDates.value[key] = null
+    }
+  })
+
+  const last = Math.max(...dragState.hovering)
+  activeDate.value = toDateKey(last)
+
+  dragState.active = false
+  dragState.hovering = new Set()
+}
+
+onMounted(() => {
+  window.addEventListener('mouseup', onMouseup)
+  document.addEventListener('click', handleDocumentClickTimePicker)
+})
+onUnmounted(() => {
+  window.removeEventListener('mouseup', onMouseup)
+  document.removeEventListener('click', handleDocumentClickTimePicker)
+})
+
+// ── 時段操作 ──
+function isAllDay(dateKey) {
+  const val = selectedDates.value[dateKey]
+  return val === null || (Array.isArray(val) && val.length === 0)
+}
+
+function startCustom() {
+  selectedDates.value[activeDate.value] = [{ from: '09:00', to: '17:00' }]
+}
+
+function addRange() {
+  if (!Array.isArray(selectedDates.value[activeDate.value])) {
+    selectedDates.value[activeDate.value] = []
+  }
+  selectedDates.value[activeDate.value].push({ from: '09:00', to: '17:00' })
+}
+
+function removeRange(i) {
+  selectedDates.value[activeDate.value].splice(i, 1)
+  if (selectedDates.value[activeDate.value].length === 0) {
+    selectedDates.value[activeDate.value] = null
+  }
+}
+
+function resetAllDay() {
+  selectedDates.value[activeDate.value] = null
+}
+
+const hourOptions = Array.from({ length: 24 }, (_, hour) => {
+  const period = hour < 12 ? '上午' : '下午'
+  const display = String(hour % 12 || 12)
+  const value = String(hour).padStart(2, '0') + ':00'
+  return { label: `${period} ${display}:00`, value }
+})
+
+const activeTimePicker = ref(null)
+
+function toLabel(value) {
+  if (!value) return ''
+  const hour = parseInt(value.split(':')[0])
+  const period = hour < 12 ? '上午' : '下午'
+  const display = String(hour % 12 || 12)
+  return `${period} ${display}:00`
+}
+
+function openTimePicker(key, containerEl) {
+  activeTimePicker.value = activeTimePicker.value === key ? null : key
+  if (activeTimePicker.value === key) {
+    nextTick(() => {
+      const el = containerEl?.querySelector('[data-hour="9"]')
+      el?.scrollIntoView({ block: 'center' })
+    })
+  }
+}
+
+function handleDocumentClickTimePicker(e) {
+  if (!e.target.closest('.time-picker-wrap')) {
+    activeTimePicker.value = null
+  }
+}
+
+// ── 摘要 ──
+const summaryItems = computed(() =>
+  Object.entries(selectedDates.value)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, ranges]) => ({
+      date,
+      chip: formatChip(date),
+      label:
+        !ranges || ranges.length === 0
+          ? '整天'
+          : ranges.map((r) => `${r.from}–${r.to}`).join(' / '),
+    })),
+)
+
+// ── Modal 控制 ──
+function close() {
+  selectedDates.value = {}
+  activeDate.value = null
+  emit('update:modelValue', false)
+}
+
+function handleConfirm() {
+  const result = Object.entries(selectedDates.value).map(([date, ranges]) => ({
+    date,
+    allDay: ranges === null || ranges.length === 0,
+    timeRanges: ranges ?? [],
+  }))
+  emit('confirm', result)
+  close()
+}
+</script>

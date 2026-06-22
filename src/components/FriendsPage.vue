@@ -1,21 +1,3 @@
-<script setup>
-import { ref } from 'vue'
-import FriendAddModal from './FriendAddModal.vue'
-import PixelButton from './ui/PixelButton.vue'
-
-const friends = [
-  { id: 1, name: '小美' },
-  { id: 2, name: '阿傑' },
-  { id: 3, name: '庭庭' },
-  { id: 4, name: '大雄' },
-  { id: 5, name: '欣欣' },
-  { id: 6, name: '阿翔' },
-  { id: 7, name: '語安' },
-  { id: 8, name: '小布' },
-]
-const isModalOpen = ref(false)
-</script>
-
 <template>
   <div class="bg-[#FEF7E8]">
     <!-- Sticky Header -->
@@ -58,3 +40,21 @@ const isModalOpen = ref(false)
   </div>
   <FriendAddModal :isOpen="isModalOpen" @close="isModalOpen = false" />
 </template>
+
+<script setup>
+import { ref } from 'vue'
+import FriendAddModal from './FriendAddModal.vue'
+import PixelButton from './ui/PixelButton.vue'
+
+const friends = [
+  { id: 1, name: '小美' },
+  { id: 2, name: '阿傑' },
+  { id: 3, name: '庭庭' },
+  { id: 4, name: '大雄' },
+  { id: 5, name: '欣欣' },
+  { id: 6, name: '阿翔' },
+  { id: 7, name: '語安' },
+  { id: 8, name: '小布' },
+]
+const isModalOpen = ref(false)
+</script>

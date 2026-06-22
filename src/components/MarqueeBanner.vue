@@ -1,5 +1,3 @@
-<script setup></script>
-
 <template>
   <div
     class="relative border-b-[2px] border-[#87C06D] bg-[#87C06D] md:md:bg-transparent py-2 overflow-hidden h-9 -mx-4 md:mx-0"
@@ -11,6 +9,8 @@
     </span>
   </div>
 </template>
+
+<script setup></script>
 
 <style scoped>
 .marquee-text {

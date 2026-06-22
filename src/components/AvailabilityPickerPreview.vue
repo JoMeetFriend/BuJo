@@ -1,10 +1,3 @@
-<!-- 彈窗預覽檔，綁定按鈕後刪除 -->
-<script setup>
-import { ref } from 'vue'
-import AvailabilityPickerModal from './AvailabilityPickerModal.vue'
-const show = ref(true)
-</script>
-
 <template>
   <div class="min-h-screen bg-[#FEF7E8] flex items-center justify-center">
     <button
@@ -16,3 +9,10 @@ const show = ref(true)
     <AvailabilityPickerModal v-model="show" rangeStart="2026-07-10" rangeEnd="2026-07-16" />
   </div>
 </template>
+
+<script setup>
+import { ref } from 'vue'
+import AvailabilityPickerModal from './AvailabilityPickerModal.vue'
+
+const show = ref(true)
+</script>

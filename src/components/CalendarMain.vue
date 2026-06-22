@@ -1,257 +1,4 @@
-<script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import PixelButton from './ui/PixelButton.vue'
-import DateEventsModal from './DateEventsModal.vue'
-import MarqueeBanner from './MarqueeBanner.vue'
-import ProfileAccountModal from './ProfileAccountModal.vue'
-import EventPage from './EventPage.vue'
-
-const showEventModal = ref(false)
-const profileBtnBouncing = ref(false)
-
-function openProfileModal() {
-  showProfileModal.value = true
-  profileBtnBouncing.value = true
-}
-
-const props = defineProps({
-  sidebarOpen: Boolean,
-  filters: {
-    type: Object,
-    default: () => ({ joined: true, formed: true, personal: true }),
-  },
-})
-const emit = defineEmits(['toggle-sidebar'])
-
-const isMobile = ref(window.innerWidth < 768)
-const showProfileModal = ref(false)
-const handleResize = () => {
-  isMobile.value = window.innerWidth < 768
-}
-
-const COLORS = ['#da90c7', '#5ea5e1', '#56b597']
-const overlayRef = ref(null)
-const calendarRef = ref(null)
-const dots = ref([])
-let dotAnimId = null
-
-function initDots() {
-  const W = overlayRef.value.clientWidth
-  const H = overlayRef.value.clientHeight
-  const overlayRect = overlayRef.value.getBoundingClientRect()
-  const calRect = calendarRef.value.getBoundingClientRect()
-  const cal = {
-    x: calRect.left - overlayRect.left,
-    y: calRect.top - overlayRect.top,
-    w: calRect.width,
-    h: calRect.height,
-  }
-
-  const topRegion = { minY: 0, maxY: cal.y }
-  const bottomRegion = { minY: cal.y + cal.h, maxY: H }
-
-  function posInRegion(region, size) {
-    return {
-      x: Math.random() * (W - size),
-      y: region.minY + Math.random() * Math.max(0, region.maxY - region.minY - size),
-    }
-  }
-
-  // 數量
-  dots.value = Array.from({ length: 3 }, (_, i) => {
-    // 大小 10~14
-    const size = Math.floor(Math.random() * 5) + 10
-    // const size = Math.floor(Math.random() * 5) + 5
-    // 偶數 index → 下方，奇數 → 上方，確保下方一定有方塊
-    const { x, y } = posInRegion(i % 2 === 0 ? bottomRegion : topRegion, size)
-    return {
-      id: i,
-      x,
-      y,
-      // 速度1.0 +2.0
-      dx: (Math.random() * 1.0 + 2.0) * (Math.random() < 0.5 ? 1 : -1),
-      dy: (Math.random() * 1.0 + 2.0) * (Math.random() < 0.5 ? 1 : -1),
-      // dx:0,
-      // dy:0,
-      size,
-      color: COLORS[i % COLORS.length],
-    }
-  })
-}
-
-function hitsCalendar(x, y, size, cal) {
-  return x < cal.x + cal.w && x + size > cal.x && y < cal.y + cal.h && y + size > cal.y
-}
-
-function tickDots() {
-  const W = overlayRef.value?.clientWidth
-  const H = overlayRef.value?.clientHeight
-  if (!W || !H) return
-
-  const overlayRect = overlayRef.value.getBoundingClientRect()
-  const calRect = calendarRef.value.getBoundingClientRect()
-  const cal = {
-    x: calRect.left - overlayRect.left,
-    y: calRect.top - overlayRect.top,
-    w: calRect.width,
-    h: calRect.height,
-  }
-
-  dots.value.forEach((dot) => {
-    const newX = dot.x + dot.dx
-    const newY = dot.y + dot.dy
-
-    if (newX <= 0 || newX + dot.size >= W) {
-      dot.dx *= -1
-    } else if (hitsCalendar(newX, dot.y, dot.size, cal)) {
-      dot.dx *= -1
-    } else {
-      dot.x = newX
-    }
-
-    if (newY <= 0 || newY + dot.size >= H) {
-      dot.dy *= -1
-    } else if (hitsCalendar(dot.x, newY, dot.size, cal)) {
-      dot.dy *= -1
-    } else {
-      dot.y = newY
-    }
-  })
-  dotAnimId = requestAnimationFrame(tickDots)
-}
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize)
-  initDots()
-  dotAnimId = requestAnimationFrame(tickDots)
-})
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-  if (dotAnimId) cancelAnimationFrame(dotAnimId)
-})
-const currentYear = ref(2026)
-const currentMonth = ref(5)
-const selectedDate = ref(null)
-
-const monthNames = [
-  'JANUARY',
-  'FEBRUARY',
-  'MARCH',
-  'APRIL',
-  'MAY',
-  'JUNE',
-  'JULY',
-  'AUGUST',
-  'SEPTEMBER',
-  'OCTOBER',
-  'NOVEMBER',
-  'DECEMBER',
-]
-const weekDays = ['一', '二', '三', '四', '五', '六', '日']
-
-const events = ref([
-  { id: 1, date: '2026-06-02', title: 'KTV', status: 'joined' },
-  { id: 2, date: '2026-06-04', title: '小酌', status: 'personal' },
-  { id: 3, date: '2026-06-05', title: '晚餐', status: 'formed' },
-  {
-    id: 4,
-    date: '2026-06-10',
-    title: '爬山',
-    status: 'joined',
-    time: '06:00 – 14:00',
-    location: '象山步道',
-  },
-  { id: 5, date: '2026-06-12', title: '桌遊', status: 'recruiting' },
-  { id: 6, date: '2026-06-18', title: '歌唱', status: 'formed' },
-  { id: 7, date: '2026-06-02', title: 'KTV', status: 'joined' },
-  { id: 8, date: '2026-06-02', title: '小酌', status: 'personal' },
-  { id: 9, date: '2026-06-02', title: '晚餐', status: 'formed' },
-])
-
-const statusStyle = {
-  joined: 'bg-[#87C06D]/40 text-[#4A5040]/40',
-  formed: 'bg-[#5e9b57] text-white',
-  personal: 'bg-[#F9CE9A] text-[#4A5040]',
-  recruiting: '',
-  none: 'bg-[#FAF8F4] text-[#9DBD86] border border-[#DEF4CD]',
-}
-
-function prevMonth() {
-  if (currentMonth.value === 0) {
-    currentMonth.value = 11
-    currentYear.value--
-  } else currentMonth.value--
-}
-function nextMonth() {
-  if (currentMonth.value === 11) {
-    currentMonth.value = 0
-    currentYear.value++
-  } else currentMonth.value++
-}
-
-function openDateModal(date) {
-  if (!date) return
-  selectedDate.value = date
-}
-
-function closeDateModal() {
-  selectedDate.value = null
-}
-
-const calendarDays = computed(() => {
-  const year = currentYear.value
-  const month = currentMonth.value
-  const firstDay = new Date(year, month, 1).getDay()
-  const totalDays = new Date(year, month + 1, 0).getDate()
-  const startOffset = firstDay === 0 ? 6 : firstDay - 1
-  const days = []
-
-  // 前月補空格（不顯示數字）
-  for (let i = 0; i < startOffset; i++) {
-    days.push({ date: null, day: null, faded: true })
-  }
-
-  // 當月
-  for (let d = 1; d <= totalDays; d++) {
-    const mm = String(month + 1).padStart(2, '0')
-    const dd = String(d).padStart(2, '0')
-    days.push({ date: `${year}-${mm}-${dd}`, day: d, faded: false })
-  }
-
-  // 後月補空格（不顯示數字），補滿 42 格
-  const remaining = 42 - days.length
-  // 後月補空格（不顯示數字），補滿到剛好的週數（5 或 6 列）
-  for (let i = 0; i < remaining; i++) {
-    days.push({ date: null, day: null, faded: true })
-  }
-
-  return days
-})
-
-function getEvents(date) {
-  if (!date) return []
-  return events.value.filter((e) => {
-    if (e.date !== date) return false
-    if (e.status === 'recruiting') return false
-    if (e.status === 'joined' && !props.filters.joined) return false
-    if (e.status === 'formed' && !props.filters.formed) return false
-    if (e.status === 'personal' && !props.filters.personal) return false
-    return true
-  })
-}
-
-const selectedDateEvents = computed(() => getEvents(selectedDate.value))
-
-function isToday(date) {
-  const today = new Date()
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-  return date === todayStr
-}
-</script>
-
 <template>
-  <!-- 手機版：置中佈局 -->
-
   <div
     class="flex flex-col gap-3 flex-1 min-h-0 px-4 pb-8 md:px-28 md:pt-4 md:pb-20 relative isolate"
   >
@@ -424,6 +171,251 @@ function isToday(date) {
 
   <EventPage :isOpen="showEventModal" @close="showEventModal = false" />
 </template>
+
+<script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import PixelButton from './ui/PixelButton.vue'
+import DateEventsModal from './DateEventsModal.vue'
+import MarqueeBanner from './MarqueeBanner.vue'
+import ProfileAccountModal from './ProfileAccountModal.vue'
+import EventPage from './EventPage.vue'
+
+const showEventModal = ref(false)
+const profileBtnBouncing = ref(false)
+
+function openProfileModal() {
+  showProfileModal.value = true
+  profileBtnBouncing.value = true
+}
+
+const props = defineProps({
+  sidebarOpen: Boolean,
+  filters: {
+    type: Object,
+    default: () => ({ joined: true, formed: true, personal: true }),
+  },
+})
+const emit = defineEmits(['toggle-sidebar'])
+
+const isMobile = ref(window.innerWidth < 768)
+const showProfileModal = ref(false)
+const handleResize = () => {
+  isMobile.value = window.innerWidth < 768
+}
+
+const COLORS = ['#da90c7', '#5ea5e1', '#56b597']
+const overlayRef = ref(null)
+const calendarRef = ref(null)
+const dots = ref([])
+let dotAnimId = null
+
+function initDots() {
+  const W = overlayRef.value.clientWidth
+  const H = overlayRef.value.clientHeight
+  const overlayRect = overlayRef.value.getBoundingClientRect()
+  const calRect = calendarRef.value.getBoundingClientRect()
+  const cal = {
+    x: calRect.left - overlayRect.left,
+    y: calRect.top - overlayRect.top,
+    w: calRect.width,
+    h: calRect.height,
+  }
+
+  const topRegion = { minY: 0, maxY: cal.y }
+  const bottomRegion = { minY: cal.y + cal.h, maxY: H }
+
+  function posInRegion(region, size) {
+    return {
+      x: Math.random() * (W - size),
+      y: region.minY + Math.random() * Math.max(0, region.maxY - region.minY - size),
+    }
+  }
+
+  dots.value = Array.from({ length: 3 }, (_, i) => {
+    const size = Math.floor(Math.random() * 5) + 10
+    // 偶數 index → 下方，奇數 → 上方，確保下方一定有方塊
+    const { x, y } = posInRegion(i % 2 === 0 ? bottomRegion : topRegion, size)
+    return {
+      id: i,
+      x,
+      y,
+      dx: (Math.random() * 1.0 + 2.0) * (Math.random() < 0.5 ? 1 : -1),
+      dy: (Math.random() * 1.0 + 2.0) * (Math.random() < 0.5 ? 1 : -1),
+      size,
+      color: COLORS[i % COLORS.length],
+    }
+  })
+}
+
+function hitsCalendar(x, y, size, cal) {
+  return x < cal.x + cal.w && x + size > cal.x && y < cal.y + cal.h && y + size > cal.y
+}
+
+function tickDots() {
+  const W = overlayRef.value?.clientWidth
+  const H = overlayRef.value?.clientHeight
+  if (!W || !H) return
+
+  const overlayRect = overlayRef.value.getBoundingClientRect()
+  const calRect = calendarRef.value.getBoundingClientRect()
+  const cal = {
+    x: calRect.left - overlayRect.left,
+    y: calRect.top - overlayRect.top,
+    w: calRect.width,
+    h: calRect.height,
+  }
+
+  dots.value.forEach((dot) => {
+    const newX = dot.x + dot.dx
+    const newY = dot.y + dot.dy
+
+    if (newX <= 0 || newX + dot.size >= W) {
+      dot.dx *= -1
+    } else if (hitsCalendar(newX, dot.y, dot.size, cal)) {
+      dot.dx *= -1
+    } else {
+      dot.x = newX
+    }
+
+    if (newY <= 0 || newY + dot.size >= H) {
+      dot.dy *= -1
+    } else if (hitsCalendar(dot.x, newY, dot.size, cal)) {
+      dot.dy *= -1
+    } else {
+      dot.y = newY
+    }
+  })
+  dotAnimId = requestAnimationFrame(tickDots)
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+  initDots()
+  dotAnimId = requestAnimationFrame(tickDots)
+})
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  if (dotAnimId) cancelAnimationFrame(dotAnimId)
+})
+
+const currentYear = ref(2026)
+const currentMonth = ref(5)
+const selectedDate = ref(null)
+
+const monthNames = [
+  'JANUARY',
+  'FEBRUARY',
+  'MARCH',
+  'APRIL',
+  'MAY',
+  'JUNE',
+  'JULY',
+  'AUGUST',
+  'SEPTEMBER',
+  'OCTOBER',
+  'NOVEMBER',
+  'DECEMBER',
+]
+const weekDays = ['一', '二', '三', '四', '五', '六', '日']
+
+const events = ref([
+  { id: 1, date: '2026-06-02', title: 'KTV', status: 'joined' },
+  { id: 2, date: '2026-06-04', title: '小酌', status: 'personal' },
+  { id: 3, date: '2026-06-05', title: '晚餐', status: 'formed' },
+  {
+    id: 4,
+    date: '2026-06-10',
+    title: '爬山',
+    status: 'joined',
+    time: '06:00 – 14:00',
+    location: '象山步道',
+  },
+  { id: 5, date: '2026-06-12', title: '桌遊', status: 'recruiting' },
+  { id: 6, date: '2026-06-18', title: '歌唱', status: 'formed' },
+  { id: 7, date: '2026-06-02', title: 'KTV', status: 'joined' },
+  { id: 8, date: '2026-06-02', title: '小酌', status: 'personal' },
+  { id: 9, date: '2026-06-02', title: '晚餐', status: 'formed' },
+])
+
+const statusStyle = {
+  joined: 'bg-[#87C06D]/40 text-[#4A5040]/40',
+  formed: 'bg-[#5e9b57] text-white',
+  personal: 'bg-[#F9CE9A] text-[#4A5040]',
+  recruiting: '',
+  none: 'bg-[#FAF8F4] text-[#9DBD86] border border-[#DEF4CD]',
+}
+
+function prevMonth() {
+  if (currentMonth.value === 0) {
+    currentMonth.value = 11
+    currentYear.value--
+  } else currentMonth.value--
+}
+function nextMonth() {
+  if (currentMonth.value === 11) {
+    currentMonth.value = 0
+    currentYear.value++
+  } else currentMonth.value++
+}
+
+function openDateModal(date) {
+  if (!date) return
+  selectedDate.value = date
+}
+
+function closeDateModal() {
+  selectedDate.value = null
+}
+
+const calendarDays = computed(() => {
+  const year = currentYear.value
+  const month = currentMonth.value
+  const firstDay = new Date(year, month, 1).getDay()
+  const totalDays = new Date(year, month + 1, 0).getDate()
+  const startOffset = firstDay === 0 ? 6 : firstDay - 1
+  const days = []
+
+  // 前月補空格（不顯示數字）
+  for (let i = 0; i < startOffset; i++) {
+    days.push({ date: null, day: null, faded: true })
+  }
+
+  // 當月
+  for (let d = 1; d <= totalDays; d++) {
+    const mm = String(month + 1).padStart(2, '0')
+    const dd = String(d).padStart(2, '0')
+    days.push({ date: `${year}-${mm}-${dd}`, day: d, faded: false })
+  }
+
+  // 後月補空格（不顯示數字），補滿到剛好的週數（5 或 6 列）
+  const remaining = 42 - days.length
+  for (let i = 0; i < remaining; i++) {
+    days.push({ date: null, day: null, faded: true })
+  }
+
+  return days
+})
+
+function getEvents(date) {
+  if (!date) return []
+  return events.value.filter((e) => {
+    if (e.date !== date) return false
+    if (e.status === 'recruiting') return false
+    if (e.status === 'joined' && !props.filters.joined) return false
+    if (e.status === 'formed' && !props.filters.formed) return false
+    if (e.status === 'personal' && !props.filters.personal) return false
+    return true
+  })
+}
+
+const selectedDateEvents = computed(() => getEvents(selectedDate.value))
+
+function isToday(date) {
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  return date === todayStr
+}
+</script>
 
 <style scoped>
 .profile-pixel-face {

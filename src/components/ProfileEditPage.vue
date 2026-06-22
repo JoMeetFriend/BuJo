@@ -1,15 +1,3 @@
-<script setup>
-import { ref } from 'vue'
-import PixelButton from './ui/PixelButton.vue'
-
-const avatarUrl = ref('')
-const handleAvatarChange = (event) => {
-  const file = event.target.files?.[0]
-  if (!file) return
-  avatarUrl.value = URL.createObjectURL(file)
-}
-</script>
-
 <template>
   <main class="min-h-screen bg-[#FEF7E8] px-5 pt-8 pb-4 md:px-14 font-[cubic11] text-[#4A5040]">
     <!-- 頁首 -->
@@ -100,6 +88,18 @@ const handleAvatarChange = (event) => {
     </section>
   </main>
 </template>
+
+<script setup>
+import { ref } from 'vue'
+import PixelButton from './ui/PixelButton.vue'
+
+const avatarUrl = ref('')
+const handleAvatarChange = (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+  avatarUrl.value = URL.createObjectURL(file)
+}
+</script>
 
 <style scoped>
 .field-label {

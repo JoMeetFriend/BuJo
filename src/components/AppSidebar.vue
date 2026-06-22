@@ -1,24 +1,3 @@
-<script setup>
-import { ref, computed } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
-import ProfileAccountModal from './ProfileAccountModal.vue'
-
-defineProps({ isOpen: Boolean, filters: Object })
-const emit = defineEmits(['toggle-filter'])
-
-const route = useRoute()
-const isCalendarPage = computed(() => route.path === '/')
-
-const drawerOpen = ref(false)
-const profileBtnBouncing = ref(false)
-const showProfileModal = ref(false)
-
-function onProfileAnimEnd() {
-  profileBtnBouncing.value = false
-  showProfileModal.value = true
-}
-</script>
-
 <template>
   <!-- 桌機版側邊欄 -->
   <aside
@@ -163,6 +142,27 @@ function onProfileAnimEnd() {
   </div>
   <ProfileAccountModal v-if="showProfileModal" @close="showProfileModal = false" />
 </template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
+import ProfileAccountModal from './ProfileAccountModal.vue'
+
+defineProps({ isOpen: Boolean, filters: Object })
+const emit = defineEmits(['toggle-filter'])
+
+const route = useRoute()
+const isCalendarPage = computed(() => route.path === '/')
+
+const drawerOpen = ref(false)
+const profileBtnBouncing = ref(false)
+const showProfileModal = ref(false)
+
+function onProfileAnimEnd() {
+  profileBtnBouncing.value = false
+  showProfileModal.value = true
+}
+</script>
 
 <style scoped>
 .profile-pixel-face {
