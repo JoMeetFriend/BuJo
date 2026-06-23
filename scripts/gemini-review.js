@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const MAX_DIFF_BYTES = 30 * 1024;
-const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 
 const { GOOGLE_API_KEY, GITHUB_TOKEN, REPO, PR_NUMBER, PR_TITLE, PR_BASE, PR_HEAD } = process.env;
 
