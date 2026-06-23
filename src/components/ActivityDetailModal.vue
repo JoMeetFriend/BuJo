@@ -106,6 +106,14 @@
             關閉
           </button>
           <button
+            v-if="isOwnerView"
+            @click="handleCancelActivity"
+            class="bg-white text-brand-text border-2 border-brand-text shadow-pixel active:translate-x-[2px] active:translate-y-[2px] active:shadow-pixel-pressed px-5 py-1.5 text-sm font-bold transition-all hover:bg-warm-peach"
+          >
+            取消活動
+          </button>
+          <button
+            v-else
             @click="handleSignUp"
             class="bg-primary-green text-white border-2 border-brand-text shadow-pixel active:translate-x-[2px] active:translate-y-[2px] active:shadow-pixel-pressed px-5 py-1.5 text-sm font-bold transition-all"
           >
@@ -115,22 +123,35 @@
       </div>
     </div>
   </Teleport>
+
+  <AvailabilityPickerModal :isOpen="isModalOpen" @close="isModalOpen = false" />
+  <AvailabilityPickerModal
+    v-model="showPicker"
+    rangeStart="2026-06-11"
+    rangeEnd="2026-06-17"
+    @confirm="handleConfirmTimes"
+  />
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import AvailabilityPickerModal from './AvailabilityPickerModal.vue'
 
 const props = defineProps({
   isOpen: Boolean,
   activityId: Number,
+  isOwnerView: Boolean,
 })
 
 const emit = defineEmits(['close'])
+
+const showPicker = ref(false)
 
 const mockActivities = [
   {
     id: 1,
     title: '上課',
+    isMine: true,
     date: '6/11',
     time: '9:30 - 16:30',
     location: '臺北市中正區黎明里衡陽路7號5樓',
@@ -173,6 +194,7 @@ const mockActivities = [
   {
     id: 2,
     title: '來揪來揪來揪',
+    isMine: false,
     date: '6/12',
     time: '09:00 - 17:00',
     location: '台北大安森林公園大草皮',
@@ -199,6 +221,7 @@ const mockActivities = [
   {
     id: 3,
     title: '吃下午茶',
+    isMine: false,
     date: '6/13',
     time: '15:00 - 17:00',
     location: '某某像素風格咖啡廳',
@@ -241,7 +264,11 @@ const handleClose = () => {
 }
 
 const handleSignUp = () => {
-  // 點擊報名參加時
+  showPicker.value = true
+}
+
+const handleCancelActivity = () => {
+  // 點擊取消活動時
 }
 </script>
 

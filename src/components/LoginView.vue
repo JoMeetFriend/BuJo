@@ -136,7 +136,7 @@ const handleLogin = () => {
 const handleGoogleLogin = async () => {
   try {
     const response = await googleTokenLogin()
-    const result = await fetch('http://localhost:3000/api/auth/google', {
+    const result = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token: response.access_token })
@@ -150,31 +150,6 @@ const handleGoogleLogin = async () => {
     }
   }
 }
-
-// 有後端後改這段 ↓
-// const handleGoogleLogin = async () => {
-//   try {
-//     // 跟 Google 拿 token
-//     const response = await googleTokenLogin()
-
-//     // 第二步：把 token 送去你的後端驗證
-//     const result = await fetch('${import.meta.env.VITE_API_URL}/api/auth/google', {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify({ token: response.access_token })
-//     })
-//     // data.token 是後端給我們的 JWT（會員卡）
-//     const data = await result.json()
-//     authStore.login(data.token, data.user)
-//     router.push('/')
-//   } catch (error) {
-//     if (error?.type !== 'popup_closed') {
-//       console.error('登入失敗', error)
-//     }
-//   }
-// }
-
-
 
 const handleLineLogin = () => {
   // TODO: 串接 LINE Login OAuth

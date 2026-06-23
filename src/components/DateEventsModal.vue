@@ -1,5 +1,14 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
+import ItineraryDetailModal from './ItineraryDetailModal.vue'
+
+const isModalOpen = ref(false)
+const selectedActivityId = ref(null)
+
+const goToDetail = (id) => {
+  selectedActivityId.value = id
+  isModalOpen.value = true
+}
 
 const props = defineProps({
   date: {
@@ -87,7 +96,8 @@ const statusClass = {
           <article
             v-for="event in events"
             :key="event.id"
-            class="flex min-h-[60px] items-center border border-[#9DBD86] bg-white px-2 text-[#4A5040] md:px-3"
+            class="flex min-h-[60px] items-center border border-[#9DBD86] bg-white px-2 text-[#4A5040] md:px-3 cursor-pointer"
+            @click="goToDetail(event.id)"
           >
             <svg
               class="mr-2 h-7 w-7 shrink-0 md:mr-3 md:h-9 md:w-9"
@@ -129,4 +139,10 @@ const statusClass = {
       </div>
     </section>
   </div>
+
+  <ItineraryDetailModal
+    :is-open="isModalOpen"
+    :activity-id="selectedActivityId"
+    @close="isModalOpen = false"
+  />
 </template>

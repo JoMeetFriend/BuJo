@@ -3,6 +3,9 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import DateEventsModal from './DateEventsModal.vue'
 import MarqueeBanner from './MarqueeBanner.vue'
 import ProfileAccountModal from './ProfileAccountModal.vue'
+import EventPage from './EventPage.vue'
+
+const showEventModal = ref(false)
 
 const props = defineProps({
   sidebarOpen: Boolean,
@@ -12,14 +15,114 @@ const props = defineProps({
   },
 })
 const emit = defineEmits(['toggle-sidebar'])
+
 const isMobile = ref(window.innerWidth < 768)
 const showProfileModal = ref(false)
 const handleResize = () => {
   isMobile.value = window.innerWidth < 768
 }
 
-onMounted(() => window.addEventListener('resize', handleResize))
-onUnmounted(() => window.removeEventListener('resize', handleResize))
+const COLORS = [ '#da90c7', '#5ea5e1','#56b597']
+const overlayRef = ref(null)
+const calendarRef = ref(null)
+const dots = ref([])
+let dotAnimId = null
+
+function initDots() {
+  const W = overlayRef.value.clientWidth
+  const H = overlayRef.value.clientHeight
+  const overlayRect = overlayRef.value.getBoundingClientRect()
+  const calRect = calendarRef.value.getBoundingClientRect()
+  const cal = {
+    x: calRect.left - overlayRect.left,
+    y: calRect.top - overlayRect.top,
+    w: calRect.width,
+    h: calRect.height,
+  }
+
+  const topRegion    = { minY: 0,             maxY: cal.y }
+  const bottomRegion = { minY: cal.y + cal.h, maxY: H     }
+
+  function posInRegion(region, size) {
+    return {
+      x: Math.random() * (W - size),
+      y: region.minY + Math.random() * Math.max(0, region.maxY - region.minY - size),
+    }
+  }
+
+  // 數量
+  dots.value = Array.from({ length: 3 }, (_, i) => {
+    // 大小 10~14
+    const size = Math.floor(Math.random() * 5) + 10
+    // const size = Math.floor(Math.random() * 5) + 5
+    // 偶數 index → 下方，奇數 → 上方，確保下方一定有方塊
+    const { x, y } = posInRegion(i % 2 === 0 ? bottomRegion : topRegion, size)
+    return {
+      id: i,
+      x,
+      y,
+      // 速度1.0 +2.0
+      dx: (Math.random() * 1.0 + 2.0) * (Math.random() < 0.5 ? 1 : -1),
+      dy: (Math.random() * 1.0 + 2.0) * (Math.random() < 0.5 ? 1 : -1),
+      // dx:0,
+      // dy:0,
+      size,
+      color: COLORS[i % COLORS.length],
+    }
+  })
+}
+
+function hitsCalendar(x, y, size, cal) {
+  return x < cal.x + cal.w && x + size > cal.x &&
+         y < cal.y + cal.h && y + size > cal.y
+}
+
+function tickDots() {
+  const W = overlayRef.value?.clientWidth
+  const H = overlayRef.value?.clientHeight
+  if (!W || !H) return
+
+  const overlayRect = overlayRef.value.getBoundingClientRect()
+  const calRect = calendarRef.value.getBoundingClientRect()
+  const cal = {
+    x: calRect.left - overlayRect.left,
+    y: calRect.top - overlayRect.top,
+    w: calRect.width,
+    h: calRect.height,
+  }
+
+  dots.value.forEach(dot => {
+    const newX = dot.x + dot.dx
+    const newY = dot.y + dot.dy
+
+    if (newX <= 0 || newX + dot.size >= W) {
+      dot.dx *= -1
+    } else if (hitsCalendar(newX, dot.y, dot.size, cal)) {
+      dot.dx *= -1
+    } else {
+      dot.x = newX
+    }
+
+    if (newY <= 0 || newY + dot.size >= H) {
+      dot.dy *= -1
+    } else if (hitsCalendar(dot.x, newY, dot.size, cal)) {
+      dot.dy *= -1
+    } else {
+      dot.y = newY
+    }
+  })
+  dotAnimId = requestAnimationFrame(tickDots)
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+  initDots()
+  dotAnimId = requestAnimationFrame(tickDots)
+})
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  if (dotAnimId) cancelAnimationFrame(dotAnimId)
+})
 const currentYear = ref(2026)
 const currentMonth = ref(5)
 const selectedDate = ref(null)
@@ -143,17 +246,31 @@ function isToday(date) {
 <template>
   <!-- 手機版：置中佈局 -->
 
-  <div class="flex flex-col gap-3 flex-1 min-h-0 px-4 pb-8 md:px-28 md:pt-4 md:pb-20">
+  <div class="flex flex-col gap-3 flex-1 min-h-0 px-4 pb-8 md:px-28 md:pt-4 md:pb-20 relative isolate">
+    <div ref="overlayRef" class="absolute left-0 right-0 top-0 pointer-events-none" style="z-index: -1; bottom: -5rem;" aria-hidden="true">
+      <div
+        v-for="dot in dots"
+        :key="dot.id"
+        class="absolute"
+        :style="{
+          left: dot.x + 'px',
+          top: dot.y + 'px',
+          width: dot.size + 'px',
+          height: dot.size + 'px',
+          background: dot.color,
+        }"
+      />
+    </div>
     <MarqueeBanner />
     <div class="md:hidden h-5"></div>
 
     <!-- 標題列 -->
     <div class="flex items-center justify-between w-full">
-      <div class="flex items-center gap-3">
+      <div class="flex items-baseline gap-3">
         <!-- 漢堡選單（僅桌機顯示） -->
         <button
           @click="emit('toggle-sidebar')"
-          class="hidden md:flex flex-col gap-[5px] p-2 hover:opacity-70"
+          class="hidden md:flex flex-col gap-[5px] p-2 hover:opacity-70 self-center"
         >
           <span class="block w-5 h-[2px] bg-[#4A5040]"></span>
           <span class="block w-5 h-[2px] bg-[#4A5040]"></span>
@@ -161,7 +278,7 @@ function isToday(date) {
         </button>
 
         <h1
-          class="font-pixel font-extrabold text-[20px] md:text-[28px] tracking-[-1px] text-[#4A5040]"
+          class="font-pixel font-extrabold text-[20px] md:text-[32px] tracking-[-1px] text-[#4A5040]"
           style="text-shadow: 2px 2px 0px #e4ded1"
         >
           {{ monthNames[currentMonth] }}
@@ -185,6 +302,7 @@ function isToday(date) {
 
         <!-- 揪一團按鈕 -->
         <button
+          @click="showEventModal = true"
           class="flex items-center justify-center mx-2 bg-[#87C06D] text-[#4A5040] font-[cubic11] font-black text-[12px] w-6 h-6 md:w-auto md:h-auto md:px-4 md:py-2 border-2 border-[#4A5040] shadow-[3px_3px_0px_#4A5040] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all"
         >
           ＋<span class="hidden md:inline"> 揪一團</span>
@@ -203,7 +321,7 @@ function isToday(date) {
     </div>
 
     <!-- 行事曆本體 -->
-    <div class="border-[1.5px] border-[#DEF4CD] overflow-hidden md:flex-1 md:flex md:flex-col">
+    <div ref="calendarRef" class="border-[1.5px] border-[#DEF4CD] overflow-hidden md:flex-1 md:flex md:flex-col">
       <!-- 星期標題 -->
       <div class="grid grid-cols-7 bg-[#D9F0A8] border-b-[1.5px] border-[#DEF4CD]">
         <div
@@ -254,7 +372,7 @@ function isToday(date) {
             <template v-for="(event, i) in getEvents(cell.date)" :key="event.id">
               <div
                 v-if="(isMobile && i < 2) || (!isMobile && i < 3)"
-                class="flex items-center text-[10px] px-1 h-[18px] overflow-hidden"
+                class="flex items-center text-[10px] px-1 h-[18px] overflow-hidden cursor-pointer"
                 :class="statusStyle[event.status]"
               >
                 <div class="w-2 h-2 md:w-3 md:h-3 bg-white/40 shrink-0"></div>
@@ -284,6 +402,8 @@ function isToday(date) {
   </div>
 
   <ProfileAccountModal v-if="showProfileModal" @close="showProfileModal = false" />
+
+  <EventPage v-if="showEventModal" @close="showEventModal = false" />
 </template>
 
 <style scoped>
