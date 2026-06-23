@@ -25,25 +25,34 @@
         </span>
       </RouterLink>
 
-      <RouterLink
-        to="/login"
-        class="flex min-h-[60px] items-center gap-4 border border-[#9DBD86] bg-white px-3 py-2 transition hover:bg-[#FAF8F4]"
-        @click="emit('close')"
+      <button
+        class="flex min-h-[60px] w-full items-center gap-4 border border-[#9DBD86] bg-white px-3 py-2 transition hover:bg-[#FAF8F4]"
+        @click="handleLogout"
       >
         <span class="profile-action-icon profile-action-icon--logout" aria-hidden="true"></span>
         <span class="flex flex-1 flex-col items-center leading-tight">
           <span class="text-sm font-semibold">登出</span>
           <span class="mt-1 text-xs text-[#87C06D]">離開 BuJo</span>
         </span>
-      </RouterLink>
+      </button>
     </div>
   </BaseModal>
 </template>
 
 <script setup>
 import BaseModal from './ui/BaseModal.vue'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 
 const emit = defineEmits(['close'])
+const authStore = useAuthStore()
+const router = useRouter()
+
+async function handleLogout() {
+  emit('close')
+  await authStore.logout()
+  router.push('/login')
+}
 </script>
 
 <style scoped>
