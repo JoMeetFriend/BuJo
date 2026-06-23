@@ -1,14 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import ActivityView from '../components/ActivityView.vue'
-import NotFound from '../components/NotFound.vue'
-
-/*登入頁面*/
-import LoginView from '../components/LoginView.vue'
-/*註冊頁面*/
-
-import FriendsPage from '../components/FriendsPage.vue'
-import AvailabilityPickerModal from '../components/AvailabilityPickerPreview.vue'
 
 const router = createRouter({
 
@@ -26,19 +17,15 @@ const router = createRouter({
       name: 'profile-edit',
       component: () => import('../components/ProfileEditPage.vue'),
     },
-
     {
       path: '/friends-page',
       name: 'friends-page',
-      component: FriendsPage,
+      component: () => import('../components/FriendsPage.vue'),
     },
-
-    //登入頁面
     {
       path: '/login',
-      component: LoginView,
+      component: () => import('../components/LoginView.vue'),
     },
-    //註冊頁面
     {
       path: '/register',
       component: () => import('../components/RegisterViews.vue'),
@@ -46,12 +33,12 @@ const router = createRouter({
     {
       path: '/activity',
       name: 'activity',
-      component: ActivityView,
+      component: () => import('../components/ActivityView.vue'),
     },
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
-      component: NotFound,
+      component: () => import('../components/NotFound.vue'),
     },
     {
       path: '/friends/new',
@@ -66,7 +53,7 @@ const router = createRouter({
     {
       path: '/availability-picker',
       name: 'availability-picker',
-      component: AvailabilityPickerModal,
+      component: () => import('../components/AvailabilityPickerPreview.vue'),
     },
   ],
 })

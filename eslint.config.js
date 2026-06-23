@@ -24,6 +24,12 @@ export default defineConfig([
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
 
+  {
+    rules: {
+      'vue/component-tags-order': ['error', { order: ['template', 'script', 'style'] }],
+    },
+  },
+
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
 
   skipFormatting,
