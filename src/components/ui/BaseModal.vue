@@ -29,41 +29,6 @@
       </template>
     </BaseModal>
 -->
-<script setup>
-import { computed, onMounted, onUnmounted } from 'vue'
-
-const props = defineProps({
-  isOpen: {
-    type: Boolean,
-    required: true,
-  },
-  title: {
-    type: String,
-    required: true,
-  },
-  scrollable: {
-    type: Boolean,
-    default: false,
-  },
-  maxWidth: {
-    type: String,
-    default: '440px',
-  },
-})
-
-const emit = defineEmits(['close'])
-
-const titleId = computed(
-  () => `modal-title-${props.title.replace(/[\s\W]+/g, '-').toLowerCase()}`,
-)
-
-function handleKeydown(e) {
-  if (e.key === 'Escape') emit('close')
-}
-
-onMounted(() => window.addEventListener('keydown', handleKeydown))
-onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
-</script>
 
 <template>
   <Teleport to="body">
@@ -89,7 +54,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
           <h2
             :id="titleId"
             class="m-0 text-base md:text-lg leading-none"
-            style="-webkit-text-stroke: 0.5px #4A5040"
+            style="-webkit-text-stroke: 0.5px #4a5040"
           >
             {{ title }}
           </h2>
@@ -137,3 +102,37 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
     </div>
   </Teleport>
 </template>
+
+<script setup>
+import { computed, onMounted, onUnmounted } from 'vue'
+
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    required: true,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  scrollable: {
+    type: Boolean,
+    default: false,
+  },
+  maxWidth: {
+    type: String,
+    default: '440px',
+  },
+})
+
+const emit = defineEmits(['close'])
+
+const titleId = computed(() => `modal-title-${props.title.replace(/[\s\W]+/g, '-').toLowerCase()}`)
+
+function handleKeydown(e) {
+  if (e.key === 'Escape') emit('close')
+}
+
+onMounted(() => window.addEventListener('keydown', handleKeydown))
+onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
+</script>

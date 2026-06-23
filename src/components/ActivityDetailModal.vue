@@ -12,17 +12,13 @@
           class="h-32 flex items-center justify-center border-[1.5px] border-[#4A5040] bg-[#DEF4CD]"
         >
           <svg class="h-12 w-12 text-[#4A5040]" fill="currentColor" viewBox="0 0 24 24">
-            <path
-              d="M4 2h16v2H4V2zm2 4h12v2H6V6zm-2 4h16v2H4v-2zm4 4h8v2H8v-2zm-6 4h20v2H2v-2z"
-            />
+            <path d="M4 2h16v2H4V2zm2 4h12v2H6V6zm-2 4h16v2H4v-2zm4 4h8v2H8v-2zm-6 4h20v2H2v-2z" />
           </svg>
         </div>
 
         <!-- 發起人 -->
         <div class="flex items-center gap-2 text-sm">
-          <div
-            class="w-6 h-6 border border-[#4A5040] flex items-center justify-center bg-white"
-          >
+          <div class="w-6 h-6 border border-[#4A5040] flex items-center justify-center bg-white">
             <span class="text-xs">⭐</span>
           </div>
           <span>{{ currentActivity.host }} 發起</span>
@@ -129,13 +125,34 @@ const mockActivities = [
     memo: '無',
     cost: '100',
     participants: [
-      { id: 101, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 102, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 103, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 104, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 105, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 106, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 107, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 105,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 106,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 107,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
     ],
     currentCount: 7,
     maxParticipants: 10,
@@ -151,9 +168,18 @@ const mockActivities = [
     memo: '週末野餐趴！請自行攜帶野餐墊與一份你想跟大家分享的零食，下雨的話就改去室內桌遊店喔。週末野餐趴！請自行攜帶野餐墊與一份你想跟大家分享的零食，下雨的話就改去室內桌遊店喔。週末野餐趴！請自行攜帶野餐墊與一份你想跟大家分享的零食，下雨的話就改去室內桌遊店喔。',
     cost: '150',
     participants: [
-      { id: 101, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 102, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 103, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
     ],
     currentCount: 3,
     maxParticipants: 6,
@@ -169,19 +195,34 @@ const mockActivities = [
     memo: '這家咖啡廳超難訂位！好不容易搶到 5 個人的位子，這次主要聊聊.........。',
     cost: '200',
     participants: [
-      { id: 101, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 102, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 103, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 104, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 105, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 105,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
     ],
     currentCount: 5,
     maxParticipants: 5,
   },
 ]
 
-const currentActivity = computed(() =>
-  mockActivities.find((act) => act.id === props.activityId) || null,
+const currentActivity = computed(
+  () => mockActivities.find((act) => act.id === props.activityId) || null,
 )
 
 const handleClose = () => emit('close')

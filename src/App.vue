@@ -1,16 +1,3 @@
-<script setup>
-import { RouterView } from 'vue-router'
-import { ref } from 'vue'
-import AppSidebar from './components/AppSidebar.vue'
-
-const sidebarOpen = ref(true)
-const filters = ref({ joined: true, formed: true, personal: true })
-
-function toggleFilter(key) {
-  filters.value[key] = !filters.value[key]
-}
-</script>
-
 <template>
   <div class="flex h-screen bg-[#FEF7E8] overflow-hidden">
     <AppSidebar :isOpen="sidebarOpen" :filters="filters" @toggle-filter="toggleFilter" />
@@ -27,3 +14,16 @@ function toggleFilter(key) {
     </main>
   </div>
 </template>
+
+<script setup>
+import { RouterView } from 'vue-router'
+import { ref } from 'vue'
+import AppSidebar from './components/AppSidebar.vue'
+
+const sidebarOpen = ref(true)
+const filters = ref({ joined: true, formed: true, personal: true })
+
+function toggleFilter(key) {
+  filters.value[key] = !filters.value[key]
+}
+</script>

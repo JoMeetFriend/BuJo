@@ -13,7 +13,9 @@
             class="h-12 w-12 flex items-center justify-center border-[1.5px] border-[#4A5040] bg-[#DEF4CD]"
           >
             <svg class="h-6 w-6 text-[#4A5040]" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M4 2h16v2H4V2zm2 4h12v2H6V6zm-2 4h16v2H4v-2zm4 4h8v2H8v-2zm-6 4h20v2H2v-2z" />
+              <path
+                d="M4 2h16v2H4V2zm2 4h12v2H6V6zm-2 4h16v2H4v-2zm4 4h8v2H8v-2zm-6 4h20v2H2v-2z"
+              />
             </svg>
           </div>
           <span
@@ -99,10 +101,22 @@ const mockActivities = [
     location: '臺北市中正區黎明里衡陽路7號5樓',
     status: 'joined',
     participants: [
-      { id: 101, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 102, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 103, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 104, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
     ],
     currentCount: 4,
     maxParticipants: 6,
@@ -115,10 +129,22 @@ const mockActivities = [
     location: '臺北市中正區黎明里衡陽路7號5樓',
     status: 'personal',
     participants: [
-      { id: 101, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 102, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 103, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 104, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
     ],
     currentCount: 4,
     maxParticipants: 6,
@@ -131,10 +157,22 @@ const mockActivities = [
     location: '臺北市中正區黎明里衡陽路7號5樓',
     status: 'formed',
     participants: [
-      { id: 101, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 102, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 103, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 104, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
     ],
     currentCount: 4,
     maxParticipants: 6,
@@ -147,10 +185,22 @@ const mockActivities = [
     location: '臺北市中正區黎明里衡陽路7號5樓',
     status: 'joined',
     participants: [
-      { id: 101, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 102, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 103, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 104, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
     ],
     currentCount: 4,
     maxParticipants: 6,
@@ -163,10 +213,22 @@ const mockActivities = [
     location: '臺北市中正區黎明里衡陽路7號5樓',
     status: 'formed',
     participants: [
-      { id: 101, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 102, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 103, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
-      { id: 104, avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg' },
+      {
+        id: 101,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 102,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 103,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
+      {
+        id: 104,
+        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
+      },
     ],
     currentCount: 4,
     maxParticipants: 6,
@@ -174,13 +236,13 @@ const mockActivities = [
 ]
 
 const STATUS_MAP = {
-  joined:   { text: '已報名',  color: '#FEF7E8', badgeBg: 'bg-[#87C06D]' },
-  formed:   { text: '已成團',  color: '#4A5040', badgeBg: 'bg-[#D9F0A8]' },
+  joined: { text: '已報名', color: '#FEF7E8', badgeBg: 'bg-[#87C06D]' },
+  formed: { text: '已成團', color: '#4A5040', badgeBg: 'bg-[#D9F0A8]' },
   personal: { text: '個人行程', color: '#4A5040', badgeBg: 'bg-[#DEF4CD]' },
 }
 
-const currentActivity = computed(() =>
-  mockActivities.find((act) => act.id === props.activityId) || null,
+const currentActivity = computed(
+  () => mockActivities.find((act) => act.id === props.activityId) || null,
 )
 
 const handleClose = () => emit('close')
