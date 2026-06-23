@@ -168,10 +168,11 @@ const handleGoogleLogin = async () => {
     const result = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ token: response.access_token })
     })
     const data = await result.json()
-    authStore.login(data.token, data.user)
+    authStore.login(data.user)
     router.push('/')
   } catch (error) {
     if (error?.type !== 'popup_closed') {
