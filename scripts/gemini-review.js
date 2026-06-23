@@ -1,7 +1,7 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 const MAX_DIFF_BYTES = 30 * 1024;
-const GEMINI_MODEL = 'gemini-1.5-flash';
+const GEMINI_MODEL = 'gemini-2.0-flash';
 
 const { GOOGLE_API_KEY, GITHUB_TOKEN, REPO, PR_NUMBER, PR_TITLE, PR_BASE, PR_HEAD } = process.env;
 
@@ -114,10 +114,12 @@ ${diff}
 
 async function reviewWithGemini(diff) {
   if (!GOOGLE_API_KEY) throw new Error('GOOGLE_API_KEY 環境變數未設置');
-  const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY);
-  const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
-  const result = await model.generateContent(buildPrompt(diff));
-  return result.response.text();
+  const ai = new GoogleGenAI({ apiKey: GOOGLE_API_KEY });
+  const result = await ai.models.generateContent({
+    model: GEMINI_MODEL,
+    contents: buildPrompt(diff),
+  });
+  return result.text;
 }
 
 async function main() {
