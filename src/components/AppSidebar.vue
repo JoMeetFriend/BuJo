@@ -1,24 +1,3 @@
-<script setup>
-import { ref, computed } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
-import ProfileAccountModal from './ProfileAccountModal.vue'
-
-defineProps({ isOpen: Boolean, filters: Object })
-const emit = defineEmits(['toggle-filter'])
-
-const route = useRoute()
-const isCalendarPage = computed(() => route.path === '/')
-
-const drawerOpen = ref(false)
-const profileBtnBouncing = ref(false)
-const showProfileModal = ref(false)
-
-function onProfileAnimEnd() {
-  profileBtnBouncing.value = false
-  showProfileModal.value = true
-}
-</script>
-
 <template>
   <!-- 桌機版側邊欄 -->
   <aside
@@ -164,6 +143,27 @@ function onProfileAnimEnd() {
   <ProfileAccountModal v-if="showProfileModal" @close="showProfileModal = false" />
 </template>
 
+<script setup>
+import { ref, computed } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
+import ProfileAccountModal from './ProfileAccountModal.vue'
+
+defineProps({ isOpen: Boolean, filters: Object })
+const emit = defineEmits(['toggle-filter'])
+
+const route = useRoute()
+const isCalendarPage = computed(() => route.path === '/')
+
+const drawerOpen = ref(false)
+const profileBtnBouncing = ref(false)
+const showProfileModal = ref(false)
+
+function onProfileAnimEnd() {
+  profileBtnBouncing.value = false
+  showProfileModal.value = true
+}
+</script>
+
 <style scoped>
 .profile-pixel-face {
   position: relative;
@@ -188,14 +188,31 @@ function onProfileAnimEnd() {
   background: #4a5040;
   content: '';
 }
-.profile-pixel-face::before { left: 4px; }
-.profile-pixel-face::after  { right: 4px; }
-.profile-pixel-face--small  { transform: scale(0.78); }
+.profile-pixel-face::before {
+  left: 4px;
+}
+.profile-pixel-face::after {
+  right: 4px;
+}
+.profile-pixel-face--small {
+  transform: scale(0.78);
+}
 
 @keyframes pixel-bounce-green {
-  0%   { transform: translate(0, 0);     box-shadow: 3px 3px 0 #87C06D; }
-  40%  { transform: translate(3px, 3px); box-shadow: 0 0 0 #87C06D; }
-  100% { transform: translate(0, 0);     box-shadow: 3px 3px 0 #87C06D; }
+  0% {
+    transform: translate(0, 0);
+    box-shadow: 3px 3px 0 #87c06d;
+  }
+  40% {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 #87c06d;
+  }
+  100% {
+    transform: translate(0, 0);
+    box-shadow: 3px 3px 0 #87c06d;
+  }
 }
-.btn-bounce-green { animation: pixel-bounce-green 0.2s ease-in-out; }
+.btn-bounce-green {
+  animation: pixel-bounce-green 0.2s ease-in-out;
+}
 </style>

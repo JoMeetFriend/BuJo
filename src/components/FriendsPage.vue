@@ -1,26 +1,3 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-import { storeToRefs } from 'pinia'
-import { useFriendStore } from '@/stores/friendStore'
-import FriendAddModal from './FriendAddModal.vue'
-import PixelButton from './ui/PixelButton.vue'
-
-const friendStore = useFriendStore()
-const { friends, isLoading, error } = storeToRefs(friendStore)
-
-const isModalOpen = ref(false)
-
-const brokenImages = ref(new Set())
-
-const handleImageError = (id) => {
-  brokenImages.value.add(id)
-}
-
-onMounted(() => {
-  friendStore.fetchFriends()
-})
-</script>
-
 <template>
   <div class="bg-[#FEF7E8]">
     <!-- Sticky Header -->
@@ -81,3 +58,26 @@ onMounted(() => {
 
   <FriendAddModal :isOpen="isModalOpen" @close="isModalOpen = false" />
 </template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useFriendStore } from '@/stores/friendStore'
+import FriendAddModal from './FriendAddModal.vue'
+import PixelButton from './ui/PixelButton.vue'
+
+const friendStore = useFriendStore()
+const { friends, isLoading, error } = storeToRefs(friendStore)
+
+const isModalOpen = ref(false)
+
+const brokenImages = ref(new Set())
+
+const handleImageError = (id) => {
+  brokenImages.value.add(id)
+}
+
+onMounted(() => {
+  friendStore.fetchFriends()
+})
+</script>

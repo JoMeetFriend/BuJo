@@ -1,55 +1,3 @@
-<script setup>
-import { ref, computed } from 'vue'
-import BaseModal from './ui/BaseModal.vue'
-import ItineraryDetailModal from './ItineraryDetailModal.vue'
-
-const isModalOpen = ref(false)
-const selectedActivityId = ref(null)
-
-const goToDetail = (id) => {
-  selectedActivityId.value = id
-  isModalOpen.value = true
-}
-
-const props = defineProps({
-  date: {
-    type: String,
-    required: true,
-  },
-  events: {
-    type: Array,
-    default: () => [],
-  },
-})
-
-const emit = defineEmits(['close', 'add'])
-
-const formattedDate = computed(() => {
-  const parts = props.date.split('-')
-
-  if (parts.length !== 3) {
-    return props.date
-  }
-
-  const [, month, day] = parts
-  return `${Number(month)} 月 ${Number(day)} 日`
-})
-
-const statusLabel = {
-  joined: '已報名',
-  formed: '已成團',
-  personal: '個人',
-  recruiting: '招募中',
-}
-
-const statusClass = {
-  joined: 'border-[#87A76B] bg-[#87C06D]/40 text-[#4A5040]',
-  formed: 'border-[#5e9b57] bg-[#5e9b57] text-white',
-  personal: 'border-[#F9CE9A] bg-[#F9CE9A] text-[#4A5040]',
-  recruiting: 'border-[#87A76B] bg-[#DEF4CD] text-[#4A5040]',
-}
-</script>
-
 <template>
   <BaseModal :isOpen="true" :title="formattedDate" @close="emit('close')">
     <template #header-actions>
@@ -119,3 +67,55 @@ const statusClass = {
     @close="isModalOpen = false"
   />
 </template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import BaseModal from './ui/BaseModal.vue'
+import ItineraryDetailModal from './ItineraryDetailModal.vue'
+
+const isModalOpen = ref(false)
+const selectedActivityId = ref(null)
+
+const goToDetail = (id) => {
+  selectedActivityId.value = id
+  isModalOpen.value = true
+}
+
+const props = defineProps({
+  date: {
+    type: String,
+    required: true,
+  },
+  events: {
+    type: Array,
+    default: () => [],
+  },
+})
+
+const emit = defineEmits(['close', 'add'])
+
+const formattedDate = computed(() => {
+  const parts = props.date.split('-')
+
+  if (parts.length !== 3) {
+    return props.date
+  }
+
+  const [, month, day] = parts
+  return `${Number(month)} 月 ${Number(day)} 日`
+})
+
+const statusLabel = {
+  joined: '已報名',
+  formed: '已成團',
+  personal: '個人',
+  recruiting: '招募中',
+}
+
+const statusClass = {
+  joined: 'border-[#87A76B] bg-[#87C06D]/40 text-[#4A5040]',
+  formed: 'border-[#5e9b57] bg-[#5e9b57] text-white',
+  personal: 'border-[#F9CE9A] bg-[#F9CE9A] text-[#4A5040]',
+  recruiting: 'border-[#87A76B] bg-[#DEF4CD] text-[#4A5040]',
+}
+</script>

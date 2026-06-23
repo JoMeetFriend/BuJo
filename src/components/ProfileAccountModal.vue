@@ -1,9 +1,3 @@
-<script setup>
-import BaseModal from './ui/BaseModal.vue'
-
-const emit = defineEmits(['close'])
-</script>
-
 <template>
   <BaseModal :isOpen="true" title="我的帳號" @close="emit('close')">
     <div class="space-y-4">
@@ -45,6 +39,12 @@ const emit = defineEmits(['close'])
     </div>
   </BaseModal>
 </template>
+
+<script setup>
+import BaseModal from './ui/BaseModal.vue'
+
+const emit = defineEmits(['close'])
+</script>
 
 <style scoped>
 .profile-modal-face {
