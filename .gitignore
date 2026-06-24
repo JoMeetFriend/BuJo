@@ -39,12 +39,10 @@ __screenshots__/
 *.timestamp-*-*.mjs
 .vite/
 
-docs/superpowers
-.superpowers/
-
-
+docs
+.superpowers
 .env
 
-.superpowers
+
 
 
