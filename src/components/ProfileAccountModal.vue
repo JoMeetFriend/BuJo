@@ -15,7 +15,7 @@
         </div>
         <div class="min-w-0">
           <p class="text-sm font-semibold leading-tight md:text-base">{{ displayName }}</p>
-          <p class="mt-1 text-sm text-[#87C06D]">{{ accountLabel }}</p>
+          <p v-if="accountLabel" class="mt-1 text-sm text-[#87C06D]">{{ accountLabel }}</p>
         </div>
       </div>
 
@@ -31,17 +31,17 @@
         </span>
       </RouterLink>
 
-      <RouterLink
-        to="/login"
-        class="flex min-h-[60px] items-center gap-4 border border-[#9DBD86] bg-white px-3 py-2 transition hover:bg-[#FAF8F4]"
-        @click="emit('close')"
+      <button
+        type="button"
+        class="flex min-h-[60px] w-full items-center gap-4 border border-[#9DBD86] bg-white px-3 py-2 transition hover:bg-[#FAF8F4]"
+        @click="emit('logout')"
       >
         <span class="profile-action-icon profile-action-icon--logout" aria-hidden="true"></span>
         <span class="flex flex-1 flex-col items-center leading-tight">
           <span class="text-sm font-semibold">登出</span>
           <span class="mt-1 text-xs text-[#87C06D]">離開 BuJo</span>
         </span>
-      </RouterLink>
+      </button>
     </div>
   </BaseModal>
 </template>
@@ -57,10 +57,10 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'logout'])
 
 const displayName = computed(() => props.user?.display_name || '未登入')
-const accountLabel = computed(() => props.user?.email || 'LINE 登入')
+const accountLabel = computed(() => props.user?.email || '')
 </script>
 
 <style scoped>

@@ -178,6 +178,7 @@
     v-if="showProfileModal"
     :user="currentUser"
     @close="showProfileModal = false"
+    @logout="handleLogout"
   />
 
   <EventPage :isOpen="showEventModal" @close="showEventModal = false" />
@@ -185,6 +186,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import PixelButton from './ui/PixelButton.vue'
 import DateEventsModal from './DateEventsModal.vue'
 import MarqueeBanner from './MarqueeBanner.vue'
@@ -194,6 +196,7 @@ import EventPage from './EventPage.vue'
 const showEventModal = ref(false)
 const profileBtnBouncing = ref(false)
 const currentUser = ref(null)
+const router = useRouter()
 
 onMounted(async () => {
   try {
@@ -213,6 +216,21 @@ onMounted(async () => {
 function openProfileModal() {
   showProfileModal.value = true
   profileBtnBouncing.value = true
+}
+
+async function handleLogout() {
+  try {
+    await fetch('http://localhost:3000/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    })
+  } catch (error) {
+    console.error('登出失敗：', error)
+  } finally {
+    currentUser.value = null
+    showProfileModal.value = false
+    router.push('/login')
+  }
 }
 
 const props = defineProps({
