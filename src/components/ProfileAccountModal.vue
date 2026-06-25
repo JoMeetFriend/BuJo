@@ -5,11 +5,17 @@
         <div
           class="grid h-[60px] w-[60px] shrink-0 place-items-center border border-[#87C06D] bg-[#DEF4CD]"
         >
-          <span class="profile-modal-face" aria-hidden="true"></span>
+          <img
+            v-if="user?.avatar_url"
+            :src="user.avatar_url"
+            :alt="displayName"
+            class="h-full w-full object-cover"
+          />
+          <span v-else class="profile-modal-face" aria-hidden="true"></span>
         </div>
         <div class="min-w-0">
-          <p class="text-sm font-semibold leading-tight md:text-base">阿肯</p>
-          <p class="mt-1 text-sm text-[#87C06D]">ken@bujo.tw</p>
+          <p class="text-sm font-semibold leading-tight md:text-base">{{ displayName }}</p>
+          <p v-if="accountLabel" class="mt-1 text-sm text-[#87C06D]">{{ accountLabel }}</p>
         </div>
       </div>
 
@@ -25,25 +31,36 @@
         </span>
       </RouterLink>
 
-      <RouterLink
-        to="/login"
-        class="flex min-h-[60px] items-center gap-4 border border-[#9DBD86] bg-white px-3 py-2 transition hover:bg-[#FAF8F4]"
-        @click="emit('close')"
+      <button
+        type="button"
+        class="flex min-h-[60px] w-full items-center gap-4 border border-[#9DBD86] bg-white px-3 py-2 transition hover:bg-[#FAF8F4]"
+        @click="emit('logout')"
       >
         <span class="profile-action-icon profile-action-icon--logout" aria-hidden="true"></span>
         <span class="flex flex-1 flex-col items-center leading-tight">
           <span class="text-sm font-semibold">登出</span>
           <span class="mt-1 text-xs text-[#87C06D]">離開 BuJo</span>
         </span>
-      </RouterLink>
+      </button>
     </div>
   </BaseModal>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import BaseModal from './ui/BaseModal.vue'
 
-const emit = defineEmits(['close'])
+const props = defineProps({
+  user: {
+    type: Object,
+    default: null,
+  },
+})
+
+const emit = defineEmits(['close', 'logout'])
+
+const displayName = computed(() => props.user?.display_name || '未登入')
+const accountLabel = computed(() => props.user?.email || '')
 </script>
 
 <style scoped>

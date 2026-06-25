@@ -160,7 +160,7 @@ const handleGoogleLogin = () => {
 
 const handleLineLogin = () => {
   // TODO: 串接 LINE Login OAuth
-  console.log('LINE 登入')
+  window.location.href = 'http://localhost:3000/api/auth/line'
 }
 </script>
 
