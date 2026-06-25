@@ -139,18 +139,26 @@
       </button>
     </nav>
   </div>
-  <ProfileAccountModal v-if="showProfileModal" @close="showProfileModal = false" />
+  <ProfileAccountModal
+    v-if="showProfileModal"
+    :user="authStore.user"
+    @close="showProfileModal = false"
+    @logout="handleLogout"
+  />
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import ProfileAccountModal from './ProfileAccountModal.vue'
+import { useAuthStore } from '@/stores/auth'
 
 defineProps({ isOpen: Boolean, filters: Object })
 const emit = defineEmits(['toggle-filter'])
 
 const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
 const isCalendarPage = computed(() => route.path === '/')
 
 const drawerOpen = ref(false)
@@ -160,6 +168,12 @@ const showProfileModal = ref(false)
 function onProfileAnimEnd() {
   profileBtnBouncing.value = false
   showProfileModal.value = true
+}
+
+async function handleLogout() {
+  showProfileModal.value = false
+  await authStore.logout()
+  router.push('/login')
 }
 </script>
 
