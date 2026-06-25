@@ -74,7 +74,17 @@
           aria-label="開啟個人帳號"
           @click="openProfileModal"
         >
-          <span class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
+          <img
+            v-if="currentUser?.avatar_url"
+            :src="currentUser.avatar_url"
+            :alt="currentUser.display_name"
+            class="h-full w-full object-cover"
+          />
+          <span
+            v-else
+            class="profile-pixel-face profile-pixel-face--small"
+            aria-hidden="true"
+          ></span>
         </button>
       </div>
     </div>
@@ -160,11 +170,15 @@
       :date="selectedDate"
       :events="selectedDateEvents"
       @close="closeDateModal"
-      @add="closeDateModal(); showEventModal = true"
+      @add="openEventModalFromDate"
     />
   </div>
 
-  <ProfileAccountModal v-if="showProfileModal" @close="showProfileModal = false" />
+  <ProfileAccountModal
+    v-if="showProfileModal"
+    :user="currentUser"
+    @close="showProfileModal = false"
+  />
 
   <EventPage :isOpen="showEventModal" @close="showEventModal = false" />
 </template>
@@ -179,6 +193,22 @@ import EventPage from './EventPage.vue'
 
 const showEventModal = ref(false)
 const profileBtnBouncing = ref(false)
+const currentUser = ref(null)
+
+onMounted(async () => {
+  try {
+    const res = await fetch('http://localhost:3000/api/auth/me', {
+      credentials: 'include',
+    })
+
+    const data = await res.json()
+    currentUser.value = data.user
+
+    console.log('目前登入者：', currentUser.value)
+  } catch (error) {
+    console.error('取得目前登入者失敗：', error)
+  }
+})
 
 function openProfileModal() {
   showProfileModal.value = true
@@ -362,6 +392,11 @@ function openDateModal(date) {
 
 function closeDateModal() {
   selectedDate.value = null
+}
+
+function openEventModalFromDate() {
+  closeDateModal()
+  showEventModal.value = true
 }
 
 const calendarDays = computed(() => {

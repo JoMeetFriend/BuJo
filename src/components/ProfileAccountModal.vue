@@ -5,11 +5,17 @@
         <div
           class="grid h-[60px] w-[60px] shrink-0 place-items-center border border-[#87C06D] bg-[#DEF4CD]"
         >
-          <span class="profile-modal-face" aria-hidden="true"></span>
+          <img
+            v-if="user?.avatar_url"
+            :src="user.avatar_url"
+            :alt="displayName"
+            class="h-full w-full object-cover"
+          />
+          <span v-else class="profile-modal-face" aria-hidden="true"></span>
         </div>
         <div class="min-w-0">
-          <p class="text-sm font-semibold leading-tight md:text-base">阿肯</p>
-          <p class="mt-1 text-sm text-[#87C06D]">ken@bujo.tw</p>
+          <p class="text-sm font-semibold leading-tight md:text-base">{{ displayName }}</p>
+          <p class="mt-1 text-sm text-[#87C06D]">{{ accountLabel }}</p>
         </div>
       </div>
 
@@ -41,9 +47,20 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import BaseModal from './ui/BaseModal.vue'
 
+const props = defineProps({
+  user: {
+    type: Object,
+    default: null,
+  },
+})
+
 const emit = defineEmits(['close'])
+
+const displayName = computed(() => props.user?.display_name || '未登入')
+const accountLabel = computed(() => props.user?.email || 'LINE 登入')
 </script>
 
 <style scoped>
