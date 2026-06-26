@@ -1,12 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
+
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
       name: 'calendar-page',
       component: () => import('../components/CalendarMain.vue'),
+      // 有meta: { requiresAuth: true }的部分需要登入才看得到頁面
+      meta: { requiresAuth: true }
     },
     {
       path: '/profile/edit',
@@ -52,6 +56,16 @@ const router = createRouter({
       component: () => import('../components/AvailabilityPickerPreview.vue'),
     },
   ],
+})
+
+// 有meta: { requiresAuth: true }的部分需要登入才看得到頁面
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+  if (to.meta.requiresAuth && !authStore.isLoggedIn) {
+    next('/login')
+  } else {
+    next()
+  }
 })
 
 export default router
