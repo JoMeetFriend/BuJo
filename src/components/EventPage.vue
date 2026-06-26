@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :isOpen="modalOpen" title="建立揪團活動" scrollable @close="closeForm">
+  <BaseModal :isOpen="isOpen" title="建立揪團活動" scrollable @close="closeForm">
     <template #default>
       <form id="event-form" class="grid gap-4" @submit.prevent="submitForm">
         <label :class="[fieldClass, 'col-span-full']" for="event-name">
@@ -39,26 +39,17 @@
             </span>
           </label>
 
-          <div :class="fieldClass">
+          <label :class="fieldClass" for="event-limit">
             <span :class="fieldLabelClass">人數上限</span>
-            <span class="relative block">
-              <input
-                id="event-limit"
-                :value="form.limit ?? ''"
-                :class="[inputClass, 'pr-9']"
-                type="number"
-                inputmode="numeric"
-                placeholder="不限"
-                @input="form.limit = $event.target.value === '' || Number($event.target.value) <= 0 ? null : Number($event.target.value)"
-              />
-              <button
-                type="button"
-                class="absolute right-0 top-0 bottom-0 w-8 flex items-center justify-center border-l border-l-[#E0ECD8] text-[#9AA890] hover:text-[#4A5040] hover:bg-[#F0F8EC] focus:outline-none"
-                aria-label="清除人數上限"
-                @click="form.limit = null"
-              >✕</button>
-            </span>
-          </div>
+            <input
+              id="event-limit"
+              v-model.number="form.limit"
+              :class="inputClass"
+              type="number"
+              min="1"
+              inputmode="numeric"
+            />
+          </label>
         </div>
 
         <label :class="[fieldClass, 'col-span-full']" for="event-location">
@@ -71,40 +62,6 @@
             placeholder="在哪裡集合？"
           />
         </label>
-
-        <!-- Q1: 日期確定了嗎？ -->
-        <div :class="[fieldClass, 'col-span-full']">
-          <span :class="fieldLabelClass">日期確定了嗎？</span>
-          <div class="grid grid-cols-2 gap-2 max-sm:gap-1.5">
-            <div
-              class="flex min-h-[44px] max-sm:min-h-[38px] items-center justify-center border-[1.5px] border-[#4A5040] bg-[#87C06D] px-4 py-2 font-[cubic11] text-sm leading-[1.2] text-[#F5F5EE]"
-            >
-              已確定
-            </div>
-            <div
-              class="flex min-h-[44px] max-sm:min-h-[38px] cursor-not-allowed items-center justify-center border-[1.5px] border-[#A8C893] bg-white px-4 py-2 font-[cubic11] text-sm leading-[1.2] text-[#4A5040] opacity-35"
-            >
-              大概範圍
-            </div>
-          </div>
-        </div>
-
-        <!-- Q2: 時間確定了嗎？ -->
-        <div :class="[fieldClass, 'col-span-full']">
-          <span :class="fieldLabelClass">時間確定了嗎？</span>
-          <div class="grid grid-cols-2 gap-2 max-sm:gap-1.5">
-            <div
-              class="flex min-h-[44px] max-sm:min-h-[38px] items-center justify-center border-[1.5px] border-[#4A5040] bg-[#87C06D] px-4 py-2 font-[cubic11] text-sm leading-[1.2] text-[#F5F5EE]"
-            >
-              已確定
-            </div>
-            <div
-              class="flex min-h-[44px] max-sm:min-h-[38px] cursor-not-allowed items-center justify-center border-[1.5px] border-[#A8C893] bg-white px-4 py-2 font-[cubic11] text-sm leading-[1.2] text-[#4A5040] opacity-35"
-            >
-              讓大家選
-            </div>
-          </div>
-        </div>
 
         <div
           ref="schedulePickerRef"
@@ -220,7 +177,6 @@
                       :class="timeButtonClass(time, row.timeField)"
                       type="button"
                       role="option"
-                      :disabled="isTimePast(time)"
                       :aria-selected="form[row.timeField] === time"
                       :aria-label="time"
                       :data-time="time"
@@ -235,7 +191,6 @@
           </div>
         </div>
 
-        <!-- 備註 + 流團設定附注 -->
         <label :class="[fieldClass, 'col-span-full']" for="event-note">
           <span :class="fieldLabelClass">備註</span>
           <textarea
@@ -245,56 +200,6 @@
             rows="5"
             placeholder="補充說明，例如裝備、費用..."
           ></textarea>
-
-          <!-- 緊急警告：距今 ≤ 1 小時 -->
-          <div
-            v-if="isUrgent"
-            class="flex items-start gap-2 border-[1.5px] border-[#E8A060] bg-[#FFF8EC] px-3 py-2"
-          >
-            <span class="flex-shrink-0 text-sm leading-5">⚠️</span>
-            <span class="text-xs leading-5 text-[#B06020]">
-              活動將在 <strong>{{ minutesUntilStart }}</strong> 分鐘後開始，建立後請手動確認成團
-            </span>
-          </div>
-
-          <!-- 流團設定附注（正常情況） -->
-          <template v-else>
-            <div class="flex items-start gap-2 border-t border-dashed border-[#C8DEB8] pt-2">
-              <span class="flex-1 text-xs leading-5 text-[#9AA890]">
-                <strong class="text-[#7A9070]">{{ deadlineDisplayText }}</strong>，人數不若足活動將自動取消
-              </span>
-              <button
-                type="button"
-                class="flex-shrink-0 bg-white border border-[#C8DEB8] px-2 py-0.5 text-[10px] leading-5 text-[#9AA890] transition-colors hover:border-[#87C06D] hover:text-[#87C06D]"
-                @click="toggleDeadlineEditor"
-              >
-                調整
-              </button>
-            </div>
-
-            <!-- 流團編輯器 -->
-            <div
-              v-if="showDeadlineEditor"
-              class="flex items-center gap-2 border-[1.5px] border-dashed border-[#87C06D] bg-[#F0F8E8] px-3 py-2"
-            >
-              <span class="text-xs text-[#4A5040]">活動開始前</span>
-              <input
-                v-model.number="deadline.value"
-                type="number"
-                min="1"
-                class="h-8 w-14 rounded-none border-[1.5px] border-[#A8C893] bg-white px-2 font-[cubic11] text-xs text-[#4A5040] outline-none focus:border-[#7DB968] focus:shadow-[inset_0_0_0_1px_#7DB968]"
-              />
-              <select
-                v-model="deadline.unit"
-                class="h-8 rounded-none border-[1.5px] border-[#A8C893] bg-white px-2 font-[cubic11] text-xs text-[#4A5040] outline-none focus:border-[#7DB968]"
-              >
-                <option v-for="opt in deadlineUnitOptions" :key="opt.value" :value="opt.value">
-                  {{ opt.label }}
-                </option>
-              </select>
-              <span class="text-xs text-[#4A5040]">自動取消</span>
-            </div>
-          </template>
         </label>
       </form>
     </template>
@@ -304,42 +209,15 @@
       <PixelButton form="event-form" type="submit">送出揪團</PixelButton>
     </template>
   </BaseModal>
-
-  <!-- 緊急送出確認 dialog -->
-  <BaseModal
-    :isOpen="showUrgentConfirm"
-    title="活動即將開始"
-    @close="showUrgentConfirm = false"
-  >
-    <template #default>
-      <div class="grid gap-3 py-2 text-center">
-        <p class="text-sm leading-6 text-[#4A5040]">
-          這個活動將在 <strong>{{ minutesUntilStart }}</strong> 分鐘後開始<br />
-          建立後請記得到活動頁面<br />
-          <strong>手動確認成團</strong>，才會通知參與者
-        </p>
-      </div>
-    </template>
-    <template #footer>
-      <PixelButton variant="white" type="button" @click="showUrgentConfirm = false">取消</PixelButton>
-      <PixelButton type="button" @click="confirmUrgentSubmit">確定送出</PixelButton>
-    </template>
-  </BaseModal>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
 
-const props = defineProps({ isOpen: Boolean })
+defineProps({ isOpen: Boolean })
 const emit = defineEmits(['close', 'submit'])
-
-const route = useRoute()
-const router = useRouter()
-const isRouteComponent = computed(() => route.name === 'event-new')
-const modalOpen = computed(() => (isRouteComponent.value ? true : props.isOpen))
 
 const eventTypes = ['吃飯', '運動', '讀書', '逛街', '看展', '其他']
 const dateFields = ['startDate', 'endDate']
@@ -365,24 +243,18 @@ const scheduleRows = [
   },
 ]
 
-const today = formatDateValue(new Date())
 const form = reactive({
   name: '',
   type: '吃飯',
-  limit: null,
+  limit: 6,
   location: '',
   allDay: false,
-  startDate: today,
+  startDate: '2026/06/11',
   startTime: '下午 12:00',
-  endDate: today,
+  endDate: '2026/06/11',
   endTime: '下午 1:00',
   note: '',
 })
-
-// 流團設定
-const deadline = reactive({ value: 1, unit: 'day' })
-const showDeadlineEditor = ref(false)
-const showUrgentConfirm = ref(false)
 
 const fieldClass = 'grid gap-2'
 const fieldLabelClass = 'field-label text-sm leading-none tracking-[0.01em] text-[#4A5040]'
@@ -412,6 +284,7 @@ const activeTimeField = computed(() =>
 const monthTitle = computed(() => {
   const year = visibleMonth.value.getFullYear()
   const month = visibleMonth.value.getMonth() + 1
+
   return `${year} 年 ${month} 月`
 })
 
@@ -421,16 +294,9 @@ const dateCells = computed(() => {
   const gridStart = new Date(firstDay)
   gridStart.setDate(firstDay.getDate() - startOffset)
 
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
-
-  const startDateObj = activeDateField.value === 'endDate' ? parseDateValue(form.startDate) : null
-
   return Array.from({ length: 42 }, (_, index) => {
     const date = new Date(gridStart)
     date.setDate(gridStart.getDate() + index)
-
-    const isBeforeStart = startDateObj ? date < startDateObj : false
 
     return {
       key: formatDateValue(date),
@@ -439,132 +305,25 @@ const dateCells = computed(() => {
       isCurrentMonth: date.getMonth() === visibleMonth.value.getMonth(),
       isSelected: selectedDate.value ? isSameDate(date, selectedDate.value) : false,
       isToday: isSameDate(date, new Date()),
-      isPast: date < todayStart || isBeforeStart,
     }
   })
 })
 
-// 是否距今 ≤ 1 小時（緊急活動）
-const isUrgent = computed(() => {
-  if (form.allDay) return false
-  const start = parseDateTimeValue(form.startDate, form.startTime)
-  if (!start) return false
-  const diffMs = start.getTime() - Date.now()
-  return diffMs > 0 && diffMs <= 60 * 60 * 1000
-})
-
-// 是否為當天活動
-const isSameDay = computed(() => {
-  const start = parseDateValue(form.startDate)
-  if (!start) return false
-  const now = new Date()
-  return (
-    start.getFullYear() === now.getFullYear() &&
-    start.getMonth() === now.getMonth() &&
-    start.getDate() === now.getDate()
-  )
-})
-
-// 距今幾分鐘（緊急顯示用）
-const minutesUntilStart = computed(() => {
-  const start = parseDateTimeValue(form.startDate, form.startTime)
-  if (!start) return 0
-  return Math.max(1, Math.ceil((start.getTime() - Date.now()) / 60000))
-})
-
-// 流團時間顯示文字
-const deadlineDisplayText = computed(() => {
-  if (deadline.unit === 'day') {
-    const start = parseDateValue(form.startDate)
-    if (!start) return ''
-    const d = new Date(start)
-    d.setDate(d.getDate() - deadline.value)
-    return `${formatDateValue(d)}（活動前 ${deadline.value} 天）`
-  } else {
-    const start = parseDateTimeValue(form.startDate, form.startTime)
-    if (!start) return ''
-    const d = new Date(start.getTime() - deadline.value * 3600000)
-    const period = d.getHours() < 12 ? '上午' : '下午'
-    const hour = d.getHours() % 12 || 12
-    return `${formatDateValue(d)} ${period} ${hour}:00（活動前 ${deadline.value} 小時）`
-  }
-})
-
-// 可選的單位（當天只能選小時）
-const deadlineUnitOptions = computed(() => {
-  if (isSameDay.value) return [{ value: 'hour', label: '小時' }]
-  return [
-    { value: 'day', label: '天' },
-    { value: 'hour', label: '小時' },
-  ]
-})
-
-// 當天活動時強制切換為小時
-watch(isSameDay, (val) => {
-  if (val && deadline.unit === 'day') {
-    deadline.unit = 'hour'
-    deadline.value = 1
-  } else if (!val && deadline.unit === 'hour') {
-    deadline.unit = 'day'
-    deadline.value = 1
-  }
-})
-
-watch(
-  () => [form.startDate, form.startTime],
-  () => {
-    if (form.allDay) return
-    const start = parseDateTimeValue(form.startDate, form.startTime)
-    const end = parseDateTimeValue(form.endDate, form.endTime)
-    if (!start || !end) return
-    if (start >= end) {
-      const newEnd = new Date(start.getTime() + 60 * 60 * 1000)
-      form.endDate = formatDateValue(newEnd)
-      form.endTime = formatTimeValue(newEnd)
-    }
-  },
-)
-
 function closeForm() {
   closePicker()
-  if (isRouteComponent.value) {
-    router.back()
-  } else {
-    emit('close')
-  }
+  emit('close')
 }
 
 function submitForm() {
   closePicker()
-  if (isUrgent.value) {
-    showUrgentConfirm.value = true
-    return
-  }
-  doSubmit()
-}
-
-function confirmUrgentSubmit() {
-  showUrgentConfirm.value = false
-  doSubmit()
-}
-
-function doSubmit() {
-  const limitValue = !form.limit || isNaN(form.limit) ? null : form.limit
-  emit('submit', {
-    ...form,
-    limit: limitValue,
-    deadline: isUrgent.value ? null : { ...deadline },
-  })
-}
-
-function toggleDeadlineEditor() {
-  showDeadlineEditor.value = !showDeadlineEditor.value
+  emit('submit', { ...form })
 }
 
 function openPicker(type) {
   if (dateFields.includes(type)) {
     syncVisibleMonthFromValue(type)
   }
+
   activePicker.value = type
 }
 
@@ -593,10 +352,8 @@ function moveMonth(direction) {
 }
 
 function selectDate(date) {
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
-  if (date < todayStart) return
   const pickedDate = new Date(date)
+
   selectedDate.value = pickedDate
   form[activeDateField.value] = formatDateValue(pickedDate)
   closePicker()
@@ -609,6 +366,7 @@ function selectTime(time) {
 
 function syncVisibleMonthFromValue(field) {
   const parsedDate = parseDateValue(form[field])
+
   if (parsedDate) {
     selectedDate.value = parsedDate
     visibleMonth.value = startOfMonth(parsedDate)
@@ -623,38 +381,24 @@ function formatDateValue(date) {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
+
   return `${year}/${month}/${day}`
 }
 
 function parseDateValue(value) {
   const match = value.match(/^(\d{4})\/(\d{2})\/(\d{2})$/)
+
   if (!match) return null
+
   const year = Number(match[1])
   const month = Number(match[2]) - 1
   const day = Number(match[3])
   const date = new Date(year, month, day)
+
   if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
     return null
   }
-  return date
-}
 
-function formatTimeValue(date) {
-  const period = date.getHours() < 12 ? '上午' : '下午'
-  const hour = date.getHours() % 12 || 12
-  return `${period} ${hour}:00`
-}
-
-function parseDateTimeValue(dateStr, timeStr) {
-  const date = parseDateValue(dateStr)
-  if (!date) return null
-  const match = timeStr.match(/^(上午|下午)\s+(\d+):(\d+)$/)
-  if (!match) return null
-  let hour = Number(match[2])
-  const minute = Number(match[3])
-  if (match[1] === '下午' && hour !== 12) hour += 12
-  if (match[1] === '上午' && hour === 12) hour = 0
-  date.setHours(hour, minute, 0, 0)
   return date
 }
 
@@ -670,6 +414,7 @@ function createTimeOptions() {
   return Array.from({ length: 24 }, (_, hour) => {
     const period = hour < 12 ? '上午' : '下午'
     const displayHour = String(hour % 12 || 12)
+
     return `${period} ${displayHour}:00`
   })
 }
@@ -677,48 +422,23 @@ function createTimeOptions() {
 function dateButtonClass(cell) {
   return [
     'h-8 max-sm:h-7 border-[1.5px] font-[cubic11] text-xs leading-none transition-colors',
-    cell.isPast
-      ? 'border-[#E8EDE0] bg-white text-[#C8CEBC] cursor-not-allowed pointer-events-none'
-      : cell.isSelected
-        ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]'
-        : 'border-[#D8E6C8] bg-white text-[#4A5040] hover:border-[#7DB968] hover:bg-[#EDF8C9]',
-    !cell.isCurrentMonth && !cell.isPast && 'text-[#A7AB9A]',
+    cell.isSelected
+      ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]'
+      : 'border-[#D8E6C8] bg-white text-[#4A5040] hover:border-[#7DB968] hover:bg-[#EDF8C9]',
+    !cell.isCurrentMonth && 'text-[#A7AB9A]',
     cell.isToday && !cell.isSelected && 'border-[#7DB968] bg-[#F3F9D8]',
   ]
 }
 
-function isTimePast(time) {
-  const dateFieldMap = { startTime: 'startDate', endTime: 'endDate' }
-  const dateField = dateFieldMap[activeTimeField.value]
-  if (!dateField) return false
-
-  // 今天之前的時段不可選
-  if (form[dateField] === today) {
-    const timeDate = parseDateTimeValue(form[dateField], time)
-    if (timeDate !== null && timeDate < new Date()) return true
-  }
-
-  // 編輯 endTime 時，禁用 ≤ startTime 的時段（同一天）
-  if (activeTimeField.value === 'endTime' && form.endDate === form.startDate) {
-    const startDateTime = parseDateTimeValue(form.startDate, form.startTime)
-    const thisDateTime = parseDateTimeValue(form.endDate, time)
-    if (startDateTime && thisDateTime && thisDateTime <= startDateTime) return true
-  }
-
-  return false
-}
-
 function timeButtonClass(time, field) {
-  if (isTimePast(time)) return 'text-[#C8CEBC] cursor-not-allowed pointer-events-none'
-  return { 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]': form[field] === time }
+  return {
+    'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]': form[field] === time,
+  }
 }
 
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick)
   document.addEventListener('keydown', handleEscape)
-  if (isSameDay.value) {
-    deadline.unit = 'hour'
-  }
 })
 
 onBeforeUnmount(() => {
