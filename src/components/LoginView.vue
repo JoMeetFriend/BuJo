@@ -138,9 +138,11 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 
+const router = useRouter()
 const showPassword = ref(false)
 
 const form = reactive({
@@ -153,15 +155,42 @@ const handleLogin = () => {
   console.log('登入資料：', form)
 }
 
+const handleCredentialResponse = async (response) => {
+  try {
+    const res = await fetch('http://localhost:3000/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: response.credential }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Google 登入失敗')
+    // TODO: 將 data.token 寫入 auth store
+    router.push('/')
+  } catch (err) {
+    console.error('Google 登入失敗：', err)
+  }
+}
+
 const handleGoogleLogin = () => {
-  // TODO: 串接 Google OAuth
-  console.log('Google 登入')
+  window.google?.accounts.id.prompt()
 }
 
 const handleLineLogin = () => {
-  // TODO: 串接 LINE Login OAuth
   window.location.href = 'http://localhost:3000/api/auth/line'
 }
+
+onMounted(() => {
+  if (window.google) return
+  const script = document.createElement('script')
+  script.src = 'https://accounts.google.com/gsi/client'
+  script.onload = () => {
+    window.google.accounts.id.initialize({
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      callback: handleCredentialResponse,
+    })
+  }
+  document.head.appendChild(script)
+})
 </script>
 
 <style scoped>
