@@ -86,6 +86,7 @@
       <!-- Google 登入 -->
       <button
         @click="handleGoogleLogin"
+        data-testid="google-login"
         class="w-full border-2 border-brand-text shadow-pixel hover:shadow-pixel-pressed hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100 py-2 text-sm text-brand-text flex items-center justify-center gap-2 hover:bg-primary-light"
       >
         <svg width="18" height="18" viewBox="0 0 48 48">
@@ -140,7 +141,12 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
+import { googleTokenLogin } from 'vue3-google-login'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
+const router = useRouter()
+const authStore = useAuthStore()
 const showPassword = ref(false)
 
 const form = reactive({
@@ -153,9 +159,26 @@ const handleLogin = () => {
   console.log('登入資料：', form)
 }
 
-const handleGoogleLogin = () => {
-  // TODO: 串接 Google OAuth
-  console.log('Google 登入')
+
+
+//!
+const handleGoogleLogin = async () => {
+  try {
+    const response = await googleTokenLogin()
+    const result = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ token: response.access_token })
+    })
+    const data = await result.json()
+    authStore.login(data.user)
+    router.push('/')
+  } catch (error) {
+    if (error?.type !== 'popup_closed') {
+      console.error('登入失敗', error)
+    }
+  }
 }
 
 const handleLineLogin = () => {
