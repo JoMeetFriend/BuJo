@@ -12,6 +12,8 @@ export function useUserSearch() {
   const isSearching = ref(false)
   const error = ref(null)
 
+  let abortController = null
+
   const searchUsers = async (keyword) => {
     const sanitizedKeyword = keyword?.trim() || ''
     if (!sanitizedKeyword || sanitizedKeyword.length > 50) {
@@ -19,12 +21,19 @@ export function useUserSearch() {
       return
     }
 
+    if (abortController) {
+      abortController.abort()
+    }
+
+    abortController = new AbortController()
+
     isSearching.value = true
     error.value = null
 
     try {
       const response = await apiClient.get('/api/users/search', {
         params: { q: sanitizedKeyword },
+        signal: abortController.signal,
       })
 
       searchResults.value = (response.data || []).map((user) => ({
@@ -33,6 +42,9 @@ export function useUserSearch() {
         avatar_url: /^https?:\/\//.test(user.avatar_url) ? user.avatar_url : null,
       }))
     } catch (err) {
+      if (axios.isCancel(err)) {
+        return
+      }
       console.error('搜尋失敗:', err)
       if (err.response?.status === 401) {
         error.value = '登入已過期，請重新登入'
@@ -46,7 +58,9 @@ export function useUserSearch() {
   }
 
   const clearSearch = () => {
+    if (abortController) abortController.abort()
     searchResults.value = []
+    isSearching.value = false
     error.value = null
   }
 
