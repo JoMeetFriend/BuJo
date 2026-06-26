@@ -20,7 +20,8 @@ export const useFriendStore = defineStore('friend', () => {
     try {
       const response = await apiClient.get('/friends')
 
-      friends.value = response.data
+      const data = response.data
+      friends.value = Array.isArray(data) ? data : []
     } catch (err) {
       console.error('抓取好友列表失敗:', err)
       error.value = err.response?.data?.message || '無法取得好友資訊，請檢查網路連線'
