@@ -46,3 +46,9 @@ docs/superpowers
 .env.local
 .env.*.local
 
+
+#tool
+
+graphify-out/
+.claude/
+CLAUDE.md
