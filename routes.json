@@ -1,4 +1,4 @@
 {
-  "/api/users/search?q=:q": "/friends?display_name_like=:q",
+  "/api/users/search?q=:q": "/friends?id_like=:q",
   "/api/friends/request": "/friends"
 }
