@@ -213,7 +213,7 @@ const handleCredentialResponse = async (response) => {
     authStore.setUser(data.user)
     router.push('/')
   } catch (err) {
-    console.error('Google 登入失敗：', err)
+    errorMsg.value = err.message || 'Google 登入失敗，請稍後再試'
   }
 }
 
