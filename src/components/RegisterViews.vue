@@ -165,8 +165,8 @@ const handleRegister = async () => {
     errorMsg.value = '兩次輸入的密碼不一致'
     return
   }
-  if (form.password.length < 6) {
-    errorMsg.value = '密碼至少需要 6 個字元'
+  if (form.password.length < 8) {
+    errorMsg.value = '密碼至少需要 8 個字元'
     return
   }
 
@@ -176,7 +176,7 @@ const handleRegister = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ name: form.name, email: form.email, password: form.password }),
+      body: JSON.stringify({ display_name: form.name, email: form.email, password: form.password }),
     })
 
     const data = await res.json()
@@ -185,6 +185,11 @@ const handleRegister = async () => {
       const retryAfter = res.headers.get('Retry-After')
       const waitMin = retryAfter ? Math.ceil(Number(retryAfter) / 60) : 60
       errorMsg.value = data.error || `註冊太頻繁，請 ${waitMin} 分鐘後再試`
+      return
+    }
+
+    if (res.status === 409) {
+      errorMsg.value = '此 Email 已被註冊，請直接登入或使用其他信箱'
       return
     }
 
