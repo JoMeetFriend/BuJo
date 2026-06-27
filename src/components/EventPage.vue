@@ -296,6 +296,12 @@
             </div>
           </template>
         </label>
+        <div
+          v-if="submitError"
+          class="col-span-full flex items-start gap-2 border-[1.5px] border-[#E06060] bg-[#FFF0F0] px-3 py-2 text-xs text-[#B03030]"
+        >
+          ⚠️ {{ submitError }}
+        </div>
       </form>
     </template>
 
@@ -383,6 +389,7 @@ const form = reactive({
 const deadline = reactive({ value: 1, unit: 'day' })
 const showDeadlineEditor = ref(false)
 const showUrgentConfirm = ref(false)
+const submitError = ref('')
 
 const fieldClass = 'grid gap-2'
 const fieldLabelClass = 'field-label text-sm leading-none tracking-[0.01em] text-[#4A5040]'
@@ -534,27 +541,55 @@ function closeForm() {
   }
 }
 
-function submitForm() {
+async function submitForm() {
   closePicker()
   if (isUrgent.value) {
     showUrgentConfirm.value = true
     return
   }
-  doSubmit()
+  await doSubmit()
 }
 
-function confirmUrgentSubmit() {
+async function confirmUrgentSubmit() {
   showUrgentConfirm.value = false
-  doSubmit()
+  await doSubmit()
 }
 
-function doSubmit() {
+async function doSubmit() {
+  submitError.value = ''
   const limitValue = !form.limit || isNaN(form.limit) ? null : form.limit
-  emit('submit', {
-    ...form,
-    limit: limitValue,
-    deadline: isUrgent.value ? null : { ...deadline },
-  })
+  const deadlineISO = isUrgent.value
+    ? null
+    : computeDeadlineISO(form.startDate, form.startTime, deadline)
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        title: form.name,
+        location: form.location || null,
+        limit: limitValue,
+        note: form.note || null,
+        startDate: form.startDate,
+        startTime: form.startTime,
+        endDate: form.endDate,
+        endTime: form.endTime,
+        allDay: form.allDay,
+        deadline: deadlineISO,
+      }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      submitError.value = data.message || '建立活動失敗，請稍後再試'
+      return
+    }
+    const data = await res.json()
+    emit('submit', data.activity)
+    closeForm()
+  } catch {
+    submitError.value = '無法連線到伺服器，請確認後再試'
+  }
 }
 
 function toggleDeadlineEditor() {
@@ -656,6 +691,18 @@ function parseDateTimeValue(dateStr, timeStr) {
   if (match[1] === '上午' && hour === 12) hour = 0
   date.setHours(hour, minute, 0, 0)
   return date
+}
+
+function computeDeadlineISO(startDateStr, startTimeStr, deadlineObj) {
+  if (deadlineObj.unit === 'day') {
+    const start = parseDateValue(startDateStr)
+    if (!start) return null
+    start.setDate(start.getDate() - deadlineObj.value)
+    return start.toISOString()
+  }
+  const start = parseDateTimeValue(startDateStr, startTimeStr)
+  if (!start) return null
+  return new Date(start.getTime() - deadlineObj.value * 3600000).toISOString()
 }
 
 function isSameDate(firstDate, secondDate) {
