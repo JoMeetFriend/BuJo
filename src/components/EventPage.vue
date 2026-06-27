@@ -198,13 +198,21 @@
               <span v-if="!form.allDay" class="relative block">
                 <button
                   :id="row.timeButtonId"
-                  :class="[pickerButtonClass, 'w-full']"
+                  :class="[pickerButtonClass, 'w-full', row.timeField === 'startTime' && timeError ? 'border-red-400' : '']"
                   type="button"
                   :data-time-field="row.timeField"
                   @click="openPicker(row.timeField)"
                 >
-                  {{ form[row.timeField] }}
+                  <span :class="form[row.timeField] ? '' : 'text-[#A7AB9A]'">
+                    {{ form[row.timeField] ?? '-- : --' }}
+                  </span>
                 </button>
+                <p
+                  v-if="row.timeField === 'startTime' && timeError"
+                  class="mt-1 flex items-center gap-1 text-xs text-red-500"
+                >
+                  <span>⚠</span> {{ timeError }}
+                </p>
 
                 <div
                   v-if="activePicker === row.timeField"
@@ -233,6 +241,17 @@
               </span>
             </div>
           </div>
+
+          <!-- 緊急警告：距今 ≤ 1 小時 -->
+          <div
+            v-if="isUrgent"
+            class="flex items-start gap-2 border-[1.5px] border-[#E8A060] bg-[#FFF8EC] px-3 py-2 mt-1"
+          >
+            <span class="flex-shrink-0 text-sm leading-5">⚠️</span>
+            <span class="text-xs leading-5 text-[#B06020]">
+              活動將在 <strong>{{ minutesUntilStart }}</strong> 分鐘後開始，建立後請手動確認成團
+            </span>
+          </div>
         </div>
 
         <!-- 備註 + 流團設定附注 -->
@@ -246,19 +265,8 @@
             placeholder="補充說明，例如裝備、費用..."
           ></textarea>
 
-          <!-- 緊急警告：距今 ≤ 1 小時 -->
-          <div
-            v-if="isUrgent"
-            class="flex items-start gap-2 border-[1.5px] border-[#E8A060] bg-[#FFF8EC] px-3 py-2"
-          >
-            <span class="flex-shrink-0 text-sm leading-5">⚠️</span>
-            <span class="text-xs leading-5 text-[#B06020]">
-              活動將在 <strong>{{ minutesUntilStart }}</strong> 分鐘後開始，建立後請手動確認成團
-            </span>
-          </div>
-
-          <!-- 流團設定附注（正常情況） -->
-          <template v-else>
+          <!-- 流團設定附注（非緊急情況） -->
+          <template v-if="!isUrgent">
             <div class="flex items-start gap-2 border-t border-dashed border-[#C8DEB8] pt-2">
               <span class="flex-1 text-xs leading-5 text-[#9AA890]">
                 <strong class="text-[#7A9070]">{{ deadlineDisplayText }}</strong>，人數不若足活動將自動取消
@@ -334,7 +342,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
@@ -379,9 +387,9 @@ const form = reactive({
   location: '',
   allDay: false,
   startDate: today,
-  startTime: '下午 12:00',
+  startTime: null,
   endDate: today,
-  endTime: '下午 1:00',
+  endTime: null,
   note: '',
 })
 
@@ -390,6 +398,8 @@ const deadline = reactive({ value: 1, unit: 'day' })
 const showDeadlineEditor = ref(false)
 const showUrgentConfirm = ref(false)
 const submitError = ref('')
+const endTimeUserSet = ref(false)
+const timeError = ref('')
 
 const fieldClass = 'grid gap-2'
 const fieldLabelClass = 'field-label text-sm leading-none tracking-[0.01em] text-[#4A5040]'
@@ -518,17 +528,19 @@ watch(isSameDay, (val) => {
 })
 
 watch(
+  () => form.startTime,
+  (val) => { if (val) timeError.value = '' },
+)
+
+watch(
   () => [form.startDate, form.startTime],
   () => {
-    if (form.allDay) return
+    if (form.allDay || !form.startTime || endTimeUserSet.value) return
     const start = parseDateTimeValue(form.startDate, form.startTime)
-    const end = parseDateTimeValue(form.endDate, form.endTime)
-    if (!start || !end) return
-    if (start >= end) {
-      const newEnd = new Date(start.getTime() + 60 * 60 * 1000)
-      form.endDate = formatDateValue(newEnd)
-      form.endTime = formatTimeValue(newEnd)
-    }
+    if (!start) return
+    const newEnd = new Date(start.getTime() + 60 * 60 * 1000)
+    form.endDate = formatDateValue(newEnd)
+    form.endTime = formatTimeValue(newEnd)
   },
 )
 
@@ -557,6 +569,13 @@ async function confirmUrgentSubmit() {
 
 async function doSubmit() {
   submitError.value = ''
+  if (!form.allDay && !form.startTime) {
+    timeError.value = '請選擇開始時間'
+    await nextTick()
+    document.getElementById('event-start-time')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    return
+  }
+  timeError.value = ''
   const limitValue = !form.limit || isNaN(form.limit) ? null : form.limit
   const deadlineISO = isUrgent.value
     ? null
@@ -638,6 +657,9 @@ function selectDate(date) {
 }
 
 function selectTime(time) {
+  if (activeTimeField.value === 'endTime') {
+    endTimeUserSet.value = true
+  }
   form[activeTimeField.value] = time
   closePicker()
 }
@@ -681,6 +703,7 @@ function formatTimeValue(date) {
 }
 
 function parseDateTimeValue(dateStr, timeStr) {
+  if (!timeStr) return null
   const date = parseDateValue(dateStr)
   if (!date) return null
   const match = timeStr.match(/^(上午|下午)\s+(\d+):(\d+)$/)
