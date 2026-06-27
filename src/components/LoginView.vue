@@ -67,12 +67,18 @@
           </router-link>
         </div>
 
+        <!-- 錯誤訊息 -->
+        <p v-if="errorMsg" class="text-xs text-red-600 border border-red-300 bg-red-50 px-3 py-2">
+          {{ errorMsg }}
+        </p>
+
         <!-- 登入按鈕 -->
         <button
           type="submit"
-          class="w-full bg-primary-green hover:bg-primary-mid text-brand-text py-2 text-sm font-semibold flex items-center justify-center gap-2 border-2 border-brand-text shadow-pixel hover:shadow-pixel-pressed hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100"
+          :disabled="isLoading"
+          class="w-full bg-primary-green hover:bg-primary-mid text-brand-text py-2 text-sm font-semibold flex items-center justify-center gap-2 border-2 border-brand-text shadow-pixel hover:shadow-pixel-pressed hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-x-0 disabled:translate-y-0 disabled:shadow-pixel"
         >
-          登入
+          {{ isLoading ? '登入中...' : '登入' }}
         </button>
       </form>
 
@@ -141,18 +147,57 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const showPassword = ref(false)
+const isLoading = ref(false)
+const errorMsg = ref('')
 
 const form = reactive({
   email: '',
   password: '',
 })
 
-const handleLogin = () => {
-  // TODO: 串接 API
-  console.log('登入資料：', form)
+const handleLogin = async () => {
+  errorMsg.value = ''
+
+  if (!form.email || !form.password) {
+    errorMsg.value = '請填寫電子郵件與密碼'
+    return
+  }
+
+  isLoading.value = true
+  try {
+    const res = await fetch('http://localhost:3000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email: form.email, password: form.password }),
+    })
+
+    const data = await res.json()
+
+    if (res.status === 429) {
+      const retryAfter = res.headers.get('Retry-After')
+      const waitMin = retryAfter ? Math.ceil(Number(retryAfter) / 60) : 15
+      errorMsg.value = data.error || `登入嘗試過多，請 ${waitMin} 分鐘後再試`
+      return
+    }
+
+    if (!res.ok) {
+      errorMsg.value = data.error || '登入失敗，請確認帳號密碼'
+      return
+    }
+
+    authStore.setUser(data.user)
+    router.push('/')
+  } catch {
+    errorMsg.value = '網路錯誤，請確認連線後再試'
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const handleCredentialResponse = async (response) => {
@@ -160,11 +205,12 @@ const handleCredentialResponse = async (response) => {
     const res = await fetch('http://localhost:3000/api/auth/google', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ credential: response.credential }),
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.error || 'Google 登入失敗')
-    // TODO: 將 data.token 寫入 auth store
+    authStore.setUser(data.user)
     router.push('/')
   } catch (err) {
     console.error('Google 登入失敗：', err)
