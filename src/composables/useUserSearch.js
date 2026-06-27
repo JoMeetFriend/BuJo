@@ -16,7 +16,7 @@ export function useUserSearch() {
 
   const searchUsers = async (keyword) => {
     const sanitizedKeyword = keyword?.trim() || ''
-    if (!sanitizedKeyword || sanitizedKeyword.length > 50) {
+    if (sanitizedKeyword.length !== 5 || !/^[a-f0-9]{5}$/.test(sanitizedKeyword)) {
       searchResults.value = []
       return
     }
