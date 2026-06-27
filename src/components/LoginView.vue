@@ -67,6 +67,9 @@
           </router-link>
         </div>
 
+        <!-- 錯誤訊息 -->
+        <p v-if="loginError" class="text-xs text-red-500 text-center">{{ loginError }}</p>
+
         <!-- 登入按鈕 -->
         <button
           type="submit"
@@ -153,10 +156,27 @@ const form = reactive({
   email: '',
   password: '',
 })
+const loginError = ref('')
 
-const handleLogin = () => {
-  // TODO: 串接 API
-  console.log('登入資料：', form)
+const handleLogin = async () => {
+  loginError.value = ''
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email: form.email, password: form.password }),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      loginError.value = data.message || '登入失敗，請稍後再試'
+      return
+    }
+    authStore.login(data.user)
+    router.push('/')
+  } catch {
+    loginError.value = '無法連線到伺服器，請確認後再試'
+  }
 }
 
 
