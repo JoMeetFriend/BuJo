@@ -210,6 +210,14 @@ const handleRegister = async () => {
 </script>
 
 <style scoped>
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #DEF4CD inset;
+  -webkit-text-fill-color: #4A5040;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 .register-bg {
   position: absolute;
   inset: 0;
