@@ -187,6 +187,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import PixelButton from './ui/PixelButton.vue'
 import DateEventsModal from './DateEventsModal.vue'
 import MarqueeBanner from './MarqueeBanner.vue'
@@ -195,23 +196,9 @@ import EventPage from './EventPage.vue'
 
 const showEventModal = ref(false)
 const profileBtnBouncing = ref(false)
-const currentUser = ref(null)
 const router = useRouter()
-
-onMounted(async () => {
-  try {
-    const res = await fetch('http://localhost:3000/api/auth/me', {
-      credentials: 'include',
-    })
-
-    const data = await res.json()
-    currentUser.value = data.user
-
-    console.log('目前登入者：', currentUser.value)
-  } catch (error) {
-    console.error('取得目前登入者失敗：', error)
-  }
-})
+const authStore = useAuthStore()
+const currentUser = computed(() => authStore.user)
 
 function openProfileModal() {
   showProfileModal.value = true
@@ -219,18 +206,9 @@ function openProfileModal() {
 }
 
 async function handleLogout() {
-  try {
-    await fetch('http://localhost:3000/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
-    })
-  } catch (error) {
-    console.error('登出失敗：', error)
-  } finally {
-    currentUser.value = null
-    showProfileModal.value = false
-    router.push('/login')
-  }
+  showProfileModal.value = false
+  await authStore.logout()
+  router.push('/login')
 }
 
 const props = defineProps({
