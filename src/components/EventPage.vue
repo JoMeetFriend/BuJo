@@ -16,7 +16,7 @@
           />
         </label>
 
-        <div class="grid grid-cols-2 gap-5 max-sm:grid-cols-1 max-sm:gap-4">
+        <div class="grid grid-cols-2 gap-5 max-sm:gap-2">
           <label :class="fieldClass" for="event-type">
             <span :class="fieldLabelClass">活動類型</span>
             <span class="relative block">
@@ -110,7 +110,7 @@
         <div
           ref="schedulePickerRef"
           class="col-span-full grid gap-1.5 max-sm:gap-1 border-[1.5px] border-[#A8C893] bg-white px-3 py-2 max-sm:py-1.5"
-          @click.stop
+          @click="closePicker"
         >
           <div
             class="grid grid-cols-[72px_1fr] max-sm:grid-cols-[56px_1fr] items-center gap-3 max-sm:gap-2"
@@ -143,7 +143,7 @@
                   :class="[pickerButtonClass, 'w-full']"
                   type="button"
                   :data-date-field="row.dateField"
-                  @click="openPicker(row.dateField)"
+                  @click.stop="openPicker(row.dateField)"
                 >
                   {{ form[row.dateField] }}
                 </button>
@@ -153,6 +153,7 @@
                   :class="[pickerPanelClass, 'left-0 w-[280px] max-sm:w-full']"
                   role="dialog"
                   :aria-label="row.dateMenuLabel"
+                  @click.stop
                 >
                   <div class="mb-2 flex items-center justify-between gap-2">
                     <button
@@ -202,7 +203,7 @@
                   :class="[pickerButtonClass, 'w-full', row.timeField === 'startTime' && timeError ? 'border-red-400' : '']"
                   type="button"
                   :data-time-field="row.timeField"
-                  @click="openPicker(row.timeField)"
+                  @click.stop="openPicker(row.timeField)"
                 >
                   <span :class="form[row.timeField] ? '' : 'text-[#A7AB9A]'">
                     {{ form[row.timeField] ?? '-- : --' }}
@@ -220,6 +221,7 @@
                   :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
                   role="listbox"
                   :aria-label="row.timeMenuLabel"
+                  @click.stop
                 >
                   <div class="max-h-[208px] overflow-y-auto pr-1">
                     <button

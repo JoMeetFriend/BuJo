@@ -47,7 +47,7 @@
         >
           <div
             class="h-14 flex items-center justify-center border-b-[1.5px] border-[#4A5040] shrink-0"
-            :class="STATUS_MAP[activity.status]?.topBg"
+            :class="activity.is_creator ? 'bg-warm-peach' : STATUS_MAP[activity.status]?.topBg"
           >
             <svg class="h-6 w-6 text-brand-text" fill="currentColor" viewBox="0 0 24 24">
               <path
@@ -109,9 +109,9 @@
 
                 <span
                   class="inline-flex items-center justify-center py-0.5 rounded-none text-xs font-bold border border-brand-text w-[76px] text-center whitespace-nowrap text-brand-text"
-                  :class="STATUS_MAP[activity.status]?.badgeBg"
+                  :class="(activity.has_joined && !activity.is_creator && activity.status === 'recruiting' ? JOINED_BADGE : STATUS_MAP[activity.status])?.badgeBg"
                 >
-                  {{ STATUS_MAP[activity.status]?.text ?? activity.status }}
+                  {{ (activity.has_joined && !activity.is_creator && activity.status === 'recruiting' ? JOINED_BADGE : STATUS_MAP[activity.status])?.text ?? activity.status }}
                 </span>
               </div>
             </div>
@@ -155,12 +155,14 @@ const STATUS_MAP = {
   },
 }
 
+const JOINED_BADGE = { text: '已報名', badgeBg: 'bg-warm-peach' }
+
 const filters = [
-  { key: 'all', text: '全部' },
-  { key: 'mine', text: '我建立的' },
-  { key: 'joined', text: '我報名的' },
   { key: 'recruiting', text: '揪團中' },
+  { key: 'joined', text: '已報名' },
   { key: 'confirmed', text: '已成團' },
+  { key: 'mine', text: '我建立的' },
+  { key: 'all', text: '全部' },
 ]
 
 const activities = ref([])
@@ -173,7 +175,9 @@ const selectedActivityId = ref(null)
 const filteredActivities = computed(() => {
   if (currentFilter.value === 'all') return activities.value
   if (currentFilter.value === 'mine') return activities.value.filter((a) => a.is_creator)
-  if (currentFilter.value === 'joined') return activities.value.filter((a) => a.has_joined && !a.is_creator)
+  if (currentFilter.value === 'joined') return activities.value.filter((a) => a.has_joined && !a.is_creator && a.status === 'recruiting')
+  if (currentFilter.value === 'recruiting') return activities.value.filter((a) => a.status === 'recruiting' && !a.is_creator)
+  if (currentFilter.value === 'confirmed') return activities.value.filter((a) => a.status === 'confirmed' && (a.has_joined || a.is_creator))
   return activities.value.filter((a) => a.status === currentFilter.value)
 })
 
@@ -243,9 +247,8 @@ onMounted(fetchActivities)
 }
 
 .filter-btn--active {
-  background: #4a5040;
-  color: #fef7e8;
-  transform: translate(2px, 2px);
+  background: #87c06d;
+  color: white;
   box-shadow: none;
 }
 
@@ -256,7 +259,15 @@ onMounted(fetchActivities)
 }
 
 .filter-btn--inactive:hover {
-  transform: translate(2px, 2px);
+  background: #d9eef2;
+  color: #0e7490;
+  border-color: #0e7490;
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+.filter-btn:active {
+  transform: translate(3px, 3px);
   box-shadow: none;
 }
 </style>
