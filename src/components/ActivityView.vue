@@ -173,7 +173,7 @@ const selectedActivityId = ref(null)
 const filteredActivities = computed(() => {
   if (currentFilter.value === 'all') return activities.value
   if (currentFilter.value === 'mine') return activities.value.filter((a) => a.is_creator)
-  if (currentFilter.value === 'joined') return activities.value.filter((a) => !a.is_creator)
+  if (currentFilter.value === 'joined') return activities.value.filter((a) => a.has_joined && !a.is_creator)
   return activities.value.filter((a) => a.status === currentFilter.value)
 })
 
