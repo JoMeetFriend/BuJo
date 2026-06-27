@@ -63,16 +63,16 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
-  if (!to.meta.requiresAuth) return true
-
   const authStore = useAuthStore()
   if (!authStore.initialized) {
     await authStore.fetchMe()
   }
 
-  if (!authStore.user) {
-    return '/login'
-  }
+  const guestOnly = to.path === '/login' || to.path === '/register'
+  if (guestOnly && authStore.user) return '/'
+
+  if (to.meta.requiresAuth && !authStore.user) return '/login'
+
   return true
 })
 
