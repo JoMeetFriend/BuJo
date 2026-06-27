@@ -23,8 +23,9 @@
               <select
                 id="event-type"
                 v-model="form.type"
-                :class="[inputClass, 'cursor-pointer appearance-none pr-12']"
+                :class="[inputClass, 'cursor-pointer appearance-none pr-12', form.type === null ? 'text-[#858A7A]' : '']"
               >
+                <option :value="null">---</option>
                 <option v-for="type in eventTypes" :key="type" :value="type">
                   {{ type }}
                 </option>
@@ -115,7 +116,7 @@
             class="grid grid-cols-[72px_1fr] max-sm:grid-cols-[56px_1fr] items-center gap-3 max-sm:gap-2"
           >
             <span :class="[fieldLabelClass, 'text-right']">整日：</span>
-            <label class="inline-flex items-center">
+            <label class="inline-flex w-fit items-center">
               <input
                 v-model="form.allDay"
                 class="h-7 w-7 max-sm:h-6 max-sm:w-6 cursor-pointer appearance-none rounded-none border-[1.5px] border-[#A8C893] bg-white checked:border-[#4A5040] checked:bg-[#7FBE69] focus:outline-none focus:shadow-[inset_0_0_0_1px_#7DB968]"
@@ -382,7 +383,7 @@ const scheduleRows = [
 const today = formatDateValue(new Date())
 const form = reactive({
   name: '',
-  type: '吃飯',
+  type: null,
   limit: null,
   location: '',
   allDay: false,
@@ -533,6 +534,13 @@ watch(
 )
 
 watch(
+  () => form.startDate,
+  (val) => {
+    if (form.endDate < val) form.endDate = val
+  },
+)
+
+watch(
   () => [form.startDate, form.startTime],
   () => {
     if (form.allDay || !form.startTime || endTimeUserSet.value) return
@@ -544,8 +552,29 @@ watch(
   },
 )
 
+function resetForm() {
+  const todayStr = formatDateValue(new Date())
+  form.name = ''
+  form.type = null
+  form.limit = null
+  form.location = ''
+  form.allDay = false
+  form.startDate = todayStr
+  form.startTime = null
+  form.endDate = todayStr
+  form.endTime = null
+  form.note = ''
+  deadline.value = 1
+  deadline.unit = 'day'
+  showDeadlineEditor.value = false
+  endTimeUserSet.value = false
+  submitError.value = ''
+  timeError.value = ''
+}
+
 function closeForm() {
   closePicker()
+  resetForm()
   if (isRouteComponent.value) {
     router.back()
   } else {
