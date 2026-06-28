@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :isOpen="isOpen" title="建立揪團活動" scrollable @close="closeForm">
+  <BaseModal :isOpen="modalOpen" title="建立揪團活動" scrollable @close="closeForm">
     <template #default>
       <form id="event-form" class="grid gap-4" @submit.prevent="submitForm">
         <label :class="[fieldClass, 'col-span-full']" for="event-name">
@@ -284,8 +284,13 @@ import { useRoute, useRouter } from 'vue-router'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
 
-defineProps({ isOpen: Boolean })
+const props = defineProps({ isOpen: Boolean })
 const emit = defineEmits(['close', 'submit'])
+
+const route = useRoute()
+const router = useRouter()
+const isRouteComponent = computed(() => route.name === 'event-new')
+const modalOpen = computed(() => (isRouteComponent.value ? true : props.isOpen))
 
 const eventTypes = ['吃飯', '運動', '讀書', '逛街', '看展', '其他']
 const dateFields = ['startDate', 'endDate']
@@ -310,6 +315,8 @@ const scheduleRows = [
     timeMenuLabel: '結束時間選單',
   },
 ]
+
+const today = formatDateValue(new Date())
 
 const form = reactive({
   name: '',
@@ -649,6 +656,9 @@ function parseDateValue(value) {
   if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
     return null
   }
+
+  return date
+}
 
 function formatTimeValue(date) {
   const period = date.getHours() < 12 ? '上午' : '下午'

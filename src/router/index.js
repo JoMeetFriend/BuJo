@@ -59,12 +59,10 @@ const router = createRouter({
 })
 
 // 有meta: { requiresAuth: true }的部分需要登入才看得到頁面
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   const authStore = useAuthStore()
   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
-    next('/login')
-  } else {
-    next()
+    return '/login'
   }
 })
 

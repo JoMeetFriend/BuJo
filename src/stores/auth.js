@@ -12,10 +12,14 @@ const useAuthStore = defineStore('auth', () => {
   }
 
   async function logout() {
-    await fetch(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {
-      method: 'POST',
-      credentials: 'include',
-    })
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch {
+      // API 失敗仍繼續清除本地狀態
+    }
     user.value = null
     localStorage.removeItem('user')
   }
