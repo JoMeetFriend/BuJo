@@ -144,7 +144,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
-import { googleTokenLogin } from 'vue3-google-login'
+import { googleOneTap } from 'vue3-google-login'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
@@ -184,12 +184,12 @@ const handleLogin = async () => {
 //!
 const handleGoogleLogin = async () => {
   try {
-    const response = await googleTokenLogin()
+    const response = await googleOneTap()
     const result = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ token: response.access_token })
+      body: JSON.stringify({ token: response.credential })
     })
     const data = await result.json()
     authStore.login(data.user)
