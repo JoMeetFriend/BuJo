@@ -115,9 +115,9 @@
       <RouterLink
         v-for="item in [
           { name: '月曆', to: '/' },
-          { name: '活動', to: '/activity' },
+          { name: '活動', to: 'activity' },
           { name: '好友', to: '/friends-page' },
-          { name: '通知', to: '/alerts' },
+          { name: '通知', to: '/alerts' }
         ]"
         :key="item.name"
         :to="item.to"
@@ -126,7 +126,6 @@
       >
         <div class="w-8 h-8 bg-[#DEF4CD]"></div>
       </RouterLink>
-
       <!-- 個人帳號按鈕 -->
       <button
         type="button"

@@ -320,7 +320,6 @@ onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   if (dotAnimId) cancelAnimationFrame(dotAnimId)
 })
-
 const currentYear = ref(2026)
 const currentMonth = ref(5)
 const selectedDate = ref(null)
