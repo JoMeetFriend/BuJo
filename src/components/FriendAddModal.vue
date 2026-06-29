@@ -52,10 +52,18 @@
           </div>
 
           <button
-            class="min-h-[32px] whitespace-nowrap border-2 border-[#4A5040] bg-white px-4 py-1 font-[cubic11] text-[13px] font-bold leading-none text-[#4A5040] shadow-[3px_3px_0_#4A5040] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_#4A5040] max-sm:col-span-2 max-sm:w-full"
+            @click="handleAddFriend(user.id)"
+            :disabled="actionStatus[user.id] === 'loading' || actionStatus[user.id] === 'success'"
+            class="min-h-[32px] whitespace-nowrap border-2 border-[#4A5040] bg-white px-4 py-1 font-[cubic11] text-[13px] font-bold leading-none text-[#4A5040] shadow-[3px_3px_0_#4A5040] disabled:opacity-50 disabled:cursor-not-allowed max-sm:col-span-2 max-sm:w-full"
+            :class="{
+              'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0_#4A5040]':
+                actionStatus[user.id] !== 'loading' && actionStatus[user.id] !== 'success',
+            }"
             type="button"
           >
-            ＋ 加好友
+            <span v-if="actionStatus[user.id] === 'loading'">處理中...</span>
+            <span v-else-if="actionStatus[user.id] === 'success'">已送出</span>
+            <span v-else>＋ 加好友</span>
           </button>
         </article>
       </div>
@@ -67,12 +75,16 @@
 import { ref, onUnmounted } from 'vue'
 import BaseModal from './ui/BaseModal.vue'
 import { useUserSearch } from '@/composables/useUserSearch'
+import { useFriendStore } from '@/stores/friendStore'
 
 const props = defineProps({ isOpen: Boolean })
 const emit = defineEmits(['close'])
 
 const { searchResults, isSearching, error, searchUsers, clearSearch } = useUserSearch()
+const friendStore = useFriendStore()
+
 const searchQuery = ref('')
+const actionStatus = ref({})
 let debounceTimer = null
 
 const handleInput = () => {
@@ -89,8 +101,23 @@ const handleInput = () => {
   }, 300)
 }
 
+const handleAddFriend = async (id) => {
+  actionStatus.value[id] = 'loading'
+  const result = await friendStore.addFriend(id)
+
+  if (result.success) {
+    actionStatus.value[id] = 'success'
+  } else {
+    actionStatus.value[id] = 'idle'
+    if (result.status !== 401) {
+      alert(result.message)
+    }
+  }
+}
+
 const handleClose = () => {
   searchQuery.value = ''
+  actionStatus.value = {}
   clearSearch()
   emit('close')
 }
