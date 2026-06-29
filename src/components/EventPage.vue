@@ -40,17 +40,26 @@
             </span>
           </label>
 
-          <label :class="fieldClass" for="event-limit">
+          <div :class="fieldClass">
             <span :class="fieldLabelClass">人數上限</span>
-            <input
-              id="event-limit"
-              v-model.number="form.limit"
-              :class="inputClass"
-              type="number"
-              min="1"
-              inputmode="numeric"
-            />
-          </label>
+            <span class="relative block">
+              <input
+                id="event-limit"
+                :value="form.limit ?? ''"
+                :class="[inputClass, 'pr-9']"
+                type="number"
+                inputmode="numeric"
+                placeholder="不限"
+                @input="form.limit = $event.target.value === '' || Number($event.target.value) <= 0 ? null : Number($event.target.value)"
+              />
+              <button
+                type="button"
+                class="absolute right-0 top-0 bottom-0 w-8 flex items-center justify-center border-l border-l-[#E0ECD8] text-[#9AA890] hover:text-[#4A5040] hover:bg-[#F0F8EC] focus:outline-none"
+                aria-label="清除人數上限"
+                @click="form.limit = null"
+              >✕</button>
+            </span>
+          </div>
         </div>
 
         <label :class="[fieldClass, 'col-span-full']" for="event-location">
@@ -63,6 +72,40 @@
             placeholder="在哪裡集合？"
           />
         </label>
+
+        <!-- Q1: 日期確定了嗎？ -->
+        <div :class="[fieldClass, 'col-span-full']">
+          <span :class="fieldLabelClass">日期確定了嗎？</span>
+          <div class="grid grid-cols-2 gap-2 max-sm:gap-1.5">
+            <div
+              class="flex min-h-[44px] max-sm:min-h-[38px] items-center justify-center border-[1.5px] border-[#4A5040] bg-[#87C06D] px-4 py-2 font-[cubic11] text-sm leading-[1.2] text-[#F5F5EE]"
+            >
+              已確定
+            </div>
+            <div
+              class="flex min-h-[44px] max-sm:min-h-[38px] cursor-not-allowed items-center justify-center border-[1.5px] border-[#A8C893] bg-white px-4 py-2 font-[cubic11] text-sm leading-[1.2] text-[#4A5040] opacity-35"
+            >
+              大概範圍
+            </div>
+          </div>
+        </div>
+
+        <!-- Q2: 時間確定了嗎？ -->
+        <div :class="[fieldClass, 'col-span-full']">
+          <span :class="fieldLabelClass">時間確定了嗎？</span>
+          <div class="grid grid-cols-2 gap-2 max-sm:gap-1.5">
+            <div
+              class="flex min-h-[44px] max-sm:min-h-[38px] items-center justify-center border-[1.5px] border-[#4A5040] bg-[#87C06D] px-4 py-2 font-[cubic11] text-sm leading-[1.2] text-[#F5F5EE]"
+            >
+              已確定
+            </div>
+            <div
+              class="flex min-h-[44px] max-sm:min-h-[38px] cursor-not-allowed items-center justify-center border-[1.5px] border-[#A8C893] bg-white px-4 py-2 font-[cubic11] text-sm leading-[1.2] text-[#4A5040] opacity-35"
+            >
+              讓大家選
+            </div>
+          </div>
+        </div>
 
         <div
           ref="schedulePickerRef"
@@ -182,7 +225,7 @@
                 >
                   <div class="max-h-[208px] overflow-y-auto pr-1">
                     <button
-                      v-for="time in timeOptions"
+                      v-for="time in currentPickerTimeOptions"
                       :key="time"
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
                       :class="timeButtonClass(time, row.timeField)"
@@ -276,6 +319,27 @@
       <PixelButton form="event-form" type="submit">送出揪團</PixelButton>
     </template>
   </BaseModal>
+
+  <!-- 緊急送出確認 dialog -->
+  <BaseModal
+    :isOpen="showUrgentConfirm"
+    title="活動即將開始"
+    @close="showUrgentConfirm = false"
+  >
+    <template #default>
+      <div class="grid gap-3 py-2 text-center">
+        <p class="text-sm leading-6 text-[#4A5040]">
+          這個活動將在 <strong>{{ minutesUntilStart }}</strong> 分鐘後開始<br />
+          建立後請記得到活動頁面<br />
+          <strong>手動確認成團</strong>，才會通知參與者
+        </p>
+      </div>
+    </template>
+    <template #footer>
+      <PixelButton variant="white" type="button" @click="showUrgentConfirm = false">取消</PixelButton>
+      <PixelButton type="button" @click="confirmUrgentSubmit">確定送出</PixelButton>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup>
@@ -356,6 +420,31 @@ const visibleMonth = ref(startOfMonth(selectedDate.value ?? new Date()))
 const weekdays = ['日', '一', '二', '三', '四', '五', '六']
 const timeOptions = createTimeOptions()
 
+function parseHourFromTimeStr(timeStr) {
+  const match = timeStr?.match(/^(上午|下午)\s+(\d+):(\d+)$/)
+  if (!match) return -1
+  let hour = Number(match[2])
+  if (match[1] === '下午' && hour !== 12) hour += 12
+  if (match[1] === '上午' && hour === 12) hour = 0
+  return hour
+}
+
+const startTimeOptions = computed(() => {
+  if (form.startDate !== formatDateValue(new Date())) return timeOptions
+  const currentHour = new Date().getHours()
+  return timeOptions.filter((t) => parseHourFromTimeStr(t) > currentHour)
+})
+
+const endTimeOptions = computed(() => {
+  if (form.endDate !== form.startDate || !form.startTime) return timeOptions
+  const startHour = parseHourFromTimeStr(form.startTime)
+  return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
+})
+
+const currentPickerTimeOptions = computed(() =>
+  activePicker.value === 'endTime' ? endTimeOptions.value : startTimeOptions.value,
+)
+
 const activeDateField = computed(() =>
   dateFields.includes(activePicker.value) ? activePicker.value : 'startDate',
 )
@@ -372,6 +461,9 @@ const monthTitle = computed(() => {
 })
 
 const dateCells = computed(() => {
+  const todayValue = formatDateValue(new Date())
+  const minDate = activeDateField.value === 'endDate' ? form.startDate : todayValue
+
   const firstDay = startOfMonth(visibleMonth.value)
   const startOffset = firstDay.getDay()
   const gridStart = new Date(firstDay)
@@ -380,14 +472,16 @@ const dateCells = computed(() => {
   return Array.from({ length: 42 }, (_, index) => {
     const date = new Date(gridStart)
     date.setDate(gridStart.getDate() + index)
+    const dateValue = formatDateValue(date)
 
     return {
-      key: formatDateValue(date),
+      key: dateValue,
       date,
       label: date.getDate(),
       isCurrentMonth: date.getMonth() === visibleMonth.value.getMonth(),
       isSelected: selectedDate.value ? isSameDate(date, selectedDate.value) : false,
       isToday: isSameDate(date, new Date()),
+      isDisabled: dateValue < minDate,
     }
   })
 })
@@ -460,13 +554,39 @@ watch(isSameDay, (val) => {
 
 watch(
   () => form.startTime,
-  (val) => { if (val) timeError.value = '' },
+  (val) => {
+    if (val) timeError.value = ''
+    if (val && form.endDate === form.startDate && form.endTime) {
+      if (parseHourFromTimeStr(form.endTime) <= parseHourFromTimeStr(val)) {
+        form.endTime = null
+        endTimeUserSet.value = false
+      }
+    }
+  },
 )
 
 watch(
   () => form.startDate,
   (val) => {
     if (form.endDate < val) form.endDate = val
+    const todayValue = formatDateValue(new Date())
+    if (val === todayValue && form.startTime) {
+      if (parseHourFromTimeStr(form.startTime) <= new Date().getHours()) {
+        form.startTime = null
+      }
+    }
+  },
+)
+
+watch(
+  () => form.endDate,
+  (val) => {
+    if (val === form.startDate && form.endTime && form.startTime) {
+      if (parseHourFromTimeStr(form.endTime) <= parseHourFromTimeStr(form.startTime)) {
+        form.endTime = null
+        endTimeUserSet.value = false
+      }
+    }
   },
 )
 
@@ -608,9 +728,13 @@ function moveMonth(direction) {
 
 function selectDate(date) {
   const pickedDate = new Date(date)
+  const dateValue = formatDateValue(pickedDate)
+  const todayValue = formatDateValue(new Date())
+  const minDate = activeDateField.value === 'endDate' ? form.startDate : todayValue
+  if (dateValue < minDate) return
 
   selectedDate.value = pickedDate
-  form[activeDateField.value] = formatDateValue(pickedDate)
+  form[activeDateField.value] = dateValue
   closePicker()
 }
 
@@ -710,8 +834,13 @@ function createTimeOptions() {
 }
 
 function dateButtonClass(cell) {
+  const base = 'h-8 max-sm:h-7 border-[1.5px] font-[cubic11] text-xs leading-none'
+  if (cell.isDisabled) {
+    return [base, 'border-[#D8E6C8] bg-white text-[#C8C8C0] cursor-not-allowed opacity-40']
+  }
   return [
-    'h-8 max-sm:h-7 border-[1.5px] font-[cubic11] text-xs leading-none transition-colors',
+    base,
+    'transition-colors',
     cell.isSelected
       ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]'
       : 'border-[#D8E6C8] bg-white text-[#4A5040] hover:border-[#7DB968] hover:bg-[#EDF8C9]',
@@ -729,6 +858,9 @@ function timeButtonClass(time, field) {
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick)
   document.addEventListener('keydown', handleEscape)
+  if (isSameDay.value) {
+    deadline.unit = 'hour'
+  }
 })
 
 onBeforeUnmount(() => {
