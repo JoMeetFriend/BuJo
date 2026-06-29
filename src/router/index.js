@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
-
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
@@ -10,7 +9,7 @@ const router = createRouter({
       name: 'calendar-page',
       component: () => import('../components/CalendarMain.vue'),
       // 有meta: { requiresAuth: true }的部分需要登入才看得到頁面
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       path: '/profile/edit',
@@ -54,6 +53,11 @@ const router = createRouter({
       path: '/availability-picker',
       name: 'availability-picker',
       component: () => import('../components/AvailabilityPickerPreview.vue'),
+    },
+    {
+      path: '/alerts',
+      name: 'alerts',
+      component: () => import('../components/AlertsPage.vue'),
     },
   ],
 })
