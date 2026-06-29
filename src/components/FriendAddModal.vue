@@ -76,13 +76,17 @@ const searchQuery = ref('')
 let debounceTimer = null
 
 const handleInput = () => {
-  const sanitizedValue = searchQuery.value.trim().toLowerCase()
+  clearTimeout(debounceTimer)
 
-  if (sanitizedValue.length === 5) {
-    searchUsers(sanitizedValue)
-  } else {
-    clearSearch()
-  }
+  debounceTimer = setTimeout(() => {
+    const sanitizedValue = searchQuery.value.trim().toLowerCase()
+
+    if (sanitizedValue.length === 5) {
+      searchUsers(sanitizedValue)
+    } else {
+      clearSearch()
+    }
+  }, 300)
 }
 
 const handleClose = () => {
