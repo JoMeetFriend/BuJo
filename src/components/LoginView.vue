@@ -171,7 +171,7 @@ const handleLogin = async () => {
 
   isLoading.value = true
   try {
-    const res = await fetch('http://localhost:3000/api/auth/login', {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -203,7 +203,7 @@ const handleLogin = async () => {
 
 const handleCredentialResponse = async (response) => {
   try {
-    const res = await fetch('http://localhost:3000/api/auth/google', {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -223,7 +223,7 @@ const handleGoogleLogin = () => {
 }
 
 const handleLineLogin = () => {
-  window.location.href = 'http://localhost:3000/api/auth/line'
+  window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/line`
 }
 
 onMounted(() => {
