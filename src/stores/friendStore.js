@@ -17,7 +17,7 @@ export const useFriendStore = defineStore('friend', () => {
     error.value = null
 
     try {
-      const response = await apiClient.get('/friends')
+      const response = await apiClient.get('/api/friends')
 
       const data = response.data
       friends.value = Array.isArray(data) ? data : []
