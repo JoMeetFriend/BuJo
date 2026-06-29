@@ -537,7 +537,7 @@ async function doSubmit() {
   timeError.value = ''
   const limitValue = !form.limit || isNaN(form.limit) ? null : form.limit
   const deadlineISO = isUrgent.value
-    ? null
+    ? (parseDateTimeValue(form.startDate, form.startTime)?.toISOString() ?? null)
     : computeDeadlineISO(form.startDate, form.startTime, deadline)
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities`, {
