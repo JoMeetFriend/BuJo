@@ -145,11 +145,12 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const showPassword = ref(false)
 const isLoading = ref(false)
@@ -226,6 +227,16 @@ const handleLineLogin = () => {
 }
 
 onMounted(() => {
+  const errorMap = {
+    line_cancelled: '已取消 LINE 登入',
+    line_login_failed: 'LINE 登入失敗，請再試一次',
+  }
+  const lineError = errorMap[route.query.error]
+  if (lineError) {
+    errorMsg.value = lineError
+    router.replace({ query: {} })
+  }
+
   if (window.google) return
   const script = document.createElement('script')
   script.src = 'https://accounts.google.com/gsi/client'
