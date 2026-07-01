@@ -103,12 +103,21 @@
           </div>
         </div>
 
+        <!-- 錯誤 / 成功訊息 -->
+        <p v-if="errorMsg" class="text-xs text-red-600 border border-red-300 bg-red-50 px-3 py-2">
+          {{ errorMsg }}
+        </p>
+        <p v-if="successMsg" class="text-xs text-primary-green border border-primary-green bg-primary-pale px-3 py-2">
+          {{ successMsg }}
+        </p>
+
         <!-- 註冊按鈕 -->
         <button
           type="submit"
-          class="w-full bg-primary-green hover:bg-primary-mid text-brand-text py-2 text-sm font-semibold flex items-center justify-center gap-2 border-2 border-brand-text shadow-pixel hover:shadow-pixel-pressed hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100"
+          :disabled="isLoading"
+          class="w-full bg-primary-green hover:bg-primary-mid text-brand-text py-2 text-sm font-semibold flex items-center justify-center gap-2 border-2 border-brand-text shadow-pixel hover:shadow-pixel-pressed hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-x-0 disabled:translate-y-0 disabled:shadow-pixel"
         >
-          註冊
+          {{ isLoading ? '註冊中...' : '註冊' }}
         </button>
       </form>
 
@@ -123,11 +132,19 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
+import { useAuthStore } from '@/stores/auth'
 import registerBg from '@/assets/register-bg.png'
+
+const router = useRouter()
+const authStore = useAuthStore()
 
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
+const isLoading = ref(false)
+const errorMsg = ref('')
+const successMsg = ref('')
 
 const form = reactive({
   name: '',
@@ -136,13 +153,71 @@ const form = reactive({
   confirmPassword: '',
 })
 
-const handleRegister = () => {
-  // TODO: 串接 API
-  console.log('註冊資料：', form)
+const handleRegister = async () => {
+  errorMsg.value = ''
+  successMsg.value = ''
+
+  if (!form.name || !form.email || !form.password || !form.confirmPassword) {
+    errorMsg.value = '請填寫所有欄位'
+    return
+  }
+  if (form.password !== form.confirmPassword) {
+    errorMsg.value = '兩次輸入的密碼不一致'
+    return
+  }
+  if (form.password.length < 8) {
+    errorMsg.value = '密碼至少需要 8 個字元'
+    return
+  }
+
+  isLoading.value = true
+  try {
+    const res = await fetch('http://localhost:3000/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ display_name: form.name, email: form.email, password: form.password }),
+    })
+
+    const data = await res.json()
+
+    if (res.status === 429) {
+      const retryAfter = res.headers.get('Retry-After')
+      const waitMin = retryAfter ? Math.ceil(Number(retryAfter) / 60) : 60
+      errorMsg.value = data.error || `註冊太頻繁，請 ${waitMin} 分鐘後再試`
+      return
+    }
+
+    if (res.status === 409) {
+      errorMsg.value = '此 Email 已被註冊，請直接登入或使用其他信箱'
+      return
+    }
+
+    if (!res.ok) {
+      errorMsg.value = data.error || '註冊失敗，請稍後再試'
+      return
+    }
+
+    authStore.setUser(data.user)
+    successMsg.value = '註冊成功！即將跳轉...'
+    setTimeout(() => router.push('/'), 1200)
+  } catch {
+    errorMsg.value = '網路錯誤，請確認連線後再試'
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 
 <style scoped>
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #DEF4CD inset;
+  -webkit-text-fill-color: #4A5040;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 .register-bg {
   position: absolute;
   inset: 0;

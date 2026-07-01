@@ -150,8 +150,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
-import ProfileAccountModal from './ProfileAccountModal.vue'
 import { useAuthStore } from '@/stores/auth'
+import ProfileAccountModal from './ProfileAccountModal.vue'
 
 defineProps({ isOpen: Boolean, filters: Object })
 const emit = defineEmits(['toggle-filter'])

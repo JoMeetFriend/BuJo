@@ -68,14 +68,17 @@
         </div>
 
         <!-- 錯誤訊息 -->
-        <p v-if="loginError" class="text-xs text-red-500 text-center">{{ loginError }}</p>
+        <p v-if="errorMsg" class="text-xs text-red-600 border border-red-300 bg-red-50 px-3 py-2">
+          {{ errorMsg }}
+        </p>
 
         <!-- 登入按鈕 -->
         <button
           type="submit"
-          class="w-full bg-primary-green hover:bg-primary-mid text-brand-text py-2 text-sm font-semibold flex items-center justify-center gap-2 border-2 border-brand-text shadow-pixel hover:shadow-pixel-pressed hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100"
+          :disabled="isLoading"
+          class="w-full bg-primary-green hover:bg-primary-mid text-brand-text py-2 text-sm font-semibold flex items-center justify-center gap-2 border-2 border-brand-text shadow-pixel hover:shadow-pixel-pressed hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-x-0 disabled:translate-y-0 disabled:shadow-pixel"
         >
-          登入
+          {{ isLoading ? '登入中...' : '登入' }}
         </button>
       </form>
 
@@ -142,24 +145,32 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
-import { googleOneTap } from 'vue3-google-login'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const showPassword = ref(false)
+const isLoading = ref(false)
+const errorMsg = ref('')
 
 const form = reactive({
   email: '',
   password: '',
 })
-const loginError = ref('')
 
 const handleLogin = async () => {
-  loginError.value = ''
+  errorMsg.value = ''
+
+  if (!form.email || !form.password) {
+    errorMsg.value = '請填寫電子郵件與密碼'
+    return
+  }
+
+  isLoading.value = true
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
       method: 'POST',
@@ -167,47 +178,88 @@ const handleLogin = async () => {
       credentials: 'include',
       body: JSON.stringify({ email: form.email, password: form.password }),
     })
+
     const data = await res.json()
-    if (!res.ok) {
-      loginError.value = data.message || '登入失敗，請稍後再試'
+
+    if (res.status === 429) {
+      const retryAfter = res.headers.get('Retry-After')
+      const waitMin = retryAfter ? Math.ceil(Number(retryAfter) / 60) : 15
+      errorMsg.value = data.error || `登入嘗試過多，請 ${waitMin} 分鐘後再試`
       return
     }
-    authStore.login(data.user)
+
+    if (!res.ok) {
+      errorMsg.value = data.error || '登入失敗，請確認帳號密碼'
+      return
+    }
+
+    authStore.setUser(data.user)
     router.push('/')
   } catch {
-    loginError.value = '無法連線到伺服器，請確認後再試'
+    errorMsg.value = '網路錯誤，請確認連線後再試'
+  } finally {
+    isLoading.value = false
   }
 }
 
-
-
-//!
-const handleGoogleLogin = async () => {
+const handleCredentialResponse = async (response) => {
   try {
-    const response = await googleOneTap()
-    const result = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ token: response.credential })
+      body: JSON.stringify({ credential: response.credential }),
     })
-    const data = await result.json()
-    authStore.login(data.user)
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Google 登入失敗')
+    authStore.setUser(data.user)
     router.push('/')
-  } catch (error) {
-    if (error?.type !== 'popup_closed') {
-      console.error('登入失敗', error)
-    }
+  } catch (err) {
+    errorMsg.value = err.message || 'Google 登入失敗，請稍後再試'
   }
 }
 
-const handleLineLogin = () => {
-  // TODO: 串接 LINE Login OAuth
-  window.location.href = 'http://localhost:3000/api/auth/line'
+const handleGoogleLogin = () => {
+  window.google?.accounts.id.prompt()
 }
+
+const handleLineLogin = () => {
+  window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/line`
+}
+
+onMounted(() => {
+  const errorMap = {
+    line_cancelled: '已取消 LINE 登入',
+    line_login_failed: 'LINE 登入失敗，請再試一次',
+  }
+  const lineError = errorMap[route.query.error]
+  if (lineError) {
+    errorMsg.value = lineError
+    router.replace({ query: {} })
+  }
+
+  if (window.google) return
+  const script = document.createElement('script')
+  script.src = 'https://accounts.google.com/gsi/client'
+  script.onload = () => {
+    window.google.accounts.id.initialize({
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      callback: handleCredentialResponse,
+    })
+  }
+  document.head.appendChild(script)
+})
 </script>
 
 <style scoped>
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #DEF4CD inset;
+  -webkit-text-fill-color: #4A5040;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 .bg-dot-pattern {
   background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='320'%20height='320'%3E%3Cfilter%20id='b'%3E%3CfeGaussianBlur%20stdDeviation='1.2'/%3E%3C/filter%3E%3Cg%20filter='url(%23b)'%3E%3Crect%20x='20'%20y='30'%20width='1'%20height='1'%20fill='%2387C06D'/%3E%3Crect%20x='120'%20y='60'%20width='2'%20height='2'%20fill='%23F9CE9A'/%3E%3Crect%20x='250'%20y='40'%20width='3'%20height='3'%20fill='%23E9EF6E'/%3E%3Crect%20x='60'%20y='150'%20width='4'%20height='4'%20fill='%239DBD86'/%3E%3Crect%20x='200'%20y='180'%20width='5'%20height='5'%20fill='%2387C06D'/%3E%3Crect%20x='280'%20y='250'%20width='6'%20height='6'%20fill='%23F9CE9A'/%3E%3Crect%20x='40'%20y='260'%20width='7'%20height='7'%20fill='%23E9EF6E'/%3E%3Crect%20x='160'%20y='290'%20width='8'%20height='8'%20fill='%239DBD86'/%3E%3C/g%3E%3C/svg%3E");
   background-repeat: repeat;

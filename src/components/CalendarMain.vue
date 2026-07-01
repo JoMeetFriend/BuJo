@@ -199,18 +199,6 @@ const profileBtnBouncing = ref(false)
 const router = useRouter()
 const authStore = useAuthStore()
 
-onMounted(async () => {
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-      credentials: 'include',
-    })
-    const data = await res.json()
-    if (data.user) authStore.login(data.user)
-  } catch (error) {
-    console.error('取得目前登入者失敗：', error)
-  }
-})
-
 const currentUser = computed(() => authStore.user)
 
 function openProfileModal() {

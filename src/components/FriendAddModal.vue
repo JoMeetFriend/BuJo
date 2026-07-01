@@ -12,7 +12,7 @@
           @input="handleInput"
           class="min-h-[44px] w-full rounded-none border-[1.5px] border-[#A8C893] bg-white px-4 font-[cubic11] text-sm leading-none text-[#4A5040] outline-none placeholder:text-[#858A7A] focus:border-[#7DB968] focus:shadow-[inset_0_0_0_1px_#7DB968]"
           type="search"
-          placeholder="輸入 BuJo ID"
+          placeholder="輸入 BuJo ID 後五碼"
           maxlength="5"
         />
       </label>

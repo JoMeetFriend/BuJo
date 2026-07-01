@@ -1,30 +1,39 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 
-const useAuthStore = defineStore('auth', () => {
-  const user = ref(JSON.parse(localStorage.getItem('user') || 'null'))
+const API = import.meta.env.VITE_API_URL
 
-  const isLoggedIn = computed(() => !!user.value)
+export const useAuthStore = defineStore('auth', () => {
+  const user = ref(null)
+  const initialized = ref(false)
 
-  function login(userData) {
-    user.value = userData
-    localStorage.setItem('user', JSON.stringify(userData))
+  async function fetchMe() {
+    try {
+      const res = await fetch(`${API}/api/auth/me`, { credentials: 'include' })
+      user.value = res.ok ? (await res.json()).user : null
+    } catch {
+      user.value = null
+    } finally {
+      initialized.value = true
+    }
   }
 
   async function logout() {
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      })
-    } catch {
-      // API 失敗仍繼續清除本地狀態
+      await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' })
+    } finally {
+      user.value = null
     }
-    user.value = null
-    localStorage.removeItem('user')
   }
 
-  return { user, isLoggedIn, login, logout }
-})
+  function setUser(userData) {
+    user.value = userData
+    initialized.value = true
+  }
 
-export { useAuthStore }
+  function clearUser() {
+    user.value = null
+  }
+
+  return { user, initialized, fetchMe, logout, setUser, clearUser }
+})
