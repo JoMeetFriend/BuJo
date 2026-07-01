@@ -74,7 +74,7 @@ const isModalOpen = ref(false)
 const brokenImages = ref(new Set())
 
 const handleImageError = (id) => {
-  brokenImages.value.add(id)
+  brokenImages.value = new Set([...brokenImages.value, id])
 }
 
 onMounted(() => {

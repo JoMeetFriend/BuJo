@@ -17,6 +17,7 @@ export function useUserSearch() {
   const searchUsers = async (keyword) => {
     const sanitizedKeyword = keyword?.trim() || ''
     if (sanitizedKeyword.length !== 5 || !/^[a-f0-9]{5}$/.test(sanitizedKeyword)) {
+      if (abortController) abortController.abort()
       searchResults.value = []
       return
     }
@@ -26,6 +27,7 @@ export function useUserSearch() {
     }
 
     abortController = new AbortController()
+    const thisController = abortController
 
     isSearching.value = true
     error.value = null
@@ -53,7 +55,9 @@ export function useUserSearch() {
       }
       searchResults.value = []
     } finally {
-      isSearching.value = false
+      if (thisController === abortController) {
+        isSearching.value = false
+      }
     }
   }
 

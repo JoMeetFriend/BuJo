@@ -19,7 +19,6 @@ export const useFriendStore = defineStore('friend', () => {
 
     try {
       const response = await apiClient.get('/api/friends')
-
       const data = response.data
       friends.value = Array.isArray(data) ? data : []
     } catch (err) {
@@ -33,7 +32,7 @@ export const useFriendStore = defineStore('friend', () => {
   const addFriend = async (targetId) => {
     if (!targetId) return { success: false, message: '無效的使用者' }
     try {
-      await apiClient.post(`/api/friends/request`, { target_id: targetId })
+      await apiClient.post('/api/friends/request', { target_id: targetId })
       return { success: true }
     } catch (err) {
       console.error('發送好友請求失敗:', err)

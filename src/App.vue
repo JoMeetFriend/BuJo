@@ -1,6 +1,6 @@
 <template>
   <div class="flex h-screen bg-[#FEF7E8] overflow-hidden">
-    <AppSidebar :isOpen="sidebarOpen" :filters="filters" @toggle-filter="toggleFilter" />
+    <AppSidebar v-if="showSidebar" :isOpen="sidebarOpen" :filters="filters" @toggle-filter="toggleFilter" />
 
     <main class="flex-1 overflow-auto flex flex-col pb-20">
       <RouterView v-slot="{ Component }">
@@ -16,12 +16,15 @@
 </template>
 
 <script setup>
-import { RouterView } from 'vue-router'
-import { ref } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
+import { ref, computed } from 'vue'
 import AppSidebar from './components/AppSidebar.vue'
 
+const route = useRoute()
 const sidebarOpen = ref(true)
 const filters = ref({ joined: true, formed: true, personal: true })
+
+const showSidebar = computed(() => !['/login', '/register'].includes(route.path))
 
 function toggleFilter(key) {
   filters.value[key] = !filters.value[key]
