@@ -2,7 +2,7 @@
 
 好友揪團活動規劃平台的前端專案。使用者可以註冊/登入、加好友、建立與報名活動，未來將延伸通知、投票、聊天室等功能。
 
-本 repo 為前端，需搭配後端 [BuJo-backend](https://github.com/JoMeetFriend/BuJo-backend)（Node.js + Express + Prisma + PostgreSQL）一起運作。
+本 repo 為前端，需搭配後端 [BuJoBackend](https://github.com/JoMeetFriend/BuJoBackend)（Node.js + Express + Prisma + PostgreSQL）一起運作。
 
 ## 技術棧
 
@@ -72,4 +72,4 @@ npm run format
 
 ## 相關 Repo
 
-- 後端：[BuJo-backend](https://github.com/JoMeetFriend/BuJo-backend)
+- 後端：[BuJoBackend](https://github.com/JoMeetFriend/BuJoBackend)

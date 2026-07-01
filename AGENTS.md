@@ -4,7 +4,7 @@
 
 ## 專案概述
 
-BuJo 前端，Vue 3 + Vite + Pinia + Vue Router + Tailwind。需搭配後端 [BuJo-backend](https://github.com/JoMeetFriend/BuJo-backend)（Node/Express/Prisma/PostgreSQL）運作，詳見 README.md。
+BuJo 前端，Vue 3 + Vite + Pinia + Vue Router + Tailwind。需搭配後端 [BuJoBackend](https://github.com/JoMeetFriend/BuJoBackend)（Node/Express/Prisma/PostgreSQL）運作，詳見 README.md。
 
 ## 目錄結構重點
 
