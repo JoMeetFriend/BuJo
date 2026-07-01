@@ -270,7 +270,7 @@
           <template v-if="!isUrgent">
             <div class="flex items-start gap-2 border-t border-dashed border-[#C8DEB8] pt-2">
               <span class="flex-1 text-xs leading-5 text-[#9AA890]">
-                <strong class="text-[#7A9070]">{{ deadlineDisplayText }}</strong>，人數不若足活動將自動取消
+                <strong class="text-[#7A9070]">{{ deadlineDisplayText }}</strong>，人數若不足活動將自動取消
               </span>
               <button
                 type="button"
