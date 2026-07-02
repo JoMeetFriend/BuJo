@@ -455,6 +455,133 @@
         </div>
 
         <div
+          v-else-if="dateMode === 'range' && timeMode === 'fixed'"
+          ref="schedulePickerRef"
+          class="col-span-full grid gap-3 border-[1.5px] border-[#A8C893] bg-white px-3 py-2 max-sm:py-1.5"
+          @click="closePicker"
+        >
+          <div class="grid gap-2">
+            <span :class="fieldLabelClass">選擇候選日期（可多選）</span>
+
+            <div class="mb-1 flex items-center justify-between gap-2">
+              <button
+                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border-[1.5px] border-[#4A5040] bg-white font-[cubic11] text-lg leading-none shadow-[2px_2px_0_#4A5040]"
+                type="button"
+                aria-label="上一個月"
+                @click="moveMonth(-1)"
+              >
+                ‹
+              </button>
+              <p class="m-0 text-center text-sm leading-none text-[#4A5040]">
+                {{ monthTitle }}
+              </p>
+              <button
+                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border-[1.5px] border-[#4A5040] bg-white font-[cubic11] text-lg leading-none shadow-[2px_2px_0_#4A5040]"
+                type="button"
+                aria-label="下一個月"
+                @click="moveMonth(1)"
+              >
+                ›
+              </button>
+            </div>
+
+            <div class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[#6E765E]">
+              <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
+            </div>
+
+            <div class="grid grid-cols-7 gap-1">
+              <button
+                v-for="cell in candidateDateCells"
+                :key="cell.key"
+                :class="dateButtonClass(cell)"
+                type="button"
+                :aria-label="cell.key"
+                :aria-pressed="cell.isSelected"
+                :data-date="cell.key"
+                @click="toggleCandidateDate(cell)"
+              >
+                {{ cell.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="grid gap-2 border-t border-dashed border-[#C8DEB8] pt-2">
+            <span :class="fieldLabelClass">統一時間（套用到所有已選日期）</span>
+            <div class="grid max-w-[280px] grid-cols-[1fr_12px_1fr] items-center gap-2">
+              <span class="relative block">
+                <button
+                  :class="[pickerButtonClass, 'w-full']"
+                  type="button"
+                  @click.stop="toggleSlotPicker('uniform:startTime')"
+                >
+                  <span :class="uniformTime.startTime ? '' : 'text-[#A7AB9A]'">{{
+                    uniformTime.startTime ?? '-- : --'
+                  }}</span>
+                </button>
+                <div
+                  v-if="openSlotPicker === 'uniform:startTime'"
+                  :class="[pickerPanelClass, 'left-0 w-full min-w-[160px]']"
+                  role="listbox"
+                  aria-label="統一開始時間選單"
+                  @click.stop
+                >
+                  <div class="max-h-[208px] overflow-y-auto pr-1">
+                    <button
+                      v-for="time in timeOptions"
+                      :key="time"
+                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
+                      :class="uniformTime.startTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
+                      type="button"
+                      role="option"
+                      :aria-selected="uniformTime.startTime === time"
+                      @click="selectSlotTime(uniformTime, 'startTime', time)"
+                    >
+                      {{ time }}
+                    </button>
+                  </div>
+                </div>
+              </span>
+
+              <span class="text-center text-sm text-[#4A5040]">–</span>
+
+              <span class="relative block">
+                <button
+                  :class="[pickerButtonClass, 'w-full']"
+                  type="button"
+                  @click.stop="toggleSlotPicker('uniform:endTime')"
+                >
+                  <span :class="uniformTime.endTime ? '' : 'text-[#A7AB9A]'">{{
+                    uniformTime.endTime ?? '-- : --'
+                  }}</span>
+                </button>
+                <div
+                  v-if="openSlotPicker === 'uniform:endTime'"
+                  :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
+                  role="listbox"
+                  aria-label="統一結束時間選單"
+                  @click.stop
+                >
+                  <div class="max-h-[208px] overflow-y-auto pr-1">
+                    <button
+                      v-for="time in uniformEndTimeOptions"
+                      :key="time"
+                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
+                      :class="uniformTime.endTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
+                      type="button"
+                      role="option"
+                      :aria-selected="uniformTime.endTime === time"
+                      @click="selectSlotTime(uniformTime, 'endTime', time)"
+                    >
+                      {{ time }}
+                    </button>
+                  </div>
+                </div>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div
           v-else
           class="col-span-full grid place-items-center gap-1 border-[1.5px] border-dashed border-[#C8DEB8] bg-[#F5F8F0] px-3 py-6 text-xs text-[#9AA890]"
         >
@@ -640,6 +767,41 @@ function selectSlotTime(slot, field, time) {
   openSlotPicker.value = null
 }
 
+// 情境三：候選日期（日期開放投票，時間固定）
+const candidateDates = ref([])
+const uniformTime = reactive({ startTime: null, endTime: null })
+
+const candidateDateCells = computed(() => {
+  const todayValue = formatDateValue(new Date())
+  const firstDay = startOfMonth(visibleMonth.value)
+  const startOffset = firstDay.getDay()
+  const gridStart = new Date(firstDay)
+  gridStart.setDate(firstDay.getDate() - startOffset)
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(gridStart)
+    date.setDate(gridStart.getDate() + index)
+    const dateValue = formatDateValue(date)
+
+    return {
+      key: dateValue,
+      date,
+      label: date.getDate(),
+      isCurrentMonth: date.getMonth() === visibleMonth.value.getMonth(),
+      isSelected: candidateDates.value.includes(dateValue),
+      isToday: isSameDate(date, new Date()),
+      isDisabled: dateValue < todayValue,
+    }
+  })
+})
+
+function toggleCandidateDate(cell) {
+  if (cell.isDisabled) return
+  candidateDates.value = candidateDates.value.includes(cell.key)
+    ? candidateDates.value.filter((date) => date !== cell.key)
+    : [...candidateDates.value, cell.key].sort()
+}
+
 // 流團設定
 const deadline = reactive({ value: 1, unit: 'day' })
 const showDeadlineEditor = ref(false)
@@ -689,6 +851,13 @@ const endTimeOptions = computed(() => {
 const currentPickerTimeOptions = computed(() =>
   activePicker.value === 'endTime' ? endTimeOptions.value : startTimeOptions.value,
 )
+
+// 情境三：統一結束時間須晚於統一開始時間
+const uniformEndTimeOptions = computed(() => {
+  if (!uniformTime.startTime) return timeOptions
+  const startHour = parseHourFromTimeStr(uniformTime.startTime)
+  return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
+})
 
 const activeDateField = computed(() =>
   dateFields.includes(activePicker.value) ? activePicker.value : 'startDate',
@@ -811,6 +980,15 @@ watch(
 )
 
 watch(
+  () => uniformTime.startTime,
+  (val) => {
+    if (val && uniformTime.endTime && parseHourFromTimeStr(uniformTime.endTime) <= parseHourFromTimeStr(val)) {
+      uniformTime.endTime = null
+    }
+  },
+)
+
+watch(
   () => form.startDate,
   (val) => {
     if (form.endDate < val) form.endDate = val
@@ -864,6 +1042,9 @@ function resetForm() {
   timeMode.value = 'fixed'
   voteSlotIdSeq = 1
   voteSlots.value = [{ id: voteSlotIdSeq++, startTime: null, endTime: null }]
+  candidateDates.value = []
+  uniformTime.startTime = null
+  uniformTime.endTime = null
   deadline.value = 1
   deadline.unit = 'day'
   showDeadlineEditor.value = false
