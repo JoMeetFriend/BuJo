@@ -137,6 +137,7 @@
         </div>
 
         <div
+          v-if="dateMode === 'fixed' && timeMode === 'fixed'"
           ref="schedulePickerRef"
           class="col-span-full grid gap-1.5 max-sm:gap-1 border-[1.5px] border-[#A8C893] bg-white px-3 py-2 max-sm:py-1.5"
           @click="closePicker"
@@ -283,6 +284,13 @@
               活動將在 <strong>{{ minutesUntilStart }}</strong> 分鐘後開始，建立後請手動確認成團
             </span>
           </div>
+        </div>
+
+        <div
+          v-else
+          class="col-span-full grid place-items-center gap-1 border-[1.5px] border-dashed border-[#C8DEB8] bg-[#F5F8F0] px-3 py-6 text-xs text-[#9AA890]"
+        >
+          此情境的時間選取器製作中，敬請期待
         </div>
 
         <label :class="[fieldClass, 'col-span-full']" for="event-note">
