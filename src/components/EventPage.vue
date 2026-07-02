@@ -77,34 +77,63 @@
         <div :class="[fieldClass, 'col-span-full']">
           <span :class="fieldLabelClass">日期確定了嗎？</span>
           <div class="grid grid-cols-2 gap-2 max-sm:gap-1.5">
-            <div
-              class="flex min-h-[44px] max-sm:min-h-[38px] items-center justify-center border-[1.5px] border-[#4A5040] bg-[#87C06D] px-4 py-2 font-[cubic11] text-sm leading-[1.2] text-[#F5F5EE]"
+            <button
+              type="button"
+              :class="scenarioButtonClass(dateMode === 'fixed')"
+              @click="dateMode = 'fixed'"
             >
               已確定
-            </div>
-            <div
-              class="flex min-h-[44px] max-sm:min-h-[38px] cursor-not-allowed items-center justify-center border-[1.5px] border-[#A8C893] bg-white px-4 py-2 font-[cubic11] text-sm leading-[1.2] text-[#4A5040] opacity-35"
+            </button>
+            <button
+              type="button"
+              :class="scenarioButtonClass(dateMode === 'range')"
+              @click="dateMode = 'range'"
             >
               大概範圍
-            </div>
+            </button>
           </div>
+          <p class="text-xs leading-5 text-[#9AA890]">
+            {{
+              dateMode === 'fixed'
+                ? '日期已經定了，不用開放投票。'
+                : '會列出這段期間內的候選日期，讓成員投票選出最終日期。'
+            }}
+          </p>
         </div>
 
         <!-- Q2: 時間確定了嗎？ -->
         <div :class="[fieldClass, 'col-span-full']">
           <span :class="fieldLabelClass">時間確定了嗎？</span>
           <div class="grid grid-cols-2 gap-2 max-sm:gap-1.5">
-            <div
-              class="flex min-h-[44px] max-sm:min-h-[38px] items-center justify-center border-[1.5px] border-[#4A5040] bg-[#87C06D] px-4 py-2 font-[cubic11] text-sm leading-[1.2] text-[#F5F5EE]"
+            <button
+              type="button"
+              :class="scenarioButtonClass(timeMode === 'fixed')"
+              @click="timeMode = 'fixed'"
             >
               已確定
-            </div>
-            <div
-              class="flex min-h-[44px] max-sm:min-h-[38px] cursor-not-allowed items-center justify-center border-[1.5px] border-[#A8C893] bg-white px-4 py-2 font-[cubic11] text-sm leading-[1.2] text-[#4A5040] opacity-35"
+            </button>
+            <button
+              type="button"
+              :class="scenarioButtonClass(timeMode === 'vote')"
+              @click="timeMode = 'vote'"
             >
               讓大家選
-            </div>
+            </button>
           </div>
+          <p class="text-xs leading-5 text-[#9AA890]">
+            {{
+              timeMode === 'fixed'
+                ? '時間點固定，成員只需確認是否參加。'
+                : '會列出候選時段，讓成員投票選出最終時間。'
+            }}
+          </p>
+        </div>
+
+        <!-- 情境說明 -->
+        <div
+          class="col-span-full border-[1.5px] border-[#D8E6C8] bg-[#F5F8F0] px-3 py-2 text-xs leading-5 text-[#4A5040]"
+        >
+          {{ scenarioDescription }}
         </div>
 
         <div
@@ -395,6 +424,23 @@ const form = reactive({
   note: '',
 })
 
+// 日期／時間確定情境
+const dateMode = ref('fixed') // 'fixed' | 'range'
+const timeMode = ref('fixed') // 'fixed' | 'vote'
+
+const scenarioDescription = computed(() => {
+  if (dateMode.value === 'fixed' && timeMode.value === 'fixed') {
+    return '這是一個已確定日期與時間的活動——不需要投票，成員只要回覆「參加/不參加」。'
+  }
+  if (dateMode.value === 'fixed' && timeMode.value === 'vote') {
+    return '日期已經固定，但時間開放投票——會針對這一天，列出幾個候選時段讓成員選。'
+  }
+  if (dateMode.value === 'range' && timeMode.value === 'fixed') {
+    return '日期開放投票，但每個候選日的時間點都固定不變——成員只需選出哪一天適合。'
+  }
+  return '日期與時間都開放投票——成員需先選日期，再針對該日期選時段。'
+})
+
 // 流團設定
 const deadline = reactive({ value: 1, unit: 'day' })
 const showDeadlineEditor = ref(false)
@@ -614,6 +660,8 @@ function resetForm() {
   form.endDate = todayStr
   form.endTime = null
   form.note = ''
+  dateMode.value = 'fixed'
+  timeMode.value = 'fixed'
   deadline.value = 1
   deadline.unit = 'day'
   showDeadlineEditor.value = false
@@ -853,6 +901,15 @@ function timeButtonClass(time, field) {
   return {
     'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]': form[field] === time,
   }
+}
+
+function scenarioButtonClass(active) {
+  return [
+    'flex min-h-[44px] max-sm:min-h-[38px] items-center justify-center border-[1.5px] px-4 py-2 font-[cubic11] text-sm leading-[1.2] transition-colors',
+    active
+      ? 'border-[#4A5040] bg-[#87C06D] text-[#F5F5EE]'
+      : 'border-[#A8C893] bg-white text-[#4A5040] hover:border-[#7DB968] hover:bg-[#EDF8C9]',
+  ]
 }
 
 onMounted(() => {
