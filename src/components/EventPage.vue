@@ -506,78 +506,93 @@
           </div>
 
           <div class="grid gap-2 border-t border-dashed border-[#C8DEB8] pt-2">
-            <span :class="fieldLabelClass">統一時間（套用到所有已選日期）</span>
-            <div class="grid max-w-[280px] grid-cols-[1fr_12px_1fr] items-center gap-2">
-              <span class="relative block">
-                <button
-                  :class="[pickerButtonClass, 'w-full']"
-                  type="button"
-                  @click.stop="toggleSlotPicker('uniform:startTime')"
-                >
-                  <span :class="uniformTime.startTime ? '' : 'text-[#A7AB9A]'">{{
-                    uniformTime.startTime ?? '-- : --'
-                  }}</span>
-                </button>
-                <div
-                  v-if="openSlotPicker === 'uniform:startTime'"
-                  :class="[pickerPanelClass, 'left-0 w-full min-w-[160px]']"
-                  role="listbox"
-                  aria-label="統一開始時間選單"
-                  @click.stop
-                >
-                  <div class="max-h-[208px] overflow-y-auto pr-1">
-                    <button
-                      v-for="time in timeOptions"
-                      :key="time"
-                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
-                      :class="uniformTime.startTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
-                      type="button"
-                      role="option"
-                      :aria-selected="uniformTime.startTime === time"
-                      @click="selectSlotTime(uniformTime, 'startTime', time)"
-                    >
-                      {{ time }}
-                    </button>
-                  </div>
-                </div>
-              </span>
-
-              <span class="text-center text-sm text-[#4A5040]">–</span>
-
-              <span class="relative block">
-                <button
-                  :class="[pickerButtonClass, 'w-full']"
-                  type="button"
-                  @click.stop="toggleSlotPicker('uniform:endTime')"
-                >
-                  <span :class="uniformTime.endTime ? '' : 'text-[#A7AB9A]'">{{
-                    uniformTime.endTime ?? '-- : --'
-                  }}</span>
-                </button>
-                <div
-                  v-if="openSlotPicker === 'uniform:endTime'"
-                  :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
-                  role="listbox"
-                  aria-label="統一結束時間選單"
-                  @click.stop
-                >
-                  <div class="max-h-[208px] overflow-y-auto pr-1">
-                    <button
-                      v-for="time in uniformEndTimeOptions"
-                      :key="time"
-                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
-                      :class="uniformTime.endTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
-                      type="button"
-                      role="option"
-                      :aria-selected="uniformTime.endTime === time"
-                      @click="selectSlotTime(uniformTime, 'endTime', time)"
-                    >
-                      {{ time }}
-                    </button>
-                  </div>
-                </div>
-              </span>
+            <div class="grid grid-cols-[52px_1fr] max-sm:grid-cols-[40px_1fr] items-center gap-2">
+              <span :class="[fieldLabelClass, 'whitespace-nowrap']">整日：</span>
+              <label class="inline-flex w-fit items-center">
+                <input
+                  v-model="uniformTime.allDay"
+                  class="h-7 w-7 max-sm:h-6 max-sm:w-6 cursor-pointer appearance-none rounded-none border-[1.5px] border-[#A8C893] bg-white checked:border-[#4A5040] checked:bg-[#7FBE69] focus:outline-none focus:shadow-[inset_0_0_0_1px_#7DB968]"
+                  type="checkbox"
+                  aria-label="整日"
+                  @change="closePicker"
+                />
+              </label>
             </div>
+
+            <template v-if="!uniformTime.allDay">
+              <span :class="fieldLabelClass">統一時間（套用到所有已選日期）</span>
+              <div class="grid max-w-[280px] grid-cols-[1fr_12px_1fr] items-center gap-2">
+                <span class="relative block">
+                  <button
+                    :class="[pickerButtonClass, 'w-full']"
+                    type="button"
+                    @click.stop="toggleSlotPicker('uniform:startTime')"
+                  >
+                    <span :class="uniformTime.startTime ? '' : 'text-[#A7AB9A]'">{{
+                      uniformTime.startTime ?? '-- : --'
+                    }}</span>
+                  </button>
+                  <div
+                    v-if="openSlotPicker === 'uniform:startTime'"
+                    :class="[pickerPanelClass, 'left-0 w-full min-w-[160px]']"
+                    role="listbox"
+                    aria-label="統一開始時間選單"
+                    @click.stop
+                  >
+                    <div class="max-h-[208px] overflow-y-auto pr-1">
+                      <button
+                        v-for="time in timeOptions"
+                        :key="time"
+                        class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
+                        :class="uniformTime.startTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
+                        type="button"
+                        role="option"
+                        :aria-selected="uniformTime.startTime === time"
+                        @click="selectSlotTime(uniformTime, 'startTime', time)"
+                      >
+                        {{ time }}
+                      </button>
+                    </div>
+                  </div>
+                </span>
+
+                <span class="text-center text-sm text-[#4A5040]">–</span>
+
+                <span class="relative block">
+                  <button
+                    :class="[pickerButtonClass, 'w-full']"
+                    type="button"
+                    @click.stop="toggleSlotPicker('uniform:endTime')"
+                  >
+                    <span :class="uniformTime.endTime ? '' : 'text-[#A7AB9A]'">{{
+                      uniformTime.endTime ?? '-- : --'
+                    }}</span>
+                  </button>
+                  <div
+                    v-if="openSlotPicker === 'uniform:endTime'"
+                    :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
+                    role="listbox"
+                    aria-label="統一結束時間選單"
+                    @click.stop
+                  >
+                    <div class="max-h-[208px] overflow-y-auto pr-1">
+                      <button
+                        v-for="time in uniformEndTimeOptions"
+                        :key="time"
+                        class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
+                        :class="uniformTime.endTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
+                        type="button"
+                        role="option"
+                        :aria-selected="uniformTime.endTime === time"
+                        @click="selectSlotTime(uniformTime, 'endTime', time)"
+                      >
+                        {{ time }}
+                      </button>
+                    </div>
+                  </div>
+                </span>
+              </div>
+            </template>
           </div>
         </div>
 
@@ -932,7 +947,7 @@ function selectSlotTime(slot, field, time) {
 
 // 情境三：候選日期（日期開放投票，時間固定）
 const candidateDates = ref([])
-const uniformTime = reactive({ startTime: null, endTime: null })
+const uniformTime = reactive({ startTime: null, endTime: null, allDay: false })
 
 const candidateDateCells = computed(() => {
   const todayValue = formatDateValue(new Date())
@@ -1314,6 +1329,7 @@ function resetForm() {
   candidateDates.value = []
   uniformTime.startTime = null
   uniformTime.endTime = null
+  uniformTime.allDay = false
   candidateSlots.value = []
   editingSlotDate.value = null
   deadline.value = 1
