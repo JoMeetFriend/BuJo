@@ -583,9 +583,172 @@
 
         <div
           v-else
-          class="col-span-full grid place-items-center gap-1 border-[1.5px] border-dashed border-[#C8DEB8] bg-[#F5F8F0] px-3 py-6 text-xs text-[#9AA890]"
+          ref="schedulePickerRef"
+          class="col-span-full grid gap-3 border-[1.5px] border-[#A8C893] bg-white px-3 py-2 max-sm:py-1.5"
+          @click="closePicker"
         >
-          此情境的時間選取器製作中，敬請期待
+          <div class="grid gap-2">
+            <span :class="fieldLabelClass">選擇候選日期，再逐日設定時段</span>
+
+            <div class="mb-1 flex items-center justify-between gap-2">
+              <button
+                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border-[1.5px] border-[#4A5040] bg-white font-[cubic11] text-lg leading-none shadow-[2px_2px_0_#4A5040]"
+                type="button"
+                aria-label="上一個月"
+                @click="moveMonth(-1)"
+              >
+                ‹
+              </button>
+              <p class="m-0 text-center text-sm leading-none text-[#4A5040]">
+                {{ monthTitle }}
+              </p>
+              <button
+                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border-[1.5px] border-[#4A5040] bg-white font-[cubic11] text-lg leading-none shadow-[2px_2px_0_#4A5040]"
+                type="button"
+                aria-label="下一個月"
+                @click="moveMonth(1)"
+              >
+                ›
+              </button>
+            </div>
+
+            <div class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[#6E765E]">
+              <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
+            </div>
+
+            <div class="grid grid-cols-7 gap-1">
+              <button
+                v-for="cell in scenario4DateCells"
+                :key="cell.key"
+                :class="scenario4DateButtonClass(cell)"
+                type="button"
+                :disabled="cell.isDisabled"
+                :aria-label="cell.key"
+                :aria-pressed="cell.isCandidate"
+                :data-date="cell.key"
+                @click="toggleScenario4Date(cell)"
+              >
+                {{ cell.label }}
+                <span
+                  v-if="cell.isConfigured"
+                  class="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[#4A5040]"
+                />
+              </button>
+            </div>
+          </div>
+
+          <!-- 正在編輯中的候選日時段 -->
+          <div
+            v-if="editingSlot"
+            class="grid gap-2 border-t border-dashed border-[#C8DEB8] pt-2"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <span :class="fieldLabelClass">{{ shortDate(editingSlot.date) }} 的候選時段</span>
+              <button
+                type="button"
+                class="text-xs text-[#B06060] hover:text-[#902020]"
+                @click.stop="removeCandidateSlot(editingSlot.date)"
+              >
+                移除此候選日期
+              </button>
+            </div>
+
+            <div class="grid max-w-[280px] grid-cols-[1fr_12px_1fr] items-center gap-2">
+              <span class="relative block">
+                <button
+                  :class="[pickerButtonClass, 'w-full']"
+                  type="button"
+                  @click.stop="toggleSlotPicker('s4:startTime')"
+                >
+                  <span :class="editingSlot.startTime ? '' : 'text-[#A7AB9A]'">{{
+                    editingSlot.startTime ?? '-- : --'
+                  }}</span>
+                </button>
+                <div
+                  v-if="openSlotPicker === 's4:startTime'"
+                  :class="[pickerPanelClass, 'left-0 w-full min-w-[160px]']"
+                  role="listbox"
+                  aria-label="候選開始時間選單"
+                  @click.stop
+                >
+                  <div class="max-h-[208px] overflow-y-auto pr-1">
+                    <button
+                      v-for="time in timeOptions"
+                      :key="time"
+                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
+                      :class="editingSlot.startTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
+                      type="button"
+                      role="option"
+                      :aria-selected="editingSlot.startTime === time"
+                      @click="selectSlotTime(editingSlot, 'startTime', time)"
+                    >
+                      {{ time }}
+                    </button>
+                  </div>
+                </div>
+              </span>
+
+              <span class="text-center text-sm text-[#4A5040]">–</span>
+
+              <span class="relative block">
+                <button
+                  :class="[pickerButtonClass, 'w-full']"
+                  type="button"
+                  @click.stop="toggleSlotPicker('s4:endTime')"
+                >
+                  <span :class="editingSlot.endTime ? '' : 'text-[#A7AB9A]'">{{
+                    editingSlot.endTime ?? '-- : --'
+                  }}</span>
+                </button>
+                <div
+                  v-if="openSlotPicker === 's4:endTime'"
+                  :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
+                  role="listbox"
+                  aria-label="候選結束時間選單"
+                  @click.stop
+                >
+                  <div class="max-h-[208px] overflow-y-auto pr-1">
+                    <button
+                      v-for="time in scenario4EndTimeOptions"
+                      :key="time"
+                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
+                      :class="editingSlot.endTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
+                      type="button"
+                      role="option"
+                      :aria-selected="editingSlot.endTime === time"
+                      @click="selectSlotTime(editingSlot, 'endTime', time)"
+                    >
+                      {{ time }}
+                    </button>
+                  </div>
+                </div>
+              </span>
+            </div>
+
+            <button
+              type="button"
+              class="w-fit border-[1.5px] border-dashed border-[#87C06D] bg-white px-3 py-1.5 font-[cubic11] text-sm text-[#5C8A4A] transition-colors enabled:hover:bg-[#F0F8E8] disabled:cursor-not-allowed disabled:opacity-40"
+              :disabled="!editingSlot.startTime || !editingSlot.endTime"
+              @click.stop="applyTimeToAllCandidates"
+            >
+              套用到所有已選日期
+            </button>
+          </div>
+
+          <!-- 已選候選組合 -->
+          <div class="grid gap-2 border-t border-dashed border-[#C8DEB8] pt-2">
+            <span :class="fieldLabelClass">已選候選組合</span>
+            <p v-if="configuredSlots.length === 0" class="text-xs text-[#A7AB9A]">尚無</p>
+            <div v-else class="flex flex-wrap gap-2">
+              <span
+                v-for="slot in configuredSlots"
+                :key="slot.date"
+                class="border-[1.5px] border-[#A8C893] bg-[#F0F8E8] px-2 py-1 font-[cubic11] text-xs text-[#4A5040]"
+              >
+                {{ shortDate(slot.date) }} {{ slot.startTime }}–{{ slot.endTime }}
+              </span>
+            </div>
+          </div>
         </div>
 
         <label :class="[fieldClass, 'col-span-full']" for="event-note">
@@ -801,6 +964,112 @@ function toggleCandidateDate(cell) {
     ? candidateDates.value.filter((date) => date !== cell.key)
     : [...candidateDates.value, cell.key].sort()
 }
+
+// 情境四：候選日期，且各自可設定不同時段
+const candidateSlots = ref([]) // [{ date, startTime, endTime }]
+const editingSlotDate = ref(null)
+
+const editingSlot = computed(
+  () => candidateSlots.value.find((slot) => slot.date === editingSlotDate.value) ?? null,
+)
+
+const configuredSlots = computed(() =>
+  candidateSlots.value.filter((slot) => slot.startTime && slot.endTime),
+)
+
+const scenario4EndTimeOptions = computed(() => {
+  if (!editingSlot.value?.startTime) return timeOptions
+  const startHour = parseHourFromTimeStr(editingSlot.value.startTime)
+  return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
+})
+
+const scenario4DateCells = computed(() => {
+  const todayValue = formatDateValue(new Date())
+  const firstDay = startOfMonth(visibleMonth.value)
+  const startOffset = firstDay.getDay()
+  const gridStart = new Date(firstDay)
+  gridStart.setDate(firstDay.getDate() - startOffset)
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(gridStart)
+    date.setDate(gridStart.getDate() + index)
+    const dateValue = formatDateValue(date)
+    const slot = candidateSlots.value.find((s) => s.date === dateValue)
+
+    return {
+      key: dateValue,
+      date,
+      label: date.getDate(),
+      isCurrentMonth: date.getMonth() === visibleMonth.value.getMonth(),
+      isCandidate: !!slot,
+      isEditing: editingSlotDate.value === dateValue,
+      isConfigured: !!(slot && slot.startTime && slot.endTime),
+      isToday: isSameDate(date, new Date()),
+      isDisabled: dateValue < todayValue,
+    }
+  })
+})
+
+function scenario4DateButtonClass(cell) {
+  const base =
+    'relative h-8 max-sm:h-7 border-[1.5px] font-[cubic11] text-xs leading-none transition-colors'
+  if (cell.isDisabled) {
+    return [base, 'border-[#D8E6C8] bg-white text-[#C8C8C0] cursor-not-allowed opacity-40']
+  }
+  if (cell.isEditing) {
+    return [base, 'border-[#4A5040] bg-[#5C9A4A] text-[#F5F5EE]']
+  }
+  if (cell.isCandidate) {
+    return [base, 'border-[#A8C893] bg-[#DCEFD0] text-[#4A5040] hover:border-[#7DB968]']
+  }
+  return [
+    base,
+    'border-[#D8E6C8] bg-white text-[#4A5040] hover:border-[#7DB968] hover:bg-[#EDF8C9]',
+    !cell.isCurrentMonth && 'text-[#A7AB9A]',
+    cell.isToday && 'border-[#7DB968] bg-[#F3F9D8]',
+  ]
+}
+
+function toggleScenario4Date(cell) {
+  if (cell.isDisabled) return
+  if (!cell.isCandidate) {
+    candidateSlots.value = [
+      ...candidateSlots.value,
+      { date: cell.key, startTime: null, endTime: null },
+    ].sort((a, b) => a.date.localeCompare(b.date))
+    return
+  }
+  editingSlotDate.value = editingSlotDate.value === cell.key ? null : cell.key
+}
+
+function removeCandidateSlot(date) {
+  candidateSlots.value = candidateSlots.value.filter((slot) => slot.date !== date)
+  if (editingSlotDate.value === date) editingSlotDate.value = null
+}
+
+function applyTimeToAllCandidates() {
+  const source = editingSlot.value
+  if (!source || !source.startTime || !source.endTime) return
+  candidateSlots.value = candidateSlots.value.map((slot) => ({
+    ...slot,
+    startTime: source.startTime,
+    endTime: source.endTime,
+  }))
+}
+
+function shortDate(dateStr) {
+  const [, month, day] = dateStr.split('/')
+  return `${Number(month)}/${Number(day)}`
+}
+
+watch(
+  () => editingSlot.value?.startTime,
+  (val) => {
+    if (val && editingSlot.value?.endTime && parseHourFromTimeStr(editingSlot.value.endTime) <= parseHourFromTimeStr(val)) {
+      editingSlot.value.endTime = null
+    }
+  },
+)
 
 // 流團設定
 const deadline = reactive({ value: 1, unit: 'day' })
@@ -1045,6 +1314,8 @@ function resetForm() {
   candidateDates.value = []
   uniformTime.startTime = null
   uniformTime.endTime = null
+  candidateSlots.value = []
+  editingSlotDate.value = null
   deadline.value = 1
   deadline.unit = 'day'
   showDeadlineEditor.value = false
