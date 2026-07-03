@@ -1192,7 +1192,7 @@ const dateCells = computed(() => {
 })
 
 // 流團時間／緊急判斷的錨點日期時間：情境二用「已確定的日期」+「最早的候選開始時間」，
-// 其他情境沿用原本的 form.startDate/startTime（避免動到未串接的情境三/四）
+// 情境三用「最早的候選日期」+「統一開始時間」，其他情境（情境四）沿用原本的 form.startDate/startTime
 const scheduleAnchor = computed(() => {
   if (dateMode.value === 'fixed' && timeMode.value === 'vote') {
     const earliest = voteSlots.value
@@ -1200,6 +1200,9 @@ const scheduleAnchor = computed(() => {
       .filter(Boolean)
       .sort((a, b) => parseHourFromTimeStr(a) - parseHourFromTimeStr(b))[0] ?? null
     return { date: form.singleDate, time: earliest }
+  }
+  if (dateMode.value === 'range' && timeMode.value === 'fixed') {
+    return { date: candidateDates.value[0] ?? null, time: uniformTime.startTime }
   }
   return { date: form.startDate, time: form.startTime }
 })
@@ -1388,10 +1391,20 @@ async function confirmUrgentSubmit() {
 async function doSubmit() {
   submitError.value = ''
   const isScenario2 = dateMode.value === 'fixed' && timeMode.value === 'vote'
+  const isScenario3 = dateMode.value === 'range' && timeMode.value === 'fixed'
 
   if (isScenario2) {
     if (voteSlots.value.length === 0 || voteSlots.value.some((s) => !s.startTime || !s.endTime)) {
       submitError.value = '請完整填寫每個候選時段的開始／結束時間'
+      return
+    }
+  } else if (isScenario3) {
+    if (candidateDates.value.length === 0) {
+      submitError.value = '請至少選擇一個候選日期'
+      return
+    }
+    if (!uniformTime.startTime || !uniformTime.endTime) {
+      submitError.value = '請設定統一時間（目前不支援整日）'
       return
     }
   } else if (!form.allDay && !form.startTime) {
@@ -1415,22 +1428,33 @@ async function doSubmit() {
     deadline: deadlineISO,
   }
 
-  const payload = isScenario2
-    ? {
-        ...commonPayload,
-        singleDate: form.singleDate,
-        slots: voteSlots.value.map((s) => ({ startTime: s.startTime, endTime: s.endTime })),
-        // 建立者預設對所有自己新增的候選時段都算「方便」
-        creatorSlotIndexes: voteSlots.value.map((_, i) => i),
-      }
-    : {
-        ...commonPayload,
-        startDate: form.startDate,
-        startTime: form.startTime,
-        endDate: form.endDate,
-        endTime: form.endTime,
-        allDay: form.allDay,
-      }
+  let payload
+  if (isScenario2) {
+    payload = {
+      ...commonPayload,
+      singleDate: form.singleDate,
+      slots: voteSlots.value.map((s) => ({ startTime: s.startTime, endTime: s.endTime })),
+      // 建立者預設對所有自己新增的候選時段都算「方便」
+      creatorSlotIndexes: voteSlots.value.map((_, i) => i),
+    }
+  } else if (isScenario3) {
+    payload = {
+      ...commonPayload,
+      candidateDates: candidateDates.value,
+      uniformTime: { startTime: uniformTime.startTime, endTime: uniformTime.endTime },
+      // 建立者預設對所有自己選的候選日期都算「方便」
+      creatorSlotIndexes: candidateDates.value.map((_, i) => i),
+    }
+  } else {
+    payload = {
+      ...commonPayload,
+      startDate: form.startDate,
+      startTime: form.startTime,
+      endDate: form.endDate,
+      endTime: form.endTime,
+      allDay: form.allDay,
+    }
+  }
 
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities`, {
