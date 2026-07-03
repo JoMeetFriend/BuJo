@@ -13,9 +13,22 @@
           />
           <span v-else class="profile-modal-face" aria-hidden="true"></span>
         </div>
-        <div class="min-w-0">
+        <div class="min-w-0 flex-1">
           <p class="text-sm font-semibold leading-tight md:text-base">{{ displayName }}</p>
-          <p v-if="accountLabel" class="mt-1 text-sm text-[#87C06D]">{{ accountLabel }}</p>
+          <div v-if="shareCode" class="mt-1 flex min-w-0 items-center gap-2">
+            <p class="min-w-0 text-sm text-[#87C06D]">Bujo ID: {{ shareCode }}</p>
+            <button
+              type="button"
+              class="grid h-7 w-7 shrink-0 place-items-center border border-[#9DBD86] bg-white text-[#4A5040] transition hover:bg-[#FAF8F4]"
+              aria-label="複製 BuJo ID"
+              @click="copyShareCode"
+            >
+              <ClipboardDocumentIcon class="h-4 w-4" aria-hidden="true" />
+            </button>
+            <p v-if="copyStatusMessage" class="shrink-0 text-xs text-[#87C06D]" aria-live="polite">
+              {{ copyStatusMessage }}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -47,7 +60,8 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
 import BaseModal from './ui/BaseModal.vue'
 
 const props = defineProps({
@@ -60,7 +74,30 @@ const props = defineProps({
 const emit = defineEmits(['close', 'logout'])
 
 const displayName = computed(() => props.user?.display_name || '未登入')
-const accountLabel = computed(() => props.user?.email || '')
+const shareCode = computed(() => {
+  const idSource = props.user?.uid ?? props.user?.id
+  return idSource ? String(idSource).slice(-5) : ''
+})
+const copyStatus = ref('idle')
+const copyStatusMessage = computed(() => {
+  if (copyStatus.value === 'success') return '已複製'
+  if (copyStatus.value === 'error') return '複製失敗'
+  return ''
+})
+
+async function copyShareCode() {
+  if (!shareCode.value) return
+
+  try {
+    if (!navigator.clipboard?.writeText) {
+      throw new Error('Clipboard API unavailable')
+    }
+    await navigator.clipboard.writeText(shareCode.value)
+    copyStatus.value = 'success'
+  } catch {
+    copyStatus.value = 'error'
+  }
+}
 </script>
 
 <style scoped>
