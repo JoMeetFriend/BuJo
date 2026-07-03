@@ -46,21 +46,22 @@ const props = defineProps({
 
 const attrs = useAttrs()
 const attrsWithoutClick = computed(() => {
-  const { onClick, ...rest } = attrs
+  const rest = { ...attrs }
+  delete rest.onClick
   return rest
 })
 
 const isBouncing = ref(false)
 
-function handleClick() {
+function handleClick(event) {
   isBouncing.value = true
+  if (typeof attrs.onClick === 'function') {
+    attrs.onClick(event)
+  }
 }
 
 function onAnimationEnd() {
   isBouncing.value = false
-  if (typeof attrs.onClick === 'function') {
-    attrs.onClick()
-  }
 }
 </script>
 

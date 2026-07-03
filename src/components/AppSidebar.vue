@@ -117,7 +117,7 @@
           { name: '月曆', to: '/' },
           { name: '活動', to: 'activity' },
           { name: '好友', to: '/friends-page' },
-          { name: '通知', to: '/alerts' }
+          { name: '通知', to: '/alerts' },
         ]"
         :key="item.name"
         :to="item.to"
