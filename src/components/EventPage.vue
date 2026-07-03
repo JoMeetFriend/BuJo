@@ -360,7 +360,7 @@
             <div
               v-for="(slot, index) in voteSlots"
               :key="slot.id"
-              class="grid grid-cols-[52px_1fr_12px_1fr_28px] max-sm:grid-cols-[40px_1fr_10px_1fr_24px] items-center gap-2"
+              class="grid grid-cols-[52px_1fr_12px_1fr_28px_28px] max-sm:grid-cols-[40px_1fr_10px_1fr_24px_24px] items-center gap-2"
             >
               <span :class="fieldLabelClass">時段{{ index + 1 }}</span>
 
@@ -434,6 +434,16 @@
                 </div>
               </span>
 
+              <label class="grid h-8 w-8 place-items-center" :title="'我方便時段' + (index + 1)">
+                <input
+                  type="checkbox"
+                  class="h-6 w-6 max-sm:h-5 max-sm:w-5 cursor-pointer appearance-none rounded-none border-[1.5px] border-[#A8C893] bg-white checked:border-[#4A5040] checked:bg-[#7FBE69] focus:outline-none focus:shadow-[inset_0_0_0_1px_#7DB968]"
+                  :checked="creatorAvailableSlotIds.has(slot.id)"
+                  :aria-label="`我方便時段${index + 1}`"
+                  @change="toggleCreatorAvailableSlot(slot.id)"
+                />
+              </label>
+
               <button
                 type="button"
                 class="grid h-8 w-8 place-items-center text-[#B06060] hover:text-[#902020]"
@@ -451,6 +461,7 @@
             >
               ＋ 新增候選時段
             </button>
+            <p class="text-xs leading-5 text-[#9AA890]">勾選 ✓ 代表你自己方便的候選時段（至少選一個）</p>
           </div>
         </div>
 
@@ -941,6 +952,7 @@ const scenarioDescription = computed(() => {
 let voteSlotIdSeq = 1
 const voteSlots = ref([{ id: voteSlotIdSeq++, startTime: null, endTime: null }])
 const openSlotPicker = ref(null) // `${slotId}:startTime` | `${slotId}:endTime` | null
+const creatorAvailableSlotIds = ref(new Set())
 
 function addVoteSlot() {
   voteSlots.value.push({ id: voteSlotIdSeq++, startTime: null, endTime: null })
@@ -948,6 +960,16 @@ function addVoteSlot() {
 
 function removeVoteSlot(id) {
   voteSlots.value = voteSlots.value.filter((slot) => slot.id !== id)
+  creatorAvailableSlotIds.value.delete(id)
+}
+
+function toggleCreatorAvailableSlot(id) {
+  if (creatorAvailableSlotIds.value.has(id)) {
+    creatorAvailableSlotIds.value.delete(id)
+  } else {
+    creatorAvailableSlotIds.value.add(id)
+  }
+  creatorAvailableSlotIds.value = new Set(creatorAvailableSlotIds.value)
 }
 
 function toggleSlotPicker(key) {
@@ -1191,10 +1213,23 @@ const dateCells = computed(() => {
   })
 })
 
+// 流團時間／緊急判斷的錨點日期時間：情境二用「已確定的日期」+「最早的候選開始時間」，
+// 其他情境沿用原本的 form.startDate/startTime（避免動到未串接的情境三/四）
+const scheduleAnchor = computed(() => {
+  if (dateMode.value === 'fixed' && timeMode.value === 'vote') {
+    const earliest = voteSlots.value
+      .map((s) => s.startTime)
+      .filter(Boolean)
+      .sort((a, b) => parseHourFromTimeStr(a) - parseHourFromTimeStr(b))[0] ?? null
+    return { date: form.singleDate, time: earliest }
+  }
+  return { date: form.startDate, time: form.startTime }
+})
+
 // 是否距今 ≤ 1 小時（緊急活動）
 const isUrgent = computed(() => {
   if (form.allDay) return false
-  const start = parseDateTimeValue(form.startDate, form.startTime)
+  const start = parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time)
   if (!start) return false
   const diffMs = start.getTime() - Date.now()
   return diffMs > 0 && diffMs <= 60 * 60 * 1000
@@ -1202,7 +1237,7 @@ const isUrgent = computed(() => {
 
 // 是否為當天活動
 const isSameDay = computed(() => {
-  const start = parseDateValue(form.startDate)
+  const start = parseDateValue(scheduleAnchor.value.date)
   if (!start) return false
   const now = new Date()
   return (
@@ -1214,7 +1249,7 @@ const isSameDay = computed(() => {
 
 // 距今幾分鐘（緊急顯示用）
 const minutesUntilStart = computed(() => {
-  const start = parseDateTimeValue(form.startDate, form.startTime)
+  const start = parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time)
   if (!start) return 0
   return Math.max(1, Math.ceil((start.getTime() - Date.now()) / 60000))
 })
@@ -1222,13 +1257,13 @@ const minutesUntilStart = computed(() => {
 // 流團時間顯示文字
 const deadlineDisplayText = computed(() => {
   if (deadline.unit === 'day') {
-    const start = parseDateValue(form.startDate)
+    const start = parseDateValue(scheduleAnchor.value.date)
     if (!start) return ''
     const d = new Date(start)
     d.setDate(d.getDate() - deadline.value)
     return `${formatDateValue(d)}（活動前 ${deadline.value} 天）`
   } else {
-    const start = parseDateTimeValue(form.startDate, form.startTime)
+    const start = parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time)
     if (!start) return ''
     const d = new Date(start.getTime() - deadline.value * 3600000)
     const period = d.getHours() < 12 ? '上午' : '下午'
@@ -1333,6 +1368,7 @@ function resetForm() {
   timeMode.value = 'fixed'
   voteSlotIdSeq = 1
   voteSlots.value = [{ id: voteSlotIdSeq++, startTime: null, endTime: null }]
+  creatorAvailableSlotIds.value = new Set()
   candidateDates.value = []
   uniformTime.startTime = null
   uniformTime.endTime = null
@@ -1374,7 +1410,18 @@ async function confirmUrgentSubmit() {
 
 async function doSubmit() {
   submitError.value = ''
-  if (!form.allDay && !form.startTime) {
+  const isScenario2 = dateMode.value === 'fixed' && timeMode.value === 'vote'
+
+  if (isScenario2) {
+    if (voteSlots.value.length === 0 || voteSlots.value.some((s) => !s.startTime || !s.endTime)) {
+      submitError.value = '請完整填寫每個候選時段的開始／結束時間'
+      return
+    }
+    if (creatorAvailableSlotIds.value.size === 0) {
+      submitError.value = '請勾選至少一個你自己方便的候選時段'
+      return
+    }
+  } else if (!form.allDay && !form.startTime) {
     timeError.value = '請選擇開始時間'
     await nextTick()
     document.getElementById('event-start-time')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -1383,25 +1430,42 @@ async function doSubmit() {
   timeError.value = ''
   const limitValue = !form.limit || isNaN(form.limit) ? null : form.limit
   const deadlineISO = isUrgent.value
-    ? (parseDateTimeValue(form.startDate, form.startTime)?.toISOString() ?? null)
-    : computeDeadlineISO(form.startDate, form.startTime, deadline)
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        title: form.name,
-        location: form.location || null,
-        limit: limitValue,
-        note: form.note || null,
+    ? (parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time)?.toISOString() ?? null)
+    : computeDeadlineISO(scheduleAnchor.value.date, scheduleAnchor.value.time, deadline)
+
+  const commonPayload = {
+    title: form.name,
+    location: form.location || null,
+    limit: limitValue,
+    note: form.note || null,
+    type: form.type,
+    deadline: deadlineISO,
+  }
+
+  const payload = isScenario2
+    ? {
+        ...commonPayload,
+        singleDate: form.singleDate,
+        slots: voteSlots.value.map((s) => ({ startTime: s.startTime, endTime: s.endTime })),
+        creatorSlotIndexes: voteSlots.value
+          .map((_, i) => i)
+          .filter((i) => creatorAvailableSlotIds.value.has(voteSlots.value[i].id)),
+      }
+    : {
+        ...commonPayload,
         startDate: form.startDate,
         startTime: form.startTime,
         endDate: form.endDate,
         endTime: form.endTime,
         allDay: form.allDay,
-        deadline: deadlineISO,
-      }),
+      }
+
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload),
     })
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))

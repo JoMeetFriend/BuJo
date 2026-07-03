@@ -104,6 +104,55 @@
           </div>
         </div>
 
+        <!-- 候選時段：報名中，尚未報名者勾選自己方便的時段 -->
+        <div
+          v-if="activity.requires_voting && activity.status === 'recruiting' && !activity.is_creator && !activity.has_joined"
+          class="flex flex-col gap-2"
+        >
+          <div class="text-xs text-[#87C06D]">選擇你方便的候選時段（可複選）</div>
+          <label
+            v-for="slot in activity.candidate_slots"
+            :key="slot.id"
+            class="flex items-center gap-2 text-sm border-[1.5px] border-[#D8E6C8] px-2 py-1.5 cursor-pointer hover:border-[#87C06D]"
+          >
+            <input type="checkbox" :value="slot.id" v-model="selectedJoinSlotIds" />
+            <span>{{ slotText(slot) }}</span>
+          </label>
+        </div>
+
+        <!-- 候選時段：報名中，已報名者/建立者唯讀查看 -->
+        <div
+          v-else-if="activity.requires_voting && activity.status === 'recruiting'"
+          class="flex flex-col gap-1"
+        >
+          <div class="text-xs text-[#87C06D]">候選時段</div>
+          <div v-for="slot in activity.candidate_slots" :key="slot.id" class="text-sm">
+            {{ slotText(slot) }}
+          </div>
+        </div>
+
+        <!-- 候選時段：建立者決選 / 決選投票階段 -->
+        <div
+          v-if="activity.requires_voting && (activity.status === 'voting' || activity.status === 'tiebreaking')"
+          class="flex flex-col gap-2"
+        >
+          <div class="text-xs text-[#87C06D]">
+            {{ activity.status === 'voting' ? '候選時段（並列最高票）' : '決選投票中' }}
+          </div>
+          <label
+            v-for="slot in activity.decision_candidates"
+            :key="slot.id"
+            class="flex items-center justify-between gap-2 text-sm border-[1.5px] px-2 py-1.5 cursor-pointer hover:border-[#87C06D]"
+            :class="selectedDecisionSlotId === slot.id ? 'border-[#4A5040] bg-[#F0F8E8]' : 'border-[#D8E6C8]'"
+          >
+            <span class="flex items-center gap-2">
+              <input type="radio" name="decision-slot" :value="slot.id" v-model="selectedDecisionSlotId" />
+              {{ slotText(slot) }}
+            </span>
+            <span class="text-xs text-[#87C06D]">{{ slot.count }} 票</span>
+          </label>
+        </div>
+
         <!-- 操作錯誤訊息 -->
         <p v-if="actionError" class="text-xs text-red-500">{{ actionError }}</p>
       </div>
@@ -127,8 +176,8 @@
       <template v-else>
         <PixelButton variant="white" type="button" @click="handleClose">關閉</PixelButton>
 
-        <!-- 創建者的操作 -->
-        <template v-if="activity?.is_creator && activity.status === 'recruiting'">
+        <!-- 創建者的操作：報名中（免投票）-->
+        <template v-if="activity?.is_creator && activity.status === 'recruiting' && !activity.requires_voting">
           <PixelButton
             type="button"
             :disabled="actionLoading"
@@ -146,13 +195,53 @@
           </PixelButton>
         </template>
 
+        <!-- 創建者的操作：報名中（投票模式，尚不能成團）-->
+        <template v-else-if="activity?.is_creator && activity.status === 'recruiting' && activity.requires_voting">
+          <PixelButton
+            variant="danger"
+            type="button"
+            :disabled="actionLoading"
+            @click="handleCancel"
+          >
+            取消活動
+          </PixelButton>
+        </template>
+
+        <!-- 創建者的操作：候選時段決選階段 -->
+        <template v-else-if="activity?.is_creator && (activity.status === 'voting' || activity.status === 'tiebreaking')">
+          <PixelButton
+            type="button"
+            :disabled="actionLoading || !selectedDecisionSlotId"
+            @click="handleConfirmFormation"
+          >
+            {{ actionLoading ? '處理中...' : '確認此時段成團' }}
+          </PixelButton>
+          <PixelButton
+            v-if="activity.status === 'voting'"
+            variant="white"
+            type="button"
+            :disabled="actionLoading"
+            @click="handleStartTiebreak"
+          >
+            發起決選投票
+          </PixelButton>
+          <PixelButton
+            variant="danger"
+            type="button"
+            :disabled="actionLoading"
+            @click="handleCancel"
+          >
+            取消活動
+          </PixelButton>
+        </template>
+
         <!-- 非創建者的操作 -->
         <template v-else-if="activity && !activity.is_creator">
           <!-- 未報名 + 揪團中 -->
           <PixelButton
             v-if="activity.status === 'recruiting' && !activity.has_joined"
             type="button"
-            :disabled="actionLoading"
+            :disabled="actionLoading || (activity.requires_voting && selectedJoinSlotIds.length === 0)"
             @click="handleJoin"
           >
             {{ actionLoading ? '處理中...' : '報名參加' }}
@@ -166,6 +255,15 @@
             @click="handleCancelJoin"
           >
             取消報名
+          </PixelButton>
+          <!-- 已報名 + 決選投票中 -->
+          <PixelButton
+            v-else-if="activity.status === 'tiebreaking' && activity.has_joined"
+            type="button"
+            :disabled="actionLoading || !selectedDecisionSlotId"
+            @click="handleTiebreakVote"
+          >
+            {{ actionLoading ? '處理中...' : '送出決選投票' }}
           </PixelButton>
         </template>
       </template>
@@ -191,32 +289,42 @@ const fetchError = ref('')
 const actionLoading = ref(false)
 const actionError = ref('')
 const successMessage = ref(null)
+const selectedJoinSlotIds = ref([])
+const selectedDecisionSlotId = ref(null)
 
 const scheduleText = computed(() => {
-  const s = activity.value?.schedule
-  if (!s) return '時間未設定'
-  if (s.is_all_day) {
-    const d = new Date(s.window_start)
-    return `${d.getMonth() + 1}/${d.getDate()} 整天`
-  }
-  if (s.confirmed_start) {
-    const start = new Date(s.confirmed_start)
-    const end = s.confirmed_end ? new Date(s.confirmed_end) : null
-    const startStr = formatDateTime(start)
-    const endStr = end ? ` - ${formatTime(end)}` : ''
-    return `${startStr}${endStr}`
-  }
+  const a = activity.value
+  if (!a) return '時間未設定'
+  if (a.confirmed_slot) return slotText(a.confirmed_slot)
+  if (a.requires_voting) return '候選時段投票中'
+  if (a.candidate_slots?.[0]) return slotText(a.candidate_slots[0])
   return '時間未設定'
 })
 
+function slotText(slot) {
+  if (!slot) return ''
+  const start = new Date(slot.slot_start)
+  if (slot.all_day) return `${start.getMonth() + 1}/${start.getDate()} 整天`
+  const end = new Date(slot.slot_end)
+  return `${formatDateTime(start)} - ${formatTime(end)}`
+}
+
 const statusText = computed(() => {
-  const map = { recruiting: '揪團中', confirmed: '已成團', cancelled: '已取消' }
+  const map = {
+    recruiting: '揪團中',
+    voting: '建立者決選中',
+    tiebreaking: '決選投票中',
+    confirmed: '已成團',
+    cancelled: '已取消',
+  }
   return map[activity.value?.status] ?? activity.value?.status
 })
 
 const statusBadgeClass = computed(() => {
   const map = {
     recruiting: 'bg-[#DEF4CD] text-[#4A5040]',
+    voting: 'bg-[#FEF7E8] text-[#4A5040]',
+    tiebreaking: 'bg-[#FEF7E8] text-[#4A5040]',
     confirmed: 'bg-[#87C06D] text-white',
     cancelled: 'bg-gray-200 text-gray-500',
   }
@@ -231,6 +339,8 @@ watch(
       activity.value = null
       fetchError.value = ''
       actionError.value = ''
+      selectedJoinSlotIds.value = []
+      selectedDecisionSlotId.value = null
     }
   },
   { immediate: true }
@@ -249,6 +359,8 @@ async function fetchActivity(id) {
     }
     const data = await res.json()
     activity.value = data.activity
+    selectedJoinSlotIds.value = []
+    selectedDecisionSlotId.value = null
   } catch {
     fetchError.value = '無法連線到伺服器'
   } finally {
@@ -256,13 +368,17 @@ async function fetchActivity(id) {
   }
 }
 
-async function callAction(path, method = 'POST', successMsg = '') {
+async function callAction(path, method = 'POST', successMsg = '', body = undefined) {
   actionLoading.value = true
   actionError.value = ''
   try {
     const res = await fetch(
       `${import.meta.env.VITE_API_URL}/api/activities/${props.activityId}/${path}`,
-      { method, credentials: 'include' }
+      {
+        method,
+        credentials: 'include',
+        ...(body ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}),
+      }
     )
     const data = await res.json().catch(() => ({}))
     if (!res.ok) {
@@ -290,6 +406,14 @@ async function callAction(path, method = 'POST', successMsg = '') {
 }
 
 async function handleJoin() {
+  if (activity.value?.requires_voting) {
+    if (selectedJoinSlotIds.value.length === 0) {
+      actionError.value = '請選擇至少一個候選時段'
+      return
+    }
+    await callAction('join', 'POST', '✅ 報名成功！', { candidateSlotIds: selectedJoinSlotIds.value })
+    return
+  }
   await callAction('join', 'POST', '✅ 報名成功！')
 }
 
@@ -298,7 +422,27 @@ async function handleCancelJoin() {
 }
 
 async function handleConfirmFormation() {
+  if (activity.value?.requires_voting) {
+    if (!selectedDecisionSlotId.value) {
+      actionError.value = '請選擇要確認的候選時段'
+      return
+    }
+    await callAction('confirm-formation', 'POST', '✅ 成團成功！', { candidateSlotId: selectedDecisionSlotId.value })
+    return
+  }
   await callAction('confirm-formation', 'POST', '✅ 成團成功！')
+}
+
+async function handleStartTiebreak() {
+  await callAction('tiebreak/start', 'POST')
+}
+
+async function handleTiebreakVote() {
+  if (!selectedDecisionSlotId.value) {
+    actionError.value = '請選擇一個候選時段'
+    return
+  }
+  await callAction('tiebreak/vote', 'POST', '', { candidateSlotId: selectedDecisionSlotId.value })
 }
 
 async function handleCancel() {
