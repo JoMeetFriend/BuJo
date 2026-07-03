@@ -881,7 +881,11 @@ import { useRoute, useRouter } from 'vue-router'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
 
-const props = defineProps({ isOpen: Boolean })
+const props = defineProps({
+  isOpen: Boolean,
+  // 從行事曆日期格點進來時帶入的日期，格式 'YYYY-MM-DD'
+  initialDate: { type: String, default: null },
+})
 const emit = defineEmits(['close', 'submit'])
 
 const route = useRoute()
@@ -932,6 +936,19 @@ const form = reactive({
 // 日期／時間確定情境
 const dateMode = ref('fixed') // 'fixed' | 'range'
 const timeMode = ref('fixed') // 'fixed' | 'vote'
+
+// 從行事曆日期格點進來：預設情境一（日期固定X時間固定），並把點選的日期帶入開始／結束日期
+watch(
+  () => props.isOpen,
+  (open) => {
+    if (!open || !props.initialDate) return
+    dateMode.value = 'fixed'
+    timeMode.value = 'fixed'
+    const dateValue = props.initialDate.replaceAll('-', '/')
+    form.startDate = dateValue
+    form.endDate = dateValue
+  },
+)
 
 const scenarioDescription = computed(() => {
   if (dateMode.value === 'fixed' && timeMode.value === 'fixed') {

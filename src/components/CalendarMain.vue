@@ -61,7 +61,7 @@
         </button>
 
         <!-- 揪一團按鈕 -->
-        <PixelButton class="mx-2" @click="showEventModal = true">
+        <PixelButton class="mx-2" @click="openEventModal">
           ＋<span class="hidden md:inline"> 揪一團</span>
         </PixelButton>
 
@@ -181,7 +181,11 @@
     @logout="handleLogout"
   />
 
-  <EventPage :isOpen="showEventModal" @close="showEventModal = false" />
+  <EventPage
+    :isOpen="showEventModal"
+    :initialDate="eventModalInitialDate"
+    @close="showEventModal = false"
+  />
 </template>
 
 <script setup>
@@ -195,6 +199,7 @@ import ProfileAccountModal from './ProfileAccountModal.vue'
 import EventPage from './EventPage.vue'
 
 const showEventModal = ref(false)
+const eventModalInitialDate = ref(null)
 const profileBtnBouncing = ref(false)
 const router = useRouter()
 const authStore = useAuthStore()
@@ -390,8 +395,14 @@ function closeDateModal() {
   selectedDate.value = null
 }
 
-function openEventModalFromDate() {
+function openEventModal() {
+  eventModalInitialDate.value = null
+  showEventModal.value = true
+}
+
+function openEventModalFromDate(date) {
   closeDateModal()
+  eventModalInitialDate.value = date
   showEventModal.value = true
 }
 

@@ -5,7 +5,7 @@
         type="button"
         class="grid h-7 w-7 place-items-center text-lg leading-none text-[#4A5040] transition hover:bg-[#DEF4CD]"
         aria-label="新增行程"
-        @click="emit('add')"
+        @click="emit('add', props.date)"
       >
         +
       </button>
