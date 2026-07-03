@@ -360,7 +360,7 @@
             <div
               v-for="(slot, index) in voteSlots"
               :key="slot.id"
-              class="grid grid-cols-[52px_1fr_12px_1fr_28px_28px] max-sm:grid-cols-[40px_1fr_10px_1fr_24px_24px] items-center gap-2"
+              class="grid grid-cols-[52px_1fr_12px_1fr_28px] max-sm:grid-cols-[40px_1fr_10px_1fr_24px] items-center gap-2"
             >
               <span :class="fieldLabelClass">時段{{ index + 1 }}</span>
 
@@ -434,16 +434,6 @@
                 </div>
               </span>
 
-              <label class="grid h-8 w-8 place-items-center" :title="'我方便時段' + (index + 1)">
-                <input
-                  type="checkbox"
-                  class="h-6 w-6 max-sm:h-5 max-sm:w-5 cursor-pointer appearance-none rounded-none border-[1.5px] border-[#A8C893] bg-white checked:border-[#4A5040] checked:bg-[#7FBE69] focus:outline-none focus:shadow-[inset_0_0_0_1px_#7DB968]"
-                  :checked="creatorAvailableSlotIds.has(slot.id)"
-                  :aria-label="`我方便時段${index + 1}`"
-                  @change="toggleCreatorAvailableSlot(slot.id)"
-                />
-              </label>
-
               <button
                 type="button"
                 class="grid h-8 w-8 place-items-center text-[#B06060] hover:text-[#902020]"
@@ -461,7 +451,6 @@
             >
               ＋ 新增候選時段
             </button>
-            <p class="text-xs leading-5 text-[#9AA890]">勾選 ✓ 代表你自己方便的候選時段（至少選一個）</p>
           </div>
         </div>
 
@@ -952,7 +941,6 @@ const scenarioDescription = computed(() => {
 let voteSlotIdSeq = 1
 const voteSlots = ref([{ id: voteSlotIdSeq++, startTime: null, endTime: null }])
 const openSlotPicker = ref(null) // `${slotId}:startTime` | `${slotId}:endTime` | null
-const creatorAvailableSlotIds = ref(new Set())
 
 function addVoteSlot() {
   voteSlots.value.push({ id: voteSlotIdSeq++, startTime: null, endTime: null })
@@ -960,16 +948,6 @@ function addVoteSlot() {
 
 function removeVoteSlot(id) {
   voteSlots.value = voteSlots.value.filter((slot) => slot.id !== id)
-  creatorAvailableSlotIds.value.delete(id)
-}
-
-function toggleCreatorAvailableSlot(id) {
-  if (creatorAvailableSlotIds.value.has(id)) {
-    creatorAvailableSlotIds.value.delete(id)
-  } else {
-    creatorAvailableSlotIds.value.add(id)
-  }
-  creatorAvailableSlotIds.value = new Set(creatorAvailableSlotIds.value)
 }
 
 function toggleSlotPicker(key) {
@@ -1368,7 +1346,6 @@ function resetForm() {
   timeMode.value = 'fixed'
   voteSlotIdSeq = 1
   voteSlots.value = [{ id: voteSlotIdSeq++, startTime: null, endTime: null }]
-  creatorAvailableSlotIds.value = new Set()
   candidateDates.value = []
   uniformTime.startTime = null
   uniformTime.endTime = null
@@ -1417,10 +1394,6 @@ async function doSubmit() {
       submitError.value = '請完整填寫每個候選時段的開始／結束時間'
       return
     }
-    if (creatorAvailableSlotIds.value.size === 0) {
-      submitError.value = '請勾選至少一個你自己方便的候選時段'
-      return
-    }
   } else if (!form.allDay && !form.startTime) {
     timeError.value = '請選擇開始時間'
     await nextTick()
@@ -1447,9 +1420,8 @@ async function doSubmit() {
         ...commonPayload,
         singleDate: form.singleDate,
         slots: voteSlots.value.map((s) => ({ startTime: s.startTime, endTime: s.endTime })),
-        creatorSlotIndexes: voteSlots.value
-          .map((_, i) => i)
-          .filter((i) => creatorAvailableSlotIds.value.has(voteSlots.value[i].id)),
+        // 建立者預設對所有自己新增的候選時段都算「方便」
+        creatorSlotIndexes: voteSlots.value.map((_, i) => i),
       }
     : {
         ...commonPayload,
