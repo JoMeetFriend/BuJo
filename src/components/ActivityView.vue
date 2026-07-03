@@ -17,6 +17,7 @@
       </div>
 
       <div class="flex gap-2.5 overflow-x-auto scrollbar-hide pb-0.5 touch-pan-x">
+        <PixelButton type="button" @click="showCreateModal = true">＋ 揪一團</PixelButton>
         <button
           v-for="item in filters"
           :key="item.key"
@@ -129,6 +130,12 @@
         @close="handleModalClose"
         @status-changed="fetchActivities"
       />
+
+      <EventPage
+        :is-open="showCreateModal"
+        @close="showCreateModal = false"
+        @submit="fetchActivities"
+      />
     </div>
   </div>
 </template>
@@ -136,6 +143,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import ActivityDetailModal from './ActivityDetailModal.vue'
+import EventPage from './EventPage.vue'
+import PixelButton from './ui/PixelButton.vue'
 
 const STATUS_MAP = {
   recruiting: {
@@ -171,6 +180,7 @@ const fetchError = ref('')
 const currentFilter = ref('all')
 const isModalOpen = ref(false)
 const selectedActivityId = ref(null)
+const showCreateModal = ref(false)
 
 const filteredActivities = computed(() => {
   if (currentFilter.value === 'all') return activities.value
