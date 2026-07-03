@@ -668,19 +668,25 @@
               </button>
             </div>
 
-            <div class="grid max-w-[280px] grid-cols-[1fr_12px_1fr] items-center gap-2">
+            <div
+              v-for="(slot, index) in editingSlot.timeSlots"
+              :key="slot.id"
+              class="grid grid-cols-[52px_1fr_12px_1fr_28px] max-sm:grid-cols-[40px_1fr_10px_1fr_24px] items-center gap-2"
+            >
+              <span :class="fieldLabelClass">時段{{ index + 1 }}</span>
+
               <span class="relative block">
                 <button
                   :class="[pickerButtonClass, 'w-full']"
                   type="button"
-                  @click.stop="toggleSlotPicker('s4:startTime')"
+                  @click.stop="toggleSlotPicker(`${slot.id}:startTime`)"
                 >
-                  <span :class="editingSlot.startTime ? '' : 'text-[#A7AB9A]'">{{
-                    editingSlot.startTime ?? '-- : --'
+                  <span :class="slot.startTime ? '' : 'text-[#A7AB9A]'">{{
+                    slot.startTime ?? '-- : --'
                   }}</span>
                 </button>
                 <div
-                  v-if="openSlotPicker === 's4:startTime'"
+                  v-if="openSlotPicker === `${slot.id}:startTime`"
                   :class="[pickerPanelClass, 'left-0 w-full min-w-[160px]']"
                   role="listbox"
                   aria-label="候選開始時間選單"
@@ -691,11 +697,11 @@
                       v-for="time in timeOptions"
                       :key="time"
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
-                      :class="editingSlot.startTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
+                      :class="slot.startTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
                       type="button"
                       role="option"
-                      :aria-selected="editingSlot.startTime === time"
-                      @click="selectSlotTime(editingSlot, 'startTime', time)"
+                      :aria-selected="slot.startTime === time"
+                      @click="selectSlotTime(slot, 'startTime', time)"
                     >
                       {{ time }}
                     </button>
@@ -709,14 +715,14 @@
                 <button
                   :class="[pickerButtonClass, 'w-full']"
                   type="button"
-                  @click.stop="toggleSlotPicker('s4:endTime')"
+                  @click.stop="toggleSlotPicker(`${slot.id}:endTime`)"
                 >
-                  <span :class="editingSlot.endTime ? '' : 'text-[#A7AB9A]'">{{
-                    editingSlot.endTime ?? '-- : --'
+                  <span :class="slot.endTime ? '' : 'text-[#A7AB9A]'">{{
+                    slot.endTime ?? '-- : --'
                   }}</span>
                 </button>
                 <div
-                  v-if="openSlotPicker === 's4:endTime'"
+                  v-if="openSlotPicker === `${slot.id}:endTime`"
                   :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
                   role="listbox"
                   aria-label="候選結束時間選單"
@@ -724,29 +730,37 @@
                 >
                   <div class="max-h-[208px] overflow-y-auto pr-1">
                     <button
-                      v-for="time in scenario4EndTimeOptions"
+                      v-for="time in timeOptions"
                       :key="time"
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
-                      :class="editingSlot.endTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
+                      :class="slot.endTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
                       type="button"
                       role="option"
-                      :aria-selected="editingSlot.endTime === time"
-                      @click="selectSlotTime(editingSlot, 'endTime', time)"
+                      :aria-selected="slot.endTime === time"
+                      @click="selectSlotTime(slot, 'endTime', time)"
                     >
                       {{ time }}
                     </button>
                   </div>
                 </div>
               </span>
+
+              <button
+                type="button"
+                class="grid h-8 w-8 place-items-center text-[#B06060] hover:text-[#902020]"
+                aria-label="刪除候選時段"
+                @click.stop="removeCandidateTimeSlot(editingSlot, slot.id)"
+              >
+                🗑
+              </button>
             </div>
 
             <button
               type="button"
-              class="w-fit border-[1.5px] border-dashed border-[#87C06D] bg-white px-3 py-1.5 font-[cubic11] text-sm text-[#5C8A4A] transition-colors enabled:hover:bg-[#F0F8E8] disabled:cursor-not-allowed disabled:opacity-40"
-              :disabled="!editingSlot.startTime || !editingSlot.endTime"
-              @click.stop="applyTimeToAllCandidates"
+              class="w-fit border-[1.5px] border-dashed border-[#87C06D] bg-white px-3 py-1.5 font-[cubic11] text-sm text-[#5C8A4A] transition-colors hover:bg-[#F0F8E8]"
+              @click.stop="addCandidateTimeSlot(editingSlot)"
             >
-              套用到所有已選日期
+              ＋ 新增候選時段
             </button>
           </div>
 
@@ -757,7 +771,7 @@
             <div v-else class="flex flex-wrap gap-2">
               <span
                 v-for="slot in configuredSlots"
-                :key="slot.date"
+                :key="slot.id"
                 class="border-[1.5px] border-[#A8C893] bg-[#F0F8E8] px-2 py-1 font-[cubic11] text-xs text-[#4A5040]"
               >
                 {{ shortDate(slot.date) }} {{ slot.startTime }}–{{ slot.endTime }}
@@ -980,8 +994,9 @@ function toggleCandidateDate(cell) {
     : [...candidateDates.value, cell.key].sort()
 }
 
-// 情境四：候選日期，且各自可設定不同時段
-const candidateSlots = ref([]) // [{ date, startTime, endTime }]
+// 情境四：候選日期，且每個日期可有多個候選時段
+let scenario4SlotIdSeq = 1
+const candidateSlots = ref([]) // [{ date, timeSlots: [{ id, startTime, endTime }] }]
 const editingSlotDate = ref(null)
 
 const editingSlot = computed(
@@ -989,14 +1004,17 @@ const editingSlot = computed(
 )
 
 const configuredSlots = computed(() =>
-  candidateSlots.value.filter((slot) => slot.startTime && slot.endTime),
+  candidateSlots.value.flatMap((entry) =>
+    entry.timeSlots
+      .filter((slot) => slot.startTime && slot.endTime)
+      .map((slot) => ({
+        id: slot.id,
+        date: entry.date,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+      })),
+  ),
 )
-
-const scenario4EndTimeOptions = computed(() => {
-  if (!editingSlot.value?.startTime) return timeOptions
-  const startHour = parseHourFromTimeStr(editingSlot.value.startTime)
-  return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
-})
 
 const scenario4DateCells = computed(() => {
   const todayValue = formatDateValue(new Date())
@@ -1009,16 +1027,16 @@ const scenario4DateCells = computed(() => {
     const date = new Date(gridStart)
     date.setDate(gridStart.getDate() + index)
     const dateValue = formatDateValue(date)
-    const slot = candidateSlots.value.find((s) => s.date === dateValue)
+    const entry = candidateSlots.value.find((s) => s.date === dateValue)
 
     return {
       key: dateValue,
       date,
       label: date.getDate(),
       isCurrentMonth: date.getMonth() === visibleMonth.value.getMonth(),
-      isCandidate: !!slot,
+      isCandidate: !!entry,
       isEditing: editingSlotDate.value === dateValue,
-      isConfigured: !!(slot && slot.startTime && slot.endTime),
+      isConfigured: !!entry?.timeSlots.some((slot) => slot.startTime && slot.endTime),
       isToday: isSameDate(date, new Date()),
       isDisabled: dateValue < todayValue,
     }
@@ -1050,7 +1068,7 @@ function toggleScenario4Date(cell) {
   if (!cell.isCandidate) {
     candidateSlots.value = [
       ...candidateSlots.value,
-      { date: cell.key, startTime: null, endTime: null },
+      { date: cell.key, timeSlots: [{ id: scenario4SlotIdSeq++, startTime: null, endTime: null }] },
     ].sort((a, b) => a.date.localeCompare(b.date))
     return
   }
@@ -1062,29 +1080,18 @@ function removeCandidateSlot(date) {
   if (editingSlotDate.value === date) editingSlotDate.value = null
 }
 
-function applyTimeToAllCandidates() {
-  const source = editingSlot.value
-  if (!source || !source.startTime || !source.endTime) return
-  candidateSlots.value = candidateSlots.value.map((slot) => ({
-    ...slot,
-    startTime: source.startTime,
-    endTime: source.endTime,
-  }))
+function addCandidateTimeSlot(entry) {
+  entry.timeSlots.push({ id: scenario4SlotIdSeq++, startTime: null, endTime: null })
+}
+
+function removeCandidateTimeSlot(entry, slotId) {
+  entry.timeSlots = entry.timeSlots.filter((slot) => slot.id !== slotId)
 }
 
 function shortDate(dateStr) {
   const [, month, day] = dateStr.split('/')
   return `${Number(month)}/${Number(day)}`
 }
-
-watch(
-  () => editingSlot.value?.startTime,
-  (val) => {
-    if (val && editingSlot.value?.endTime && parseHourFromTimeStr(editingSlot.value.endTime) <= parseHourFromTimeStr(val)) {
-      editingSlot.value.endTime = null
-    }
-  },
-)
 
 // 流團設定
 const deadline = reactive({ value: 1, unit: 'day' })
@@ -1330,6 +1337,7 @@ function resetForm() {
   uniformTime.startTime = null
   uniformTime.endTime = null
   uniformTime.allDay = false
+  scenario4SlotIdSeq = 1
   candidateSlots.value = []
   editingSlotDate.value = null
   deadline.value = 1
