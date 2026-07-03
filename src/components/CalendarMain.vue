@@ -326,8 +326,9 @@ onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   if (dotAnimId) cancelAnimationFrame(dotAnimId)
 })
-const currentYear = ref(2026)
-const currentMonth = ref(5)
+const today = new Date()
+const currentYear = ref(today.getFullYear())
+const currentMonth = ref(today.getMonth())
 const selectedDate = ref(null)
 
 const monthNames = [
