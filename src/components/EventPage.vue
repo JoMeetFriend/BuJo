@@ -864,6 +864,15 @@
       <PixelButton type="button" @click="confirmUrgentSubmit">確定送出</PixelButton>
     </template>
   </BaseModal>
+
+  <!-- 建立成功彈窗：點右上角 × 關閉 -->
+  <BaseModal :isOpen="showSuccessModal" title="建立成功" @close="dismissSuccessModal">
+    <div class="flex flex-col items-center gap-2 py-6 text-center">
+      <span class="text-4xl" aria-hidden="true">🎉</span>
+      <p class="text-lg font-bold text-[#4A5040]">已成功建立活動</p>
+      <p class="text-sm text-[#7A9070]">好友會在活動列表看到這個揪團</p>
+    </div>
+  </BaseModal>
 </template>
 
 <script setup>
@@ -1100,6 +1109,7 @@ function shortDate(dateStr) {
 const deadline = reactive({ value: 1, unit: 'day' })
 const showDeadlineEditor = ref(false)
 const showUrgentConfirm = ref(false)
+const showSuccessModal = ref(false)
 const submitError = ref('')
 const endTimeUserSet = ref(false)
 const timeError = ref('')
@@ -1398,6 +1408,11 @@ function closeForm() {
   }
 }
 
+function dismissSuccessModal() {
+  showSuccessModal.value = false
+  closeForm()
+}
+
 async function submitForm() {
   closePicker()
   if (isUrgent.value) {
@@ -1533,7 +1548,7 @@ async function doSubmit() {
     }
     const data = await res.json()
     emit('submit', data.activity)
-    closeForm()
+    showSuccessModal.value = true
   } catch {
     submitError.value = '無法連線到伺服器，請確認後再試'
   }
