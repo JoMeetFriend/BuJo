@@ -419,7 +419,7 @@
                 >
                   <div class="max-h-[208px] overflow-y-auto pr-1">
                     <button
-                      v-for="time in timeOptions"
+                      v-for="time in slotEndTimeOptions(slot)"
                       :key="time"
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
                       :class="slot.endTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
@@ -730,7 +730,7 @@
                 >
                   <div class="max-h-[208px] overflow-y-auto pr-1">
                     <button
-                      v-for="time in timeOptions"
+                      v-for="time in slotEndTimeOptions(slot)"
                       :key="time"
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
                       :class="slot.endTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
@@ -956,6 +956,9 @@ function toggleSlotPicker(key) {
 
 function selectSlotTime(slot, field, time) {
   slot[field] = time
+  if (field === 'startTime' && slot.endTime && parseHourFromTimeStr(slot.endTime) <= parseHourFromTimeStr(time)) {
+    slot.endTime = null
+  }
   openSlotPicker.value = null
 }
 
@@ -1127,6 +1130,11 @@ function parseHourFromTimeStr(timeStr) {
   return hour
 }
 
+// 同一天內比較：結束時間是否晚於開始時間（時段選項只到整點，比小時即可）
+function isEndAfterStart(startTime, endTime) {
+  return parseHourFromTimeStr(endTime) > parseHourFromTimeStr(startTime)
+}
+
 const startTimeOptions = computed(() => {
   if (form.startDate !== formatDateValue(new Date())) return timeOptions
   const currentHour = new Date().getHours()
@@ -1149,6 +1157,13 @@ const uniformEndTimeOptions = computed(() => {
   const startHour = parseHourFromTimeStr(uniformTime.startTime)
   return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
 })
+
+// 情境二／情境四：每個候選時段各自的結束時間須晚於該時段自己的開始時間
+function slotEndTimeOptions(slot) {
+  if (!slot.startTime) return timeOptions
+  const startHour = parseHourFromTimeStr(slot.startTime)
+  return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
+}
 
 const activeDateField = computed(() =>
   dateFields.includes(activePicker.value) ? activePicker.value : 'startDate',
@@ -1408,6 +1423,10 @@ async function doSubmit() {
       submitError.value = '請完整填寫每個候選時段的開始／結束時間'
       return
     }
+    if (voteSlots.value.some((s) => !isEndAfterStart(s.startTime, s.endTime))) {
+      submitError.value = '每個候選時段的結束時間都要晚於開始時間'
+      return
+    }
   } else if (isScenario3) {
     if (candidateDates.value.length === 0) {
       submitError.value = '請至少選擇一個候選日期'
@@ -1417,15 +1436,31 @@ async function doSubmit() {
       submitError.value = '請設定統一時間'
       return
     }
+    if (!uniformTime.allDay && !isEndAfterStart(uniformTime.startTime, uniformTime.endTime)) {
+      submitError.value = '統一結束時間要晚於開始時間'
+      return
+    }
   } else if (isScenario4) {
     if (configuredSlots.value.length === 0) {
       submitError.value = '請至少為一個候選日期設定完整的候選時段'
+      return
+    }
+    if (configuredSlots.value.some((s) => !isEndAfterStart(s.startTime, s.endTime))) {
+      submitError.value = '每個候選時段的結束時間都要晚於開始時間'
       return
     }
   } else if (!form.allDay && !form.startTime) {
     timeError.value = '請選擇開始時間'
     await nextTick()
     document.getElementById('event-start-time')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    return
+  } else if (
+    !form.allDay &&
+    form.endDate === form.startDate &&
+    form.endTime &&
+    !isEndAfterStart(form.startTime, form.endTime)
+  ) {
+    submitError.value = '結束時間要晚於開始時間'
     return
   }
   timeError.value = ''
