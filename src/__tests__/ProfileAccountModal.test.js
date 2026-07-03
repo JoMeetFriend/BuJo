@@ -75,6 +75,23 @@ describe('ProfileAccountModal', () => {
     expect(wrapper.find('[aria-label="複製 BuJo ID"]').exists()).toBe(false)
   })
 
+  test('相對頭像路徑會補上 API base URL', () => {
+    const wrapper = mountModal({
+      avatar_url: '/uploads/avatars/avatar-user.png',
+    })
+
+    expect(wrapper.get('img').attributes('src')).toBe(
+      'http://localhost:3000/uploads/avatars/avatar-user.png',
+    )
+  })
+
+  test('沒有頭像時保留 fallback face', () => {
+    const wrapper = mountModal()
+
+    expect(wrapper.find('img').exists()).toBe(false)
+    expect(wrapper.find('.profile-modal-face').exists()).toBe(true)
+  })
+
   test('複製按鈕只複製可見五碼並顯示成功回饋', async () => {
     const writeText = stubClipboard(vi.fn().mockResolvedValue())
     const wrapper = mountModal({

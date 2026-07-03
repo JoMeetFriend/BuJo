@@ -6,8 +6,8 @@
           class="grid h-[60px] w-[60px] shrink-0 place-items-center border border-[#87C06D] bg-[#DEF4CD]"
         >
           <img
-            v-if="user?.avatar_url"
-            :src="user.avatar_url"
+            v-if="avatarSrc"
+            :src="avatarSrc"
             :alt="displayName"
             class="h-full w-full object-cover"
           />
@@ -63,6 +63,7 @@
 import { computed, ref } from 'vue'
 import { ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
 import BaseModal from './ui/BaseModal.vue'
+import { toAvatarSrc } from '@/utils/avatar'
 
 const props = defineProps({
   user: {
@@ -74,6 +75,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'logout'])
 
 const displayName = computed(() => props.user?.display_name || '未登入')
+const avatarSrc = computed(() => toAvatarSrc(props.user?.avatar_url))
 const shareCode = computed(() => {
   const idSource = props.user?.uid ?? props.user?.id
   return idSource ? String(idSource).slice(-5) : ''

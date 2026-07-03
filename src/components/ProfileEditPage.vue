@@ -6,7 +6,7 @@
         class="font-[cubic11] font-bold text-[#4A5040] text-2xl md:text-3xl"
         style="text-shadow: 2px 2px 0px #e4ded1"
       >
-        個人編輯
+        個人編輯頁面
       </h1>
       <span class="font-['Press_Start_2P'] text-[#9DBD86] text-base tracking-widest uppercase"
         >ME</span
@@ -18,13 +18,8 @@
       class="w-full max-w-[800px] border-2 border-[#4A5040] bg-white shadow-[6px_6px_0_#4A5040] max-sm:shadow-[4px_4px_0_#4A5040]"
     >
       <!-- 頭像 -->
-      <header class="flex items-center border-b-2 border-[#DEF4CD] bg-[#D9F0A8] px-5 py-3">
-        <h2 class="text-base leading-none md:text-lg" style="-webkit-text-stroke: 0.5px #4a5040">
-          頭像
-        </h2>
-      </header>
       <div class="px-5 py-4">
-        <div class="flex flex-col items-start gap-4 md:flex-row md:items-center md:gap-8">
+        <div class="flex flex-col items-start gap-4 md:flex-row md:items-stretch md:gap-8">
           <div
             class="size-24 shrink-0 overflow-hidden border-2 border-[#4A5040] bg-[#DEF4CD] shadow-[4px_4px_0_#4A5040] md:size-28"
           >
@@ -35,21 +30,50 @@
               class="size-full object-cover"
             />
           </div>
-          <div class="grid gap-2">
+          <div class="flex min-w-0 flex-col items-start gap-2 md:h-28">
+            <p class="flex h-8 items-center text-base leading-none md:text-lg">{{ displayName }}</p>
+            <div v-if="shareCode" class="flex h-8 min-w-0 items-center gap-2">
+              <p class="min-w-0 text-sm text-[#87C06D]">Bujo ID: {{ shareCode }}</p>
+              <button
+                type="button"
+                class="grid h-7 w-7 shrink-0 place-items-center border border-[#9DBD86] bg-white text-[#4A5040] transition hover:bg-[#FAF8F4]"
+                aria-label="複製 BuJo ID"
+                @click="copyShareCode"
+              >
+                <ClipboardDocumentIcon class="h-4 w-4" aria-hidden="true" />
+              </button>
+              <p
+                v-if="copyStatusMessage"
+                class="shrink-0 text-xs text-[#87C06D]"
+                aria-live="polite"
+              >
+                {{ copyStatusMessage }}
+              </p>
+            </div>
             <label
-              class="inline-flex h-9 w-fit cursor-pointer items-center justify-center gap-2 border-2 border-[#4A5040] bg-[#87C06D] px-4 text-[12px] text-white shadow-[3px_3px_0_#4A5040] transition-all duration-150 hover:bg-[#69AD76] hover:border-[#0E7490] hover:shadow-[3px_3px_0_#0E7490]"
+              :class="[
+                'inline-flex h-8 w-fit cursor-pointer items-center justify-center gap-2 border-2 border-[#4A5040] bg-[#87C06D] px-4 text-[12px] text-white shadow-[3px_3px_0_#4A5040] transition-all duration-150 hover:bg-[#69AD76] hover:border-[#0E7490] hover:shadow-[3px_3px_0_#0E7490]',
+                avatarLoading ? 'pointer-events-none opacity-60' : '',
+              ]"
             >
               <input
                 class="hidden"
                 type="file"
-                accept="image/png, image/jpeg"
+                accept="image/png, image/jpeg, image/webp"
+                :disabled="avatarLoading"
                 @change="handleAvatarChange"
               />
-              ▲ 上傳照片
+              {{ avatarLoading ? '更換中' : '更換頭像' }}
             </label>
-            <p class="text-xs text-[#9DBD86]">支援 JPG、PNG，建議使用正方形圖片。</p>
           </div>
         </div>
+        <p
+          v-if="avatarMsg"
+          :class="['mt-3 text-xs', avatarMsgType === 'error' ? 'text-red-600' : 'text-[#87C06D]']"
+          aria-live="polite"
+        >
+          {{ avatarMsg }}
+        </p>
       </div>
 
       <!-- 基本資料 -->
@@ -70,15 +94,6 @@
           />
           <p class="text-xs text-[#9DBD86]">顯示名稱會出現在揪團、行事曆與留言中。</p>
         </label>
-
-        <div class="grid gap-1.5">
-          <span class="text-xs field-label">電子郵件</span>
-          <div
-            class="flex h-9 w-full items-center border-2 border-[#DEF4CD] bg-[#FEF7E8] px-4 text-[12px] text-[#9DBD86]"
-          >
-            {{ localEmail || '（未設定）' }}
-          </div>
-        </div>
 
         <div class="mt-1 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <PixelButton variant="white" type="button">取消</PixelButton>
@@ -214,20 +229,37 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
 import PixelButton from './ui/PixelButton.vue'
 import { useAuthStore } from '@/stores/auth'
+import { toAvatarSrc } from '@/utils/avatar'
 
 const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
+const API = import.meta.env.VITE_API_URL || ''
 
-const avatarUrl = ref(authStore.user?.avatar_url || '')
+const avatarUrl = ref(toAvatarSrc(authStore.user?.avatar_url || ''))
+const avatarLoading = ref(false)
+const avatarMsg = ref('')
+const avatarMsgType = ref('success')
 const linkLoading = ref(false)
 const linkMsg = ref('')
 const linkMsgType = ref('success')
+const copyStatus = ref('idle')
 
 const identities = computed(() => authStore.user?.identities ?? [])
 const identityCount = computed(() => identities.value.length)
+const displayName = computed(() => authStore.user?.display_name || '未登入')
+const shareCode = computed(() => {
+  const idSource = authStore.user?.uid ?? authStore.user?.id
+  return idSource ? String(idSource).slice(-5) : ''
+})
+const copyStatusMessage = computed(() => {
+  if (copyStatus.value === 'success') return '已複製'
+  if (copyStatus.value === 'error') return '複製失敗'
+  return ''
+})
 
 const isConnected = (provider) => identities.value.some((i) => i.provider === provider)
 const localEmail = computed(() => identities.value.find((i) => i.provider === 'local')?.email ?? '')
@@ -235,10 +267,68 @@ const googleEmail = computed(
   () => identities.value.find((i) => i.provider === 'google')?.email ?? '',
 )
 
-const handleAvatarChange = (event) => {
+function showAvatarMsg(msg, type = 'success') {
+  avatarMsg.value = msg
+  avatarMsgType.value = type
+}
+
+const handleAvatarChange = async (event) => {
   const file = event.target.files?.[0]
   if (!file) return
-  avatarUrl.value = URL.createObjectURL(file)
+  avatarMsg.value = ''
+
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    showAvatarMsg('僅支援 JPG、PNG、WebP 格式', 'error')
+    event.target.value = ''
+    return
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    showAvatarMsg('圖片大小不可超過 2MB', 'error')
+    event.target.value = ''
+    return
+  }
+
+  avatarLoading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('avatar', file)
+
+    const res = await fetch(`${API}/api/users/me/avatar`, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: formData,
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data.message || '頭像更新失敗')
+    if (!data.user?.avatar_url) throw new Error('頭像更新失敗')
+
+    authStore.setUser({
+      ...authStore.user,
+      ...data.user,
+    })
+    avatarUrl.value = toAvatarSrc(data.user.avatar_url)
+    showAvatarMsg('頭像已更新')
+  } catch (err) {
+    showAvatarMsg(err.message || '頭像更新失敗', 'error')
+  } finally {
+    avatarLoading.value = false
+    event.target.value = ''
+  }
+}
+
+async function copyShareCode() {
+  if (!shareCode.value) return
+
+  try {
+    if (!navigator.clipboard?.writeText) {
+      throw new Error('Clipboard API unavailable')
+    }
+    await navigator.clipboard.writeText(shareCode.value)
+    copyStatus.value = 'success'
+  } catch {
+    copyStatus.value = 'error'
+  }
 }
 
 function showMsg(msg, type = 'success') {

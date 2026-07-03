@@ -67,7 +67,19 @@
         to="/profile/edit"
         class="flex items-center gap-3 px-3 py-2 hover:bg-[#F9CE9A] transition-colors whitespace-nowrap"
       >
-        <div class="w-10 h-10 bg-[#DEF4CD] shrink-0"></div>
+        <div class="grid w-10 h-10 place-items-center bg-[#DEF4CD] shrink-0">
+          <img
+            v-if="userAvatarSrc"
+            :src="userAvatarSrc"
+            :alt="authStore.user?.display_name || 'Me'"
+            class="w-full h-full object-cover"
+          />
+          <span
+            v-else
+            class="profile-pixel-face profile-pixel-face--small"
+            aria-hidden="true"
+          ></span>
+        </div>
         <span class="font-['Press_Start_2P'] text-[#4A5040] text-xs">Me</span>
       </RouterLink>
     </div>
@@ -135,7 +147,13 @@
         @animationend="onProfileAnimEnd"
         aria-label="開啟個人帳號"
       >
-        <span class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
+        <img
+          v-if="userAvatarSrc"
+          :src="userAvatarSrc"
+          :alt="authStore.user?.display_name || 'Me'"
+          class="w-full h-full object-cover"
+        />
+        <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
       </button>
     </nav>
   </div>
@@ -151,6 +169,7 @@
 import { ref, computed } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { toAvatarSrc } from '@/utils/avatar'
 import ProfileAccountModal from './ProfileAccountModal.vue'
 
 defineProps({ isOpen: Boolean, filters: Object })
@@ -160,6 +179,7 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const isCalendarPage = computed(() => route.path === '/')
+const userAvatarSrc = computed(() => toAvatarSrc(authStore.user?.avatar_url))
 
 const drawerOpen = ref(false)
 const profileBtnBouncing = ref(false)
