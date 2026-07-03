@@ -1,0 +1,8 @@
+# CLAUDE.md
+
+先讀 [AGENTS.md](./AGENTS.md) 了解專案的共用開發規則（指令、分支/commit 慣例、認證邊界等）。本檔案**只**補充 Claude Code 專屬設定，共用規則一律寫進 AGENTS.md，不要在此重複，避免兩份文件內容分裂。
+
+<!--
+這是 CLAUDE.md 的最小起始範本，複製一份存成 CLAUDE.md（不會進版控）後，
+再依自己本機安裝的 Claude Code 專屬工具（例如 graphify）補充規則即可。
+-->
