@@ -1192,7 +1192,8 @@ const dateCells = computed(() => {
 })
 
 // 流團時間／緊急判斷的錨點日期時間：情境二用「已確定的日期」+「最早的候選開始時間」，
-// 情境三用「最早的候選日期」+「統一開始時間」，其他情境（情境四）沿用原本的 form.startDate/startTime
+// 情境三用「最早的候選日期」+「統一開始時間」，情境四用「最早已設定完成的候選日期時段」，
+// 情境一沿用原本的 form.startDate/startTime
 const scheduleAnchor = computed(() => {
   if (dateMode.value === 'fixed' && timeMode.value === 'vote') {
     const earliest = voteSlots.value
@@ -1203,6 +1204,14 @@ const scheduleAnchor = computed(() => {
   }
   if (dateMode.value === 'range' && timeMode.value === 'fixed') {
     return { date: candidateDates.value[0] ?? null, time: uniformTime.startTime }
+  }
+  if (dateMode.value === 'range' && timeMode.value === 'vote') {
+    const sorted = [...configuredSlots.value].sort((a, b) =>
+      a.date === b.date
+        ? parseHourFromTimeStr(a.startTime) - parseHourFromTimeStr(b.startTime)
+        : a.date.localeCompare(b.date),
+    )
+    return { date: sorted[0]?.date ?? null, time: sorted[0]?.startTime ?? null }
   }
   return { date: form.startDate, time: form.startTime }
 })
@@ -1392,6 +1401,7 @@ async function doSubmit() {
   submitError.value = ''
   const isScenario2 = dateMode.value === 'fixed' && timeMode.value === 'vote'
   const isScenario3 = dateMode.value === 'range' && timeMode.value === 'fixed'
+  const isScenario4 = dateMode.value === 'range' && timeMode.value === 'vote'
 
   if (isScenario2) {
     if (voteSlots.value.length === 0 || voteSlots.value.some((s) => !s.startTime || !s.endTime)) {
@@ -1405,6 +1415,11 @@ async function doSubmit() {
     }
     if (!uniformTime.startTime || !uniformTime.endTime) {
       submitError.value = '請設定統一時間（目前不支援整日）'
+      return
+    }
+  } else if (isScenario4) {
+    if (configuredSlots.value.length === 0) {
+      submitError.value = '請至少為一個候選日期設定完整的候選時段'
       return
     }
   } else if (!form.allDay && !form.startTime) {
@@ -1444,6 +1459,17 @@ async function doSubmit() {
       uniformTime: { startTime: uniformTime.startTime, endTime: uniformTime.endTime },
       // 建立者預設對所有自己選的候選日期都算「方便」
       creatorSlotIndexes: candidateDates.value.map((_, i) => i),
+    }
+  } else if (isScenario4) {
+    payload = {
+      ...commonPayload,
+      dateSlots: configuredSlots.value.map((s) => ({
+        date: s.date,
+        startTime: s.startTime,
+        endTime: s.endTime,
+      })),
+      // 建立者預設對所有自己設定完成的候選時段都算「方便」
+      creatorSlotIndexes: configuredSlots.value.map((_, i) => i),
     }
   } else {
     payload = {
