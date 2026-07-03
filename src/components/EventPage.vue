@@ -1413,8 +1413,8 @@ async function doSubmit() {
       submitError.value = '請至少選擇一個候選日期'
       return
     }
-    if (!uniformTime.startTime || !uniformTime.endTime) {
-      submitError.value = '請設定統一時間（目前不支援整日）'
+    if (!uniformTime.allDay && (!uniformTime.startTime || !uniformTime.endTime)) {
+      submitError.value = '請設定統一時間'
       return
     }
   } else if (isScenario4) {
@@ -1456,7 +1456,9 @@ async function doSubmit() {
     payload = {
       ...commonPayload,
       candidateDates: candidateDates.value,
-      uniformTime: { startTime: uniformTime.startTime, endTime: uniformTime.endTime },
+      uniformTime: uniformTime.allDay
+        ? { allDay: true }
+        : { startTime: uniformTime.startTime, endTime: uniformTime.endTime },
       // 建立者預設對所有自己選的候選日期都算「方便」
       creatorSlotIndexes: candidateDates.value.map((_, i) => i),
     }
