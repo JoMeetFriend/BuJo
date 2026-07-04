@@ -937,7 +937,8 @@ const form = reactive({
 const dateMode = ref('fixed') // 'fixed' | 'range'
 const timeMode = ref('fixed') // 'fixed' | 'vote'
 
-// 從行事曆日期格點進來：預設情境一（日期固定X時間固定），並把點選的日期帶入開始／結束日期
+// 從行事曆日期格點進來：預設情境一（日期固定X時間固定），並把點選的日期帶入
+// 情境一的開始／結束日期，以及情境二（日期固定X時間讓大家選）的日期
 watch(
   () => props.isOpen,
   (open) => {
@@ -947,6 +948,7 @@ watch(
     const dateValue = props.initialDate.replaceAll('-', '/')
     form.startDate = dateValue
     form.endDate = dateValue
+    form.singleDate = dateValue
   },
 )
 
