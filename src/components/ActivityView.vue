@@ -17,6 +17,7 @@
       </div>
 
       <div class="flex gap-2.5 overflow-x-auto scrollbar-hide pb-0.5 touch-pan-x">
+        <PixelButton type="button" @click="showCreateModal = true">＋ 揪一團</PixelButton>
         <button
           v-for="item in filters"
           :key="item.key"
@@ -31,8 +32,12 @@
 
     <!-- 內容區 -->
     <div class="px-5 pt-2 pb-4 md:px-14 md:py-4">
+      <div v-if="loading" class="text-center py-12 text-sm text-primary-mid">載入中...</div>
+
+      <div v-else-if="fetchError" class="text-center py-12 text-sm text-red-500">{{ fetchError }}</div>
+
       <ul
-        v-if="filteredActivities.length > 0"
+        v-else-if="filteredActivities.length > 0"
         class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
       >
         <li
@@ -43,7 +48,7 @@
         >
           <div
             class="h-14 flex items-center justify-center border-b-[1.5px] border-[#4A5040] shrink-0"
-            :class="STATUS_MAP[activity.status]?.topBg"
+            :class="activity.is_creator ? 'bg-warm-peach' : STATUS_MAP[activity.status]?.topBg"
           >
             <svg class="h-6 w-6 text-brand-text" fill="currentColor" viewBox="0 0 24 24">
               <path
@@ -62,25 +67,32 @@
               </div>
               <div class="flex items-center gap-1.5 truncate">
                 <span>📍</span>
-                <span class="truncate">{{ activity.location }}</span>
+                <span class="truncate">{{ activity.location || '未設定地點' }}</span>
               </div>
             </div>
 
             <div class="flex items-end justify-between border-t border-[#4A5040] pt-3">
               <div class="flex items-center overflow-hidden h-7">
-                <img
-                  v-for="participant in activity.participants.slice(0, 5)"
-                  :key="participant.id"
-                  class="inline-block h-6 w-6 rounded-none border border-brand-text object-cover shrink-0"
-                  :src="participant.avatar"
-                  alt="Avatar"
-                />
+                <template v-for="participant in activity.participants" :key="participant.id">
+                  <img
+                    v-if="participant.avatar_url"
+                    class="inline-block h-6 w-6 rounded-none border border-brand-text object-cover shrink-0"
+                    :src="participant.avatar_url"
+                    alt="Avatar"
+                  />
+                  <div
+                    v-else
+                    class="inline-flex h-6 w-6 shrink-0 items-center justify-center border border-brand-text bg-[#DEF4CD] text-[9px] font-bold text-brand-text"
+                  >
+                    {{ participant.id.slice(0, 2).toUpperCase() }}
+                  </div>
+                </template>
 
                 <span
-                  v-if="activity.currentCount > 5"
+                  v-if="activity.current_count > 5"
                   class="flex items-center justify-center h-6 w-6 rounded-none border border-brand-text bg-page-bg text-[10px] font-bold text-brand-text shrink-0"
                 >
-                  +{{ activity.currentCount - 5 }}
+                  +{{ activity.current_count - 5 }}
                 </span>
               </div>
 
@@ -88,20 +100,19 @@
                 <span
                   class="text-[11px] border border-brand-text py-0.5 bg-white text-brand-text w-[76px] text-center block whitespace-nowrap"
                   :class="
-                    activity.status !== 'success' &&
-                    activity.maxParticipants - activity.currentCount > 0
+                    activity.status === 'recruiting' && activity.max_participants && activity.max_participants - activity.current_count > 0
                       ? 'visible'
                       : 'invisible'
                   "
                 >
-                  還差 {{ activity.maxParticipants - activity.currentCount }} 人
+                  還差 {{ activity.max_participants - activity.current_count }} 人
                 </span>
 
                 <span
                   class="inline-flex items-center justify-center py-0.5 rounded-none text-xs font-bold border border-brand-text w-[76px] text-center whitespace-nowrap text-brand-text"
-                  :class="STATUS_MAP[activity.status]?.badgeBg"
+                  :class="(activity.has_joined && !activity.is_creator && activity.status === 'recruiting' ? JOINED_BADGE : STATUS_MAP[activity.status])?.badgeBg"
                 >
-                  {{ STATUS_MAP[activity.status]?.text }}
+                  {{ (activity.has_joined && !activity.is_creator && activity.status === 'recruiting' ? JOINED_BADGE : STATUS_MAP[activity.status])?.text ?? activity.status }}
                 </span>
               </div>
             </div>
@@ -116,164 +127,101 @@
       <ActivityDetailModal
         :is-open="isModalOpen"
         :activity-id="selectedActivityId"
-        :is-owner-view="currentFilter === 'mine'"
-        @close="isModalOpen = false"
+        @close="handleModalClose"
+        @status-changed="fetchActivities"
+      />
+
+      <EventPage
+        :is-open="showCreateModal"
+        @close="showCreateModal = false"
+        @submit="fetchActivities"
       />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import ActivityDetailModal from './ActivityDetailModal.vue'
-
-const activities = ref([
-  {
-    id: 1,
-    title: '上課',
-    isMine: true,
-    date: '6/11',
-    time: '9:30 - 16:30',
-    location: '臺北市中正區黎明里衡陽路7號5樓',
-    status: 'registered',
-    participants: [
-      {
-        id: 101,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 102,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 103,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 104,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 105,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 106,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 107,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-    ],
-    currentCount: 7,
-    maxParticipants: 8,
-  },
-  {
-    id: 2,
-    title: '來揪來揪來揪',
-    isMine: false,
-    date: '6/12',
-    time: '09:00 - 17:00',
-    location: '台北某某某某地',
-    status: 'open',
-    participants: [
-      {
-        id: 101,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 102,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 103,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-    ],
-    currentCount: 3,
-    maxParticipants: 14,
-  },
-  {
-    id: 3,
-    title: '吃下午茶',
-    isMine: false,
-    date: '6/13',
-    time: '15:00 - 17:00',
-    location: '某地',
-    status: 'success',
-    participants: [
-      {
-        id: 101,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 102,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 103,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 104,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-      {
-        id: 105,
-        avatar: 'https://i.pinimg.com/236x/68/ec/c3/68ecc3889935a9884a6a7a2caced803f.jpg',
-      },
-    ],
-    currentCount: 5,
-    maxParticipants: 5,
-  },
-])
+import EventPage from './EventPage.vue'
+import PixelButton from './ui/PixelButton.vue'
 
 const STATUS_MAP = {
-  registered: {
-    text: '已報名',
-    topBg: 'bg-warm-peach',
-    badgeBg: 'bg-warm-peach',
-  },
-  open: {
+  recruiting: {
     text: '揪團中',
     topBg: 'bg-primary-pale',
     badgeBg: 'bg-primary-green',
   },
-  success: {
+  confirmed: {
     text: '已成團',
     topBg: 'bg-primary-light',
     badgeBg: 'bg-primary-light',
   },
+  cancelled: {
+    text: '已取消',
+    topBg: 'bg-warm-peach',
+    badgeBg: 'bg-warm-peach',
+  },
 }
 
+const JOINED_BADGE = { text: '已報名', badgeBg: 'bg-warm-peach' }
+
 const filters = [
+  { key: 'recruiting', text: '揪團中' },
+  { key: 'joined', text: '已報名' },
+  { key: 'confirmed', text: '已成團' },
+  { key: 'mine', text: '我建立的' },
   { key: 'all', text: '全部' },
-  { key: 'mine', text: '我建立的活動' },
-  { key: 'registered', text: '已報名' },
-  { key: 'open', text: '揪團中' },
-  { key: 'success', text: '已成團' },
 ]
 
+const activities = ref([])
+const loading = ref(false)
+const fetchError = ref('')
 const currentFilter = ref('all')
-
-const filteredActivities = computed(() => {
-  if (currentFilter.value === 'all') {
-    return activities.value
-  }
-  if (currentFilter.value === 'mine') {
-    return activities.value.filter((act) => act.isMine)
-  }
-  return activities.value.filter((act) => act.status === currentFilter.value)
-})
-
 const isModalOpen = ref(false)
 const selectedActivityId = ref(null)
+const showCreateModal = ref(false)
 
-const goToDetail = (id) => {
+const filteredActivities = computed(() => {
+  if (currentFilter.value === 'all') return activities.value
+  if (currentFilter.value === 'mine') return activities.value.filter((a) => a.is_creator)
+  if (currentFilter.value === 'joined') return activities.value.filter((a) => a.has_joined && !a.is_creator && a.status === 'recruiting')
+  if (currentFilter.value === 'recruiting') return activities.value.filter((a) => a.status === 'recruiting' && !a.is_creator)
+  if (currentFilter.value === 'confirmed') return activities.value.filter((a) => a.status === 'confirmed' && (a.has_joined || a.is_creator))
+  return activities.value.filter((a) => a.status === currentFilter.value)
+})
+
+async function fetchActivities() {
+  loading.value = true
+  fetchError.value = ''
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities`, {
+      credentials: 'include',
+    })
+    if (!res.ok) {
+      fetchError.value = '無法載入活動'
+      return
+    }
+    const data = await res.json()
+    activities.value = data.activities
+  } catch {
+    fetchError.value = '無法連線到伺服器'
+  } finally {
+    loading.value = false
+  }
+}
+
+function goToDetail(id) {
   selectedActivityId.value = id
   isModalOpen.value = true
 }
+
+function handleModalClose() {
+  isModalOpen.value = false
+  selectedActivityId.value = null
+}
+
+onMounted(fetchActivities)
 </script>
 
 <style scoped>
@@ -305,15 +253,13 @@ const goToDetail = (id) => {
     transform 0.15s ease-out,
     box-shadow 0.15s ease-out,
     background 0.15s,
-    color 0.15s,
-    border-color 0.15s;
+    color 0.15s;
 }
 
 .filter-btn--active {
   background: #87c06d;
   color: white;
-  transform: translate(3px, 3px);
-  box-shadow: 0 0 0 #4a5040;
+  box-shadow: none;
 }
 
 .filter-btn--inactive {
@@ -326,6 +272,12 @@ const goToDetail = (id) => {
   background: #d9eef2;
   color: #0e7490;
   border-color: #0e7490;
-  box-shadow: 3px 3px 0 #0e7490;
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+.filter-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
 }
 </style>

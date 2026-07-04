@@ -61,7 +61,7 @@
         </button>
 
         <!-- 揪一團按鈕 -->
-        <PixelButton class="mx-2" @click="showEventModal = true">
+        <PixelButton class="mx-2" @click="openEventModal">
           ＋<span class="hidden md:inline"> 揪一團</span>
         </PixelButton>
 
@@ -181,7 +181,11 @@
     @logout="handleLogout"
   />
 
-  <EventPage :isOpen="showEventModal" @close="showEventModal = false" />
+  <EventPage
+    :isOpen="showEventModal"
+    :initialDate="eventModalInitialDate"
+    @close="showEventModal = false"
+  />
 </template>
 
 <script setup>
@@ -196,9 +200,11 @@ import EventPage from './EventPage.vue'
 import { toAvatarSrc } from '@/utils/avatar'
 
 const showEventModal = ref(false)
+const eventModalInitialDate = ref(null)
 const profileBtnBouncing = ref(false)
 const router = useRouter()
 const authStore = useAuthStore()
+
 const currentUser = computed(() => authStore.user)
 const currentUserAvatarSrc = computed(() => toAvatarSrc(currentUser.value?.avatar_url))
 
@@ -322,8 +328,9 @@ onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   if (dotAnimId) cancelAnimationFrame(dotAnimId)
 })
-const currentYear = ref(2026)
-const currentMonth = ref(5)
+const today = new Date()
+const currentYear = ref(today.getFullYear())
+const currentMonth = ref(today.getMonth())
 const selectedDate = ref(null)
 
 const monthNames = [
@@ -391,8 +398,14 @@ function closeDateModal() {
   selectedDate.value = null
 }
 
-function openEventModalFromDate() {
+function openEventModal() {
+  eventModalInitialDate.value = null
+  showEventModal.value = true
+}
+
+function openEventModalFromDate(date) {
   closeDateModal()
+  eventModalInitialDate.value = date
   showEventModal.value = true
 }
 
