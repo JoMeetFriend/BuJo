@@ -8,7 +8,7 @@
       <!-- Logo -->
       <div class="flex items-center gap-3 mb-12 whitespace-nowrap">
         <div class="bujo-sidebar-logo-mark shrink-0"></div>
-        <span class="font-[plex-sans-tc] text-[var(--bujo-ink)] text-[17px] font-bold tracking-normal"
+        <span class="font-[plex-sans-tc] text-[var(--bujo-ink)] text-[21px] font-bold tracking-normal"
           >BuJo</span
         >
       </div>
@@ -211,7 +211,7 @@ async function handleLogout() {
 
 .bujo-sidebar-label {
   font-family: "Space Mono", monospace;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 0;
 }
@@ -420,7 +420,7 @@ async function handleLogout() {
   margin-bottom: 2px;
   color: var(--bujo-muted);
   font-family: "Space Mono", monospace;
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1;
 }
 
@@ -431,7 +431,7 @@ async function handleLogout() {
   width: fit-content;
   color: var(--bujo-ink);
   font-family: "Space Mono", monospace;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1;
   transition: opacity 160ms cubic-bezier(.2, .8, .2, 1);
@@ -454,7 +454,7 @@ async function handleLogout() {
   width: fit-content;
   color: var(--bujo-ink);
   font-family: "Space Mono", monospace;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 700;
   text-decoration: none;
 }

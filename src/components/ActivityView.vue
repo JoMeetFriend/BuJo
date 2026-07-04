@@ -310,15 +310,6 @@ onMounted(fetchActivities)
   min-height: 26px;
   padding: 3px 11px;
   font-size: 11px;
-  background: transparent !important;
-  color: var(--activity-ink) !important;
-  border-color: var(--activity-ink) !important;
-  box-shadow: none !important;
-}
-
-.activity-create-button:hover {
-  background: var(--activity-ink) !important;
-  color: var(--activity-surface) !important;
 }
 
 .activity-filter {

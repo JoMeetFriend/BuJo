@@ -4,7 +4,7 @@
       <form id="event-form" class="grid gap-4" @submit.prevent="submitForm">
         <label :class="[fieldClass, 'col-span-full']" for="event-name">
           <span :class="fieldLabelClass"
-            >活動名稱 <span class="text-[#75AF61]" aria-hidden="true">*</span></span
+            >活動名稱 <span class="text-[var(--bujo-muted-strong)]" aria-hidden="true">*</span></span
           >
           <input
             id="event-name"
@@ -23,7 +23,7 @@
               <select
                 id="event-type"
                 v-model="form.type"
-                :class="[inputClass, 'cursor-pointer appearance-none pr-12', form.type === null ? 'text-[#858A7A]' : '']"
+                :class="[inputClass, 'cursor-pointer appearance-none pr-12', form.type === null ? 'text-[var(--bujo-muted)]' : '']"
               >
                 <option :value="null">---</option>
                 <option v-for="type in eventTypes" :key="type" :value="type">
@@ -31,7 +31,7 @@
                 </option>
               </select>
               <svg
-                class="pointer-events-none absolute right-5 top-1/2 h-4 w-4 -translate-y-1/2 fill-none stroke-current stroke-2 text-[#4A5040] [stroke-linecap:round] [stroke-linejoin:round]"
+                class="pointer-events-none absolute right-5 top-1/2 h-4 w-4 -translate-y-1/2 fill-none stroke-current stroke-2 text-[var(--bujo-ink)] [stroke-linecap:round] [stroke-linejoin:round]"
                 viewBox="0 0 24 24"
                 aria-hidden="true"
               >
@@ -54,7 +54,7 @@
               />
               <button
                 type="button"
-                class="absolute right-0 top-0 bottom-0 w-8 flex items-center justify-center border-l border-l-[#E0ECD8] text-[#9AA890] hover:text-[#4A5040] hover:bg-[#F0F8EC] focus:outline-none"
+                class="absolute right-0 top-0 bottom-0 w-8 flex items-center justify-center border-l border-l-[var(--bujo-line-soft)] text-[var(--bujo-muted)] hover:text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)] focus:outline-none"
                 aria-label="清除人數上限"
                 @click="form.limit = null"
               >✕</button>
@@ -92,7 +92,7 @@
               大概範圍
             </button>
           </div>
-          <p class="text-xs leading-5 text-[#9AA890]">
+          <p class="text-xs leading-5 text-[var(--bujo-muted)]">
             {{
               dateMode === 'fixed'
                 ? '日期已經定了，不用開放投票。'
@@ -120,7 +120,7 @@
               讓大家選
             </button>
           </div>
-          <p class="text-xs leading-5 text-[#9AA890]">
+          <p class="text-xs leading-5 text-[var(--bujo-muted)]">
             {{
               timeMode === 'fixed'
                 ? '時間點固定，成員只需確認是否參加。'
@@ -131,7 +131,7 @@
 
         <!-- 情境說明 -->
         <div
-          class="col-span-full border-[1.5px] border-[#D8E6C8] bg-[#F5F8F0] px-3 py-2 text-xs leading-5 text-[#4A5040]"
+          class="col-span-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface-muted)] px-3 py-2 text-xs leading-5 text-[var(--bujo-ink)]"
         >
           {{ scenarioDescription }}
         </div>
@@ -139,7 +139,7 @@
         <div
           v-if="dateMode === 'fixed' && timeMode === 'fixed'"
           ref="schedulePickerRef"
-          class="col-span-full grid gap-1.5 max-sm:gap-1 border-[1.5px] border-[#A8C893] bg-white px-3 py-2 max-sm:py-1.5"
+          class="col-span-full grid gap-1.5 max-sm:gap-1 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
           @click="closePicker"
         >
           <div
@@ -149,7 +149,7 @@
             <label class="inline-flex w-fit items-center">
               <input
                 v-model="form.allDay"
-                class="h-7 w-7 max-sm:h-6 max-sm:w-6 cursor-pointer appearance-none rounded-none border-[1.5px] border-[#A8C893] bg-white checked:border-[#4A5040] checked:bg-[#7FBE69] focus:outline-none focus:shadow-[inset_0_0_0_1px_#7DB968]"
+                class="h-7 w-7 max-sm:h-6 max-sm:w-6 cursor-pointer appearance-none rounded-none border border-[var(--bujo-line)] bg-[var(--bujo-surface)] checked:border-[var(--bujo-ink)] checked:bg-[var(--bujo-ink)] focus:outline-none focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
                 type="checkbox"
                 aria-label="整日"
                 @change="closePicker"
@@ -187,18 +187,18 @@
                 >
                   <div class="mb-2 flex items-center justify-between gap-2">
                     <button
-                      class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border-[1.5px] border-[#4A5040] bg-white font-[cubic11] text-lg leading-none shadow-[2px_2px_0_#4A5040]"
+                      class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
                       type="button"
                       aria-label="上一個月"
                       @click="moveMonth(-1)"
                     >
                       ‹
                     </button>
-                    <p class="m-0 text-center text-sm leading-none text-[#4A5040]">
+                    <p class="m-0 text-center text-sm leading-none text-[var(--bujo-ink)]">
                       {{ monthTitle }}
                     </p>
                     <button
-                      class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border-[1.5px] border-[#4A5040] bg-white font-[cubic11] text-lg leading-none shadow-[2px_2px_0_#4A5040]"
+                      class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
                       type="button"
                       aria-label="下一個月"
                       @click="moveMonth(1)"
@@ -207,7 +207,7 @@
                     </button>
                   </div>
 
-                  <div class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[#6E765E]">
+                  <div class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]">
                     <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
                   </div>
 
@@ -230,18 +230,18 @@
               <span v-if="!form.allDay" class="relative block">
                 <button
                   :id="row.timeButtonId"
-                  :class="[pickerButtonClass, 'w-full', row.timeField === 'startTime' && timeError ? 'border-red-400' : '']"
+                  :class="[pickerButtonClass, 'w-full', row.timeField === 'startTime' && timeError ? 'border-[#dc2626]' : '']"
                   type="button"
                   :data-time-field="row.timeField"
                   @click.stop="openPicker(row.timeField)"
                 >
-                  <span :class="form[row.timeField] ? '' : 'text-[#A7AB9A]'">
+                  <span :class="form[row.timeField] ? '' : 'text-[var(--bujo-muted)]'">
                     {{ form[row.timeField] ?? '-- : --' }}
                   </span>
                 </button>
                 <p
                   v-if="row.timeField === 'startTime' && timeError"
-                  class="mt-1 flex items-center gap-1 text-xs text-red-500"
+                  class="mt-1 flex items-center gap-1 text-xs text-[#dc2626]"
                 >
                   <span>⚠</span> {{ timeError }}
                 </p>
@@ -257,7 +257,7 @@
                     <button
                       v-for="time in currentPickerTimeOptions"
                       :key="time"
-                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
+                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                       :class="timeButtonClass(time, row.timeField)"
                       type="button"
                       role="option"
@@ -277,10 +277,10 @@
           <!-- 緊急警告：距今 ≤ 1 小時 -->
           <div
             v-if="isUrgent"
-            class="flex items-start gap-2 border-[1.5px] border-[#E8A060] bg-[#FFF8EC] px-3 py-2 mt-1"
+            class="flex items-start gap-2 border border-[var(--bujo-line)] bg-[var(--bujo-card-yellow)] px-3 py-2 mt-1"
           >
             <span class="flex-shrink-0 text-sm leading-5">⚠️</span>
-            <span class="text-xs leading-5 text-[#B06020]">
+            <span class="text-xs leading-5 text-[var(--bujo-ink)]">
               活動將在 <strong>{{ minutesUntilStart }}</strong> 分鐘後開始，建立後請手動確認成團
             </span>
           </div>
@@ -289,7 +289,7 @@
         <div
           v-else-if="dateMode === 'fixed' && timeMode === 'vote'"
           ref="schedulePickerRef"
-          class="col-span-full grid gap-3 border-[1.5px] border-[#A8C893] bg-white px-3 py-2 max-sm:py-1.5"
+          class="col-span-full grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
           @click="closePicker"
         >
           <div class="grid grid-cols-[52px_1fr] max-sm:grid-cols-[40px_1fr] items-start gap-2">
@@ -313,18 +313,18 @@
               >
                 <div class="mb-2 flex items-center justify-between gap-2">
                   <button
-                    class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border-[1.5px] border-[#4A5040] bg-white font-[cubic11] text-lg leading-none shadow-[2px_2px_0_#4A5040]"
+                    class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
                     type="button"
                     aria-label="上一個月"
                     @click="moveMonth(-1)"
                   >
                     ‹
                   </button>
-                  <p class="m-0 text-center text-sm leading-none text-[#4A5040]">
+                  <p class="m-0 text-center text-sm leading-none text-[var(--bujo-ink)]">
                     {{ monthTitle }}
                   </p>
                   <button
-                    class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border-[1.5px] border-[#4A5040] bg-white font-[cubic11] text-lg leading-none shadow-[2px_2px_0_#4A5040]"
+                    class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
                     type="button"
                     aria-label="下一個月"
                     @click="moveMonth(1)"
@@ -333,7 +333,7 @@
                   </button>
                 </div>
 
-                <div class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[#6E765E]">
+                <div class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]">
                   <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
                 </div>
 
@@ -370,7 +370,7 @@
                   type="button"
                   @click.stop="toggleSlotPicker(`${slot.id}:startTime`)"
                 >
-                  <span :class="slot.startTime ? '' : 'text-[#A7AB9A]'">{{
+                  <span :class="slot.startTime ? '' : 'text-[var(--bujo-muted)]'">{{
                     slot.startTime ?? '-- : --'
                   }}</span>
                 </button>
@@ -385,8 +385,8 @@
                     <button
                       v-for="time in timeOptions"
                       :key="time"
-                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
-                      :class="slot.startTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
+                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                      :class="slot.startTime === time ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]' : ''"
                       type="button"
                       role="option"
                       :aria-selected="slot.startTime === time"
@@ -398,7 +398,7 @@
                 </div>
               </span>
 
-              <span class="text-center text-sm text-[#4A5040]">–</span>
+              <span class="text-center text-sm text-[var(--bujo-ink)]">–</span>
 
               <span class="relative block">
                 <button
@@ -406,7 +406,7 @@
                   type="button"
                   @click.stop="toggleSlotPicker(`${slot.id}:endTime`)"
                 >
-                  <span :class="slot.endTime ? '' : 'text-[#A7AB9A]'">{{
+                  <span :class="slot.endTime ? '' : 'text-[var(--bujo-muted)]'">{{
                     slot.endTime ?? '-- : --'
                   }}</span>
                 </button>
@@ -421,8 +421,8 @@
                     <button
                       v-for="time in slotEndTimeOptions(slot)"
                       :key="time"
-                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
-                      :class="slot.endTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
+                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                      :class="slot.endTime === time ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]' : ''"
                       type="button"
                       role="option"
                       :aria-selected="slot.endTime === time"
@@ -436,7 +436,7 @@
 
               <button
                 type="button"
-                class="grid h-8 w-8 place-items-center text-[#B06060] hover:text-[#902020]"
+                class="grid h-8 w-8 place-items-center text-[var(--bujo-muted-strong)] hover:text-[#dc2626]"
                 aria-label="刪除候選時段"
                 @click.stop="removeVoteSlot(slot.id)"
               >
@@ -446,7 +446,7 @@
 
             <button
               type="button"
-              class="w-fit border-[1.5px] border-dashed border-[#87C06D] bg-white px-3 py-1.5 font-[cubic11] text-sm text-[#5C8A4A] transition-colors hover:bg-[#F0F8E8]"
+              class="w-fit border border-dashed border-[var(--bujo-line)] bg-transparent px-3 py-1.5 text-sm text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
               @click.stop="addVoteSlot"
             >
               ＋ 新增候選時段
@@ -457,7 +457,7 @@
         <div
           v-else-if="dateMode === 'range' && timeMode === 'fixed'"
           ref="schedulePickerRef"
-          class="col-span-full grid gap-3 border-[1.5px] border-[#A8C893] bg-white px-3 py-2 max-sm:py-1.5"
+          class="col-span-full grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
           @click="closePicker"
         >
           <div class="grid gap-2">
@@ -465,18 +465,18 @@
 
             <div class="mb-1 flex items-center justify-between gap-2">
               <button
-                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border-[1.5px] border-[#4A5040] bg-white font-[cubic11] text-lg leading-none shadow-[2px_2px_0_#4A5040]"
+                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
                 type="button"
                 aria-label="上一個月"
                 @click="moveMonth(-1)"
               >
                 ‹
               </button>
-              <p class="m-0 text-center text-sm leading-none text-[#4A5040]">
+              <p class="m-0 text-center text-sm leading-none text-[var(--bujo-ink)]">
                 {{ monthTitle }}
               </p>
               <button
-                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border-[1.5px] border-[#4A5040] bg-white font-[cubic11] text-lg leading-none shadow-[2px_2px_0_#4A5040]"
+                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
                 type="button"
                 aria-label="下一個月"
                 @click="moveMonth(1)"
@@ -485,7 +485,7 @@
               </button>
             </div>
 
-            <div class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[#6E765E]">
+            <div class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]">
               <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
             </div>
 
@@ -505,13 +505,13 @@
             </div>
           </div>
 
-          <div class="grid gap-2 border-t border-dashed border-[#C8DEB8] pt-2">
+          <div class="grid gap-2 border-t border-dashed border-[var(--bujo-line-soft)] pt-2">
             <div class="grid grid-cols-[52px_1fr] max-sm:grid-cols-[40px_1fr] items-center gap-2">
               <span :class="[fieldLabelClass, 'whitespace-nowrap']">整日：</span>
               <label class="inline-flex w-fit items-center">
                 <input
                   v-model="uniformTime.allDay"
-                  class="h-7 w-7 max-sm:h-6 max-sm:w-6 cursor-pointer appearance-none rounded-none border-[1.5px] border-[#A8C893] bg-white checked:border-[#4A5040] checked:bg-[#7FBE69] focus:outline-none focus:shadow-[inset_0_0_0_1px_#7DB968]"
+                  class="h-7 w-7 max-sm:h-6 max-sm:w-6 cursor-pointer appearance-none rounded-none border border-[var(--bujo-line)] bg-[var(--bujo-surface)] checked:border-[var(--bujo-ink)] checked:bg-[var(--bujo-ink)] focus:outline-none focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
                   type="checkbox"
                   aria-label="整日"
                   @change="closePicker"
@@ -528,7 +528,7 @@
                     type="button"
                     @click.stop="toggleSlotPicker('uniform:startTime')"
                   >
-                    <span :class="uniformTime.startTime ? '' : 'text-[#A7AB9A]'">{{
+                    <span :class="uniformTime.startTime ? '' : 'text-[var(--bujo-muted)]'">{{
                       uniformTime.startTime ?? '-- : --'
                     }}</span>
                   </button>
@@ -543,8 +543,8 @@
                       <button
                         v-for="time in timeOptions"
                         :key="time"
-                        class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
-                        :class="uniformTime.startTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
+                        class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                        :class="uniformTime.startTime === time ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]' : ''"
                         type="button"
                         role="option"
                         :aria-selected="uniformTime.startTime === time"
@@ -556,7 +556,7 @@
                   </div>
                 </span>
 
-                <span class="text-center text-sm text-[#4A5040]">–</span>
+                <span class="text-center text-sm text-[var(--bujo-ink)]">–</span>
 
                 <span class="relative block">
                   <button
@@ -564,7 +564,7 @@
                     type="button"
                     @click.stop="toggleSlotPicker('uniform:endTime')"
                   >
-                    <span :class="uniformTime.endTime ? '' : 'text-[#A7AB9A]'">{{
+                    <span :class="uniformTime.endTime ? '' : 'text-[var(--bujo-muted)]'">{{
                       uniformTime.endTime ?? '-- : --'
                     }}</span>
                   </button>
@@ -579,8 +579,8 @@
                       <button
                         v-for="time in uniformEndTimeOptions"
                         :key="time"
-                        class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
-                        :class="uniformTime.endTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
+                        class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                        :class="uniformTime.endTime === time ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]' : ''"
                         type="button"
                         role="option"
                         :aria-selected="uniformTime.endTime === time"
@@ -599,7 +599,7 @@
         <div
           v-else
           ref="schedulePickerRef"
-          class="col-span-full grid gap-3 border-[1.5px] border-[#A8C893] bg-white px-3 py-2 max-sm:py-1.5"
+          class="col-span-full grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
           @click="closePicker"
         >
           <div class="grid gap-2">
@@ -607,18 +607,18 @@
 
             <div class="mb-1 flex items-center justify-between gap-2">
               <button
-                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border-[1.5px] border-[#4A5040] bg-white font-[cubic11] text-lg leading-none shadow-[2px_2px_0_#4A5040]"
+                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
                 type="button"
                 aria-label="上一個月"
                 @click="moveMonth(-1)"
               >
                 ‹
               </button>
-              <p class="m-0 text-center text-sm leading-none text-[#4A5040]">
+              <p class="m-0 text-center text-sm leading-none text-[var(--bujo-ink)]">
                 {{ monthTitle }}
               </p>
               <button
-                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border-[1.5px] border-[#4A5040] bg-white font-[cubic11] text-lg leading-none shadow-[2px_2px_0_#4A5040]"
+                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
                 type="button"
                 aria-label="下一個月"
                 @click="moveMonth(1)"
@@ -627,7 +627,7 @@
               </button>
             </div>
 
-            <div class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[#6E765E]">
+            <div class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]">
               <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
             </div>
 
@@ -646,7 +646,7 @@
                 {{ cell.label }}
                 <span
                   v-if="cell.isConfigured"
-                  class="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[#4A5040]"
+                  class="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[var(--bujo-ink)]"
                 />
               </button>
             </div>
@@ -655,13 +655,13 @@
           <!-- 正在編輯中的候選日時段 -->
           <div
             v-if="editingSlot"
-            class="grid gap-2 border-t border-dashed border-[#C8DEB8] pt-2"
+            class="grid gap-2 border-t border-dashed border-[var(--bujo-line-soft)] pt-2"
           >
             <div class="flex items-center justify-between gap-2">
               <span :class="fieldLabelClass">{{ shortDate(editingSlot.date) }} 的候選時段</span>
               <button
                 type="button"
-                class="text-xs text-[#B06060] hover:text-[#902020]"
+                class="text-xs text-[var(--bujo-muted-strong)] hover:text-[#dc2626]"
                 @click.stop="removeCandidateSlot(editingSlot.date)"
               >
                 移除此候選日期
@@ -681,7 +681,7 @@
                   type="button"
                   @click.stop="toggleSlotPicker(`${slot.id}:startTime`)"
                 >
-                  <span :class="slot.startTime ? '' : 'text-[#A7AB9A]'">{{
+                  <span :class="slot.startTime ? '' : 'text-[var(--bujo-muted)]'">{{
                     slot.startTime ?? '-- : --'
                   }}</span>
                 </button>
@@ -696,8 +696,8 @@
                     <button
                       v-for="time in timeOptions"
                       :key="time"
-                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
-                      :class="slot.startTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
+                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                      :class="slot.startTime === time ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]' : ''"
                       type="button"
                       role="option"
                       :aria-selected="slot.startTime === time"
@@ -709,7 +709,7 @@
                 </div>
               </span>
 
-              <span class="text-center text-sm text-[#4A5040]">–</span>
+              <span class="text-center text-sm text-[var(--bujo-ink)]">–</span>
 
               <span class="relative block">
                 <button
@@ -717,7 +717,7 @@
                   type="button"
                   @click.stop="toggleSlotPicker(`${slot.id}:endTime`)"
                 >
-                  <span :class="slot.endTime ? '' : 'text-[#A7AB9A]'">{{
+                  <span :class="slot.endTime ? '' : 'text-[var(--bujo-muted)]'">{{
                     slot.endTime ?? '-- : --'
                   }}</span>
                 </button>
@@ -732,8 +732,8 @@
                     <button
                       v-for="time in slotEndTimeOptions(slot)"
                       :key="time"
-                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border-[1.5px] border-[#D8E6C8] bg-white px-3 max-sm:px-2 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] last:mb-0 hover:border-[#7DB968] hover:bg-[#EDF8C9]"
-                      :class="slot.endTime === time ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]' : ''"
+                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                      :class="slot.endTime === time ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]' : ''"
                       type="button"
                       role="option"
                       :aria-selected="slot.endTime === time"
@@ -747,7 +747,7 @@
 
               <button
                 type="button"
-                class="grid h-8 w-8 place-items-center text-[#B06060] hover:text-[#902020]"
+                class="grid h-8 w-8 place-items-center text-[var(--bujo-muted-strong)] hover:text-[#dc2626]"
                 aria-label="刪除候選時段"
                 @click.stop="removeCandidateTimeSlot(editingSlot, slot.id)"
               >
@@ -757,7 +757,7 @@
 
             <button
               type="button"
-              class="w-fit border-[1.5px] border-dashed border-[#87C06D] bg-white px-3 py-1.5 font-[cubic11] text-sm text-[#5C8A4A] transition-colors hover:bg-[#F0F8E8]"
+              class="w-fit border border-dashed border-[var(--bujo-line)] bg-transparent px-3 py-1.5 text-sm text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
               @click.stop="addCandidateTimeSlot(editingSlot)"
             >
               ＋ 新增候選時段
@@ -765,14 +765,14 @@
           </div>
 
           <!-- 已選候選組合 -->
-          <div class="grid gap-2 border-t border-dashed border-[#C8DEB8] pt-2">
+          <div class="grid gap-2 border-t border-dashed border-[var(--bujo-line-soft)] pt-2">
             <span :class="fieldLabelClass">已選候選組合</span>
-            <p v-if="configuredSlots.length === 0" class="text-xs text-[#A7AB9A]">尚無</p>
+            <p v-if="configuredSlots.length === 0" class="text-xs text-[var(--bujo-muted)]">尚無</p>
             <div v-else class="flex flex-wrap gap-2">
               <span
                 v-for="slot in configuredSlots"
                 :key="slot.id"
-                class="border-[1.5px] border-[#A8C893] bg-[#F0F8E8] px-2 py-1 font-[cubic11] text-xs text-[#4A5040]"
+                class="border border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-2 py-1 text-xs text-[var(--bujo-ink)]"
               >
                 {{ shortDate(slot.date) }} {{ slot.startTime }}–{{ slot.endTime }}
               </span>
@@ -792,13 +792,13 @@
 
           <!-- 流團設定附注（非緊急情況） -->
           <template v-if="!isUrgent">
-            <div class="flex items-start gap-2 border-t border-dashed border-[#C8DEB8] pt-2">
-              <span class="flex-1 text-xs leading-5 text-[#9AA890]">
-                <strong class="text-[#7A9070]">{{ deadlineDisplayText }}</strong>，人數若不足活動將自動取消
+            <div class="flex items-start gap-2 border-t border-dashed border-[var(--bujo-line-soft)] pt-2">
+              <span class="flex-1 text-xs leading-5 text-[var(--bujo-muted)]">
+                <strong class="text-[var(--bujo-muted-strong)]">{{ deadlineDisplayText }}</strong>，人數若不足活動將自動取消
               </span>
               <button
                 type="button"
-                class="flex-shrink-0 bg-white border border-[#C8DEB8] px-2 py-0.5 text-[10px] leading-5 text-[#9AA890] transition-colors hover:border-[#87C06D] hover:text-[#87C06D]"
+                class="flex-shrink-0 bg-white border border-[var(--bujo-line-soft)] px-2 py-0.5 text-[10px] leading-5 text-[var(--bujo-muted)] transition-colors hover:border-[var(--bujo-ink)] hover:text-[var(--bujo-ink)]"
                 @click="toggleDeadlineEditor"
               >
                 調整
@@ -808,30 +808,30 @@
             <!-- 流團編輯器 -->
             <div
               v-if="showDeadlineEditor"
-              class="flex items-center gap-2 border-[1.5px] border-dashed border-[#87C06D] bg-[#F0F8E8] px-3 py-2"
+              class="flex items-center gap-2 border border-dashed border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-3 py-2"
             >
-              <span class="text-xs text-[#4A5040]">活動開始前</span>
+              <span class="text-xs text-[var(--bujo-ink)]">活動開始前</span>
               <input
                 v-model.number="deadline.value"
                 type="number"
                 min="1"
-                class="h-8 w-14 rounded-none border-[1.5px] border-[#A8C893] bg-white px-2 font-[cubic11] text-xs text-[#4A5040] outline-none focus:border-[#7DB968] focus:shadow-[inset_0_0_0_1px_#7DB968]"
+                class="h-8 w-14 rounded-none border border-[var(--bujo-line)] bg-white px-2 text-xs text-[var(--bujo-ink)] outline-none focus:border-[var(--bujo-accent)] focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
               />
               <select
                 v-model="deadline.unit"
-                class="h-8 rounded-none border-[1.5px] border-[#A8C893] bg-white px-2 font-[cubic11] text-xs text-[#4A5040] outline-none focus:border-[#7DB968]"
+                class="h-8 rounded-none border border-[var(--bujo-line)] bg-white px-2 text-xs text-[var(--bujo-ink)] outline-none focus:border-[var(--bujo-accent)]"
               >
                 <option v-for="opt in deadlineUnitOptions" :key="opt.value" :value="opt.value">
                   {{ opt.label }}
                 </option>
               </select>
-              <span class="text-xs text-[#4A5040]">自動取消</span>
+              <span class="text-xs text-[var(--bujo-ink)]">自動取消</span>
             </div>
           </template>
         </label>
         <div
           v-if="submitError"
-          class="col-span-full flex items-start gap-2 border-[1.5px] border-[#E06060] bg-[#FFF0F0] px-3 py-2 text-xs text-[#B03030]"
+          class="col-span-full flex items-start gap-2 border border-[#dc2626] bg-[var(--bujo-surface)] px-3 py-2 text-xs text-[#dc2626]"
         >
           ⚠️ {{ submitError }}
         </div>
@@ -852,7 +852,7 @@
   >
     <template #default>
       <div class="grid gap-3 py-2 text-center">
-        <p class="text-sm leading-6 text-[#4A5040]">
+        <p class="text-sm leading-6 text-[var(--bujo-ink)]">
           這個活動將在 <strong>{{ minutesUntilStart }}</strong> 分鐘後開始<br />
           建立後請記得到活動頁面<br />
           <strong>手動確認成團</strong>，才會通知參與者
@@ -869,8 +869,8 @@
   <BaseModal :isOpen="showSuccessModal" title="建立成功" @close="dismissSuccessModal">
     <div class="flex flex-col items-center gap-2 py-6 text-center">
       <span class="text-4xl" aria-hidden="true">🎉</span>
-      <p class="text-lg font-bold text-[#4A5040]">已成功建立活動</p>
-      <p class="text-sm text-[#7A9070]">好友會在活動列表看到這個揪團</p>
+      <p class="text-lg font-bold text-[var(--bujo-ink)]">已成功建立活動</p>
+      <p class="text-sm text-[var(--bujo-muted-strong)]">好友會在活動列表看到這個揪團</p>
     </div>
   </BaseModal>
 </template>
@@ -1076,21 +1076,21 @@ const scenario4DateCells = computed(() => {
 
 function scenario4DateButtonClass(cell) {
   const base =
-    'relative h-8 max-sm:h-7 border-[1.5px] font-[cubic11] text-xs leading-none transition-colors'
+    'relative h-8 max-sm:h-7 border text-xs leading-none transition-colors'
   if (cell.isDisabled) {
-    return [base, 'border-[#D8E6C8] bg-white text-[#C8C8C0] cursor-not-allowed opacity-40']
+    return [base, 'border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] text-[var(--bujo-muted)] cursor-not-allowed opacity-40']
   }
   if (cell.isEditing) {
-    return [base, 'border-[#4A5040] bg-[#5C9A4A] text-[#F5F5EE]']
+    return [base, 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]']
   }
   if (cell.isCandidate) {
-    return [base, 'border-[#A8C893] bg-[#DCEFD0] text-[#4A5040] hover:border-[#7DB968]']
+    return [base, 'border-[var(--bujo-line)] bg-[var(--bujo-card-yellow)] text-[var(--bujo-ink)] hover:border-[var(--bujo-accent)]']
   }
   return [
     base,
-    'border-[#D8E6C8] bg-white text-[#4A5040] hover:border-[#7DB968] hover:bg-[#EDF8C9]',
-    !cell.isCurrentMonth && 'text-[#A7AB9A]',
-    cell.isToday && 'border-[#7DB968] bg-[#F3F9D8]',
+    'border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] text-[var(--bujo-ink)] hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]',
+    !cell.isCurrentMonth && 'text-[var(--bujo-muted)]',
+    cell.isToday && 'border-[var(--bujo-line)] bg-[var(--bujo-today)] shadow-[inset_0_0_0_1px_var(--bujo-accent)]',
   ]
 }
 
@@ -1134,13 +1134,13 @@ const endTimeUserSet = ref(false)
 const timeError = ref('')
 
 const fieldClass = 'grid gap-2'
-const fieldLabelClass = 'field-label text-sm leading-none tracking-[0.01em] text-[#4A5040]'
+const fieldLabelClass = 'text-sm font-semibold leading-none tracking-[0.01em] text-[var(--bujo-ink)]'
 const inputClass =
-  'min-h-[44px] max-sm:min-h-[38px] w-full rounded-none border-[1.5px] border-[#A8C893] bg-white px-4 py-2 font-[cubic11] text-sm leading-[1.2] text-[#4A5040] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[#858A7A] focus:border-[#7DB968] focus:shadow-[inset_0_0_0_1px_#7DB968]'
+  'min-h-[44px] max-sm:min-h-[38px] w-full rounded-none border border-[var(--bujo-line)] bg-white px-4 py-2 text-sm leading-[1.2] text-[var(--bujo-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--bujo-muted)] focus:border-[var(--bujo-accent)] focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]'
 const pickerButtonClass =
-  'min-h-[38px] max-sm:min-h-[34px] whitespace-nowrap rounded-none border-[1.5px] border-[#A8C893] bg-white px-3 py-1.5 text-left font-[cubic11] text-sm leading-none text-[#4A5040] outline-none transition-[border-color,box-shadow] hover:border-[#7DB968] focus:border-[#7DB968] focus:shadow-[inset_0_0_0_1px_#7DB968]'
+  'min-h-[38px] max-sm:min-h-[34px] whitespace-nowrap rounded-none border border-[var(--bujo-line)] bg-white px-3 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] outline-none transition-[border-color,box-shadow] hover:border-[var(--bujo-accent)] focus:border-[var(--bujo-accent)] focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]'
 const pickerPanelClass =
-  'absolute top-[calc(100%+6px)] z-50 border-2 border-[#4A5040] bg-white p-3 shadow-[5px_5px_0_#4A5040] max-sm:static max-sm:mt-1'
+  'absolute top-[calc(100%+6px)] z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] p-3 shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] max-sm:static max-sm:mt-1'
 
 const activePicker = ref('')
 const schedulePickerRef = ref(null)
@@ -1719,33 +1719,33 @@ function createTimeOptions() {
 }
 
 function dateButtonClass(cell) {
-  const base = 'h-8 max-sm:h-7 border-[1.5px] font-[cubic11] text-xs leading-none'
+  const base = 'h-8 max-sm:h-7 border text-xs leading-none'
   if (cell.isDisabled) {
-    return [base, 'border-[#D8E6C8] bg-white text-[#C8C8C0] cursor-not-allowed opacity-40']
+    return [base, 'border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] text-[var(--bujo-muted)] cursor-not-allowed opacity-40']
   }
   return [
     base,
     'transition-colors',
     cell.isSelected
-      ? 'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]'
-      : 'border-[#D8E6C8] bg-white text-[#4A5040] hover:border-[#7DB968] hover:bg-[#EDF8C9]',
-    !cell.isCurrentMonth && 'text-[#A7AB9A]',
-    cell.isToday && !cell.isSelected && 'border-[#7DB968] bg-[#F3F9D8]',
+      ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+      : 'border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] text-[var(--bujo-ink)] hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]',
+    !cell.isCurrentMonth && 'text-[var(--bujo-muted)]',
+    cell.isToday && !cell.isSelected && 'border-[var(--bujo-line)] bg-[var(--bujo-today)] shadow-[inset_0_0_0_1px_var(--bujo-accent)]',
   ]
 }
 
 function timeButtonClass(time, field) {
   return {
-    'border-[#4A5040] bg-[#7FBE69] text-[#FEF7E8]': form[field] === time,
+    'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]': form[field] === time,
   }
 }
 
 function scenarioButtonClass(active) {
   return [
-    'flex min-h-[44px] max-sm:min-h-[38px] items-center justify-center border-[1.5px] px-4 py-2 font-[cubic11] text-sm leading-[1.2] transition-colors',
+    'flex min-h-[44px] max-sm:min-h-[38px] items-center justify-center border px-4 py-2 text-sm leading-[1.2] transition-colors',
     active
-      ? 'border-[#4A5040] bg-[#87C06D] text-[#F5F5EE]'
-      : 'border-[#A8C893] bg-white text-[#4A5040] hover:border-[#7DB968] hover:bg-[#EDF8C9]',
+      ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+      : 'border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-[var(--bujo-ink)] hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]',
   ]
 }
 
@@ -1762,9 +1762,3 @@ onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleEscape)
 })
 </script>
-
-<style scoped>
-.field-label {
-  -webkit-text-stroke: 0.5px #4a5040;
-}
-</style>

@@ -674,19 +674,8 @@ function isToday(date) {
 
 .calendar-create-button {
   margin-left: 4px;
-  border: 1px solid var(--bujo-ink) !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: var(--bujo-ink) !important;
-  font-family: "Space Mono", monospace !important;
-  letter-spacing: 0 !important;
-}
-
-.calendar-create-button:hover {
-  background: var(--bujo-ink) !important;
-  border-color: var(--bujo-ink) !important;
-  box-shadow: none !important;
-  color: var(--bujo-white) !important;
+  font-family: "Space Mono", monospace;
+  letter-spacing: 0;
 }
 
 .calendar-profile-button {

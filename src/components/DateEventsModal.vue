@@ -3,7 +3,7 @@
     <template #header-actions>
       <button
         type="button"
-        class="grid h-7 w-7 place-items-center text-lg leading-none text-[#4A5040] transition hover:bg-[#DEF4CD]"
+        class="grid h-7 w-7 place-items-center text-lg leading-none text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:text-[var(--bujo-ink)] active:translate-x-px active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bujo-accent)]"
         aria-label="新增行程"
         @click="emit('add', props.date)"
       >
@@ -17,7 +17,7 @@
           <article
             v-for="event in events"
             :key="event.id"
-            class="flex min-h-[60px] items-center border border-[#9DBD86] bg-white px-2 text-[#4A5040] md:px-3 cursor-pointer"
+            class="flex min-h-[60px] items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-2 text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)] md:px-3 cursor-pointer"
             @click="goToDetail(event.id)"
           >
             <svg
@@ -32,17 +32,17 @@
             </svg>
 
             <div class="min-w-0 flex-1">
-              <h3 class="font-[cubic11] text-[15px] font-black leading-tight">
+              <h3 class="font-[plex-sans-tc] text-[15px] font-bold leading-tight">
                 {{ event.title }}
               </h3>
-              <p class="mt-1 truncate font-[cubic11] text-[10px] text-[#9DBD86] md:text-[12px]">
+              <p class="mt-1 truncate font-[space-mono] text-[10px] text-[var(--bujo-muted-strong)] md:text-[12px]">
                 {{ event.time || '未設定時間' }}
                 <span v-if="event.location"> ・ {{ event.location }}</span>
               </p>
             </div>
 
             <span
-              class="ml-2 shrink-0 border px-1.5 py-1 font-[cubic11] text-[11px] md:ml-3 md:px-2 md:text-[12px]"
+              class="ml-2 shrink-0 border border-[var(--bujo-ink)] px-1.5 py-1 font-[space-mono] text-[11px] text-[var(--bujo-ink)] md:ml-3 md:px-2 md:text-[12px]"
               :class="statusClass[event.status] || statusClass.formed"
             >
               {{ statusLabel[event.status] || '已成團' }}
@@ -52,10 +52,10 @@
 
         <div
           v-else
-          class="flex min-h-[82px] flex-col items-center justify-center text-center font-[cubic11] text-[#9DBD86]"
+          class="flex min-h-[82px] flex-col items-center justify-center text-center text-[var(--bujo-muted-strong)]"
         >
-          <p class="text-[16px]">這天還沒有行程</p>
-          <p class="mt-1 text-[12px]">點右上角 ＋ 新增</p>
+          <p class="font-[plex-sans-tc] text-[15px]">這天還沒有行程</p>
+          <p class="mt-1 font-[space-mono] text-[11px]">點右上角 ＋ 新增</p>
         </div>
       </div>
     </template>
@@ -113,9 +113,9 @@ const statusLabel = {
 }
 
 const statusClass = {
-  joined: 'border-[#87A76B] bg-[#87C06D]/40 text-[#4A5040]',
-  formed: 'border-[#5e9b57] bg-[#5e9b57] text-white',
-  personal: 'border-[#F9CE9A] bg-[#F9CE9A] text-[#4A5040]',
-  recruiting: 'border-[#87A76B] bg-[#DEF4CD] text-[#4A5040]',
+  joined: 'bg-[var(--bujo-card-blue)]',
+  formed: 'bg-[var(--bujo-accent)]',
+  personal: 'bg-[var(--bujo-surface)]',
+  recruiting: 'bg-[var(--bujo-card-pink)]',
 }
 </script>

@@ -15,12 +15,6 @@
       </div>
 
       <template v-else-if="activity">
-        <div class="activity-detail-cover">
-          <svg class="h-12 w-12 text-[#4A5040]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M4 2h16v2H4V2zm2 4h12v2H6V6zm-2 4h16v2H4v-2zm4 4h8v2H8v-2zm-6 4h20v2H2v-2z" />
-          </svg>
-        </div>
-
         <div class="activity-detail-creator">
           <div class="activity-detail-avatar">
             <img v-if="activity.creator.avatar_url" :src="activity.creator.avatar_url" alt="" />
@@ -569,7 +563,7 @@ function formatTime(date) {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 0 20px 14px;
+  padding: 12px 20px 14px;
   scrollbar-width: none;
 }
 
@@ -587,16 +581,6 @@ function formatTime(date) {
 .activity-detail-state--error,
 .activity-detail-error {
   color: #dc2626;
-}
-
-.activity-detail-cover {
-  height: 68px;
-  margin-bottom: 16px;
-  border: 0;
-  background: rgba(var(--bujo-white-rgb), 0.35);
-  display: grid;
-  place-items: center;
-  opacity: 0.78;
 }
 
 .activity-detail-creator,

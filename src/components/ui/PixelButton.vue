@@ -1,86 +1,98 @@
-<!-- 按鈕樣式：動畫、hover、樣式全部封裝在內，不需要額外設定。
+<!-- 按鈕樣式（Outline Button，見 BuJo_Visual_Specification_v1.md 第 10 節）：
+動畫、hover、樣式全部封裝在內，不需要額外設定。
 用到這個樣式時：
 引入：
   import PixelButton from '@/components/ui/PixelButton.vue'
 
-  綠底白字（預設）：
+  主要動作（預設）：
   <PixelButton @click="doSomething">按鈕文字</PixelButton>
 
-  白底深字（取消、次要動作）：
+  次要動作（取消、返回）：
   <PixelButton variant="white" @click="doSomething">取消</PixelButton>
+
+  破壞性動作：
+  <PixelButton variant="danger" @click="doSomething">刪除</PixelButton>
 
   表單送出：
   <PixelButton type="submit">送出揪團</PixelButton>
 -->
 
 <template>
-  <button
-    v-bind="attrsWithoutClick"
-    class="inline-flex items-center justify-center gap-1 font-[cubic11] font-black text-[12px] px-4 py-2 border-2 border-[#4A5040] shadow-[3px_3px_0px_#4A5040] hover:border-[#0E7490] hover:shadow-[3px_3px_0_#0E7490] transition-all duration-150 cursor-pointer"
-    :class="[
-      props.variant === 'white'
-        ? 'bg-white text-[#4A5040] hover:bg-[#D9EEF2] hover:text-[#0E7490]'
-        : props.variant === 'danger'
-          ? 'bg-[#F9CE9A] text-[#4A5040] hover:bg-[rgba(185,64,64,0.12)] hover:border-[#9B3030] hover:shadow-[3px_3px_0_#9B3030] hover:text-[#9B3030]'
-          : 'bg-[#87C06D] text-white hover:bg-[#69AD76]',
-      { 'btn-bounce': isBouncing },
-    ]"
-    @click="handleClick"
-    @animationend="onAnimationEnd"
-  >
+  <button class="bujo-btn" :class="`bujo-btn--${variant}`">
     <slot />
   </button>
 </template>
 
 <script setup>
-import { ref, useAttrs, computed } from 'vue'
-
-defineOptions({ inheritAttrs: false })
-
-const props = defineProps({
+defineProps({
   variant: {
     type: String,
     default: 'green',
   },
 })
-
-const attrs = useAttrs()
-const attrsWithoutClick = computed(() => {
-  const rest = { ...attrs }
-  delete rest.onClick
-  return rest
-})
-
-const isBouncing = ref(false)
-
-function handleClick(event) {
-  isBouncing.value = true
-  if (typeof attrs.onClick === 'function') {
-    attrs.onClick(event)
-  }
-}
-
-function onAnimationEnd() {
-  isBouncing.value = false
-}
 </script>
 
 <style scoped>
-@keyframes pixel-bounce {
-  0% {
-    transform: translate(0, 0);
-    box-shadow: 3px 3px 0 #4a5040;
-  }
-  40% {
-    transform: translate(3px, 3px);
-    box-shadow: 0 0 0 #4a5040;
-  }
-  100% {
-    transform: translate(0, 0);
-    box-shadow: 3px 3px 0 #4a5040;
-  }
+.bujo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: 1px solid var(--bujo-ink);
+  background: transparent;
+  color: var(--bujo-ink);
+  font-family: 'IBM Plex Sans TC', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 150ms cubic-bezier(.2, .8, .2, 1),
+    border-color 150ms cubic-bezier(.2, .8, .2, 1),
+    color 150ms cubic-bezier(.2, .8, .2, 1),
+    transform 100ms cubic-bezier(.2, .8, .2, 1);
 }
-.btn-bounce {
-  animation: pixel-bounce 0.2s ease-in-out;
+
+.bujo-btn:hover:not(:disabled) {
+  background: var(--bujo-ink);
+  color: var(--bujo-white);
+}
+
+.bujo-btn:active:not(:disabled) {
+  transform: translate(1px, 1px);
+}
+
+.bujo-btn:focus-visible {
+  outline: 2px solid var(--bujo-accent);
+  outline-offset: 2px;
+}
+
+.bujo-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.bujo-btn--white {
+  border-color: var(--bujo-line);
+  color: var(--bujo-muted-strong);
+}
+
+.bujo-btn--white:hover:not(:disabled) {
+  background: transparent;
+  border-color: var(--bujo-ink);
+  color: var(--bujo-ink);
+}
+
+.bujo-btn--danger {
+  border-color: var(--bujo-line);
+  color: var(--bujo-muted-strong);
+}
+
+.bujo-btn--danger:hover:not(:disabled) {
+  background: transparent;
+  border-color: #dc2626;
+  color: #dc2626;
 }
 </style>

@@ -2,20 +2,20 @@
   <Teleport to="body">
     <div
       v-if="modelValue"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(var(--bujo-ink-rgb)/0.35)] p-4"
       @click.self="close"
     >
       <div
-        class="bg-white border-2 border-[#4A5040] shadow-[6px_6px_0_#DEF4CD] w-full max-w-[800px] h-[70vh] md:h-[600px] flex flex-col overflow-hidden"
+        class="font-['IBM_Plex_Sans_TC'] bg-[var(--bujo-surface)] border border-[var(--bujo-line-soft)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] w-full max-w-[800px] h-[70vh] md:h-[600px] flex flex-col overflow-hidden"
       >
         <!-- Header -->
         <div
-          class="bg-[#D9F0A8] border-b-2 border-[#DEF4CD] px-4 py-3 flex items-center justify-between shrink-0"
+          class="border-b border-[var(--bujo-line)] px-4 py-3 flex items-center justify-between shrink-0"
         >
-          <h2 class="font-cubic11 font-black text-[#4A5040] text-sm md:text-base">選取有空時間</h2>
+          <h2 class="font-bold text-[var(--bujo-ink)] text-sm md:text-base">選取有空時間</h2>
           <button
             @click="close"
-            class="w-6 h-6 bg-[#4A5040] text-white font-bold text-xs flex items-center justify-center hover:bg-[#5e9b57] transition-colors"
+            class="w-7 h-7 flex items-center justify-center text-[var(--bujo-muted-strong)] text-sm transition-colors duration-150 hover:text-[var(--bujo-ink)]"
           >
             ✕
           </button>
@@ -23,7 +23,7 @@
 
         <!-- Activity range -->
         <div
-          class="bg-[#f5fbee] border-b border-[#DEF4CD] px-4 py-1.5 shrink-0 font-cubic11 text-[12px] font-bold text-[#5e9b57]"
+          class="bg-[var(--bujo-surface-muted)] border-b border-[var(--bujo-line-soft)] px-4 py-1.5 shrink-0 text-[12px] font-bold text-[var(--bujo-muted-strong)]"
         >
           活動日期範圍：{{ rangeStart }} — {{ rangeEnd }}
         </div>
@@ -35,11 +35,11 @@
         >
           <!-- 日曆區 -->
           <div
-            class="border-b-2 md:border-b-0 md:border-r-2 border-[#DEF4CD] p-3 md:p-4 w-full md:flex-1 flex flex-col"
+            class="border-b md:border-b-0 md:border-r border-[var(--bujo-line-soft)] p-3 md:p-4 w-full md:flex-1 flex flex-col"
           >
             <!-- 月份標題 -->
             <div class="flex items-center justify-between mb-2 shrink-0">
-              <span class="font-cubic11 text-[13px] md:text-base font-black text-[#4A5040]">
+              <span class="text-[13px] md:text-base font-bold text-[var(--bujo-ink)]">
                 {{ calYear }} / {{ calMonth }}
               </span>
             </div>
@@ -52,7 +52,7 @@
               <div
                 v-for="d in DOW_LABELS"
                 :key="d"
-                class="text-xs md:text-[13px] font-bold text-[#9DBD86] text-center flex items-end justify-center pb-1"
+                class="text-xs md:text-[13px] font-bold text-[var(--bujo-muted-strong)] text-center flex items-end justify-center pb-1"
               >
                 {{ d }}
               </div>
@@ -76,7 +76,7 @@
             <!-- 無聚焦日期 -->
             <div
               v-if="!activeDate || !(activeDate in selectedDates)"
-              class="text-[11px] text-[#b0c09a] py-8 text-center border-2 border-dashed border-[#DEF4CD]"
+              class="text-[11px] text-[var(--bujo-muted)] py-8 text-center border border-dashed border-[var(--bujo-line-soft)]"
             >
               ← 選取日期
             </div>
@@ -84,8 +84,8 @@
             <template v-else>
               <!-- 日期標題 -->
               <div class="flex items-center gap-2 mb-1">
-                <span class="w-2 h-2 bg-[#87C06D] shrink-0 inline-block"></span>
-                <span class="font-cubic11 font-black text-[13px] md:text-sm text-[#4A5040]">
+                <span class="w-2 h-2 bg-[var(--bujo-accent)] shrink-0 inline-block"></span>
+                <span class="font-bold text-[13px] md:text-sm text-[var(--bujo-ink)]">
                   {{ formatChip(activeDate) }}
                 </span>
               </div>
@@ -93,14 +93,14 @@
               <!-- 整天狀態 -->
               <div
                 v-if="isAllDay(activeDate)"
-                class="bg-[#D9F0A8] border-2 border-[#9DBD86] px-3 py-2 flex items-center justify-between mb-2"
+                class="bg-[var(--bujo-surface-muted)] border border-[var(--bujo-line)] px-3 py-2 flex items-center justify-between mb-2"
               >
-                <span class="font-cubic11 text-[12px] md:text-[13px] font-bold text-[#4A5040]">
+                <span class="text-[12px] md:text-[13px] font-bold text-[var(--bujo-ink)]">
                   整天有空
                 </span>
                 <button
                   @click="startCustom"
-                  class="text-[11px] md:text-xs font-bold border-2 border-[#9DBD86] px-2 py-1 hover:bg-white transition-colors font-cubic11"
+                  class="text-[11px] md:text-xs font-bold border border-[var(--bujo-line)] px-2 py-1 transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
                 >
                   指定時段
                 </button>
@@ -116,8 +116,8 @@
                   >
                     <div class="relative time-picker-wrap flex-1 min-w-0" @click.stop>
                       <button
-                        class="w-full border-2 border-[#DEF4CD] bg-[#fafdf7] px-1.5 py-1.5 font-bold text-[#4A5040] text-[13px] outline-none transition-colors hover:border-[#87C06D] text-left"
-                        :class="{ 'border-[#87C06D]': activeTimePicker === `from-${i}` }"
+                        class="w-full border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-1.5 py-1.5 font-bold text-[var(--bujo-ink)] text-[13px] outline-none transition-colors duration-150 hover:border-[var(--bujo-accent)] text-left"
+                        :class="{ 'border-[var(--bujo-accent)]': activeTimePicker === `from-${i}` }"
                         type="button"
                         @click="openTimePicker(`from-${i}`, $el.parentElement)"
                       >
@@ -125,17 +125,17 @@
                       </button>
                       <div
                         v-if="activeTimePicker === `from-${i}`"
-                        class="absolute top-[calc(100%+4px)] left-0 z-50 border-2 border-[#9DBD86] bg-[#fafdf7] shadow-[4px_4px_0_#DEF4CD] w-[130px] max-h-[200px] overflow-y-auto"
+                        class="absolute top-[calc(100%+4px)] left-0 z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] w-[130px] max-h-[200px] overflow-y-auto"
                       >
                         <button
                           v-for="opt in hourOptions"
                           :key="opt.value"
                           :data-hour="parseInt(opt.value)"
-                          class="block w-full px-2 py-1.5 text-left text-[12px] font-bold font-cubic11 border-b border-[#DEF4CD] last:border-b-0 transition-colors hover:bg-[#f0fae5]"
+                          class="block w-full px-2 py-1.5 text-left text-[12px] font-bold border-b border-[var(--bujo-line-soft)] last:border-b-0 transition-colors duration-150 hover:bg-[var(--bujo-surface-muted)]"
                           :class="
                             range.from === opt.value
-                              ? 'bg-[#87C06D] text-white'
-                              : 'text-[#9DBD86] bg-[#fafdf7]'
+                              ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                              : 'text-[var(--bujo-muted-strong)] bg-[var(--bujo-surface)]'
                           "
                           type="button"
                           @click="selectRangeStart(range, opt.value)"
@@ -144,11 +144,11 @@
                         </button>
                       </div>
                     </div>
-                    <span class="text-[12px] text-[#9DBD86] font-bold shrink-0">→</span>
+                    <span class="text-[12px] text-[var(--bujo-muted-strong)] font-bold shrink-0">→</span>
                     <div class="relative time-picker-wrap flex-1 min-w-0" @click.stop>
                       <button
-                        class="w-full border-2 border-[#DEF4CD] bg-[#fafdf7] px-1.5 py-1.5 font-bold text-[#4A5040] text-[13px] outline-none transition-colors hover:border-[#87C06D] text-left"
-                        :class="{ 'border-[#87C06D]': activeTimePicker === `to-${i}` }"
+                        class="w-full border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-1.5 py-1.5 font-bold text-[var(--bujo-ink)] text-[13px] outline-none transition-colors duration-150 hover:border-[var(--bujo-accent)] text-left"
+                        :class="{ 'border-[var(--bujo-accent)]': activeTimePicker === `to-${i}` }"
                         type="button"
                         @click="openTimePicker(`to-${i}`, $el.parentElement)"
                       >
@@ -156,17 +156,17 @@
                       </button>
                       <div
                         v-if="activeTimePicker === `to-${i}`"
-                        class="absolute top-[calc(100%+4px)] left-0 z-50 border-2 border-[#9DBD86] bg-[#fafdf7] shadow-[4px_4px_0_#DEF4CD] w-[130px] max-h-[200px] overflow-y-auto"
+                        class="absolute top-[calc(100%+4px)] left-0 z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] w-[130px] max-h-[200px] overflow-y-auto"
                       >
                         <button
                           v-for="opt in hourOptions"
                           :key="opt.value"
                           :data-hour="parseInt(opt.value)"
-                          class="block w-full px-2 py-1.5 text-left text-[12px] font-bold font-cubic11 border-b border-[#DEF4CD] last:border-b-0 transition-colors hover:bg-[#f0fae5]"
+                          class="block w-full px-2 py-1.5 text-left text-[12px] font-bold border-b border-[var(--bujo-line-soft)] last:border-b-0 transition-colors duration-150 hover:bg-[var(--bujo-surface-muted)]"
                           :class="
                             range.to === opt.value
-                              ? 'bg-[#87C06D] text-white'
-                              : 'text-[#9DBD86] bg-[#fafdf7]'
+                              ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                              : 'text-[var(--bujo-muted-strong)] bg-[var(--bujo-surface)]'
                           "
                           type="button"
                           @click="selectRangeEnd(range, opt.value)"
@@ -177,7 +177,7 @@
                     </div>
                     <button
                       @click="removeRange(i)"
-                      class="w-6 h-6 bg-[#DEF4CD] border-2 border-[#9DBD86] text-[11px] font-bold flex items-center justify-center shrink-0 hover:bg-[#f9ce9a] hover:border-[#c07070] transition-colors"
+                      class="w-6 h-6 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-[var(--bujo-muted-strong)] text-[11px] font-bold flex items-center justify-center shrink-0 transition-colors duration-150 hover:border-[#dc2626] hover:text-[#dc2626]"
                     >
                       ✕
                     </button>
@@ -186,14 +186,14 @@
 
                 <button
                   @click="addRange"
-                  class="w-full text-[11px] font-bold text-[#87C06D] border-2 border-dashed border-[#87C06D] py-1.5 hover:bg-[#f0fae5] transition-colors font-cubic11"
+                  class="w-full text-[11px] font-bold text-[var(--bujo-muted-strong)] border border-dashed border-[var(--bujo-line)] py-1.5 transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                 >
                   ＋ 新增時段
                 </button>
 
                 <button
                   @click="resetAllDay"
-                  class="mt-2 text-[10px] text-[#9DBD86] hover:text-[#4A5040] transition-colors font-cubic11 block"
+                  class="mt-2 text-[10px] text-[var(--bujo-muted)] transition-colors duration-150 hover:text-[var(--bujo-ink)] block"
                 >
                   ↩ 改回整天有空
                 </button>
@@ -204,29 +204,29 @@
 
         <!-- Summary strip -->
         <div
-          class="border-t-2 border-[#DEF4CD] bg-[#fafdf7] px-4 py-2 shrink-0 min-h-[36px] max-h-[70px] overflow-y-auto"
+          class="border-t border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-4 py-2 shrink-0 min-h-[36px] max-h-[70px] overflow-y-auto"
         >
           <div class="flex items-start gap-2 flex-wrap">
             <span
               v-if="!summaryItems.length"
-              class="font-cubic11 text-[10px] md:text-[12px] text-[#9DBD86]"
+              class="text-[10px] md:text-[12px] text-[var(--bujo-muted)]"
             >
               尚未選取任何時段
             </span>
             <template v-else>
               <span
-                class="flex items-center font-cubic11 text-[10px] md:text-[12px] font-black text-[#5e9b57] shrink-0"
+                class="flex items-center text-[10px] md:text-[12px] font-black text-[var(--bujo-muted-strong)] shrink-0"
                 >已選：</span
               >
               <button
                 v-for="item in summaryItems"
                 :key="item.chip"
                 @click="activeDate = item.date"
-                class="font-cubic11 text-[10px] md:text-[12px] font-bold px-2 py-0.5 border transition-colors"
+                class="text-[10px] md:text-[12px] font-bold px-2 py-0.5 border transition-colors duration-150"
                 :class="
                   activeDate === item.date
-                    ? 'bg-[#4A5040] text-white border-[#4A5040]'
-                    : 'bg-[#D9F0A8] border-[#9DBD86] hover:border-[#87C06D]'
+                    ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)] border-[var(--bujo-ink)]'
+                    : 'bg-[var(--bujo-surface)] text-[var(--bujo-ink)] border-[var(--bujo-line)] hover:border-[var(--bujo-ink)]'
                 "
               >
                 {{ item.chip }} {{ item.label }}
@@ -236,19 +236,9 @@
         </div>
 
         <!-- Footer -->
-        <div class="border-t-2 border-[#DEF4CD] px-4 py-2.5 flex justify-end gap-2 shrink-0">
-          <button
-            @click="close"
-            class="px-4 py-1.5 text-xs font-bold font-cubic11 border-2 border-[#DEF4CD] bg-white text-[#4A5040] hover:border-[#9DBD86] transition-colors"
-          >
-            取消
-          </button>
-          <button
-            @click="handleConfirm"
-            class="px-4 py-1.5 text-xs font-bold font-cubic11 border-2 border-[#4A5040] bg-[#87C06D] text-[#4A5040] shadow-[3px_3px_0_#4A5040] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all"
-          >
-            確認報名
-          </button>
+        <div class="border-t border-[var(--bujo-line)] px-4 py-2.5 flex justify-end gap-2 shrink-0">
+          <PixelButton variant="white" type="button" @click="close">取消</PixelButton>
+          <PixelButton type="button" @click="handleConfirm">確認報名</PixelButton>
         </div>
       </div>
     </div>
@@ -257,6 +247,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import PixelButton from './ui/PixelButton.vue'
 
 const modalBody = ref(null)
 
@@ -308,16 +299,16 @@ function dayClass(day) {
   const isDragHov = dragState.active && dragState.hovering.has(day)
 
   if (!inRange)
-    return 'text-[13px] md:text-[14px] font-bold text-center border-2 border-transparent text-[#ccc] cursor-default h-full min-h-[36px] flex items-center justify-center'
+    return 'text-[13px] md:text-[14px] font-bold text-center border border-transparent text-[var(--bujo-muted)] cursor-default h-full min-h-[36px] flex items-center justify-center'
 
   return [
-    'text-[13px] md:text-[14px] font-bold text-center border-2 cursor-pointer transition-colors select-none h-full min-h-[36px] flex items-center justify-center',
+    'text-[13px] md:text-[14px] font-bold text-center border cursor-pointer transition-colors select-none h-full min-h-[36px] flex items-center justify-center',
     !sel && !isDragHov
-      ? 'bg-[#f0fae5] border-transparent hover:bg-[#DEF4CD] hover:border-[#87C06D]'
+      ? 'bg-[var(--bujo-surface)] border-[var(--bujo-line-soft)] text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)] hover:border-[var(--bujo-ink)]'
       : '',
-    isDragHov && !sel ? 'bg-[#DEF4CD] border-[#87C06D]' : '',
-    sel && !isActive ? 'bg-[#87C06D] text-white border-[#5e9b57]' : '',
-    sel && isActive ? 'bg-[#4A5040] text-white border-[#4A5040]' : '',
+    isDragHov && !sel ? 'bg-[var(--bujo-surface-muted)] border-[var(--bujo-accent)]' : '',
+    sel && !isActive ? 'bg-[var(--bujo-accent)] text-[var(--bujo-ink)] border-[var(--bujo-ink)]' : '',
+    sel && isActive ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)] border-[var(--bujo-ink)]' : '',
   ]
     .filter(Boolean)
     .join(' ')
