@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-col gap-3 flex-1 min-h-0 px-4 pb-8 md:px-28 md:pt-4 md:pb-20 relative isolate"
+    class="calendar-main-shell flex flex-col flex-1 min-h-0 px-4 pb-8 md:px-16 md:pt-6 md:pb-16 relative isolate"
   >
     <div
       ref="overlayRef"
@@ -21,54 +21,57 @@
         }"
       />
     </div>
-    <MarqueeBanner />
     <div class="md:hidden h-5"></div>
 
-    <!-- 標題列 -->
-    <div class="flex items-center justify-between w-full">
-      <div class="flex items-baseline gap-3">
+    <!-- Hero + controls + social rail -->
+    <section class="calendar-hero-composition">
+      <div class="calendar-hero-copy">
         <!-- 漢堡選單（僅桌機顯示） -->
         <button
           @click="emit('toggle-sidebar')"
-          class="hidden md:flex flex-col gap-[5px] p-2 hover:opacity-70 self-center"
+          class="calendar-menu-button hidden md:flex"
+          aria-label="切換側邊欄"
         >
-          <span class="block w-5 h-[2px] bg-[#4A5040]"></span>
-          <span class="block w-5 h-[2px] bg-[#4A5040]"></span>
-          <span class="block w-5 h-[2px] bg-[#4A5040]"></span>
+          <span></span>
+          <span></span>
+          <span></span>
         </button>
 
-        <h1
-          class="font-pixel font-extrabold text-[20px] md:text-[32px] tracking-[-1px] text-[#4A5040]"
-          style="text-shadow: 2px 2px 0px #e4ded1"
-        >
-          {{ monthNames[currentMonth] }}
-        </h1>
-        <span class="font-pixel text-[#9DBD86] text-xs md:text-sm">{{ currentYear }}</span>
+        <div>
+          <p class="calendar-eyebrow">SOCIAL INBOX CALENDAR</p>
+          <div class="calendar-title-line">
+            <h1>{{ monthNames[currentMonth] }}</h1>
+            <span class="calendar-year-mark">{{ currentYear }}</span>
+          </div>
+          <p class="calendar-exhibition-caption">( social index / small plans )</p>
+        </div>
       </div>
 
-      <div class="flex items-center gap-1">
+      <div class="calendar-hero-actions">
         <button
           @click="prevMonth"
-          class="font-['Syne'] font-bold text-[#4A5040] w-8 h-8 flex items-center justify-center hover:text-[#87C06D]"
+          class="calendar-arrow-button"
+          aria-label="上一個月"
         >
           &lt;
         </button>
         <button
           @click="nextMonth"
-          class="font-['Syne'] font-bold text-[#4A5040] w-8 h-8 flex items-center justify-center hover:text-[#87C06D]"
+          class="calendar-arrow-button"
+          aria-label="下一個月"
         >
           &gt;
         </button>
 
         <!-- 揪一團按鈕 -->
-        <PixelButton class="mx-2" @click="openEventModal">
+        <PixelButton class="calendar-create-button" @click="openEventModal">
           ＋<span class="hidden md:inline"> 揪一團</span>
         </PixelButton>
 
         <!-- 個人帳號 -->
         <button
           type="button"
-          class="hidden h-10 w-10 items-center justify-center border-2 border-[#4A5040] bg-[#DEF4CD] shadow-[3px_3px_0px_#87C06D] transition-colors hover:bg-[#D9F0A8] md:flex"
+          class="calendar-profile-button hidden md:flex"
           :class="{ 'btn-bounce-green': profileBtnBouncing }"
           @animationend="profileBtnBouncing = false"
           aria-label="開啟個人帳號"
@@ -87,83 +90,133 @@
           ></span>
         </button>
       </div>
-    </div>
+    </section>
 
-    <!-- 行事曆本體 -->
-    <div
-      ref="calendarRef"
-      class="border-[1.5px] border-[#DEF4CD] overflow-hidden md:flex-1 md:flex md:flex-col"
-    >
-      <!-- 星期標題 -->
-      <div class="grid grid-cols-7 bg-[#D9F0A8] border-b-[1.5px] border-[#DEF4CD]">
-        <div
-          v-for="day in weekDays"
-          :key="day"
-          class="py-2 text-center font-[cubic11] font-semibold text-[#4A5040] text-[10px] md:text-sm"
-        >
-          {{ day }}
-        </div>
-      </div>
-
-      <!-- 格子 -->
+    <section class="calendar-content-composition">
+      <!-- 行事曆本體 -->
       <div
-        class="grid grid-cols-7 md:flex-1 md:min-h-0"
-        :style="{
-          gridTemplateRows: isMobile ? 'repeat(6, clamp(50px, 8.4vh, 110px))' : 'repeat(6, 1fr)',
-        }"
+        ref="calendarRef"
+        class="calendar-board md:flex-1 md:flex md:flex-col"
       >
-        <div
-          v-for="(cell, index) in calendarDays"
-          :key="index"
-          class="border-r-[1px] border-b-[1px] border-[#DEF4CD] flex flex-col overflow-hidden justify-start relative pb-2"
-          :class="[
-            cell.date && isToday(cell.date)
-              ? 'bg-[#D9F0A8]'
-              : cell.faded
-                ? 'bg-[#FAF8F4]'
-                : 'bg-white',
-          ]"
-          :role="cell.date ? 'button' : undefined"
-          :tabindex="cell.date ? 0 : undefined"
-          @click="openDateModal(cell.date)"
-          @keydown.enter.prevent="openDateModal(cell.date)"
-          @keydown.space.prevent="openDateModal(cell.date)"
-        >
-          <!-- 日期數字（只有當月才顯示） -->
-          <div class="w-full p-1 md:p-2">
-            <span
-              v-if="cell.day"
-              class="block font-['Press_Start_2P'] text-[8px] md:text-[10px] leading-none text-[#4A5040]"
-            >
-              {{ cell.day }}
-            </span>
-          </div>
-
-          <!-- 活動條 -->
-          <div class="flex flex-col gap-[2px] px-1 pb-1 md:pb-3">
-            <template v-for="(event, i) in getEvents(cell.date)" :key="event.id">
-              <div
-                v-if="(isMobile && i < 2) || (!isMobile && i < 3)"
-                class="flex items-center text-[10px] px-1 h-[18px] overflow-hidden cursor-pointer"
-                :class="statusStyle[event.status]"
-              >
-                <div class="w-2 h-2 md:w-3 md:h-3 bg-white/40 shrink-0"></div>
-                <span class="truncate font-[cubic11] font-semibold ml-1">{{ event.title }}</span>
-                <div class="w-3 h-3 bg-white/40 shrink-0 ml-auto hidden md:block"></div>
-              </div>
-            </template>
-          </div>
-
-          <!-- +N：定位相對格子，不受 events 容器高度影響 -->
+        <!-- 星期標題 -->
+        <div class="calendar-week-row grid grid-cols-7">
           <div
-            v-if="getEvents(cell.date).length > (isMobile ? 2 : 3)"
-            class="absolute bottom-1 right-1 text-[6px] font-['Press_Start_2P'] text-[#4A5040] bg-white/80 px-[2px] py-[1px] md:text-[8px]"
+            v-for="day in weekDays"
+            :key="day"
+            class="calendar-weekday"
           >
-            +{{ getEvents(cell.date).length - (isMobile ? 2 : 3) }}
+            {{ day }}
+          </div>
+        </div>
+
+        <!-- 格子 -->
+        <div
+          class="calendar-grid grid grid-cols-7 md:flex-1 md:min-h-0"
+          :style="{
+            gridTemplateRows: isMobile ? 'repeat(6, clamp(50px, 8.4vh, 110px))' : 'repeat(6, 1fr)',
+          }"
+        >
+          <div
+            v-for="(cell, index) in calendarDays"
+            :key="index"
+            class="calendar-cell flex flex-col overflow-hidden justify-start relative pb-2"
+            :class="[
+              cell.date && isToday(cell.date)
+                ? 'is-today'
+                : cell.faded
+                  ? 'is-faded'
+                  : '',
+            ]"
+            :role="cell.date ? 'button' : undefined"
+            :tabindex="cell.date ? 0 : undefined"
+            @click="openDateModal(cell.date)"
+            @keydown.enter.prevent="openDateModal(cell.date)"
+            @keydown.space.prevent="openDateModal(cell.date)"
+          >
+            <!-- 日期數字（只有當月才顯示） -->
+            <div class="w-full p-1 md:p-2">
+              <span
+                v-if="cell.day"
+                class="calendar-day-number"
+              >
+                {{ cell.day }}
+              </span>
+            </div>
+
+            <!-- 活動條 -->
+            <div class="flex flex-col gap-[3px] px-1 pb-1 md:px-2 md:pb-3">
+              <template v-for="(event, i) in getEvents(cell.date)" :key="event.id">
+                <div
+                  v-if="(isMobile && i < 2) || (!isMobile && i < 3)"
+                  class="calendar-event-chip"
+                  :class="statusStyle[event.status]"
+                >
+                  <span class="calendar-event-dot"></span>
+                  <span class="truncate">{{ event.title }}</span>
+                  <span class="calendar-event-meta hidden md:inline">{{ statusMeta[event.status] }}</span>
+                </div>
+              </template>
+            </div>
+
+            <!-- +N：定位相對格子，不受 events 容器高度影響 -->
+            <div
+              v-if="getEvents(cell.date).length > (isMobile ? 2 : 3)"
+              class="calendar-more-count"
+            >
+              +{{ getEvents(cell.date).length - (isMobile ? 2 : 3) }}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      <aside class="calendar-social-rail" aria-label="Social rail">
+        <div class="calendar-rail-heading">
+          <span>SOCIAL RAIL</span>
+          <strong>{{ visibleEvents.length }}</strong>
+        </div>
+
+        <div class="calendar-rail-section">
+          <p>MUST SEE</p>
+          <button
+            v-for="item in socialRailItems.mustSee"
+            :key="item.id"
+            type="button"
+            class="calendar-rail-item"
+            @click="openDateModal(item.date)"
+          >
+            <span class="calendar-rail-date">
+              <strong>{{ item.monthShort }}</strong>
+              <em>{{ item.dayNumber }}</em>
+            </span>
+            <span class="calendar-rail-title">{{ item.title }}</span>
+            <small>{{ item.statusLabel }}</small>
+          </button>
+        </div>
+
+        <div class="calendar-rail-section">
+          <p>FYI</p>
+          <button
+            v-for="item in socialRailItems.fyi"
+            :key="item.id"
+            type="button"
+            class="calendar-rail-item is-quiet"
+            @click="openDateModal(item.date)"
+          >
+            <span class="calendar-rail-date">
+              <strong>{{ item.monthShort }}</strong>
+              <em>{{ item.dayNumber }}</em>
+            </span>
+            <span class="calendar-rail-title">{{ item.title }}</span>
+            <small>{{ item.statusLabel }}</small>
+          </button>
+        </div>
+
+        <div class="calendar-rail-note">
+          <span>room notes</span>
+          <p>small plans are becoming visible.</p>
+        </div>
+      </aside>
+    </section>
 
     <DateEventsModal
       v-if="selectedDate"
@@ -194,7 +247,6 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import PixelButton from './ui/PixelButton.vue'
 import DateEventsModal from './DateEventsModal.vue'
-import MarqueeBanner from './MarqueeBanner.vue'
 import ProfileAccountModal from './ProfileAccountModal.vue'
 import EventPage from './EventPage.vue'
 
@@ -232,7 +284,7 @@ const handleResize = () => {
   isMobile.value = window.innerWidth < 768
 }
 
-const COLORS = ['#da90c7', '#5ea5e1', '#56b597']
+const COLORS = ['var(--bujo-deco-pink)', 'var(--bujo-deco-blue)', 'var(--bujo-deco-green)']
 const overlayRef = ref(null)
 const calendarRef = ref(null)
 const dots = ref([])
@@ -345,6 +397,7 @@ const monthNames = [
   'NOVEMBER',
   'DECEMBER',
 ]
+const monthShortNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 const weekDays = ['一', '二', '三', '四', '五', '六', '日']
 
 const events = ref([
@@ -367,11 +420,19 @@ const events = ref([
 ])
 
 const statusStyle = {
-  joined: 'bg-[#87C06D]/40 text-[#4A5040]/40',
-  formed: 'bg-[#5e9b57] text-white',
-  personal: 'bg-[#F9CE9A] text-[#4A5040]',
-  recruiting: '',
-  none: 'bg-[#FAF8F4] text-[#9DBD86] border border-[#DEF4CD]',
+  joined: 'calendar-event-chip--joined',
+  formed: 'calendar-event-chip--formed',
+  personal: 'calendar-event-chip--personal',
+  recruiting: 'calendar-event-chip--recruiting',
+  none: 'calendar-event-chip--none',
+}
+
+const statusMeta = {
+  joined: 'JOIN',
+  formed: 'LIVE',
+  personal: 'SOLO',
+  recruiting: 'OPEN',
+  none: '',
 }
 
 function prevMonth() {
@@ -449,6 +510,31 @@ function getEvents(date) {
 }
 
 const selectedDateEvents = computed(() => getEvents(selectedDate.value))
+const visibleEvents = computed(() => {
+  const monthDates = new Set(calendarDays.value.filter((d) => d.date).map((d) => d.date))
+  return events.value.filter(
+    (event) => monthDates.has(event.date) && getEvents(event.date).some((visible) => visible.id === event.id),
+  )
+})
+
+const socialRailItems = computed(() => {
+  const items = visibleEvents.value.map((event) => {
+    const [, month, day] = event.date.split('-')
+    const monthIndex = Number(month) - 1
+    return {
+      ...event,
+      monthShort: monthShortNames[monthIndex] || month,
+      dayNumber: Number(day),
+      statusLabel: statusMeta[event.status] || 'ROOM',
+      meta: `${Number(month)}/${Number(day)} · ${statusMeta[event.status] || 'ROOM'}`,
+    }
+  })
+
+  return {
+    mustSee: items.slice(0, 2),
+    fyi: items.slice(2, 4),
+  }
+})
 
 function isToday(date) {
   const today = new Date()
@@ -458,19 +544,424 @@ function isToday(date) {
 </script>
 
 <style scoped>
+.calendar-main-shell {
+  gap: clamp(16px, 2vw, 26px);
+  color: var(--bujo-ink);
+  font-family: "IBM Plex Sans TC", sans-serif;
+}
+
+.calendar-hero-composition {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 22px;
+}
+
+.calendar-hero-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.calendar-menu-button {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-top: 28px;
+  border: 1px solid var(--bujo-line);
+  background: var(--bujo-surface);
+  transition:
+    border-color 160ms cubic-bezier(.2, .8, .2, 1),
+    background-color 160ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.calendar-menu-button:hover {
+  border-color: var(--bujo-ink);
+  background: var(--bujo-white);
+}
+
+.calendar-menu-button span {
+  display: block;
+  width: 14px;
+  height: 1.5px;
+  background: var(--bujo-ink);
+}
+
+.calendar-menu-button span + span {
+  margin-top: 4px;
+}
+
+.calendar-eyebrow,
+.calendar-exhibition-caption {
+  font-family: "Space Mono", monospace;
+  letter-spacing: .04em;
+}
+
+.calendar-eyebrow {
+  margin-bottom: 2px;
+  color: var(--bujo-muted-strong);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.calendar-title-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.calendar-title-line h1 {
+  color: var(--bujo-ink);
+  font-family: "SH Pinscher", "Space Mono", monospace;
+  font-size: clamp(56px, 8vw, 112px);
+  font-weight: 400;
+  line-height: .72;
+  letter-spacing: 0;
+}
+
+.calendar-year-mark {
+  display: inline-block;
+  color: var(--bujo-muted);
+  font-family: "Space Mono", monospace;
+  font-size: clamp(10px, 1vw, 12px);
+  font-weight: 400;
+  letter-spacing: .04em;
+  transform: translateY(-.18em);
+}
+
+.calendar-exhibition-caption {
+  margin-top: 8px;
+  color: rgb(var(--bujo-ink-rgb) / .55);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.45;
+  pointer-events: none;
+}
+
+.calendar-hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-bottom: 6px;
+}
+
+.calendar-arrow-button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--bujo-line);
+  background: transparent;
+  color: var(--bujo-ink);
+  font-family: "Space Mono", monospace;
+  font-size: 14px;
+  transition:
+    background-color 160ms cubic-bezier(.2, .8, .2, 1),
+    border-color 160ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.calendar-arrow-button:hover {
+  border-color: var(--bujo-ink);
+  background: var(--bujo-surface);
+}
+
+.calendar-create-button {
+  margin-left: 4px;
+  border: 1px solid var(--bujo-ink) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--bujo-ink) !important;
+  font-family: "Space Mono", monospace !important;
+  letter-spacing: 0 !important;
+}
+
+.calendar-create-button:hover {
+  background: var(--bujo-ink) !important;
+  border-color: var(--bujo-ink) !important;
+  box-shadow: none !important;
+  color: var(--bujo-white) !important;
+}
+
+.calendar-profile-button {
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--bujo-line);
+  background: var(--bujo-surface);
+  transition:
+    background-color 160ms cubic-bezier(.2, .8, .2, 1),
+    border-color 160ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.calendar-profile-button:hover {
+  border-color: var(--bujo-ink);
+  background: var(--bujo-white);
+}
+
+.calendar-content-composition {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 240px);
+  gap: clamp(18px, 2.2vw, 34px);
+  min-height: 0;
+  flex: 1;
+}
+
+.calendar-board {
+  overflow: hidden;
+  border: 1px solid var(--bujo-line-soft);
+  background: var(--bujo-surface);
+  box-shadow: 7px 8px 0 rgb(var(--bujo-ink-rgb) / .06);
+}
+
+.calendar-week-row {
+  border-bottom: 1px solid var(--bujo-line-soft);
+  background: var(--bujo-surface-muted);
+}
+
+.calendar-weekday {
+  padding: 10px 0;
+  color: var(--bujo-muted-strong);
+  text-align: center;
+  font-family: "Space Mono", monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.calendar-cell {
+  min-width: 0;
+  border-right: 1px solid rgb(var(--bujo-line-rgb) / .38);
+  border-bottom: 1px solid rgb(var(--bujo-line-rgb) / .38);
+  background: rgb(var(--bujo-white-rgb) / .76);
+  transition:
+    background-color 160ms cubic-bezier(.2, .8, .2, 1),
+    box-shadow 160ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.calendar-cell:hover {
+  background: var(--bujo-white);
+  box-shadow: inset 0 0 0 1px var(--bujo-accent);
+}
+
+.calendar-cell.is-faded {
+  background: rgb(var(--bujo-page-rgb) / .55);
+}
+
+.calendar-cell.is-today {
+  background: var(--bujo-today);
+  box-shadow: inset 0 0 0 1px var(--bujo-accent);
+}
+
+.calendar-day-number {
+  display: block;
+  color: var(--bujo-muted-strong);
+  font-family: "Space Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.calendar-event-chip {
+  display: grid;
+  grid-template-columns: 7px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 20px;
+  padding: 2px 6px;
+  overflow: hidden;
+  color: var(--bujo-ink);
+  font-family: "IBM Plex Sans TC", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 140ms cubic-bezier(.2, .8, .2, 1),
+    background-color 140ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.calendar-event-chip:hover {
+  transform: translateY(-1px);
+}
+
+.calendar-event-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--bujo-ink);
+}
+
+.calendar-event-meta {
+  color: rgb(var(--bujo-ink-rgb) / .56);
+  font-family: "Space Mono", monospace;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.calendar-event-chip--joined {
+  background: var(--bujo-card-blue);
+}
+
+.calendar-event-chip--formed {
+  background: var(--bujo-accent);
+}
+
+.calendar-event-chip--personal {
+  background: var(--bujo-card-yellow);
+}
+
+.calendar-event-chip--recruiting {
+  background: var(--bujo-card-pink);
+}
+
+.calendar-event-chip--none {
+  border: 1px solid var(--bujo-line-soft);
+  background: var(--bujo-white);
+}
+
+.calendar-more-count {
+  position: absolute;
+  right: 6px;
+  bottom: 5px;
+  background: var(--bujo-white);
+  color: var(--bujo-ink);
+  font-family: "Space Mono", monospace;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 4px;
+}
+
+.calendar-social-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-left: 1px solid rgb(var(--bujo-line-rgb) / .45);
+  padding: 10px 0 0 20px;
+}
+
+.calendar-rail-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--bujo-ink);
+}
+
+.calendar-rail-heading span,
+.calendar-rail-section p,
+.calendar-rail-note span {
+  font-family: "Space Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.calendar-rail-heading strong {
+  color: var(--bujo-accent);
+  font-family: "Space Mono", monospace;
+  font-size: 18px;
+}
+
+.calendar-rail-section {
+  display: grid;
+  gap: 8px;
+}
+
+.calendar-rail-section p {
+  color: rgb(var(--bujo-ink-rgb) / .42);
+}
+
+.calendar-rail-item {
+  display: grid;
+  gap: 7px;
+  width: 100%;
+  border: 1px solid rgb(var(--bujo-line-rgb) / .7);
+  background: var(--bujo-surface);
+  padding: 12px 12px 11px;
+  text-align: left;
+  transition:
+    background-color 160ms cubic-bezier(.2, .8, .2, 1),
+    border-color 160ms cubic-bezier(.2, .8, .2, 1),
+    transform 160ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.calendar-rail-item:hover {
+  border-color: var(--bujo-ink);
+  background: var(--bujo-white);
+  transform: translateY(-1px);
+}
+
+.calendar-rail-date {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  color: var(--bujo-ink);
+  line-height: .8;
+}
+
+.calendar-rail-date strong {
+  font-family: "SH Pinscher", "Space Mono", monospace;
+  font-size: 34px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: .76;
+}
+
+.calendar-rail-date em {
+  color: var(--bujo-muted);
+  font-family: "Space Mono", monospace;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.calendar-rail-title {
+  color: var(--bujo-ink);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.calendar-rail-item small {
+  color: var(--bujo-muted);
+  font-family: "Space Mono", monospace;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .04em;
+}
+
+.calendar-rail-item.is-quiet {
+  border-style: dashed;
+}
+
+.calendar-rail-note {
+  margin-top: auto;
+  color: var(--bujo-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.calendar-rail-note p {
+  margin-top: 5px;
+}
+
 .profile-pixel-face {
   position: relative;
   display: block;
   width: 32px;
   height: 32px;
   background:
-    linear-gradient(#4a5040 0 0) 8px 4px / 16px 4px no-repeat,
-    linear-gradient(#4a5040 0 0) 4px 8px / 4px 16px no-repeat,
-    linear-gradient(#4a5040 0 0) 24px 8px / 4px 16px no-repeat,
-    linear-gradient(#4a5040 0 0) 8px 24px / 16px 4px no-repeat,
-    linear-gradient(#4a5040 0 0) 12px 12px / 4px 4px no-repeat,
-    linear-gradient(#4a5040 0 0) 20px 12px / 4px 4px no-repeat,
-    linear-gradient(#4a5040 0 0) 16px 20px / 4px 4px no-repeat;
+    linear-gradient(var(--bujo-ink) 0 0) 8px 4px / 16px 4px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 4px 8px / 4px 16px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 24px 8px / 4px 16px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 8px 24px / 16px 4px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 12px 12px / 4px 4px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 20px 12px / 4px 4px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 16px 20px / 4px 4px no-repeat;
 }
 
 .profile-pixel-face::before,
@@ -479,7 +970,7 @@ function isToday(date) {
   top: 0;
   width: 8px;
   height: 8px;
-  background: #4a5040;
+  background: var(--bujo-ink);
   content: '';
 }
 
@@ -498,18 +989,83 @@ function isToday(date) {
 @keyframes pixel-bounce-green {
   0% {
     transform: translate(0, 0);
-    box-shadow: 3px 3px 0 #87c06d;
+    box-shadow: 3px 3px 0 var(--bujo-accent);
   }
   40% {
     transform: translate(3px, 3px);
-    box-shadow: 0 0 0 #87c06d;
+    box-shadow: 0 0 0 var(--bujo-accent);
   }
   100% {
     transform: translate(0, 0);
-    box-shadow: 3px 3px 0 #87c06d;
+    box-shadow: 3px 3px 0 var(--bujo-accent);
   }
 }
 .btn-bounce-green {
   animation: pixel-bounce-green 0.2s ease-in-out;
+}
+
+@media (max-width: 900px) {
+  .calendar-hero-composition,
+  .calendar-content-composition {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-hero-actions {
+    justify-content: flex-start;
+  }
+
+  .calendar-social-rail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-left: 0;
+    border-top: 1px solid rgb(var(--bujo-line-rgb) / .45);
+    padding: 14px 0 0;
+  }
+
+  .calendar-rail-heading,
+  .calendar-rail-note {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .calendar-main-shell {
+    gap: 14px;
+  }
+
+  .calendar-title-line h1 {
+    font-size: 40px;
+  }
+
+  .calendar-exhibition-caption,
+  .calendar-social-rail {
+    display: none;
+  }
+
+  .calendar-hero-actions {
+    flex-wrap: wrap;
+  }
+
+  .calendar-board {
+    box-shadow: none;
+  }
+
+  .calendar-weekday {
+    padding: 8px 0;
+    font-size: 11px;
+  }
+
+  .calendar-event-chip {
+    grid-template-columns: 5px minmax(0, 1fr);
+    gap: 4px;
+    min-height: 17px;
+    padding: 1px 4px;
+    font-size: 10px;
+  }
+
+  .calendar-event-dot {
+    width: 5px;
+    height: 5px;
+  }
 }
 </style>

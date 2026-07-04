@@ -2,6 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bujo-page: #f3f4ef;
+  --bujo-page-rgb: 243 244 239;
+  --bujo-surface: #fbfbf8;
+  --bujo-surface-muted: #eceee8;
+  --bujo-white: #ffffff;
+  --bujo-white-rgb: 255 255 255;
+  --bujo-ink: #20251f;
+  --bujo-ink-rgb: 32 37 31;
+  --bujo-muted: #6b7068;
+  --bujo-muted-strong: #60675f;
+  --bujo-line: #9aa197;
+  --bujo-line-rgb: 154 161 151;
+  --bujo-line-soft: #aeb4aa;
+  --bujo-accent: #98d0a2;
+  --bujo-card-blue: #a8d0cf;
+  --bujo-card-yellow: #ded49c;
+  --bujo-card-pink: #ebcae6;
+  --bujo-today: #f6f0f7;
+  --bujo-deco-pink: #da90c7;
+  --bujo-deco-blue: #5ea5e1;
+  --bujo-deco-green: #56b597;
+}
+
+@layer base {
+  body {
+    background-color: var(--bujo-page);
+    color: var(--bujo-ink);
+  }
+}
+
 /* 中文像素字型 */
 @font-face {
   font-family: 'cubic11';
@@ -13,8 +44,8 @@
 
   @layer base {
     body {
-      background-color: #fef7e8;
-      color: #4a5040;
+      background-color: var(--bujo-page);
+      color: var(--bujo-ink);
       font-family: 'cubic11', sans-serif;
     }
   }

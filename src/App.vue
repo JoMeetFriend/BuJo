@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen bg-[#FEF7E8] overflow-hidden">
+  <div class="flex h-screen bg-[var(--bujo-page)] overflow-hidden text-[var(--bujo-ink)]">
     <AppSidebar
       v-if="showSidebar"
       :isOpen="sidebarOpen"
