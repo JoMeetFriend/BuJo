@@ -8,8 +8,11 @@
     />
 
     <main
-      class="flex-1 overflow-auto flex flex-col"
-      :class="{ 'pb-20': route.path !== '/activity' }"
+      class="flex-1 flex flex-col"
+      :class="[
+        isCalendarPage ? 'overflow-hidden' : 'overflow-auto',
+        { 'pb-20': route.path !== '/activity' && !isCalendarPage },
+      ]"
     >
       <RouterView v-slot="{ Component }">
         <component
@@ -33,6 +36,7 @@ const sidebarOpen = ref(true)
 const filters = ref({ joined: true, formed: true, personal: true })
 
 const showSidebar = computed(() => !['/login', '/register'].includes(route.path))
+const isCalendarPage = computed(() => route.name === 'calendar-page')
 
 watch(
   () => route.path,

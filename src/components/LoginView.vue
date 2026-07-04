@@ -69,7 +69,10 @@
         </div>
 
         <!-- 錯誤訊息 -->
-        <p v-if="errorMsg" class="text-xs border border-[#dc2626] bg-[var(--bujo-surface)] text-[#dc2626] px-3 py-2">
+        <p
+          v-if="errorMsg"
+          class="text-xs border border-[#dc2626] bg-[var(--bujo-surface)] text-[#dc2626] px-3 py-2"
+        >
           {{ errorMsg }}
         </p>
 
@@ -265,9 +268,9 @@ input:-webkit-autofill:focus {
 .bujo-login-wordmark {
   margin: 0;
   color: var(--bujo-ink);
-  font-family: "SH Pinscher", "Space Mono", monospace;
-  font-size: 40px;
-  font-weight: 400;
+  font-family: var(--bujo-font-heading);
+  font-size: 36px;
+  font-weight: 800;
   line-height: 1;
 }
 
@@ -284,9 +287,9 @@ input:-webkit-autofill:focus {
   font-weight: 600;
   cursor: pointer;
   transition:
-    background-color 150ms cubic-bezier(.2, .8, .2, 1),
-    border-color 150ms cubic-bezier(.2, .8, .2, 1),
-    transform 100ms cubic-bezier(.2, .8, .2, 1);
+    background-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 100ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .bujo-hero-btn:hover:not(:disabled) {
@@ -304,7 +307,7 @@ input:-webkit-autofill:focus {
 }
 
 .bujo-hero-btn:disabled {
-  opacity: .5;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -321,8 +324,8 @@ input:-webkit-autofill:focus {
   font-size: 14px;
   cursor: pointer;
   transition:
-    border-color 150ms cubic-bezier(.2, .8, .2, 1),
-    background-color 150ms cubic-bezier(.2, .8, .2, 1);
+    border-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .bujo-outline-btn:hover {
@@ -362,9 +365,10 @@ input:-webkit-autofill:focus {
 }
 
 @keyframes login-twinkle {
-  0%, 100% {
-    opacity: .35;
-    transform: scale(.85);
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.85);
   }
   50% {
     opacity: 1;
@@ -375,7 +379,7 @@ input:-webkit-autofill:focus {
 @media (prefers-reduced-motion: reduce) {
   .login-deco {
     animation: none;
-    opacity: .7;
+    opacity: 0.7;
   }
 }
 </style>

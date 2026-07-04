@@ -42,16 +42,16 @@ defineProps({
   border: 1px solid var(--bujo-ink);
   background: transparent;
   color: var(--bujo-ink);
-  font-family: 'IBM Plex Sans TC', sans-serif;
+  font-family: var(--bujo-font-body);
   font-size: 13px;
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
   transition:
-    background-color 150ms cubic-bezier(.2, .8, .2, 1),
-    border-color 150ms cubic-bezier(.2, .8, .2, 1),
-    color 150ms cubic-bezier(.2, .8, .2, 1),
-    transform 100ms cubic-bezier(.2, .8, .2, 1);
+    background-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 100ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .bujo-btn:hover:not(:disabled) {

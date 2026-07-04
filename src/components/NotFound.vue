@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex flex-col justify-center items-center px-4 py-12">
     <div class="text-center">
-      <h1 class="text-7xl md:text-9xl font-normal text-brand-text font-pixel">404</h1>
+      <h1 class="text-7xl md:text-9xl font-bold text-brand-text font-doto">404</h1>
 
       <h2 class="mt-6 text-3xl font-bold text-brand-text tracking-tight sm:text-4xl">
         糟糕，迷路了嗎？

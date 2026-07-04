@@ -24,30 +24,18 @@
   --bujo-deco-pink: #da90c7;
   --bujo-deco-blue: #5ea5e1;
   --bujo-deco-green: #56b597;
+  --bujo-font-heading: 'Inter', 'IBM Plex Sans TC', sans-serif;
+  --bujo-font-body: 'Nunito', 'IBM Plex Sans TC', sans-serif;
+  --bujo-font-meta: 'Space Mono', 'IBM Plex Sans TC', monospace;
+  --bujo-font-deco: 'Doto', 'Space Mono', 'IBM Plex Sans TC', sans-serif;
+  --bujo-font-zh: 'IBM Plex Sans TC', sans-serif;
 }
 
 @layer base {
   body {
     background-color: var(--bujo-page);
     color: var(--bujo-ink);
-  }
-}
-
-/* 中文像素字型 */
-@font-face {
-  font-family: 'cubic11';
-  src: url('https://cdn.jsdelivr.net/gh/ACh-K/Cubic-11@v1.451/fonts/web/Cubic_11.woff2')
-    format('woff2');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-
-  @layer base {
-    body {
-      background-color: var(--bujo-page);
-      color: var(--bujo-ink);
-      font-family: 'cubic11', sans-serif;
-    }
+    font-family: var(--bujo-font-body);
   }
 }
 
@@ -75,24 +63,6 @@
   src: url('../../node_modules/@ibm/plex-sans-tc/fonts/complete/woff2/hinted/IBMPlexSansTC-Bold.woff2')
     format('woff2');
   font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* SH Pinscher（Font Squirrel，授權見 fonts/SH-Pinscher-LICENSE.txt） */
-@font-face {
-  font-family: 'SH Pinscher';
-  src: url('./fonts/SHPinscher-Regular.woff2') format('woff2');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Chaos16（Fontesk，OFL 授權見 fonts/CHAOS16-LICENSE.txt） */
-@font-face {
-  font-family: 'Chaos16';
-  src: url('./fonts/CHAOS16.woff2') format('woff2');
-  font-weight: normal;
   font-style: normal;
   font-display: swap;
 }

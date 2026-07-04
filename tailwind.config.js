@@ -27,15 +27,11 @@ export default {
         'brand-text': '#4A5040',
       },
       fontFamily: {
-        cubic11: ['cubic11', 'sans-serif'],
         nunito: ['Nunito', 'sans-serif'],
-        syne: ['Syne', 'sans-serif'],
-        pixel: ['"Press Start 2P"', 'monospace'],
         'plex-sans-tc': ['"IBM Plex Sans TC"', 'sans-serif'],
         'space-mono': ['"Space Mono"', 'monospace'],
         doto: ['Doto', 'sans-serif'],
-        'sh-pinscher': ['"SH Pinscher"', 'monospace'],
-        chaos16: ['"Chaos16"', 'monospace'],
+        inter: ['Inter', 'sans-serif'],
       },
       boxShadow: {
         pixel: '3px 3px 0 #4A5040',

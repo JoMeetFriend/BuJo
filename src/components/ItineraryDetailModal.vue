@@ -29,18 +29,30 @@
         <!-- 活動資訊 -->
         <div class="flex flex-col gap-3 text-sm">
           <div>
-            <div class="font-[space-mono] text-[10px] uppercase tracking-wide text-[var(--bujo-muted)] mb-0.5">時間</div>
+            <div
+              class="font-[space-mono] text-[10px] uppercase tracking-wide text-[var(--bujo-muted)] mb-0.5"
+            >
+              時間
+            </div>
             <div>{{ currentActivity.date }} {{ currentActivity.time }}</div>
           </div>
           <div>
-            <div class="font-[space-mono] text-[10px] uppercase tracking-wide text-[var(--bujo-muted)] mb-0.5">地點</div>
+            <div
+              class="font-[space-mono] text-[10px] uppercase tracking-wide text-[var(--bujo-muted)] mb-0.5"
+            >
+              地點
+            </div>
             <div>{{ currentActivity.location }}</div>
           </div>
         </div>
 
         <!-- 參加成員 -->
         <div class="pb-2 flex flex-col gap-2">
-          <div class="font-[space-mono] text-[10px] uppercase tracking-wide text-[var(--bujo-muted)]">參加成員</div>
+          <div
+            class="font-[space-mono] text-[10px] uppercase tracking-wide text-[var(--bujo-muted)]"
+          >
+            參加成員
+          </div>
           <div class="flex items-center gap-1.5 h-6">
             <div class="flex items-center overflow-hidden">
               <img

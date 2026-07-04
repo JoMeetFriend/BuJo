@@ -38,7 +38,7 @@
       @click="emit('close')"
     >
       <div
-        class="bujo-modal-panel w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] font-[plex-sans-tc] text-[var(--bujo-ink)]"
+        class="bujo-modal-panel w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] font-nunito text-[var(--bujo-ink)]"
         :class="scrollable ? 'flex flex-col max-h-[80vh]' : ''"
         :style="{ maxWidth }"
         role="dialog"
@@ -135,6 +135,6 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
 
 <style scoped>
 .bujo-modal-panel {
-  box-shadow: 7px 8px 0 rgb(var(--bujo-ink-rgb) / .06);
+  box-shadow: 7px 8px 0 rgb(var(--bujo-ink-rgb) / 0.06);
 }
 </style>

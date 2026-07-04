@@ -35,7 +35,9 @@
               <h3 class="font-[plex-sans-tc] text-[15px] font-bold leading-tight">
                 {{ event.title }}
               </h3>
-              <p class="mt-1 truncate font-[space-mono] text-[10px] text-[var(--bujo-muted-strong)] md:text-[12px]">
+              <p
+                class="mt-1 truncate font-[space-mono] text-[10px] text-[var(--bujo-muted-strong)] md:text-[12px]"
+              >
                 {{ event.time || '未設定時間' }}
                 <span v-if="event.location"> ・ {{ event.location }}</span>
               </p>
