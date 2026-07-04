@@ -1,6 +1,11 @@
 <template>
   <div class="flex h-screen bg-[#FEF7E8] overflow-hidden">
-    <AppSidebar v-if="showSidebar" :isOpen="sidebarOpen" :filters="filters" @toggle-filter="toggleFilter" />
+    <AppSidebar
+      v-if="showSidebar"
+      :isOpen="sidebarOpen"
+      :filters="filters"
+      @toggle-filter="toggleFilter"
+    />
 
     <main class="flex-1 overflow-auto flex flex-col pb-20">
       <RouterView v-slot="{ Component }">

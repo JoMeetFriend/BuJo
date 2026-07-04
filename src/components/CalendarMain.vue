@@ -75,8 +75,8 @@
           @click="openProfileModal"
         >
           <img
-            v-if="currentUser?.avatar_url"
-            :src="currentUser.avatar_url"
+            v-if="currentUserAvatarSrc"
+            :src="currentUserAvatarSrc"
             :alt="currentUser.display_name"
             class="h-full w-full object-cover"
           />
@@ -193,12 +193,14 @@ import DateEventsModal from './DateEventsModal.vue'
 import MarqueeBanner from './MarqueeBanner.vue'
 import ProfileAccountModal from './ProfileAccountModal.vue'
 import EventPage from './EventPage.vue'
+import { toAvatarSrc } from '@/utils/avatar'
 
 const showEventModal = ref(false)
 const profileBtnBouncing = ref(false)
 const router = useRouter()
 const authStore = useAuthStore()
 const currentUser = computed(() => authStore.user)
+const currentUserAvatarSrc = computed(() => toAvatarSrc(currentUser.value?.avatar_url))
 
 function openProfileModal() {
   showProfileModal.value = true

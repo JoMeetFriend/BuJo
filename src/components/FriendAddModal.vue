@@ -77,7 +77,7 @@ import BaseModal from './ui/BaseModal.vue'
 import { useUserSearch } from '@/composables/useUserSearch'
 import { useFriendStore } from '@/stores/friendStore'
 
-const props = defineProps({ isOpen: Boolean })
+defineProps({ isOpen: Boolean })
 const emit = defineEmits(['close'])
 
 const { searchResults, isSearching, error, searchUsers, clearSearch } = useUserSearch()
