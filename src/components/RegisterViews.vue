@@ -107,7 +107,10 @@
         <p v-if="errorMsg" class="text-xs text-red-600 border border-red-300 bg-red-50 px-3 py-2">
           {{ errorMsg }}
         </p>
-        <p v-if="successMsg" class="text-xs text-primary-green border border-primary-green bg-primary-pale px-3 py-2">
+        <p
+          v-if="successMsg"
+          class="text-xs text-primary-green border border-primary-green bg-primary-pale px-3 py-2"
+        >
           {{ successMsg }}
         </p>
 
@@ -213,8 +216,8 @@ const handleRegister = async () => {
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px #DEF4CD inset;
-  -webkit-text-fill-color: #4A5040;
+  -webkit-box-shadow: 0 0 0px 1000px #def4cd inset;
+  -webkit-text-fill-color: #4a5040;
   transition: background-color 9999s ease-in-out 0s;
 }
 
