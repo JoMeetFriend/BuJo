@@ -34,11 +34,11 @@
   <Teleport to="body">
     <div
       v-if="isOpen"
-      class="fixed inset-0 z-[80] flex items-center justify-center bg-[#4A5040]/35 px-4"
+      class="fixed inset-0 z-[80] flex items-center justify-center bg-[rgb(var(--bujo-ink-rgb)/0.35)] px-4"
       @click="emit('close')"
     >
       <div
-        class="w-full border-2 border-[#4A5040] bg-[#FEF7E8] font-[cubic11] text-[#4A5040] shadow-[6px_6px_0_#4A5040] max-sm:shadow-[4px_4px_0_#4A5040]"
+        class="bujo-modal-panel w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] font-[plex-sans-tc] text-[var(--bujo-ink)]"
         :class="scrollable ? 'flex flex-col max-h-[80vh]' : ''"
         :style="{ maxWidth }"
         role="dialog"
@@ -48,20 +48,16 @@
       >
         <!-- header -->
         <header
-          class="flex items-center justify-between border-b-2 border-[#DEF4CD] bg-[#D9F0A8] px-5 py-3"
-          :class="scrollable ? 'shrink-0 sticky top-0' : ''"
+          class="flex items-center justify-between border-b border-[var(--bujo-line)] px-5 py-3"
+          :class="scrollable ? 'shrink-0 sticky top-0 bg-[var(--bujo-surface)]' : ''"
         >
-          <h2
-            :id="titleId"
-            class="m-0 text-base md:text-lg leading-none"
-            style="-webkit-text-stroke: 0.5px #4a5040"
-          >
+          <h2 :id="titleId" class="m-0 text-base md:text-lg font-bold leading-none">
             {{ title }}
           </h2>
           <div class="flex items-center gap-2">
             <slot name="header-actions" />
             <button
-              class="grid h-7 w-7 place-items-center text-lg leading-none text-[#4A5040] transition hover:bg-[#DEF4CD]"
+              class="grid h-7 w-7 place-items-center text-lg leading-none text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:text-[var(--bujo-ink)] active:translate-x-px active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bujo-accent)]"
               type="button"
               :aria-label="`關閉${title}`"
               @click="emit('close')"
@@ -80,7 +76,7 @@
           </div>
           <footer
             v-if="$slots.footer"
-            class="shrink-0 flex justify-end gap-4 max-sm:gap-3 border-t-2 border-[#DEF4CD] bg-[#FEF7E8] px-5 py-3 max-sm:py-2"
+            class="shrink-0 flex justify-end gap-4 max-sm:gap-3 border-t border-[var(--bujo-line)] px-5 py-3 max-sm:py-2"
           >
             <slot name="footer" />
           </footer>
@@ -93,7 +89,7 @@
           </div>
           <footer
             v-if="$slots.footer"
-            class="flex justify-end gap-4 max-sm:gap-3 border-t-2 border-[#DEF4CD] bg-[#FEF7E8] px-5 py-3 max-sm:py-2"
+            class="flex justify-end gap-4 max-sm:gap-3 border-t border-[var(--bujo-line)] px-5 py-3 max-sm:py-2"
           >
             <slot name="footer" />
           </footer>
@@ -136,3 +132,9 @@ function handleKeydown(e) {
 onMounted(() => window.addEventListener('keydown', handleKeydown))
 onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
 </script>
+
+<style scoped>
+.bujo-modal-panel {
+  box-shadow: 7px 8px 0 rgb(var(--bujo-ink-rgb) / .06);
+}
+</style>

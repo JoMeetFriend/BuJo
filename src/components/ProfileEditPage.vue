@@ -1,27 +1,21 @@
 <template>
-  <main class="min-h-screen bg-[#FEF7E8] px-5 pt-8 pb-4 md:px-14 font-[cubic11] text-[#4A5040]">
+  <main class="min-h-screen bg-[var(--bujo-page)] px-5 pt-8 pb-4 md:px-14 text-[var(--bujo-ink)]">
     <!-- 頁首 -->
-    <header class="mb-5 flex items-baseline gap-4">
-      <h1
-        class="font-[cubic11] font-bold text-[#4A5040] text-2xl md:text-3xl"
-        style="text-shadow: 2px 2px 0px #e4ded1"
-      >
-        個人編輯頁面
-      </h1>
-      <span class="font-['Press_Start_2P'] text-[#9DBD86] text-base tracking-widest uppercase"
-        >ME</span
-      >
+    <header class="mb-5">
+      <p class="profile-eyebrow">ACCOUNT SETTINGS</p>
+      <div class="profile-title-line">
+        <h1>個人編輯頁面</h1>
+        <span class="profile-cn-tag">ME</span>
+      </div>
     </header>
 
     <!-- 主卡片 -->
-    <section
-      class="w-full max-w-[800px] border-2 border-[#4A5040] bg-white shadow-[6px_6px_0_#4A5040] max-sm:shadow-[4px_4px_0_#4A5040]"
-    >
+    <section class="profile-card w-full max-w-[800px] border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)]">
       <!-- 頭像 -->
       <div class="px-5 py-4">
         <div class="flex flex-col items-start gap-4 md:flex-row md:items-stretch md:gap-8">
           <div
-            class="size-24 shrink-0 overflow-hidden border-2 border-[#4A5040] bg-[#DEF4CD] shadow-[4px_4px_0_#4A5040] md:size-28"
+            class="size-24 shrink-0 overflow-hidden border border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] md:size-28"
           >
             <img
               v-if="avatarUrl"
@@ -33,10 +27,12 @@
           <div class="flex min-w-0 flex-col items-start gap-2 md:h-28">
             <p class="flex h-8 items-center text-base leading-none md:text-lg">{{ displayName }}</p>
             <div v-if="shareCode" class="flex h-8 min-w-0 items-center gap-2">
-              <p class="min-w-0 text-sm text-[#87C06D]">Bujo ID: {{ shareCode }}</p>
+              <p class="min-w-0 font-[space-mono] text-sm text-[var(--bujo-muted-strong)]">
+                Bujo ID: {{ shareCode }}
+              </p>
               <button
                 type="button"
-                class="grid h-7 w-7 shrink-0 place-items-center border border-[#9DBD86] bg-white text-[#4A5040] transition hover:bg-[#FAF8F4]"
+                class="grid h-7 w-7 shrink-0 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)] hover:text-[var(--bujo-ink)]"
                 aria-label="複製 BuJo ID"
                 @click="copyShareCode"
               >
@@ -44,7 +40,7 @@
               </button>
               <p
                 v-if="copyStatusMessage"
-                class="shrink-0 text-xs text-[#87C06D]"
+                class="shrink-0 text-xs text-[var(--bujo-muted-strong)]"
                 aria-live="polite"
               >
                 {{ copyStatusMessage }}
@@ -52,7 +48,7 @@
             </div>
             <label
               :class="[
-                'inline-flex h-8 w-fit cursor-pointer items-center justify-center gap-2 border-2 border-[#4A5040] bg-[#87C06D] px-4 text-[12px] text-white shadow-[3px_3px_0_#4A5040] transition-all duration-150 hover:bg-[#69AD76] hover:border-[#0E7490] hover:shadow-[3px_3px_0_#0E7490]',
+                'profile-upload-btn',
                 avatarLoading ? 'pointer-events-none opacity-60' : '',
               ]"
             >
@@ -69,7 +65,7 @@
         </div>
         <p
           v-if="avatarMsg"
-          :class="['mt-3 text-xs', avatarMsgType === 'error' ? 'text-red-600' : 'text-[#87C06D]']"
+          :class="['mt-3 text-xs', avatarMsgType === 'error' ? 'text-[#dc2626]' : 'text-[var(--bujo-muted-strong)]']"
           aria-live="polite"
         >
           {{ avatarMsg }}
@@ -77,22 +73,20 @@
       </div>
 
       <!-- 基本資料 -->
-      <header class="flex items-center border-y-2 border-[#DEF4CD] bg-[#D9F0A8] px-5 py-3">
-        <h2 class="text-base leading-none md:text-lg" style="-webkit-text-stroke: 0.5px #4a5040">
-          基本資料
-        </h2>
+      <header class="profile-section-header">
+        <h2>基本資料</h2>
       </header>
       <form class="px-5 py-4 grid gap-4" @submit.prevent>
         <label class="grid gap-1.5">
-          <span class="text-xs field-label">
-            修改顯示名稱 <strong class="text-[#87C06D]" style="-webkit-text-stroke: 0">*</strong>
+          <span class="text-xs font-semibold text-[var(--bujo-ink)]">
+            修改顯示名稱 <strong class="text-[var(--bujo-muted-strong)]">*</strong>
           </span>
           <input
-            class="h-9 w-full border-2 border-[#4A5040] bg-[#FEF7E8] px-4 text-[12px] shadow-[3px_3px_0_#4A5040] outline-none transition-all duration-150 placeholder:text-[#9DBD86] focus:bg-white focus:shadow-[4px_4px_0_#4A5040]"
+            class="profile-input h-9 w-full px-4 text-[12px]"
             type="text"
             placeholder="請輸入顯示名稱"
           />
-          <p class="text-xs text-[#9DBD86]">顯示名稱會出現在揪團、行事曆與留言中。</p>
+          <p class="text-xs text-[var(--bujo-muted)]">顯示名稱會出現在揪團、行事曆與留言中。</p>
         </label>
 
         <div class="mt-1 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -102,10 +96,8 @@
       </form>
 
       <!-- 已連接的登入方式 -->
-      <header class="flex items-center border-y-2 border-[#DEF4CD] bg-[#D9F0A8] px-5 py-3">
-        <h2 class="text-base leading-none md:text-lg" style="-webkit-text-stroke: 0.5px #4a5040">
-          已連接的登入方式
-        </h2>
+      <header class="profile-section-header">
+        <h2>已連接的登入方式</h2>
       </header>
       <div class="px-5 py-4 grid gap-3">
         <!-- 錯誤／成功訊息 -->
@@ -114,31 +106,27 @@
           :class="[
             'text-xs px-3 py-2 border',
             linkMsgType === 'error'
-              ? 'text-red-600 border-red-300 bg-red-50'
-              : 'text-green-700 border-green-300 bg-green-50',
+              ? 'text-[#dc2626] border-[#dc2626] bg-[var(--bujo-surface)]'
+              : 'text-[var(--bujo-ink)] border-[var(--bujo-accent)] bg-[var(--bujo-surface)]',
           ]"
         >
           {{ linkMsg }}
         </p>
 
         <!-- 帳號密碼 -->
-        <div class="flex items-center justify-between border-2 border-[#DEF4CD] px-4 py-3">
+        <div class="profile-identity-row">
           <div class="flex items-center gap-3">
             <span class="text-lg">✉</span>
             <div>
               <p class="text-sm font-semibold">帳號密碼</p>
-              <p class="text-xs text-[#9DBD86]">{{ localEmail || '未設定' }}</p>
+              <p class="text-xs text-[var(--bujo-muted-strong)]">{{ localEmail || '未設定' }}</p>
             </div>
           </div>
-          <span
-            v-if="isConnected('local')"
-            class="text-xs text-[#87C06D] border border-[#87C06D] px-2 py-0.5"
-            >已連接</span
-          >
+          <span v-if="isConnected('local')" class="profile-connected-badge">已連接</span>
         </div>
 
         <!-- Google -->
-        <div class="flex items-center justify-between border-2 border-[#DEF4CD] px-4 py-3">
+        <div class="profile-identity-row">
           <div class="flex items-center gap-3">
             <svg width="20" height="20" viewBox="0 0 48 48" class="shrink-0">
               <path
@@ -160,14 +148,14 @@
             </svg>
             <div>
               <p class="text-sm font-semibold">Google</p>
-              <p class="text-xs text-[#9DBD86]">{{ googleEmail || '' }}</p>
+              <p class="text-xs text-[var(--bujo-muted-strong)]">{{ googleEmail || '' }}</p>
             </div>
           </div>
           <button
             v-if="!isConnected('google')"
             @click="handleGoogleLink"
             :disabled="linkLoading"
-            class="text-xs border-2 border-[#4A5040] bg-[#87C06D] text-white px-3 py-1 shadow-[2px_2px_0_#4A5040] hover:bg-[#69AD76] disabled:opacity-50"
+            class="profile-link-btn"
           >
             連接
           </button>
@@ -175,14 +163,14 @@
             v-else
             @click="handleUnlink('google')"
             :disabled="linkLoading || identityCount <= 1"
-            class="text-xs border-2 border-[#4A5040] bg-white text-[#4A5040] px-3 py-1 shadow-[2px_2px_0_#4A5040] hover:bg-[#FEF7E8] disabled:opacity-40"
+            class="profile-unlink-btn"
           >
             解除連接
           </button>
         </div>
 
         <!-- LINE -->
-        <div class="flex items-center justify-between border-2 border-[#DEF4CD] px-4 py-3">
+        <div class="profile-identity-row">
           <div class="flex items-center gap-3">
             <svg width="20" height="20" viewBox="0 0 48 48" fill="none" class="shrink-0">
               <rect width="48" height="48" rx="10" fill="#00B900" />
@@ -197,14 +185,14 @@
             </svg>
             <div>
               <p class="text-sm font-semibold">LINE</p>
-              <p class="text-xs text-[#9DBD86]">{{ isConnected('line') ? '已連接' : '' }}</p>
+              <p class="text-xs text-[var(--bujo-muted-strong)]">{{ isConnected('line') ? '已連接' : '' }}</p>
             </div>
           </div>
           <button
             v-if="!isConnected('line')"
             @click="handleLineLink"
             :disabled="linkLoading"
-            class="text-xs border-2 border-[#4A5040] bg-[#00B900] text-white px-3 py-1 shadow-[2px_2px_0_#4A5040] hover:bg-[#009900] disabled:opacity-50"
+            class="profile-link-btn"
           >
             連接
           </button>
@@ -212,13 +200,13 @@
             v-else
             @click="handleUnlink('line')"
             :disabled="linkLoading || identityCount <= 1"
-            class="text-xs border-2 border-[#4A5040] bg-white text-[#4A5040] px-3 py-1 shadow-[2px_2px_0_#4A5040] hover:bg-[#FEF7E8] disabled:opacity-40"
+            class="profile-unlink-btn"
           >
             解除連接
           </button>
         </div>
 
-        <p v-if="identityCount <= 1" class="text-xs text-[#9DBD86]">
+        <p v-if="identityCount <= 1" class="text-xs text-[var(--bujo-muted)]">
           需要至少連接兩種登入方式才能解除其中一個。
         </p>
       </div>
@@ -416,7 +404,147 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.field-label {
-  -webkit-text-stroke: 0.5px #4a5040;
+.profile-card {
+  box-shadow: 7px 8px 0 rgb(var(--bujo-ink-rgb) / .06);
+}
+
+.profile-eyebrow {
+  margin: 0 0 2px;
+  color: var(--bujo-muted-strong);
+  font-family: "Space Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.profile-title-line {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.profile-title-line h1 {
+  margin: 0;
+  color: var(--bujo-ink);
+  font-family: "IBM Plex Sans TC", sans-serif;
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.profile-cn-tag {
+  color: var(--bujo-muted);
+  font-family: "Space Mono", monospace;
+  font-size: 13px;
+  letter-spacing: .1em;
+}
+
+.profile-section-header {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--bujo-line);
+  border-bottom: 1px solid var(--bujo-line);
+  background: var(--bujo-surface-muted);
+  padding: 12px 20px;
+}
+
+.profile-section-header h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.profile-input {
+  border: 1px solid var(--bujo-line);
+  background: var(--bujo-surface);
+  color: var(--bujo-ink);
+  outline: none;
+  transition:
+    border-color 150ms cubic-bezier(.2, .8, .2, 1),
+    box-shadow 150ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.profile-input::placeholder {
+  color: var(--bujo-muted);
+}
+
+.profile-input:focus {
+  border-color: var(--bujo-accent);
+  box-shadow: inset 0 0 0 1px var(--bujo-accent);
+}
+
+.profile-upload-btn {
+  display: inline-flex;
+  height: 32px;
+  width: fit-content;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--bujo-ink);
+  background: transparent;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bujo-ink);
+  transition:
+    background-color 150ms cubic-bezier(.2, .8, .2, 1),
+    color 150ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.profile-upload-btn:hover {
+  background: var(--bujo-ink);
+  color: var(--bujo-white);
+}
+
+.profile-identity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--bujo-line);
+  background: var(--bujo-surface);
+  padding: 12px 16px;
+}
+
+.profile-connected-badge {
+  border: 1px solid var(--bujo-accent);
+  padding: 2px 8px;
+  font-size: 11px;
+  color: var(--bujo-ink);
+}
+
+.profile-link-btn,
+.profile-unlink-btn {
+  border: 1px solid var(--bujo-ink);
+  background: transparent;
+  padding: 5px 12px;
+  font-size: 12px;
+  color: var(--bujo-ink);
+  transition:
+    background-color 150ms cubic-bezier(.2, .8, .2, 1),
+    color 150ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.profile-link-btn:hover:not(:disabled) {
+  background: var(--bujo-ink);
+  color: var(--bujo-white);
+}
+
+.profile-unlink-btn {
+  border-color: var(--bujo-line);
+  color: var(--bujo-muted-strong);
+}
+
+.profile-unlink-btn:hover:not(:disabled) {
+  border-color: var(--bujo-ink);
+  color: var(--bujo-ink);
+}
+
+.profile-link-btn:disabled,
+.profile-unlink-btn:disabled {
+  opacity: .4;
+  cursor: not-allowed;
 }
 </style>

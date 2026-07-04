@@ -1,78 +1,73 @@
 <!-- src/views/RegisterViews.vue -->
 <template>
-  <div
-    class="min-h-screen relative bg-page-bg bg-dot-pattern flex items-center justify-center p-6 overflow-hidden"
-  >
-    <div class="register-bg" :style="{ backgroundImage: `url(${registerBg})` }"></div>
+  <div class="min-h-screen bg-[var(--bujo-page)] flex items-center justify-center p-6">
     <div
-      class="relative z-10 bg-page-bg w-full max-w-[26.4rem] p-7 border-2 border-brand-text shadow-pixel hover:shadow-pixel-pressed hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100"
+      class="relative w-full max-w-[26.4rem] rounded-[6px] border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] p-7"
     >
+      <span class="login-deco login-deco--a" aria-hidden="true"></span>
+      <span class="login-deco login-deco--b" aria-hidden="true"></span>
+
       <!-- Logo -->
       <div class="flex flex-col items-center mb-6">
         <div class="flex items-center gap-3">
-          <div
-            class="w-10 h-10 bg-primary-green flex items-center justify-center shrink-0 border-2 border-brand-text shadow-pixel-sm"
-          >
-            <!-- 之後換成 <img src="@/assets/logo.png" class="w-10 h-10" /> -->
-            <span class="text-page-bg text-2xl">🗓</span>
-          </div>
-          <h1
-            class="text-4xl font-bold text-primary-green font-cubic11 tracking-[0.6px] [text-shadow:2px_2px_0_#4A5040]"
-          >
-            BuJo
-          </h1>
+          <div class="bujo-login-logo-mark shrink-0"></div>
+          <h1 class="bujo-login-wordmark">BuJo</h1>
         </div>
-        <p class="text-sm text-primary-mid mt-1 relative top-[0.25em]">不揪喔～說完，你就揪到了</p>
+        <p class="text-xs text-[var(--bujo-muted-strong)] mt-2">不揪喔～說完，你就揪到了</p>
       </div>
 
       <!-- 表單 -->
       <form @submit.prevent="handleRegister" class="space-y-3">
         <!-- 暱稱 -->
         <div>
-          <label class="block text-sm text-brand-text mb-1">暱稱</label>
+          <label class="block text-sm font-medium text-[var(--bujo-ink)] mb-1">暱稱</label>
           <div
-            class="flex items-center gap-2 border-[1.5px] border-primary-mid px-3 bg-primary-pale"
+            class="flex items-center gap-2 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 transition-[border-color,box-shadow] duration-150 focus-within:border-[var(--bujo-accent)] focus-within:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
           >
-            <span class="text-brand-text">👤</span>
+            <span class="text-[var(--bujo-muted-strong)]">👤</span>
             <input
               v-model="form.name"
               type="text"
               placeholder="請輸入暱稱"
-              class="flex-1 bg-transparent outline-none py-2 text-sm text-brand-text"
+              class="flex-1 bg-transparent outline-none py-2 text-sm text-[var(--bujo-ink)] placeholder:text-[var(--bujo-muted)]"
             />
           </div>
         </div>
 
         <!-- 電子郵件 -->
         <div>
-          <label class="block text-sm text-brand-text mb-1">電子郵件</label>
+          <label class="block text-sm font-medium text-[var(--bujo-ink)] mb-1">電子郵件</label>
           <div
-            class="flex items-center gap-2 border-[1.5px] border-primary-mid px-3 bg-primary-pale"
+            class="flex items-center gap-2 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 transition-[border-color,box-shadow] duration-150 focus-within:border-[var(--bujo-accent)] focus-within:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
           >
-            <span class="text-brand-text">✉</span>
+            <span class="text-[var(--bujo-muted-strong)]">✉</span>
             <input
               v-model="form.email"
               type="email"
               placeholder="user@gmail.com"
-              class="flex-1 bg-transparent outline-none py-2 text-sm text-brand-text"
+              class="flex-1 bg-transparent outline-none py-2 text-sm text-[var(--bujo-ink)] placeholder:text-[var(--bujo-muted)]"
             />
           </div>
         </div>
 
         <!-- 密碼 -->
         <div>
-          <label class="block text-sm text-brand-text mb-1">密碼</label>
+          <label class="block text-sm font-medium text-[var(--bujo-ink)] mb-1">密碼</label>
           <div
-            class="flex items-center gap-2 border-[1.5px] border-primary-mid px-3 bg-primary-pale"
+            class="flex items-center gap-2 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 transition-[border-color,box-shadow] duration-150 focus-within:border-[var(--bujo-accent)] focus-within:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
           >
-            <span class="text-brand-text"></span>
+            <span class="text-[var(--bujo-muted-strong)]"></span>
             <input
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
               placeholder="••••••••"
-              class="flex-1 bg-transparent outline-none py-2 text-sm text-brand-text"
+              class="flex-1 bg-transparent outline-none py-2 text-sm text-[var(--bujo-ink)] placeholder:text-[var(--bujo-muted)]"
             />
-            <button type="button" @click="showPassword = !showPassword" class="text-brand-text">
+            <button
+              type="button"
+              @click="showPassword = !showPassword"
+              class="text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:text-[var(--bujo-ink)]"
+            >
               <EyeIcon v-if="!showPassword" class="w-4 h-4" />
               <EyeSlashIcon v-else class="w-4 h-4" />
             </button>
@@ -81,21 +76,21 @@
 
         <!-- 確認密碼 -->
         <div>
-          <label class="block text-sm text-brand-text mb-1">確認密碼</label>
+          <label class="block text-sm font-medium text-[var(--bujo-ink)] mb-1">確認密碼</label>
           <div
-            class="flex items-center gap-2 border-[1.5px] border-primary-mid px-3 bg-primary-pale"
+            class="flex items-center gap-2 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 transition-[border-color,box-shadow] duration-150 focus-within:border-[var(--bujo-accent)] focus-within:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
           >
-            <span class="text-brand-text"></span>
+            <span class="text-[var(--bujo-muted-strong)]"></span>
             <input
               v-model="form.confirmPassword"
               :type="showConfirmPassword ? 'text' : 'password'"
               placeholder="••••••••"
-              class="flex-1 bg-transparent outline-none py-2 text-sm text-brand-text"
+              class="flex-1 bg-transparent outline-none py-2 text-sm text-[var(--bujo-ink)] placeholder:text-[var(--bujo-muted)]"
             />
             <button
               type="button"
               @click="showConfirmPassword = !showConfirmPassword"
-              class="text-brand-text"
+              class="text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:text-[var(--bujo-ink)]"
             >
               <EyeIcon v-if="!showConfirmPassword" class="w-4 h-4" />
               <EyeSlashIcon v-else class="w-4 h-4" />
@@ -104,30 +99,30 @@
         </div>
 
         <!-- 錯誤 / 成功訊息 -->
-        <p v-if="errorMsg" class="text-xs text-red-600 border border-red-300 bg-red-50 px-3 py-2">
+        <p v-if="errorMsg" class="text-xs border border-[#dc2626] bg-[var(--bujo-surface)] text-[#dc2626] px-3 py-2">
           {{ errorMsg }}
         </p>
         <p
           v-if="successMsg"
-          class="text-xs text-primary-green border border-primary-green bg-primary-pale px-3 py-2"
+          class="text-xs border border-[var(--bujo-accent)] bg-[var(--bujo-surface)] text-[var(--bujo-ink)] px-3 py-2"
         >
           {{ successMsg }}
         </p>
 
         <!-- 註冊按鈕 -->
-        <button
-          type="submit"
-          :disabled="isLoading"
-          class="w-full bg-primary-green hover:bg-primary-mid text-brand-text py-2 text-sm font-semibold flex items-center justify-center gap-2 border-2 border-brand-text shadow-pixel hover:shadow-pixel-pressed hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-x-0 disabled:translate-y-0 disabled:shadow-pixel"
-        >
+        <button type="submit" :disabled="isLoading" class="bujo-hero-btn w-full">
           {{ isLoading ? '註冊中...' : '註冊' }}
         </button>
       </form>
 
       <!-- 登入連結 -->
-      <p class="text-center text-sm text-brand-text mt-4">
+      <p class="text-center text-sm text-[var(--bujo-muted-strong)] mt-4">
         已經有帳號了？
-        <router-link to="/login" class="text-primary-mid font-semibold">前往登入</router-link>
+        <router-link
+          to="/login"
+          class="text-[var(--bujo-ink)] font-semibold underline decoration-[var(--bujo-line)] underline-offset-2"
+          >前往登入</router-link
+        >
       </p>
     </div>
   </div>
@@ -138,7 +133,6 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
-import registerBg from '@/assets/register-bg.png'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -216,24 +210,103 @@ const handleRegister = async () => {
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px #def4cd inset;
-  -webkit-text-fill-color: #4a5040;
+  -webkit-box-shadow: 0 0 0px 1000px var(--bujo-surface) inset;
+  -webkit-text-fill-color: var(--bujo-ink);
   transition: background-color 9999s ease-in-out 0s;
 }
 
-.register-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  filter: blur(8px);
-  transform: scale(1.05);
+.bujo-login-logo-mark {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--bujo-ink);
+  background: var(--bujo-accent);
+  box-shadow: -6px 6px 0 var(--bujo-card-yellow);
 }
 
-.bg-dot-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='320'%20height='320'%3E%3Cfilter%20id='b'%3E%3CfeGaussianBlur%20stdDeviation='1.2'/%3E%3C/filter%3E%3Cg%20filter='url(%23b)'%3E%3Crect%20x='20'%20y='30'%20width='1'%20height='1'%20fill='%2387C06D'/%3E%3Crect%20x='120'%20y='60'%20width='2'%20height='2'%20fill='%23F9CE9A'/%3E%3Crect%20x='250'%20y='40'%20width='3'%20height='3'%20fill='%23E9EF6E'/%3E%3Crect%20x='60'%20y='150'%20width='4'%20height='4'%20fill='%239DBD86'/%3E%3Crect%20x='200'%20y='180'%20width='5'%20height='5'%20fill='%2387C06D'/%3E%3Crect%20x='280'%20y='250'%20width='6'%20height='6'%20fill='%23F9CE9A'/%3E%3Crect%20x='40'%20y='260'%20width='7'%20height='7'%20fill='%23E9EF6E'/%3E%3Crect%20x='160'%20y='290'%20width='8'%20height='8'%20fill='%239DBD86'/%3E%3C/g%3E%3C/svg%3E");
-  background-repeat: repeat;
+.bujo-login-wordmark {
+  margin: 0;
+  color: var(--bujo-ink);
+  font-family: "SH Pinscher", "Space Mono", monospace;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.bujo-hero-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 0;
+  border: 1px solid var(--bujo-ink);
+  background: var(--bujo-ink);
+  color: var(--bujo-white);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 150ms cubic-bezier(.2, .8, .2, 1),
+    border-color 150ms cubic-bezier(.2, .8, .2, 1),
+    transform 100ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.bujo-hero-btn:hover:not(:disabled) {
+  background: var(--bujo-muted-strong);
+  border-color: var(--bujo-muted-strong);
+}
+
+.bujo-hero-btn:active:not(:disabled) {
+  transform: translate(1px, 1px);
+}
+
+.bujo-hero-btn:focus-visible {
+  outline: 2px solid var(--bujo-accent);
+  outline-offset: 2px;
+}
+
+.bujo-hero-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.login-deco {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--bujo-deco-blue);
+  animation: login-twinkle 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.login-deco--a {
+  top: -12px;
+  left: 40px;
+}
+
+.login-deco--b {
+  bottom: 22px;
+  right: -10px;
+  width: 6px;
+  height: 6px;
+  background: var(--bujo-deco-pink);
+  animation-delay: 1.1s;
+}
+
+@keyframes login-twinkle {
+  0%, 100% {
+    opacity: .35;
+    transform: scale(.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-deco {
+    animation: none;
+    opacity: .7;
+  }
 }
 </style>

@@ -32,7 +32,6 @@ async function mountCalendarMain(user = {}) {
       stubs: {
         DateEventsModal: true,
         EventPage: true,
-        MarqueeBanner: true,
         ProfileAccountModal: true,
       },
     },
