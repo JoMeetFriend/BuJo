@@ -9,7 +9,7 @@
       <button class="activity-menu-button" type="button" @click="emit('toggle-sidebar')">☰</button>
 
       <div class="activity-heading">
-        <h1>Activity</h1>
+        <h1>BuJo Activity</h1>
         <div class="activity-filter-row">
 
           <button

@@ -65,7 +65,7 @@
 
         <!-- 揪一團按鈕 -->
         <PixelButton class="calendar-create-button" @click="openEventModal">
-          ＋<span class="hidden md:inline"> 揪一團</span>
+          ＋<span class="hidden md:inline"> CREATE</span>
         </PixelButton>
 
         <!-- 個人帳號 -->
@@ -904,9 +904,9 @@ function isToday(date) {
 }
 
 .calendar-rail-date strong {
-  font-family: "SH Pinscher", "Space Mono", monospace;
+  font-family: "Doto", "Space Mono", monospace;
   font-size: 34px;
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: 0;
   line-height: .76;
 }

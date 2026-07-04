@@ -482,6 +482,7 @@ function formatTime(date) {
 <style scoped>
 .activity-detail-panel {
   --activity-detail-scale: 1;
+  --activity-detail-lift: 0px;
   width: min(324px, 72vw);
   max-height: 100%;
   border-radius: 1px;
@@ -490,9 +491,19 @@ function formatTime(date) {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 5px 6px 10px rgba(var(--bujo-ink-rgb), 0.12);
-  transform: scale(var(--activity-detail-scale));
+  box-shadow: 5px 6px 10px rgb(var(--bujo-ink-rgb) / 0.12);
+  transform: translateY(var(--activity-detail-lift)) scale(var(--activity-detail-scale));
   transform-origin: center center;
+  transition:
+    transform 160ms ease,
+    filter 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.activity-detail-panel:hover {
+  --activity-detail-lift: -5px;
+  filter: saturate(1.02);
+  box-shadow: 7px 9px 12px rgb(var(--bujo-ink-rgb) / 0.18);
 }
 
 .activity-focus-card--mine-recruiting {
