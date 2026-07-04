@@ -11,9 +11,6 @@
       <div class="activity-heading">
         <h1>Activity</h1>
         <div class="activity-filter-row">
-          <PixelButton type="button" class="activity-create-button" @click="showCreateModal = true">
-            ＋ 揪一團
-          </PixelButton>
 
           <button
             v-for="item in filters"
@@ -26,6 +23,10 @@
             <span>{{ item.text }}</span>
             <b>{{ filterCounts[item.key] ?? 0 }}</b>
           </button>
+
+          <PixelButton type="button" class="activity-create-button" @click="showCreateModal = true">
+            + CREATE
+          </PixelButton>
         </div>
       </div>
 
@@ -94,11 +95,11 @@ import PixelButton from './ui/PixelButton.vue'
 const emit = defineEmits(['toggle-sidebar'])
 
 const filters = [
-  { key: 'recruiting', text: '揪團中' },
-  { key: 'joined', text: '已報名' },
-  { key: 'confirmed', text: '已成團' },
-  { key: 'mine', text: '我建立的' },
-  { key: 'all', text: '全部' },
+  { key: 'recruiting', text: 'RECRUITING' },
+  { key: 'joined', text: 'JOINED' },
+  { key: 'confirmed', text: 'CONFIRMED' },
+  { key: 'mine', text: 'HOSTING' },
+  { key: 'all', text: 'ALL' },
 ]
 
 const activities = ref([])
@@ -147,6 +148,8 @@ const filterCounts = computed(() => ({
 }))
 
 function cardStatus(activity) {
+  if (activity.is_creator && activity.status === 'recruiting') return 'mine-recruiting'
+  if (activity.is_creator && activity.status === 'confirmed') return 'mine-confirmed'
   if (activity.has_joined && !activity.is_creator && activity.status === 'recruiting')
     return 'joined'
   if (activity.status === 'confirmed') return 'confirmed'
@@ -191,40 +194,39 @@ onMounted(fetchActivities)
 
 <style scoped>
 .activity-gallery-page {
-  --activity-page: #f3f4ef;
-  --activity-surface: #fbfbf8;
-  --activity-ink: #202420;
-  --activity-muted: #5a605a;
-  --activity-line: #9da197;
-  --activity-blue-card: #a5dcfb;
-  --activity-green-card: #b3e0d3;
-  --activity-pink-card: #f5c2f1;
-  --activity-white-card: #ffffff;
-  --activity-blue: #3f98c8;
-  --activity-green: #36a67e;
-  --activity-pink: #d95fa8;
-  --activity-yellow: #e8db89;
+  --activity-page: var(--bujo-surface);
+  --activity-surface: var(--bujo-white);
+  --activity-ink: var(--bujo-ink);
+  --activity-muted: var(--bujo-muted);
+  --activity-line: var(--bujo-line);
+  --activity-blue-card: var(--bujo-card-blue);
+  --activity-green-card: var(--bujo-accent);
+  --activity-yellow-card: var(--bujo-card-yellow);
+  --activity-pink-card: var(--bujo-card-pink);
+  --activity-white-card: var(--bujo-white);
+  --activity-blue: #4c8887;
+  --activity-green: var(--bujo-accent);
+  --activity-pink: var(--bujo-deco-pink);
+  --activity-yellow: var(--bujo-card-yellow);
   min-height: 100%;
   height: 100%;
   max-width: 100%;
-  padding: 24px 28px 18px;
+  padding: clamp(22px, 2.4vw, 34px) clamp(28px, 3.4vw, 48px) clamp(18px, 2vw, 26px);
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 16px;
+  grid-template-rows: auto minmax(390px, 1fr) auto;
+  gap: clamp(26px, 3.8vh, 46px);
   overflow: hidden;
   color: var(--activity-ink);
-  background:
-    linear-gradient(rgba(231, 232, 225, 0.52) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(231, 232, 225, 0.52) 1px, transparent 1px), var(--activity-page);
-  background-size: 28px 28px;
-  font-family: 'Noto Sans TC', 'PingFang TC', Arial, sans-serif;
+  background: var(--activity-page);
+  font-family: "IBM Plex Sans TC", "PingFang TC", sans-serif;
 }
 
 .activity-gallery-header {
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr) 150px;
-  gap: 20px;
+  grid-template-columns: minmax(120px, 1fr) minmax(420px, 2.6fr) minmax(150px, 1fr);
+  gap: clamp(18px, 3vw, 42px);
   align-items: start;
+  min-height: clamp(132px, 18vh, 170px);
 }
 
 .activity-brand {
@@ -233,14 +235,14 @@ onMounted(fetchActivities)
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 17px;
-  font-weight: 950;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .activity-pixel-mark {
-  width: 26px;
-  height: 26px;
-  background: var(--activity-yellow);
+  width: 25px;
+  height: 25px;
+  background: var(--bujo-card-yellow);
   border: 2px solid var(--activity-ink);
   box-shadow: 4px 4px 0 var(--activity-ink);
 }
@@ -253,10 +255,24 @@ onMounted(fetchActivities)
   height: 38px;
   border: 1px solid var(--activity-line);
   background: var(--activity-surface);
+  color: var(--activity-ink);
   display: grid;
   place-items: center;
-  font-weight: 950;
+  font-weight: 700;
   cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.activity-menu-button:hover {
+  background: var(--activity-ink);
+  color: var(--activity-surface);
+}
+
+.activity-menu-button:active {
+  transform: translateY(1px);
 }
 
 .activity-heading {
@@ -267,50 +283,74 @@ onMounted(fetchActivities)
 }
 
 .activity-heading h1 {
-  margin: -8px 0 12px;
+  margin: 0 0 22px;
   color: var(--activity-ink);
-  font-size: clamp(54px, 7.8vw, 112px);
-  line-height: 0.84;
+  font-size: clamp(62px, 8.2vw, 122px);
+  line-height: 0.92;
   letter-spacing: 0;
-  font-weight: 950;
+  font-weight: 900;
   white-space: nowrap;
+  display: inline-block;
+  transform: scaleY(0.84);
+  transform-origin: center bottom;
+  -webkit-text-stroke: 0.45px currentColor;
+  text-rendering: geometricPrecision;
 }
 
 .activity-filter-row {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 14px 20px;
-  font-family: 'Courier New', monospace;
+  align-items: start;
+  gap: 8px 22px;
+  font-family: "Space Mono", monospace;
 }
 
 .activity-create-button {
-  min-height: 30px;
-  padding: 4px 10px;
-  font-size: 12px;
+  min-height: 26px;
+  padding: 3px 11px;
+  font-size: 11px;
+  background: transparent !important;
+  color: var(--activity-ink) !important;
+  border-color: var(--activity-ink) !important;
+  box-shadow: none !important;
+}
+
+.activity-create-button:hover {
+  background: var(--activity-ink) !important;
+  color: var(--activity-surface) !important;
 }
 
 .activity-filter {
   display: inline-grid;
-  grid-template-columns: auto auto;
-  gap: 6px;
+  grid-template-columns: 1fr;
+  gap: 1px;
   align-items: start;
+  justify-items: start;
   border: 0;
   background: transparent;
   color: var(--activity-ink);
-  font-size: 13px;
-  line-height: 1.05;
+  font-size: 10px;
+  line-height: 1.08;
   cursor: pointer;
   padding: 0;
+  opacity: 0.78;
+  transition:
+    opacity 160ms ease,
+    color 160ms ease;
+}
+
+.activity-filter:hover {
+  opacity: 1;
 }
 
 .activity-filter b {
-  font-size: 15px;
-  font-weight: 950;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .activity-filter--active b {
-  color: var(--activity-green);
+  color: var(--bujo-accent);
 }
 
 .activity-note {
@@ -319,45 +359,46 @@ onMounted(fetchActivities)
   margin: 0;
   justify-self: end;
   text-align: right;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
+  font-family: "Space Mono", monospace;
+  font-size: 11px;
   line-height: 1.2;
   color: var(--activity-muted);
 }
 
 .activity-stage {
   min-height: 0;
-  padding-top: 22px;
+  padding: clamp(28px, 5.2vh, 68px) 0 clamp(34px, 5.6vh, 76px);
   display: grid;
-  place-items: start center;
+  place-items: center;
   position: relative;
   overflow: hidden;
 }
 
 .activity-ghost {
   position: absolute;
-  color: rgba(32, 36, 32, 0.045);
-  font-size: clamp(44px, 7vw, 100px);
-  line-height: 0.82;
-  font-weight: 950;
+  color: rgba(var(--bujo-ink-rgb), 0.055);
+  font-family: "Space Mono", monospace;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 400;
   pointer-events: none;
   user-select: none;
 }
 
 .activity-ghost--left {
-  left: max(24px, 8vw);
-  top: 72px;
+  left: max(36px, 7vw);
+  top: 35%;
 }
 
 .activity-ghost--right {
-  right: max(24px, 8vw);
-  bottom: 38px;
+  right: max(42px, 8vw);
+  top: 45%;
   text-align: right;
 }
 
 .activity-card-rail {
-  min-height: 122px;
-  padding: 0 0 6px;
+  min-height: 126px;
+  padding: 0 0 10px;
   display: grid;
   align-items: center;
   overflow: hidden;
@@ -367,9 +408,9 @@ onMounted(fetchActivities)
 
 .activity-strip {
   display: flex;
-  gap: 16px;
+  gap: clamp(18px, 1.25vw, 24px);
   overflow-x: auto;
-  padding: 8px 0 10px;
+  padding: 8px 0 14px;
   margin: 0;
   list-style: none;
   scroll-snap-type: x proximity;
@@ -382,49 +423,64 @@ onMounted(fetchActivities)
 }
 
 .activity-mini-card {
-  flex: 0 0 180px;
-  height: 96px;
+  --mini-card-hover-bg: var(--activity-white-card);
+  flex: 0 0 clamp(152px, 11.2vw, 176px);
+  height: 101px;
   scroll-snap-align: center;
-  border-radius: 12px;
-  padding: 12px;
+  border-radius: 1px;
+  padding: 13px 13px 11px;
   display: grid;
   align-content: space-between;
   cursor: pointer;
+  background: #dedfdb;
   transform: translateY(0);
+  box-shadow: 5px 6px 10px rgba(var(--bujo-ink-rgb), 0.08);
   transition:
+    background-color 180ms ease,
     transform 160ms ease,
-    filter 160ms ease;
+    filter 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .activity-mini-card:hover,
 .activity-mini-card--active {
-  transform: translateY(-4px);
-  filter: saturate(1.05);
+  background: var(--mini-card-hover-bg);
+  transform: translateY(-5px);
+  filter: saturate(1.02);
+  box-shadow: 7px 9px 12px rgba(var(--bujo-ink-rgb), 0.12);
+}
+
+.activity-mini-card--mine-recruiting {
+  --mini-card-hover-bg: var(--activity-pink-card);
+}
+
+.activity-mini-card--mine-confirmed {
+  --mini-card-hover-bg: var(--activity-blue-card);
 }
 
 .activity-mini-card--joined {
-  background: var(--activity-pink-card);
+  --mini-card-hover-bg: var(--activity-blue-card);
 }
 
 .activity-mini-card--recruiting {
-  background: var(--activity-blue-card);
+  --mini-card-hover-bg: var(--activity-green-card);
 }
 
 .activity-mini-card--confirmed {
-  background: var(--activity-green-card);
+  --mini-card-hover-bg: var(--activity-yellow-card);
 }
 
 .activity-mini-card--neutral {
-  background: var(--activity-white-card);
+  --mini-card-hover-bg: var(--activity-white-card);
   border: 1px solid var(--activity-line);
 }
 
 .activity-mini-card h2 {
   margin: 0;
   color: var(--activity-ink);
-  font-size: 17px;
-  line-height: 1.05;
-  font-weight: 950;
+  font-size: 16px;
+  line-height: 1.08;
+  font-weight: 700;
 }
 
 .activity-mini-bottom {
@@ -433,14 +489,14 @@ onMounted(fetchActivities)
   justify-content: space-between;
   gap: 12px;
   color: var(--activity-muted);
-  font-family: 'Courier New', monospace;
-  font-size: 11px;
-  font-weight: 700;
+  font-family: "Space Mono", monospace;
+  font-size: 10px;
+  font-weight: 400;
 }
 
 .activity-mini-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   background: currentColor;
   flex: 0 0 auto;
 }
@@ -449,11 +505,11 @@ onMounted(fetchActivities)
 .activity-empty {
   margin: auto;
   width: min(420px, calc(100vw - 48px));
-  border-radius: 18px;
+  border-radius: 1px;
   background: var(--activity-surface);
   padding: 48px;
   text-align: center;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .activity-state-message--error {
@@ -462,8 +518,11 @@ onMounted(fetchActivities)
 
 @media (max-width: 900px) {
   .activity-gallery-page {
+    min-height: 100%;
+    height: auto;
     padding: 18px 16px;
     grid-template-rows: auto auto auto;
+    overflow-y: auto;
   }
 
   .activity-gallery-header {
@@ -503,8 +562,8 @@ onMounted(fetchActivities)
   }
 
   .activity-stage {
-    min-height: 390px;
-    place-items: start center;
+    min-height: 400px;
+    place-items: center;
   }
 
   .activity-ghost {
@@ -512,7 +571,8 @@ onMounted(fetchActivities)
   }
 
   .activity-mini-card {
-    flex-basis: 156px;
+    flex-basis: 144px;
+    height: 101px;
   }
 }
 </style>
