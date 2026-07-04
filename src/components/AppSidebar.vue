@@ -53,7 +53,17 @@
         to="/profile/edit"
         class="bujo-sidebar-profile whitespace-nowrap"
       >
-        <span class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
+        <img
+          v-if="userAvatarSrc"
+          :src="userAvatarSrc"
+          :alt="authStore.user?.display_name || 'Me'"
+          class="w-8 h-8 object-cover shrink-0"
+        />
+        <span
+          v-else
+          class="profile-pixel-face profile-pixel-face--small"
+          aria-hidden="true"
+        ></span>
         <span>ME</span>
       </RouterLink>
     </div>
@@ -113,7 +123,13 @@
         @animationend="onProfileAnimEnd"
         aria-label="開啟個人帳號"
       >
-        <span class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
+        <img
+          v-if="userAvatarSrc"
+          :src="userAvatarSrc"
+          :alt="authStore.user?.display_name || 'Me'"
+          class="w-full h-full object-cover"
+        />
+        <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
       </button>
     </nav>
   </div>
@@ -129,6 +145,7 @@
 import { ref, computed } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { toAvatarSrc } from '@/utils/avatar'
 import ProfileAccountModal from './ProfileAccountModal.vue'
 
 defineProps({ isOpen: Boolean, filters: Object })
@@ -138,6 +155,7 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const isCalendarPage = computed(() => route.path === '/')
+const userAvatarSrc = computed(() => toAvatarSrc(authStore.user?.avatar_url))
 
 const drawerOpen = ref(false)
 const profileBtnBouncing = ref(false)

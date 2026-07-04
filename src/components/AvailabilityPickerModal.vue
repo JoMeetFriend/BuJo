@@ -138,7 +138,7 @@
                               : 'text-[#9DBD86] bg-[#fafdf7]'
                           "
                           type="button"
-                          @click="range.from = opt.value; activeTimePicker = null"
+                          @click="selectRangeStart(range, opt.value)"
                         >
                           {{ opt.label }}
                         </button>
@@ -169,7 +169,7 @@
                               : 'text-[#9DBD86] bg-[#fafdf7]'
                           "
                           type="button"
-                          @click="range.to = opt.value; activeTimePicker = null"
+                          @click="selectRangeEnd(range, opt.value)"
                         >
                           {{ opt.label }}
                         </button>
@@ -298,8 +298,6 @@ function formatChip(dateKey) {
   const parts = dateKey.split('-')
   return `${parseInt(parts[1])}/${parseInt(parts[2])}`
 }
-
-const sortedSelectedDates = computed(() => Object.keys(selectedDates.value).sort())
 
 // ── 日期格樣式 ──
 function dayClass(day) {
@@ -438,6 +436,16 @@ function openTimePicker(key, containerEl) {
       el?.scrollIntoView({ block: 'center' })
     })
   }
+}
+
+function selectRangeStart(range, value) {
+  range.from = value
+  activeTimePicker.value = null
+}
+
+function selectRangeEnd(range, value) {
+  range.to = value
+  activeTimePicker.value = null
 }
 
 function handleDocumentClickTimePicker(e) {

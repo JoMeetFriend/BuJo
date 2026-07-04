@@ -52,3 +52,5 @@ docs
 graphify-out/
 .claude/
 CLAUDE.md
+.spectra/
+openspec/.vector-search.db*
