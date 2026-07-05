@@ -214,6 +214,19 @@
           需要至少連接兩種登入方式才能解除其中一個。
         </p>
       </div>
+
+      <footer class="flex justify-end border-t border-[var(--bujo-line)] px-5 py-4">
+        <PixelButton
+          variant="danger"
+          class="profile-logout-btn"
+          type="button"
+          :disabled="logoutLoading"
+          aria-label="登出目前帳號"
+          @click="handleLogout"
+        >
+          {{ logoutLoading ? '登出中' : '登出' }}
+        </PixelButton>
+      </footer>
     </section>
   </main>
 </template>
@@ -236,6 +249,7 @@ const avatarLoading = ref(false)
 const avatarMsg = ref('')
 const avatarMsgType = ref('success')
 const linkLoading = ref(false)
+const logoutLoading = ref(false)
 const linkMsg = ref('')
 const linkMsgType = ref('success')
 const copyStatus = ref('idle')
@@ -379,6 +393,20 @@ const handleUnlink = async (provider) => {
   }
 }
 
+async function handleLogout() {
+  if (logoutLoading.value) return
+
+  logoutLoading.value = true
+  try {
+    await authStore.logout()
+  } catch {
+    authStore.clearUser()
+  } finally {
+    logoutLoading.value = false
+    router.replace('/login')
+  }
+}
+
 onMounted(async () => {
   // LINE link callback redirects back with ?linked=line
   if (route.query.linked === 'line') {
@@ -410,6 +438,17 @@ onMounted(async () => {
 <style scoped>
 .profile-card {
   box-shadow: 7px 8px 0 rgb(var(--bujo-ink-rgb) / 0.06);
+}
+
+.profile-logout-btn {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.profile-logout-btn:hover:not(:disabled) {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #ef4444;
 }
 
 .profile-eyebrow {
