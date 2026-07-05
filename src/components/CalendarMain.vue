@@ -730,6 +730,65 @@ function isToday(date) {
   top: 22px;
   right: 32px;
   z-index: 8;
+  width: 42px;
+  height: 42px;
+  border-color: rgb(var(--bujo-line-rgb) / 0.62);
+  background:
+    linear-gradient(135deg, rgb(var(--bujo-white-rgb) / 0.92), rgb(var(--bujo-surface-rgb) / 0.94)),
+    var(--bujo-surface);
+  box-shadow:
+    0 8px 16px rgb(var(--bujo-ink-rgb) / 0.08),
+    -4px 4px 0 rgb(var(--bujo-deco-pink) / 0.28);
+  transform: rotate(-2.5deg);
+  transition:
+    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.calendar-page-profile-button::before,
+.calendar-page-profile-button::after {
+  position: absolute;
+  pointer-events: none;
+  clip-path: polygon(
+    50% 0,
+    61% 35%,
+    98% 35%,
+    68% 56%,
+    79% 91%,
+    50% 70%,
+    21% 91%,
+    32% 56%,
+    2% 35%,
+    39% 35%
+  );
+  content: '';
+}
+
+.calendar-page-profile-button::before {
+  top: -9px;
+  right: -7px;
+  width: 17px;
+  height: 17px;
+  background: #ef6f9f;
+  transform: rotate(16deg);
+}
+
+.calendar-page-profile-button::after {
+  bottom: -6px;
+  left: -7px;
+  width: 12px;
+  height: 12px;
+  background: #56b597;
+  transform: rotate(-18deg);
+}
+
+.calendar-page-profile-button:hover {
+  border-color: var(--bujo-ink);
+  box-shadow:
+    0 9px 18px rgb(var(--bujo-ink-rgb) / 0.1),
+    -4px 4px 0 rgb(var(--bujo-deco-pink) / 0.42);
+  transform: rotate(0deg) translateY(-1px);
 }
 
 .calendar-mood-line {
@@ -1255,10 +1314,15 @@ function isToday(date) {
 @media (max-width: 640px) {
   .calendar-main-shell {
     gap: 14px;
+    padding: 8px 8px 72px;
+  }
+
+  .calendar-content-composition {
+    margin-top: 6px;
   }
 
   .calendar-title-line h1 {
-    font-size: 40px;
+    font-size: 36px;
   }
 
   .calendar-exhibition-caption,
@@ -1271,10 +1335,11 @@ function isToday(date) {
   }
 
   .calendar-paper-page {
-    padding: 18px 12px 18px 34px;
+    padding: 14px 10px 12px 32px;
   }
 
   .calendar-board {
+    height: clamp(430px, calc(100dvh - 218px), 540px);
     box-shadow: none;
   }
 
