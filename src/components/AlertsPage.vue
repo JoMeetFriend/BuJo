@@ -1,8 +1,6 @@
 <template>
   <div class="min-h-screen bg-[var(--bujo-page)] pb-24 text-[var(--bujo-ink)]">
-    <header
-      class="alerts-header sticky top-0 z-10 bg-[var(--bujo-page)] px-5 pt-8 pb-4 md:px-14"
-    >
+    <header class="alerts-header sticky top-0 z-10 bg-[var(--bujo-page)] px-5 pt-8 pb-4 md:px-14">
       <p class="alerts-eyebrow">SOCIAL INBOX</p>
       <div class="alerts-title-line">
         <h1>ALERTS</h1>
@@ -212,10 +210,10 @@ function setActionBusy(notificationId, isBusy) {
 .alerts-eyebrow {
   margin: 0 0 2px;
   color: var(--bujo-muted-strong);
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
 }
 
 .alerts-title-line {
@@ -227,22 +225,22 @@ function setActionBusy(notificationId, isBusy) {
 .alerts-title-line h1 {
   margin: 0;
   color: var(--bujo-ink);
-  font-family: "IBM Plex Sans TC", sans-serif;
+  font-family: var(--bujo-font-heading);
   font-size: clamp(40px, 6vw, 64px);
   font-weight: 800;
-  line-height: .9;
+  line-height: 0.9;
   letter-spacing: 0;
 }
 
 .alerts-cn-tag {
   color: var(--bujo-muted);
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 13px;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
 }
 
 .alerts-status-text {
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 12px;
   color: var(--bujo-muted-strong);
 }
@@ -269,8 +267,8 @@ function setActionBusy(notificationId, isBusy) {
   background: var(--bujo-surface);
   padding: 12px;
   transition:
-    border-color 160ms cubic-bezier(.2, .8, .2, 1),
-    background-color 160ms cubic-bezier(.2, .8, .2, 1);
+    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .alerts-item:hover {
@@ -286,7 +284,7 @@ function setActionBusy(notificationId, isBusy) {
 .alerts-message {
   margin: 0;
   color: var(--bujo-ink);
-  font-family: "IBM Plex Sans TC", sans-serif;
+  font-family: var(--bujo-font-body);
   font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
@@ -295,7 +293,7 @@ function setActionBusy(notificationId, isBusy) {
 .alerts-time {
   margin: 0;
   color: var(--bujo-muted-strong);
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 11px;
 }
 
@@ -303,15 +301,15 @@ function setActionBusy(notificationId, isBusy) {
   border: 1px solid var(--bujo-ink);
   background: transparent;
   padding: 5px 12px;
-  font-family: "IBM Plex Sans TC", sans-serif;
+  font-family: var(--bujo-font-body);
   font-size: 11px;
   font-weight: 700;
   color: var(--bujo-ink);
   cursor: pointer;
   transition:
-    background-color 150ms cubic-bezier(.2, .8, .2, 1),
-    border-color 150ms cubic-bezier(.2, .8, .2, 1),
-    color 150ms cubic-bezier(.2, .8, .2, 1);
+    background-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .alerts-inline-btn--accept:hover:not(:disabled) {
@@ -330,7 +328,7 @@ function setActionBusy(notificationId, isBusy) {
 }
 
 .alerts-inline-btn:disabled {
-  opacity: .4;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 

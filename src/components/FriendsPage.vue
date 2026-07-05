@@ -1,7 +1,9 @@
 <template>
   <div class="min-h-screen bg-[var(--bujo-page)] text-[var(--bujo-ink)]">
     <!-- Sticky Header -->
-    <header class="friends-header sticky top-0 z-10 flex items-center justify-between bg-[var(--bujo-page)] px-5 pt-8 pb-4 md:px-14">
+    <header
+      class="friends-header sticky top-0 z-10 flex items-center justify-between bg-[var(--bujo-page)] px-5 pt-8 pb-4 md:px-14"
+    >
       <div>
         <p class="friends-eyebrow">SOCIAL COLLECTION</p>
         <div class="friends-title-line">
@@ -88,10 +90,10 @@ onMounted(() => {
 .friends-eyebrow {
   margin: 0 0 2px;
   color: var(--bujo-muted-strong);
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
 }
 
 .friends-title-line {
@@ -103,18 +105,18 @@ onMounted(() => {
 .friends-title-line h1 {
   margin: 0;
   color: var(--bujo-ink);
-  font-family: "IBM Plex Sans TC", sans-serif;
+  font-family: var(--bujo-font-heading);
   font-size: clamp(40px, 6vw, 64px);
   font-weight: 800;
-  line-height: .9;
+  line-height: 0.9;
   letter-spacing: 0;
 }
 
 .friends-cn-tag {
   color: var(--bujo-muted);
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 13px;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
 }
 
 .friends-empty {
@@ -133,15 +135,15 @@ onMounted(() => {
   gap: 8px;
   border: 1px solid var(--bujo-ink);
   padding: 18px 12px 14px;
-  box-shadow: 4px 5px 0 rgb(var(--bujo-ink-rgb) / .08);
+  box-shadow: 4px 5px 0 rgb(var(--bujo-ink-rgb) / 0.08);
   transition:
-    transform 160ms cubic-bezier(.2, .8, .2, 1),
-    box-shadow 160ms cubic-bezier(.2, .8, .2, 1);
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .friend-stamp:hover {
   transform: translateY(-3px);
-  box-shadow: 5px 7px 0 rgb(var(--bujo-ink-rgb) / .12);
+  box-shadow: 5px 7px 0 rgb(var(--bujo-ink-rgb) / 0.12);
 }
 
 .friend-stamp-mark {
@@ -151,7 +153,7 @@ onMounted(() => {
   width: 6px;
   height: 6px;
   background: var(--bujo-ink);
-  opacity: .55;
+  opacity: 0.55;
 }
 
 .friend-stamp-avatar {
@@ -188,9 +190,9 @@ onMounted(() => {
 }
 
 .friend-stamp-label {
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 10px;
-  letter-spacing: .04em;
-  color: rgb(var(--bujo-ink-rgb) / .6);
+  letter-spacing: 0.04em;
+  color: rgb(var(--bujo-ink-rgb) / 0.6);
 }
 </style>

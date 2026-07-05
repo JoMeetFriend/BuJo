@@ -6,7 +6,7 @@
       @click.self="close"
     >
       <div
-        class="font-['IBM_Plex_Sans_TC'] bg-[var(--bujo-surface)] border border-[var(--bujo-line-soft)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] w-full max-w-[800px] h-[70vh] md:h-[600px] flex flex-col overflow-hidden"
+        class="font-nunito bg-[var(--bujo-surface)] border border-[var(--bujo-line-soft)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] w-full max-w-[800px] h-[70vh] md:h-[600px] flex flex-col overflow-hidden"
       >
         <!-- Header -->
         <div
@@ -144,7 +144,9 @@
                         </button>
                       </div>
                     </div>
-                    <span class="text-[12px] text-[var(--bujo-muted-strong)] font-bold shrink-0">→</span>
+                    <span class="text-[12px] text-[var(--bujo-muted-strong)] font-bold shrink-0"
+                      >→</span
+                    >
                     <div class="relative time-picker-wrap flex-1 min-w-0" @click.stop>
                       <button
                         class="w-full border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-1.5 py-1.5 font-bold text-[var(--bujo-ink)] text-[13px] outline-none transition-colors duration-150 hover:border-[var(--bujo-accent)] text-left"
@@ -307,7 +309,9 @@ function dayClass(day) {
       ? 'bg-[var(--bujo-surface)] border-[var(--bujo-line-soft)] text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)] hover:border-[var(--bujo-ink)]'
       : '',
     isDragHov && !sel ? 'bg-[var(--bujo-surface-muted)] border-[var(--bujo-accent)]' : '',
-    sel && !isActive ? 'bg-[var(--bujo-accent)] text-[var(--bujo-ink)] border-[var(--bujo-ink)]' : '',
+    sel && !isActive
+      ? 'bg-[var(--bujo-accent)] text-[var(--bujo-ink)] border-[var(--bujo-ink)]'
+      : '',
     sel && isActive ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)] border-[var(--bujo-ink)]' : '',
   ]
     .filter(Boolean)

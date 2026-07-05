@@ -45,7 +45,10 @@ async function mountProfileEditPage(user = {}) {
 
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: '/profile/edit', component: ProfileEditPage }],
+    routes: [
+      { path: '/profile/edit', component: ProfileEditPage },
+      { path: '/login', component: { template: '<div>Login</div>' } },
+    ],
   })
   await router.push('/profile/edit')
   await router.isReady()
@@ -85,6 +88,7 @@ describe('ProfileEditPage', () => {
     expect(wrapper.text()).toContain('取消')
     expect(wrapper.text()).toContain('儲存變更')
     expect(wrapper.text()).toContain('已連接的登入方式')
+    expect(wrapper.get('[aria-label="登出目前帳號"]').text()).toBe('登出')
   })
 
   test('優先使用 uid 後五碼，沒有 uid 時 fallback 到 id 後五碼', async () => {
@@ -207,5 +211,36 @@ describe('ProfileEditPage', () => {
 
     expect(fetch).toHaveBeenCalledTimes(1)
     expect(wrapper.text()).toContain('圖片超過 2MB')
+  })
+
+  test('右下角登出按鈕會呼叫後端登出、清除使用者並導回登入頁', async () => {
+    fetch.mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({}),
+    })
+    const wrapper = await mountProfileEditPage()
+    const authStore = useAuthStore()
+
+    await wrapper.get('[aria-label="登出目前帳號"]').trigger('click')
+    await flushPromises()
+
+    expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    })
+    expect(authStore.user).toBeNull()
+    expect(wrapper.vm.$router.currentRoute.value.path).toBe('/login')
+  })
+
+  test('後端登出失敗時仍清除使用者並導回登入頁', async () => {
+    fetch.mockRejectedValue(new Error('Network error'))
+    const wrapper = await mountProfileEditPage()
+    const authStore = useAuthStore()
+
+    await wrapper.get('[aria-label="登出目前帳號"]').trigger('click')
+    await flushPromises()
+
+    expect(authStore.user).toBeNull()
+    expect(wrapper.vm.$router.currentRoute.value.path).toBe('/login')
   })
 })

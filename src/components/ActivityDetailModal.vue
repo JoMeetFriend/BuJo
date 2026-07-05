@@ -535,7 +535,7 @@ function formatTime(date) {
 
 .activity-detail-kicker {
   margin-bottom: 7px;
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 10px;
   font-weight: 400;
   letter-spacing: 0.08em;
@@ -552,7 +552,7 @@ function formatTime(date) {
 
 .activity-detail-date {
   color: rgba(var(--bujo-ink-rgb), 0.72);
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 25px;
   line-height: 1;
   font-weight: 700;
@@ -630,7 +630,7 @@ function formatTime(date) {
 .activity-detail-label {
   margin-bottom: 3px;
   color: rgba(var(--bujo-ink-rgb), 0.62);
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
@@ -743,7 +743,7 @@ function formatTime(date) {
   color: var(--bujo-ink) !important;
   border: 1px solid var(--bujo-ink) !important;
   box-shadow: none !important;
-  font-family: "IBM Plex Sans TC", sans-serif !important;
+  font-family: var(--bujo-font-body) !important;
   font-weight: 700 !important;
 }
 

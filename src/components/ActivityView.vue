@@ -11,7 +11,6 @@
       <div class="activity-heading">
         <h1>BuJo Activity</h1>
         <div class="activity-filter-row">
-
           <button
             v-for="item in filters"
             :key="item.key"
@@ -218,7 +217,7 @@ onMounted(fetchActivities)
   overflow: hidden;
   color: var(--activity-ink);
   background: var(--activity-page);
-  font-family: "IBM Plex Sans TC", "PingFang TC", sans-serif;
+  font-family: var(--bujo-font-body);
 }
 
 .activity-gallery-header {
@@ -303,7 +302,7 @@ onMounted(fetchActivities)
   flex-wrap: wrap;
   align-items: start;
   gap: 8px 22px;
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
 }
 
 .activity-create-button {
@@ -350,7 +349,7 @@ onMounted(fetchActivities)
   margin: 0;
   justify-self: end;
   text-align: right;
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 11px;
   line-height: 1.2;
   color: var(--activity-muted);
@@ -368,7 +367,7 @@ onMounted(fetchActivities)
 .activity-ghost {
   position: absolute;
   color: rgba(var(--bujo-ink-rgb), 0.055);
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 12px;
   line-height: 1.25;
   font-weight: 400;
@@ -480,7 +479,7 @@ onMounted(fetchActivities)
   justify-content: space-between;
   gap: 12px;
   color: var(--activity-muted);
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 10px;
   font-weight: 400;
 }

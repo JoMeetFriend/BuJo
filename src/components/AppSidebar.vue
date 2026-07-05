@@ -8,7 +8,7 @@
       <!-- Logo -->
       <div class="flex items-center gap-3 mb-12 whitespace-nowrap">
         <div class="bujo-sidebar-logo-mark shrink-0"></div>
-        <span class="font-[plex-sans-tc] text-[var(--bujo-ink)] text-[21px] font-bold tracking-normal"
+        <span class="font-inter text-[var(--bujo-ink)] text-[21px] font-extrabold tracking-normal"
           >BuJo</span
         >
       </div>
@@ -20,7 +20,9 @@
           :key="item.label"
           :to="item.to"
           class="bujo-sidebar-link group"
-          :class="{ 'is-active': route.path === item.to || (item.to === '/' && route.path === '/') }"
+          :class="{
+            'is-active': route.path === item.to || (item.to === '/' && route.path === '/'),
+          }"
         >
           <span class="bujo-sidebar-active-line" aria-hidden="true"></span>
           <span class="bujo-nav-object" :class="`bujo-nav-object--${item.icon}`" aria-hidden="true">
@@ -49,9 +51,11 @@
       </div>
 
       <!-- 用戶 -->
-      <RouterLink
-        to="/profile/edit"
+      <button
+        type="button"
         class="bujo-sidebar-profile whitespace-nowrap"
+        aria-label="開啟側邊欄個人帳號"
+        @click="showProfileModal = true"
       >
         <img
           v-if="userAvatarSrc"
@@ -59,13 +63,9 @@
           :alt="authStore.user?.display_name || 'Me'"
           class="w-8 h-8 object-cover shrink-0"
         />
-        <span
-          v-else
-          class="profile-pixel-face profile-pixel-face--small"
-          aria-hidden="true"
-        ></span>
+        <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
         <span>ME</span>
-      </RouterLink>
+      </button>
     </div>
   </aside>
 
@@ -206,11 +206,11 @@ async function handleLogout() {
   color: var(--bujo-muted-strong);
   text-decoration: none;
   white-space: nowrap;
-  transition: color 160ms cubic-bezier(.2, .8, .2, 1);
+  transition: color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .bujo-sidebar-label {
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 16px;
   font-weight: 700;
   letter-spacing: 0;
@@ -224,12 +224,12 @@ async function handleLogout() {
   height: 22px;
   background: var(--bujo-ink);
   opacity: 0;
-  transform: scaleY(.55);
+  transform: scaleY(0.55);
   transform-origin: center;
   transition:
-    opacity 160ms cubic-bezier(.2, .8, .2, 1),
-    transform 160ms cubic-bezier(.2, .8, .2, 1),
-    background-color 160ms cubic-bezier(.2, .8, .2, 1);
+    opacity 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .bujo-sidebar-link:hover,
@@ -264,9 +264,9 @@ async function handleLogout() {
   content: '';
   box-sizing: border-box;
   transition:
-    background-color 160ms cubic-bezier(.2, .8, .2, 1),
-    border-color 160ms cubic-bezier(.2, .8, .2, 1),
-    transform 160ms cubic-bezier(.2, .8, .2, 1);
+    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .bujo-nav-object--calendar::before {
@@ -287,7 +287,7 @@ async function handleLogout() {
   box-shadow:
     0 5px 0 currentColor,
     0 10px 0 currentColor;
-  opacity: .72;
+  opacity: 0.72;
 }
 
 .bujo-nav-object--calendar span::before {
@@ -343,8 +343,8 @@ async function handleLogout() {
   top: 8px;
   width: 20px;
   height: 14px;
-  background:
-    radial-gradient(circle at 2px 2px, transparent 0 2px, var(--bujo-surface) 2px 4px) 0 0 / 6px 6px;
+  background: radial-gradient(circle at 2px 2px, transparent 0 2px, var(--bujo-surface) 2px 4px) 0
+    0 / 6px 6px;
   z-index: -1;
 }
 
@@ -419,7 +419,7 @@ async function handleLogout() {
 .bujo-sidebar-filter-title {
   margin-bottom: 2px;
   color: var(--bujo-muted);
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 14px;
   line-height: 1;
 }
@@ -430,15 +430,15 @@ async function handleLogout() {
   gap: 9px;
   width: fit-content;
   color: var(--bujo-ink);
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 15px;
   font-weight: 700;
   line-height: 1;
-  transition: opacity 160ms cubic-bezier(.2, .8, .2, 1);
+  transition: opacity 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .bujo-filter-button.is-muted {
-  opacity: .38;
+  opacity: 0.38;
 }
 
 .bujo-filter-swatch {
@@ -452,8 +452,11 @@ async function handleLogout() {
   align-items: center;
   gap: 10px;
   width: fit-content;
+  border: 0;
+  background: transparent;
   color: var(--bujo-ink);
-  font-family: "Space Mono", monospace;
+  cursor: pointer;
+  font-family: 'Space Mono', monospace;
   font-size: 16px;
   font-weight: 700;
   text-decoration: none;
@@ -465,7 +468,7 @@ async function handleLogout() {
   width: 48px;
   height: 42px;
   color: var(--bujo-muted-strong);
-  transition: color 160ms cubic-bezier(.2, .8, .2, 1);
+  transition: color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .bujo-mobile-nav-link.is-active,

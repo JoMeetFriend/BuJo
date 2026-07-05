@@ -21,149 +21,146 @@
         }"
       />
     </div>
+    <button
+      type="button"
+      class="calendar-profile-button calendar-page-profile-button hidden md:flex"
+      :class="{ 'btn-bounce-green': profileBtnBouncing }"
+      @animationend="profileBtnBouncing = false"
+      aria-label="開啟個人帳號"
+      @click="openProfileModal"
+    >
+      <img
+        v-if="currentUserAvatarSrc"
+        :src="currentUserAvatarSrc"
+        :alt="currentUser.display_name"
+        class="h-full w-full object-cover"
+      />
+      <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
+    </button>
+    <p
+      class="calendar-mood-line"
+      aria-label="BuJo catches the little plans, keeps your people close, and nudges the day into motion."
+    >
+      <strong>BuJo</strong>
+      <span class="calendar-mood-divider"></span>
+      <span>catches the little plans</span>
+      <span class="calendar-mood-dot" aria-hidden="true"></span>
+      <span>, keeps your people close</span>
+      <span class="calendar-mood-flag" aria-hidden="true"></span>
+      <span>, and nudges the day into motion</span>
+      <span class="calendar-mood-spark" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+      <span>.</span>
+    </p>
     <div class="md:hidden h-5"></div>
 
-    <!-- Hero + controls + social rail -->
-    <section class="calendar-hero-composition">
-      <div class="calendar-hero-copy">
-        <!-- 漢堡選單（僅桌機顯示） -->
-        <button
-          @click="emit('toggle-sidebar')"
-          class="calendar-menu-button hidden md:flex"
-          aria-label="切換側邊欄"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-
-        <div>
-          <p class="calendar-eyebrow">SOCIAL INBOX CALENDAR</p>
-          <div class="calendar-title-line">
-            <h1>{{ monthNames[currentMonth] }}</h1>
-            <span class="calendar-year-mark">{{ currentYear }}</span>
-          </div>
-          <p class="calendar-exhibition-caption">( social index / small plans )</p>
-        </div>
-      </div>
-
-      <div class="calendar-hero-actions">
-        <button
-          @click="prevMonth"
-          class="calendar-arrow-button"
-          aria-label="上一個月"
-        >
-          &lt;
-        </button>
-        <button
-          @click="nextMonth"
-          class="calendar-arrow-button"
-          aria-label="下一個月"
-        >
-          &gt;
-        </button>
-
-        <!-- 揪一團按鈕 -->
-        <PixelButton class="calendar-create-button" @click="openEventModal">
-          ＋<span class="hidden md:inline"> CREATE</span>
-        </PixelButton>
-
-        <!-- 個人帳號 -->
-        <button
-          type="button"
-          class="calendar-profile-button hidden md:flex"
-          :class="{ 'btn-bounce-green': profileBtnBouncing }"
-          @animationend="profileBtnBouncing = false"
-          aria-label="開啟個人帳號"
-          @click="openProfileModal"
-        >
-          <img
-            v-if="currentUserAvatarSrc"
-            :src="currentUserAvatarSrc"
-            :alt="currentUser.display_name"
-            class="h-full w-full object-cover"
-          />
-          <span
-            v-else
-            class="profile-pixel-face profile-pixel-face--small"
-            aria-hidden="true"
-          ></span>
-        </button>
-      </div>
-    </section>
-
     <section class="calendar-content-composition">
-      <!-- 行事曆本體 -->
-      <div
-        ref="calendarRef"
-        class="calendar-board md:flex-1 md:flex md:flex-col"
-      >
-        <!-- 星期標題 -->
-        <div class="calendar-week-row grid grid-cols-7">
-          <div
-            v-for="day in weekDays"
-            :key="day"
-            class="calendar-weekday"
-          >
-            {{ day }}
-          </div>
-        </div>
+      <div class="calendar-paper-page">
+        <span class="calendar-stack-sheet calendar-stack-sheet--back" aria-hidden="true"></span>
+        <span class="calendar-stack-sheet calendar-stack-sheet--middle" aria-hidden="true"></span>
 
-        <!-- 格子 -->
-        <div
-          class="calendar-grid grid grid-cols-7 md:flex-1 md:min-h-0"
-          :style="{
-            gridTemplateRows: isMobile ? 'repeat(6, clamp(50px, 8.4vh, 110px))' : 'repeat(6, 1fr)',
-          }"
-        >
-          <div
-            v-for="(cell, index) in calendarDays"
-            :key="index"
-            class="calendar-cell flex flex-col overflow-hidden justify-start relative pb-2"
-            :class="[
-              cell.date && isToday(cell.date)
-                ? 'is-today'
-                : cell.faded
-                  ? 'is-faded'
-                  : '',
-            ]"
-            :role="cell.date ? 'button' : undefined"
-            :tabindex="cell.date ? 0 : undefined"
-            @click="openDateModal(cell.date)"
-            @keydown.enter.prevent="openDateModal(cell.date)"
-            @keydown.space.prevent="openDateModal(cell.date)"
-          >
-            <!-- 日期數字（只有當月才顯示） -->
-            <div class="w-full p-1 md:p-2">
-              <span
-                v-if="cell.day"
-                class="calendar-day-number"
-              >
-                {{ cell.day }}
-              </span>
-            </div>
-
-            <!-- 活動條 -->
-            <div class="flex flex-col gap-[3px] px-1 pb-1 md:px-2 md:pb-3">
-              <template v-for="(event, i) in getEvents(cell.date)" :key="event.id">
-                <div
-                  v-if="(isMobile && i < 2) || (!isMobile && i < 3)"
-                  class="calendar-event-chip"
-                  :class="statusStyle[event.status]"
-                >
-                  <span class="calendar-event-dot"></span>
-                  <span class="truncate">{{ event.title }}</span>
-                  <span class="calendar-event-meta hidden md:inline">{{ statusMeta[event.status] }}</span>
-                </div>
-              </template>
-            </div>
-
-            <!-- +N：定位相對格子，不受 events 容器高度影響 -->
-            <div
-              v-if="getEvents(cell.date).length > (isMobile ? 2 : 3)"
-              class="calendar-more-count"
+        <!-- Hero + controls -->
+        <section class="calendar-hero-composition">
+          <div class="calendar-hero-copy">
+            <!-- 漢堡選單（僅桌機顯示） -->
+            <button
+              @click="emit('toggle-sidebar')"
+              class="calendar-menu-button hidden md:flex"
+              aria-label="切換側邊欄"
             >
-              +{{ getEvents(cell.date).length - (isMobile ? 2 : 3) }}
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+
+            <div>
+              <p class="calendar-eyebrow">SOCIAL INBOX CALENDAR</p>
+              <div class="calendar-title-line">
+                <h1>{{ monthNames[currentMonth] }}</h1>
+                <span class="calendar-year-mark">{{ currentYear }}</span>
+              </div>
+              <p class="calendar-exhibition-caption">( social index / small plans )</p>
+            </div>
+          </div>
+
+          <div class="calendar-hero-actions">
+            <button @click="prevMonth" class="calendar-arrow-button" aria-label="上一個月">
+              &lt;
+            </button>
+            <button @click="nextMonth" class="calendar-arrow-button" aria-label="下一個月">
+              &gt;
+            </button>
+
+            <!-- 揪一團按鈕 -->
+            <PixelButton class="calendar-create-button" @click="openEventModal">
+              ＋<span class="hidden md:inline"> CREATE</span>
+            </PixelButton>
+          </div>
+        </section>
+
+        <!-- 行事曆本體 -->
+        <div ref="calendarRef" class="calendar-board md:flex-1 md:flex md:flex-col">
+          <!-- 星期標題 -->
+          <div class="calendar-week-row grid grid-cols-7">
+            <div v-for="day in weekDays" :key="day" class="calendar-weekday">
+              {{ day }}
+            </div>
+          </div>
+
+          <!-- 格子 -->
+          <div
+            class="calendar-grid grid grid-cols-7 md:flex-1 md:min-h-0"
+            :style="{
+              gridTemplateRows: isMobile
+                ? 'repeat(6, clamp(50px, 8.4vh, 110px))'
+                : 'repeat(6, 1fr)',
+            }"
+          >
+            <div
+              v-for="(cell, index) in calendarDays"
+              :key="index"
+              class="calendar-cell flex flex-col overflow-hidden justify-start relative pb-2"
+              :class="[cell.date && isToday(cell.date) ? 'is-today' : cell.faded ? 'is-faded' : '']"
+              :role="cell.date ? 'button' : undefined"
+              :tabindex="cell.date ? 0 : undefined"
+              @click="openDateModal(cell.date)"
+              @keydown.enter.prevent="openDateModal(cell.date)"
+              @keydown.space.prevent="openDateModal(cell.date)"
+            >
+              <!-- 日期數字（只有當月才顯示） -->
+              <div class="w-full p-1 md:p-2">
+                <span v-if="cell.day" class="calendar-day-number">
+                  {{ cell.day }}
+                </span>
+              </div>
+
+              <!-- 活動條 -->
+              <div class="calendar-event-list flex flex-col gap-[3px] px-1 pb-1 md:px-2 md:pb-3">
+                <template v-for="(event, i) in getEvents(cell.date)" :key="event.id">
+                  <div
+                    v-if="(isMobile && i < 2) || (!isMobile && i < 3)"
+                    class="calendar-event-chip"
+                    :class="statusStyle[event.status]"
+                  >
+                    <span class="calendar-event-dot"></span>
+                    <span class="truncate">{{ event.title }}</span>
+                    <span class="calendar-event-meta hidden md:inline">{{
+                      statusMeta[event.status]
+                    }}</span>
+                  </div>
+                </template>
+              </div>
+
+              <!-- +N：定位相對格子，不受 events 容器高度影響 -->
+              <div
+                v-if="getEvents(cell.date).length > (isMobile ? 2 : 3)"
+                class="calendar-more-count"
+              >
+                +{{ getEvents(cell.date).length - (isMobile ? 2 : 3) }}
+              </div>
             </div>
           </div>
         </div>
@@ -185,8 +182,8 @@
             @click="openDateModal(item.date)"
           >
             <span class="calendar-rail-date">
-              <strong>{{ item.monthShort }}</strong>
-              <em>{{ item.dayNumber }}</em>
+              <strong>{{ item.dayNumber }}</strong>
+              <em>{{ item.monthShort }}</em>
             </span>
             <span class="calendar-rail-title">{{ item.title }}</span>
             <small>{{ item.statusLabel }}</small>
@@ -203,8 +200,8 @@
             @click="openDateModal(item.date)"
           >
             <span class="calendar-rail-date">
-              <strong>{{ item.monthShort }}</strong>
-              <em>{{ item.dayNumber }}</em>
+              <strong>{{ item.dayNumber }}</strong>
+              <em>{{ item.monthShort }}</em>
             </span>
             <span class="calendar-rail-title">{{ item.title }}</span>
             <small>{{ item.statusLabel }}</small>
@@ -399,7 +396,20 @@ const monthNames = [
   'NOVEMBER',
   'DECEMBER',
 ]
-const monthShortNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+const monthShortNames = [
+  'JAN',
+  'FEB',
+  'MAR',
+  'APR',
+  'MAY',
+  'JUN',
+  'JUL',
+  'AUG',
+  'SEP',
+  'OCT',
+  'NOV',
+  'DEC',
+]
 const weekDays = ['一', '二', '三', '四', '五', '六', '日']
 
 const events = ref([
@@ -515,7 +525,9 @@ const selectedDateEvents = computed(() => getEvents(selectedDate.value))
 const visibleEvents = computed(() => {
   const monthDates = new Set(calendarDays.value.filter((d) => d.date).map((d) => d.date))
   return events.value.filter(
-    (event) => monthDates.has(event.date) && getEvents(event.date).some((visible) => visible.id === event.id),
+    (event) =>
+      monthDates.has(event.date) &&
+      getEvents(event.date).some((visible) => visible.id === event.id),
   )
 })
 
@@ -548,15 +560,24 @@ function isToday(date) {
 <style scoped>
 .calendar-main-shell {
   gap: clamp(16px, 2vw, 26px);
+  height: 100%;
+  overflow: hidden;
+  background-image: radial-gradient(circle, rgb(var(--bujo-line-rgb) / 0.13) 1px, transparent 1px);
+  background-position: 0 0;
+  background-size: 24px 24px;
   color: var(--bujo-ink);
-  font-family: "IBM Plex Sans TC", sans-serif;
+  font-family: 'Inter', var(--bujo-font-body);
 }
 
 .calendar-hero-composition {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) max-content;
   align-items: end;
-  gap: 22px;
+  column-gap: clamp(16px, 2.3vw, 28px);
+  row-gap: 14px;
+  position: relative;
+  z-index: 3;
+  margin-bottom: clamp(22px, 3vh, 34px);
 }
 
 .calendar-hero-copy {
@@ -576,8 +597,8 @@ function isToday(date) {
   border: 1px solid var(--bujo-line);
   background: var(--bujo-surface);
   transition:
-    border-color 160ms cubic-bezier(.2, .8, .2, 1),
-    background-color 160ms cubic-bezier(.2, .8, .2, 1);
+    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .calendar-menu-button:hover {
@@ -598,8 +619,8 @@ function isToday(date) {
 
 .calendar-eyebrow,
 .calendar-exhibition-caption {
-  font-family: "Space Mono", monospace;
-  letter-spacing: .04em;
+  font-family: var(--bujo-font-meta);
+  letter-spacing: 0.04em;
 }
 
 .calendar-eyebrow {
@@ -611,33 +632,39 @@ function isToday(date) {
 
 .calendar-title-line {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  column-gap: 10px;
+  row-gap: 2px;
   min-width: 0;
+  max-width: 100%;
 }
 
 .calendar-title-line h1 {
-  color: var(--bujo-ink);
-  font-family: "SH Pinscher", "Space Mono", monospace;
-  font-size: clamp(56px, 8vw, 112px);
-  font-weight: 400;
-  line-height: .72;
-  letter-spacing: 0;
+  color: rgb(var(--bujo-ink-rgb) / 0.88);
+  font-family: 'Inter', var(--bujo-font-body);
+  font-size: clamp(36px, 4.5vw, 60px);
+  font-weight: 700;
+  line-height: 0.94;
+  letter-spacing: 0.015em;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .calendar-year-mark {
   display: inline-block;
   color: var(--bujo-muted);
-  font-family: "Space Mono", monospace;
+  font-family: var(--bujo-font-meta);
   font-size: clamp(10px, 1vw, 12px);
   font-weight: 400;
-  letter-spacing: .04em;
-  transform: translateY(-.18em);
+  letter-spacing: 0.04em;
+  transform: translateY(-0.18em);
 }
 
 .calendar-exhibition-caption {
   margin-top: 8px;
-  color: rgb(var(--bujo-ink-rgb) / .55);
+  color: rgb(var(--bujo-ink-rgb) / 0.55);
   font-size: 10px;
   font-weight: 400;
   line-height: 1.45;
@@ -646,10 +673,13 @@ function isToday(date) {
 
 .calendar-hero-actions {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
+  align-self: end;
   justify-content: flex-end;
   gap: 8px;
   padding-bottom: 6px;
+  white-space: nowrap;
 }
 
 .calendar-arrow-button {
@@ -660,11 +690,11 @@ function isToday(date) {
   border: 1px solid var(--bujo-line);
   background: transparent;
   color: var(--bujo-ink);
-  font-family: "Space Mono", monospace;
+  font-family: var(--bujo-font-meta);
   font-size: 14px;
   transition:
-    background-color 160ms cubic-bezier(.2, .8, .2, 1),
-    border-color 160ms cubic-bezier(.2, .8, .2, 1);
+    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .calendar-arrow-button:hover {
@@ -674,7 +704,7 @@ function isToday(date) {
 
 .calendar-create-button {
   margin-left: 4px;
-  font-family: "Space Mono", monospace;
+  font-family: var(--bujo-font-meta);
   letter-spacing: 0;
 }
 
@@ -686,8 +716,8 @@ function isToday(date) {
   border: 1px solid var(--bujo-line);
   background: var(--bujo-surface);
   transition:
-    background-color 160ms cubic-bezier(.2, .8, .2, 1),
-    border-color 160ms cubic-bezier(.2, .8, .2, 1);
+    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .calendar-profile-button:hover {
@@ -695,43 +725,233 @@ function isToday(date) {
   background: var(--bujo-white);
 }
 
+.calendar-page-profile-button {
+  position: absolute;
+  top: 22px;
+  right: 32px;
+  z-index: 8;
+}
+
+.calendar-mood-line {
+  position: fixed;
+  top: 22px;
+  left: 50vw;
+  transform: translateX(-50%);
+  z-index: 7;
+  display: flex;
+  max-width: calc(100% - 260px);
+  align-items: center;
+  gap: 6px;
+  color: rgb(var(--bujo-ink-rgb) / 0.58);
+  font-family: 'Inter', var(--bujo-font-body);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.calendar-mood-line strong {
+  color: rgb(var(--bujo-ink-rgb) / 0.72);
+  font-weight: 700;
+}
+
+.calendar-mood-divider {
+  width: 1px;
+  height: 32px;
+  background: rgb(var(--bujo-line-rgb) / 0.35);
+}
+
+.calendar-mood-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: #4fa46d;
+}
+
+.calendar-mood-flag {
+  position: relative;
+  width: 38px;
+  height: 28px;
+  border-left: 2px solid rgb(var(--bujo-ink-rgb) / 0.46);
+}
+
+.calendar-mood-flag::after {
+  position: absolute;
+  top: 1px;
+  left: 0;
+  width: 34px;
+  height: 24px;
+  background: #ef6f9f;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  content: '';
+}
+
+.calendar-mood-spark {
+  position: relative;
+  display: inline-grid;
+  width: 24px;
+  height: 26px;
+  place-items: end center;
+}
+
+.calendar-mood-spark::before {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px 3px 6px 6px;
+  background: #ed5f35;
+  content: '';
+}
+
+.calendar-mood-spark span {
+  position: absolute;
+  bottom: 12px;
+  width: 5px;
+  height: 15px;
+  border-radius: 999px;
+  background: #ed5f35;
+}
+
+.calendar-mood-spark span:nth-child(1) {
+  left: 3px;
+  transform: rotate(-13deg);
+}
+
+.calendar-mood-spark span:nth-child(2) {
+  left: 9px;
+  height: 19px;
+}
+
+.calendar-mood-spark span:nth-child(3) {
+  right: 4px;
+  transform: rotate(16deg);
+}
+
 .calendar-content-composition {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(190px, 240px);
   gap: clamp(18px, 2.2vw, 34px);
+  align-items: start;
   min-height: 0;
+  margin-top: clamp(92px, 13vh, 112px);
   flex: 1;
 }
 
-.calendar-board {
-  overflow: hidden;
+.calendar-paper-page {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
   border: 1px solid var(--bujo-line-soft);
   background: var(--bujo-surface);
-  box-shadow: 7px 8px 0 rgb(var(--bujo-ink-rgb) / .06);
+  box-shadow: 0 10px 18px rgb(var(--bujo-ink-rgb) / 0.035);
+  padding: clamp(22px, 2.5vw, 34px) clamp(18px, 2.6vw, 34px) clamp(22px, 2.6vw, 36px)
+    clamp(58px, 5vw, 74px);
+  display: flex;
+  flex-direction: column;
+  align-self: start;
+  min-width: 0;
+  width: 100%;
+}
+
+.calendar-stack-sheet {
+  position: absolute;
+  z-index: -1;
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.24);
+  background: var(--bujo-surface);
+  pointer-events: none;
+}
+
+.calendar-stack-sheet--back {
+  inset: 18px -11px -14px 18px;
+  background: rgb(var(--bujo-white-rgb) / 0.54);
+  transform: rotate(0.6deg);
+}
+
+.calendar-stack-sheet--middle {
+  inset: 9px -6px -8px 8px;
+  background: var(--bujo-surface);
+  transform: rotate(-0.28deg);
+}
+
+.calendar-paper-page::before,
+.calendar-paper-page::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  content: '';
+}
+
+.calendar-paper-page::before {
+  left: 0;
+  z-index: 2;
+  width: 42px;
+  border-right: 1px solid rgb(var(--bujo-line-rgb) / 0.24);
+  background:
+    radial-gradient(circle at 48% 22px, rgb(var(--bujo-line-rgb) / 0.15) 0 8px, transparent 8.5px) 0
+      18px / 42px 86px repeat-y,
+    var(--bujo-surface);
+}
+
+.calendar-paper-page::after {
+  left: -11px;
+  z-index: 1;
+  width: 20px;
+  background: linear-gradient(to right, rgb(var(--bujo-ink-rgb) / 0.08), transparent 72%);
+  clip-path: polygon(22% 0, 100% 0, 78% 31%, 94% 62%, 62% 100%, 0 100%, 18% 68%, 0 37%);
+  opacity: 0.72;
+}
+
+.calendar-board {
+  position: relative;
+  z-index: 3;
+  overflow: hidden;
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.55);
+  background: rgb(var(--bujo-white-rgb) / 0.72);
+  display: flex;
+  flex-direction: column;
+  height: clamp(390px, 53vh, 440px);
+  min-height: 0;
+  flex: 0 0 auto;
 }
 
 .calendar-week-row {
+  position: relative;
+  z-index: 3;
   border-bottom: 1px solid var(--bujo-line-soft);
   background: var(--bujo-surface-muted);
+}
+
+.calendar-grid {
+  position: relative;
+  z-index: 3;
+  grid-auto-rows: minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
 }
 
 .calendar-weekday {
   padding: 10px 0;
   color: var(--bujo-muted-strong);
   text-align: center;
-  font-family: "Space Mono", monospace;
+  font-family: var(--bujo-font-meta);
   font-size: 12px;
   font-weight: 700;
 }
 
 .calendar-cell {
   min-width: 0;
-  border-right: 1px solid rgb(var(--bujo-line-rgb) / .38);
-  border-bottom: 1px solid rgb(var(--bujo-line-rgb) / .38);
-  background: rgb(var(--bujo-white-rgb) / .76);
+  min-height: 0;
+  border-right: 1px solid rgb(var(--bujo-line-rgb) / 0.38);
+  border-bottom: 1px solid rgb(var(--bujo-line-rgb) / 0.38);
+  background: rgb(var(--bujo-white-rgb) / 0.76);
   transition:
-    background-color 160ms cubic-bezier(.2, .8, .2, 1),
-    box-shadow 160ms cubic-bezier(.2, .8, .2, 1);
+    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.calendar-event-list {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .calendar-cell:hover {
@@ -740,7 +960,7 @@ function isToday(date) {
 }
 
 .calendar-cell.is-faded {
-  background: rgb(var(--bujo-page-rgb) / .55);
+  background: rgb(var(--bujo-page-rgb) / 0.55);
 }
 
 .calendar-cell.is-today {
@@ -751,7 +971,7 @@ function isToday(date) {
 .calendar-day-number {
   display: block;
   color: var(--bujo-muted-strong);
-  font-family: "Space Mono", monospace;
+  font-family: var(--bujo-font-meta);
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
@@ -766,13 +986,13 @@ function isToday(date) {
   padding: 2px 6px;
   overflow: hidden;
   color: var(--bujo-ink);
-  font-family: "IBM Plex Sans TC", sans-serif;
+  font-family: var(--bujo-font-body);
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   transition:
-    transform 140ms cubic-bezier(.2, .8, .2, 1),
-    background-color 140ms cubic-bezier(.2, .8, .2, 1);
+    transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .calendar-event-chip:hover {
@@ -786,8 +1006,8 @@ function isToday(date) {
 }
 
 .calendar-event-meta {
-  color: rgb(var(--bujo-ink-rgb) / .56);
-  font-family: "Space Mono", monospace;
+  color: rgb(var(--bujo-ink-rgb) / 0.56);
+  font-family: var(--bujo-font-meta);
   font-size: 9px;
   font-weight: 700;
 }
@@ -819,7 +1039,7 @@ function isToday(date) {
   bottom: 5px;
   background: var(--bujo-white);
   color: var(--bujo-ink);
-  font-family: "Space Mono", monospace;
+  font-family: var(--bujo-font-meta);
   font-size: 9px;
   font-weight: 700;
   line-height: 1;
@@ -830,7 +1050,7 @@ function isToday(date) {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  border-left: 1px solid rgb(var(--bujo-line-rgb) / .45);
+  border-left: 1px solid rgb(var(--bujo-line-rgb) / 0.45);
   padding: 10px 0 0 20px;
 }
 
@@ -845,15 +1065,15 @@ function isToday(date) {
 .calendar-rail-heading span,
 .calendar-rail-section p,
 .calendar-rail-note span {
-  font-family: "Space Mono", monospace;
+  font-family: var(--bujo-font-meta);
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
 }
 
 .calendar-rail-heading strong {
   color: var(--bujo-accent);
-  font-family: "Space Mono", monospace;
+  font-family: var(--bujo-font-meta);
   font-size: 18px;
 }
 
@@ -863,21 +1083,21 @@ function isToday(date) {
 }
 
 .calendar-rail-section p {
-  color: rgb(var(--bujo-ink-rgb) / .42);
+  color: rgb(var(--bujo-ink-rgb) / 0.42);
 }
 
 .calendar-rail-item {
   display: grid;
   gap: 7px;
   width: 100%;
-  border: 1px solid rgb(var(--bujo-line-rgb) / .7);
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.7);
   background: var(--bujo-surface);
   padding: 12px 12px 11px;
   text-align: left;
   transition:
-    background-color 160ms cubic-bezier(.2, .8, .2, 1),
-    border-color 160ms cubic-bezier(.2, .8, .2, 1),
-    transform 160ms cubic-bezier(.2, .8, .2, 1);
+    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .calendar-rail-item:hover {
@@ -889,25 +1109,26 @@ function isToday(date) {
 .calendar-rail-date {
   display: flex;
   align-items: baseline;
-  gap: 7px;
+  gap: 8px;
   color: var(--bujo-ink);
-  line-height: .8;
+  line-height: 0.8;
 }
 
 .calendar-rail-date strong {
-  font-family: "Doto", "Space Mono", monospace;
+  font-family: var(--bujo-font-deco);
   font-size: 34px;
   font-weight: 700;
   letter-spacing: 0;
-  line-height: .76;
+  line-height: 0.76;
 }
 
 .calendar-rail-date em {
   color: var(--bujo-muted);
-  font-family: "Space Mono", monospace;
-  font-size: 12px;
+  font-family: var(--bujo-font-meta);
+  font-size: 11px;
   font-style: normal;
-  font-weight: 400;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .calendar-rail-title {
@@ -919,10 +1140,10 @@ function isToday(date) {
 
 .calendar-rail-item small {
   color: var(--bujo-muted);
-  font-family: "Space Mono", monospace;
+  font-family: var(--bujo-font-meta);
   font-size: 10px;
   font-weight: 400;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
 }
 
 .calendar-rail-item.is-quiet {
@@ -996,20 +1217,32 @@ function isToday(date) {
 }
 
 @media (max-width: 900px) {
+  .calendar-mood-line {
+    display: none;
+  }
+
   .calendar-hero-composition,
   .calendar-content-composition {
     grid-template-columns: 1fr;
+  }
+
+  .calendar-content-composition {
+    margin-top: 24px;
   }
 
   .calendar-hero-actions {
     justify-content: flex-start;
   }
 
+  .calendar-paper-page {
+    padding: 22px 18px 22px 54px;
+  }
+
   .calendar-social-rail {
     display: grid;
     grid-template-columns: 1fr 1fr;
     border-left: 0;
-    border-top: 1px solid rgb(var(--bujo-line-rgb) / .45);
+    border-top: 1px solid rgb(var(--bujo-line-rgb) / 0.45);
     padding: 14px 0 0;
   }
 
@@ -1037,8 +1270,33 @@ function isToday(date) {
     flex-wrap: wrap;
   }
 
+  .calendar-paper-page {
+    padding: 18px 12px 18px 34px;
+  }
+
   .calendar-board {
     box-shadow: none;
+  }
+
+  .calendar-stack-sheet--back {
+    inset: 10px -5px -7px 8px;
+  }
+
+  .calendar-stack-sheet--middle {
+    inset: 5px -3px -4px 4px;
+  }
+
+  .calendar-paper-page::before {
+    width: 24px;
+    background:
+      radial-gradient(circle at 48% 18px, rgb(var(--bujo-line-rgb) / 0.15) 0 5px, transparent 5.5px)
+        0 14px / 24px 66px repeat-y,
+      var(--bujo-surface);
+  }
+
+  .calendar-paper-page::after {
+    left: -7px;
+    width: 13px;
   }
 
   .calendar-weekday {

@@ -10,7 +10,9 @@
     </header>
 
     <!-- 主卡片 -->
-    <section class="profile-card w-full max-w-[800px] border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)]">
+    <section
+      class="profile-card w-full max-w-[800px] border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)]"
+    >
       <!-- 頭像 -->
       <div class="px-5 py-4">
         <div class="flex flex-col items-start gap-4 md:flex-row md:items-stretch md:gap-8">
@@ -47,10 +49,7 @@
               </p>
             </div>
             <label
-              :class="[
-                'profile-upload-btn',
-                avatarLoading ? 'pointer-events-none opacity-60' : '',
-              ]"
+              :class="['profile-upload-btn', avatarLoading ? 'pointer-events-none opacity-60' : '']"
             >
               <input
                 class="hidden"
@@ -65,7 +64,10 @@
         </div>
         <p
           v-if="avatarMsg"
-          :class="['mt-3 text-xs', avatarMsgType === 'error' ? 'text-[#dc2626]' : 'text-[var(--bujo-muted-strong)]']"
+          :class="[
+            'mt-3 text-xs',
+            avatarMsgType === 'error' ? 'text-[#dc2626]' : 'text-[var(--bujo-muted-strong)]',
+          ]"
           aria-live="polite"
         >
           {{ avatarMsg }}
@@ -185,7 +187,9 @@
             </svg>
             <div>
               <p class="text-sm font-semibold">LINE</p>
-              <p class="text-xs text-[var(--bujo-muted-strong)]">{{ isConnected('line') ? '已連接' : '' }}</p>
+              <p class="text-xs text-[var(--bujo-muted-strong)]">
+                {{ isConnected('line') ? '已連接' : '' }}
+              </p>
             </div>
           </div>
           <button
@@ -210,6 +214,19 @@
           需要至少連接兩種登入方式才能解除其中一個。
         </p>
       </div>
+
+      <footer class="flex justify-end border-t border-[var(--bujo-line)] px-5 py-4">
+        <PixelButton
+          variant="danger"
+          class="profile-logout-btn"
+          type="button"
+          :disabled="logoutLoading"
+          aria-label="登出目前帳號"
+          @click="handleLogout"
+        >
+          {{ logoutLoading ? '登出中' : '登出' }}
+        </PixelButton>
+      </footer>
     </section>
   </main>
 </template>
@@ -232,6 +249,7 @@ const avatarLoading = ref(false)
 const avatarMsg = ref('')
 const avatarMsgType = ref('success')
 const linkLoading = ref(false)
+const logoutLoading = ref(false)
 const linkMsg = ref('')
 const linkMsgType = ref('success')
 const copyStatus = ref('idle')
@@ -375,6 +393,20 @@ const handleUnlink = async (provider) => {
   }
 }
 
+async function handleLogout() {
+  if (logoutLoading.value) return
+
+  logoutLoading.value = true
+  try {
+    await authStore.logout()
+  } catch {
+    authStore.clearUser()
+  } finally {
+    logoutLoading.value = false
+    router.replace('/login')
+  }
+}
+
 onMounted(async () => {
   // LINE link callback redirects back with ?linked=line
   if (route.query.linked === 'line') {
@@ -405,16 +437,27 @@ onMounted(async () => {
 
 <style scoped>
 .profile-card {
-  box-shadow: 7px 8px 0 rgb(var(--bujo-ink-rgb) / .06);
+  box-shadow: 7px 8px 0 rgb(var(--bujo-ink-rgb) / 0.06);
+}
+
+.profile-logout-btn {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.profile-logout-btn:hover:not(:disabled) {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #ef4444;
 }
 
 .profile-eyebrow {
   margin: 0 0 2px;
   color: var(--bujo-muted-strong);
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
 }
 
 .profile-title-line {
@@ -426,7 +469,7 @@ onMounted(async () => {
 .profile-title-line h1 {
   margin: 0;
   color: var(--bujo-ink);
-  font-family: "IBM Plex Sans TC", sans-serif;
+  font-family: var(--bujo-font-heading);
   font-size: clamp(22px, 3vw, 28px);
   font-weight: 700;
   line-height: 1.1;
@@ -435,9 +478,9 @@ onMounted(async () => {
 
 .profile-cn-tag {
   color: var(--bujo-muted);
-  font-family: "Space Mono", monospace;
+  font-family: 'Space Mono', monospace;
   font-size: 13px;
-  letter-spacing: .1em;
+  letter-spacing: 0.1em;
 }
 
 .profile-section-header {
@@ -462,8 +505,8 @@ onMounted(async () => {
   color: var(--bujo-ink);
   outline: none;
   transition:
-    border-color 150ms cubic-bezier(.2, .8, .2, 1),
-    box-shadow 150ms cubic-bezier(.2, .8, .2, 1);
+    border-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .profile-input::placeholder {
@@ -490,8 +533,8 @@ onMounted(async () => {
   font-weight: 600;
   color: var(--bujo-ink);
   transition:
-    background-color 150ms cubic-bezier(.2, .8, .2, 1),
-    color 150ms cubic-bezier(.2, .8, .2, 1);
+    background-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .profile-upload-btn:hover {
@@ -523,8 +566,8 @@ onMounted(async () => {
   font-size: 12px;
   color: var(--bujo-ink);
   transition:
-    background-color 150ms cubic-bezier(.2, .8, .2, 1),
-    color 150ms cubic-bezier(.2, .8, .2, 1);
+    background-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .profile-link-btn:hover:not(:disabled) {
@@ -544,7 +587,7 @@ onMounted(async () => {
 
 .profile-link-btn:disabled,
 .profile-unlink-btn:disabled {
-  opacity: .4;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 </style>

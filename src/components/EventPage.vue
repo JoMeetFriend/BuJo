@@ -4,7 +4,8 @@
       <form id="event-form" class="grid gap-4" @submit.prevent="submitForm">
         <label :class="[fieldClass, 'col-span-full']" for="event-name">
           <span :class="fieldLabelClass"
-            >活動名稱 <span class="text-[var(--bujo-muted-strong)]" aria-hidden="true">*</span></span
+            >活動名稱
+            <span class="text-[var(--bujo-muted-strong)]" aria-hidden="true">*</span></span
           >
           <input
             id="event-name"
@@ -23,7 +24,11 @@
               <select
                 id="event-type"
                 v-model="form.type"
-                :class="[inputClass, 'cursor-pointer appearance-none pr-12', form.type === null ? 'text-[var(--bujo-muted)]' : '']"
+                :class="[
+                  inputClass,
+                  'cursor-pointer appearance-none pr-12',
+                  form.type === null ? 'text-[var(--bujo-muted)]' : '',
+                ]"
               >
                 <option :value="null">---</option>
                 <option v-for="type in eventTypes" :key="type" :value="type">
@@ -50,14 +55,21 @@
                 type="number"
                 inputmode="numeric"
                 placeholder="不限"
-                @input="form.limit = $event.target.value === '' || Number($event.target.value) <= 0 ? null : Number($event.target.value)"
+                @input="
+                  form.limit =
+                    $event.target.value === '' || Number($event.target.value) <= 0
+                      ? null
+                      : Number($event.target.value)
+                "
               />
               <button
                 type="button"
                 class="absolute right-0 top-0 bottom-0 w-8 flex items-center justify-center border-l border-l-[var(--bujo-line-soft)] text-[var(--bujo-muted)] hover:text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)] focus:outline-none"
                 aria-label="清除人數上限"
                 @click="form.limit = null"
-              >✕</button>
+              >
+                ✕
+              </button>
             </span>
           </div>
         </div>
@@ -207,7 +219,9 @@
                     </button>
                   </div>
 
-                  <div class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]">
+                  <div
+                    class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]"
+                  >
                     <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
                   </div>
 
@@ -230,7 +244,11 @@
               <span v-if="!form.allDay" class="relative block">
                 <button
                   :id="row.timeButtonId"
-                  :class="[pickerButtonClass, 'w-full', row.timeField === 'startTime' && timeError ? 'border-[#dc2626]' : '']"
+                  :class="[
+                    pickerButtonClass,
+                    'w-full',
+                    row.timeField === 'startTime' && timeError ? 'border-[#dc2626]' : '',
+                  ]"
                   type="button"
                   :data-time-field="row.timeField"
                   @click.stop="openPicker(row.timeField)"
@@ -333,7 +351,9 @@
                   </button>
                 </div>
 
-                <div class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]">
+                <div
+                  class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]"
+                >
                   <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
                 </div>
 
@@ -386,7 +406,11 @@
                       v-for="time in timeOptions"
                       :key="time"
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                      :class="slot.startTime === time ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]' : ''"
+                      :class="
+                        slot.startTime === time
+                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                          : ''
+                      "
                       type="button"
                       role="option"
                       :aria-selected="slot.startTime === time"
@@ -422,7 +446,11 @@
                       v-for="time in slotEndTimeOptions(slot)"
                       :key="time"
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                      :class="slot.endTime === time ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]' : ''"
+                      :class="
+                        slot.endTime === time
+                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                          : ''
+                      "
                       type="button"
                       role="option"
                       :aria-selected="slot.endTime === time"
@@ -485,7 +513,9 @@
               </button>
             </div>
 
-            <div class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]">
+            <div
+              class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]"
+            >
               <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
             </div>
 
@@ -544,7 +574,11 @@
                         v-for="time in timeOptions"
                         :key="time"
                         class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                        :class="uniformTime.startTime === time ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]' : ''"
+                        :class="
+                          uniformTime.startTime === time
+                            ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                            : ''
+                        "
                         type="button"
                         role="option"
                         :aria-selected="uniformTime.startTime === time"
@@ -580,7 +614,11 @@
                         v-for="time in uniformEndTimeOptions"
                         :key="time"
                         class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                        :class="uniformTime.endTime === time ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]' : ''"
+                        :class="
+                          uniformTime.endTime === time
+                            ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                            : ''
+                        "
                         type="button"
                         role="option"
                         :aria-selected="uniformTime.endTime === time"
@@ -627,7 +665,9 @@
               </button>
             </div>
 
-            <div class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]">
+            <div
+              class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]"
+            >
               <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
             </div>
 
@@ -697,7 +737,11 @@
                       v-for="time in timeOptions"
                       :key="time"
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                      :class="slot.startTime === time ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]' : ''"
+                      :class="
+                        slot.startTime === time
+                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                          : ''
+                      "
                       type="button"
                       role="option"
                       :aria-selected="slot.startTime === time"
@@ -733,7 +777,11 @@
                       v-for="time in slotEndTimeOptions(slot)"
                       :key="time"
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                      :class="slot.endTime === time ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]' : ''"
+                      :class="
+                        slot.endTime === time
+                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                          : ''
+                      "
                       type="button"
                       role="option"
                       :aria-selected="slot.endTime === time"
@@ -792,9 +840,12 @@
 
           <!-- 流團設定附注（非緊急情況） -->
           <template v-if="!isUrgent">
-            <div class="flex items-start gap-2 border-t border-dashed border-[var(--bujo-line-soft)] pt-2">
+            <div
+              class="flex items-start gap-2 border-t border-dashed border-[var(--bujo-line-soft)] pt-2"
+            >
               <span class="flex-1 text-xs leading-5 text-[var(--bujo-muted)]">
-                <strong class="text-[var(--bujo-muted-strong)]">{{ deadlineDisplayText }}</strong>，人數若不足活動將自動取消
+                <strong class="text-[var(--bujo-muted-strong)]">{{ deadlineDisplayText }}</strong
+                >，人數若不足活動將自動取消
               </span>
               <button
                 type="button"
@@ -845,11 +896,7 @@
   </BaseModal>
 
   <!-- 緊急送出確認 dialog -->
-  <BaseModal
-    :isOpen="showUrgentConfirm"
-    title="活動即將開始"
-    @close="showUrgentConfirm = false"
-  >
+  <BaseModal :isOpen="showUrgentConfirm" title="活動即將開始" @close="showUrgentConfirm = false">
     <template #default>
       <div class="grid gap-3 py-2 text-center">
         <p class="text-sm leading-6 text-[var(--bujo-ink)]">
@@ -860,7 +907,9 @@
       </div>
     </template>
     <template #footer>
-      <PixelButton variant="white" type="button" @click="showUrgentConfirm = false">取消</PixelButton>
+      <PixelButton variant="white" type="button" @click="showUrgentConfirm = false"
+        >取消</PixelButton
+      >
       <PixelButton type="button" @click="confirmUrgentSubmit">確定送出</PixelButton>
     </template>
   </BaseModal>
@@ -984,7 +1033,11 @@ function toggleSlotPicker(key) {
 
 function selectSlotTime(slot, field, time) {
   slot[field] = time
-  if (field === 'startTime' && slot.endTime && parseHourFromTimeStr(slot.endTime) <= parseHourFromTimeStr(time)) {
+  if (
+    field === 'startTime' &&
+    slot.endTime &&
+    parseHourFromTimeStr(slot.endTime) <= parseHourFromTimeStr(time)
+  ) {
     slot.endTime = null
   }
   openSlotPicker.value = null
@@ -1075,22 +1128,28 @@ const scenario4DateCells = computed(() => {
 })
 
 function scenario4DateButtonClass(cell) {
-  const base =
-    'relative h-8 max-sm:h-7 border text-xs leading-none transition-colors'
+  const base = 'relative h-8 max-sm:h-7 border text-xs leading-none transition-colors'
   if (cell.isDisabled) {
-    return [base, 'border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] text-[var(--bujo-muted)] cursor-not-allowed opacity-40']
+    return [
+      base,
+      'border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] text-[var(--bujo-muted)] cursor-not-allowed opacity-40',
+    ]
   }
   if (cell.isEditing) {
     return [base, 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]']
   }
   if (cell.isCandidate) {
-    return [base, 'border-[var(--bujo-line)] bg-[var(--bujo-card-yellow)] text-[var(--bujo-ink)] hover:border-[var(--bujo-accent)]']
+    return [
+      base,
+      'border-[var(--bujo-line)] bg-[var(--bujo-card-yellow)] text-[var(--bujo-ink)] hover:border-[var(--bujo-accent)]',
+    ]
   }
   return [
     base,
     'border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] text-[var(--bujo-ink)] hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]',
     !cell.isCurrentMonth && 'text-[var(--bujo-muted)]',
-    cell.isToday && 'border-[var(--bujo-line)] bg-[var(--bujo-today)] shadow-[inset_0_0_0_1px_var(--bujo-accent)]',
+    cell.isToday &&
+      'border-[var(--bujo-line)] bg-[var(--bujo-today)] shadow-[inset_0_0_0_1px_var(--bujo-accent)]',
   ]
 }
 
@@ -1134,7 +1193,8 @@ const endTimeUserSet = ref(false)
 const timeError = ref('')
 
 const fieldClass = 'grid gap-2'
-const fieldLabelClass = 'text-sm font-semibold leading-none tracking-[0.01em] text-[var(--bujo-ink)]'
+const fieldLabelClass =
+  'text-sm font-semibold leading-none tracking-[0.01em] text-[var(--bujo-ink)]'
 const inputClass =
   'min-h-[44px] max-sm:min-h-[38px] w-full rounded-none border border-[var(--bujo-line)] bg-white px-4 py-2 text-sm leading-[1.2] text-[var(--bujo-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--bujo-muted)] focus:border-[var(--bujo-accent)] focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]'
 const pickerButtonClass =
@@ -1240,10 +1300,11 @@ const dateCells = computed(() => {
 // 情境一沿用原本的 form.startDate/startTime
 const scheduleAnchor = computed(() => {
   if (dateMode.value === 'fixed' && timeMode.value === 'vote') {
-    const earliest = voteSlots.value
-      .map((s) => s.startTime)
-      .filter(Boolean)
-      .sort((a, b) => parseHourFromTimeStr(a) - parseHourFromTimeStr(b))[0] ?? null
+    const earliest =
+      voteSlots.value
+        .map((s) => s.startTime)
+        .filter(Boolean)
+        .sort((a, b) => parseHourFromTimeStr(a) - parseHourFromTimeStr(b))[0] ?? null
     return { date: form.singleDate, time: earliest }
   }
   if (dateMode.value === 'range' && timeMode.value === 'fixed') {
@@ -1342,7 +1403,11 @@ watch(
 watch(
   () => uniformTime.startTime,
   (val) => {
-    if (val && uniformTime.endTime && parseHourFromTimeStr(uniformTime.endTime) <= parseHourFromTimeStr(val)) {
+    if (
+      val &&
+      uniformTime.endTime &&
+      parseHourFromTimeStr(uniformTime.endTime) <= parseHourFromTimeStr(val)
+    ) {
       uniformTime.endTime = null
     }
   },
@@ -1486,7 +1551,9 @@ async function doSubmit() {
   } else if (!form.allDay && !form.startTime) {
     timeError.value = '請選擇開始時間'
     await nextTick()
-    document.getElementById('event-start-time')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    document
+      .getElementById('event-start-time')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     return
   } else if (
     !form.allDay &&
@@ -1500,7 +1567,8 @@ async function doSubmit() {
   timeError.value = ''
   const limitValue = !form.limit || isNaN(form.limit) ? null : form.limit
   const deadlineISO = isUrgent.value
-    ? (parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time)?.toISOString() ?? null)
+    ? (parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time)?.toISOString() ??
+      null)
     : computeDeadlineISO(scheduleAnchor.value.date, scheduleAnchor.value.time, deadline)
 
   const commonPayload = {
@@ -1721,7 +1789,10 @@ function createTimeOptions() {
 function dateButtonClass(cell) {
   const base = 'h-8 max-sm:h-7 border text-xs leading-none'
   if (cell.isDisabled) {
-    return [base, 'border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] text-[var(--bujo-muted)] cursor-not-allowed opacity-40']
+    return [
+      base,
+      'border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] text-[var(--bujo-muted)] cursor-not-allowed opacity-40',
+    ]
   }
   return [
     base,
@@ -1730,7 +1801,9 @@ function dateButtonClass(cell) {
       ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
       : 'border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] text-[var(--bujo-ink)] hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]',
     !cell.isCurrentMonth && 'text-[var(--bujo-muted)]',
-    cell.isToday && !cell.isSelected && 'border-[var(--bujo-line)] bg-[var(--bujo-today)] shadow-[inset_0_0_0_1px_var(--bujo-accent)]',
+    cell.isToday &&
+      !cell.isSelected &&
+      'border-[var(--bujo-line)] bg-[var(--bujo-today)] shadow-[inset_0_0_0_1px_var(--bujo-accent)]',
   ]
 }
 
