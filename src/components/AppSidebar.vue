@@ -51,7 +51,12 @@
       </div>
 
       <!-- 用戶 -->
-      <RouterLink to="/profile/edit" class="bujo-sidebar-profile whitespace-nowrap">
+      <button
+        type="button"
+        class="bujo-sidebar-profile whitespace-nowrap"
+        aria-label="開啟側邊欄個人帳號"
+        @click="showProfileModal = true"
+      >
         <img
           v-if="userAvatarSrc"
           :src="userAvatarSrc"
@@ -60,7 +65,7 @@
         />
         <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
         <span>ME</span>
-      </RouterLink>
+      </button>
     </div>
   </aside>
 
@@ -447,7 +452,10 @@ async function handleLogout() {
   align-items: center;
   gap: 10px;
   width: fit-content;
+  border: 0;
+  background: transparent;
   color: var(--bujo-ink);
+  cursor: pointer;
   font-family: 'Space Mono', monospace;
   font-size: 16px;
   font-weight: 700;
