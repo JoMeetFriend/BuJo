@@ -1,6 +1,6 @@
 {
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "git": {
-    "deploymentBranches": ["feature/docker"]
+    "deploymentBranches": ["main"]
   }
 }
