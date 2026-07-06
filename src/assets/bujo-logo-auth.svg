@@ -1,0 +1,15 @@
+<svg width="260" height="96" viewBox="0 0 260 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">BuJo</title>
+  <desc id="desc">BuJo login wordmark with centered brand text, a subtle envelope fold line, and a small blue keepsake dot.</desc>
+  <defs>
+    <filter id="foldSoft" x="-12%" y="-36%" width="124%" height="172%">
+      <feDropShadow dx="0.8" dy="1.1" stdDeviation="0.3" flood-color="#20261F" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <text x="52" y="55" fill="#20261F" font-family="Inter, IBM Plex Sans TC, sans-serif" font-size="66" font-weight="760" letter-spacing="-3.15">BuJo</text>
+  <circle cx="218" cy="23" r="5.3" fill="#63A6DF" opacity="0.84"/>
+  <g filter="url(#foldSoft)">
+    <path d="M4 75 C42 76 79 79 116 83 C153 79 190 76 228 75" stroke="#20261F" stroke-opacity="0.42" stroke-width="1.7" stroke-linecap="round"/>
+    <path d="M4 75 C42 79 79 84 116 90 C153 84 190 79 228 75" stroke="#20261F" stroke-opacity="0.16" stroke-width="1.12" stroke-linecap="round"/>
+  </g>
+</svg>

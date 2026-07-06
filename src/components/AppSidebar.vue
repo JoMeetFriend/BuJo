@@ -1,16 +1,13 @@
 <template>
   <!-- 桌機版側邊欄 -->
   <aside
-    class="hidden md:flex flex-col justify-between bg-[var(--bujo-page)] border-r border-[var(--bujo-line)] transition-all duration-300 overflow-hidden"
+    class="hidden md:flex flex-col justify-between bg-[#f3f5ef] border-r border-[var(--bujo-line)] transition-all duration-300 overflow-hidden"
     :class="isOpen ? 'w-[210px] px-5 py-6' : 'w-0 px-0 py-6'"
   >
     <div>
       <!-- Logo -->
-      <div class="flex items-center gap-3 mb-12 whitespace-nowrap">
-        <div class="bujo-sidebar-logo-mark shrink-0"></div>
-        <span class="font-inter text-[var(--bujo-ink)] text-[21px] font-extrabold tracking-normal"
-          >BuJo</span
-        >
+      <div class="bujo-sidebar-brand mb-12 whitespace-nowrap">
+        <img :src="bujoLogoUrl" alt="BuJo" class="bujo-sidebar-logo" />
       </div>
 
       <!-- 導覽項目 -->
@@ -72,33 +69,43 @@
   <!-- 手機版底部導覽列 + 篩選抽屜 -->
   <div class="md:hidden">
     <!-- 篩選抽屜 -->
-    <div
-      v-if="isCalendarPage && drawerOpen"
-      class="fixed bottom-0 left-0 right-0 bg-[var(--bujo-page)] border-t border-[var(--bujo-line)] px-6 pt-4 flex flex-col gap-3 z-50 pb-[82px]"
-    >
-      <button
-        v-for="item in filterItems"
-        :key="item.key"
-        @click="emit('toggle-filter', item.key)"
-        class="bujo-filter-button"
-        :class="{ 'is-muted': !filters[item.key] }"
-      >
-        <span class="bujo-filter-swatch" :style="{ backgroundColor: item.color }"></span>
-        <span>{{ item.label }}</span>
-      </button>
+    <div v-if="isCalendarPage && drawerOpen" class="bujo-mobile-filter-tray">
+      <div class="bujo-mobile-filter-header">
+        <span>CALENDAR FILTER</span>
+        <button
+          type="button"
+          class="bujo-mobile-filter-close"
+          @click="drawerOpen = false"
+          aria-label="收合篩選"
+        >
+          ▾
+        </button>
+      </div>
+      <div class="bujo-mobile-filter-grid">
+        <button
+          v-for="item in filterItems"
+          :key="item.key"
+          @click="emit('toggle-filter', item.key)"
+          class="bujo-mobile-filter-chip"
+          :class="{ 'is-muted': !filters[item.key] }"
+        >
+          <span class="bujo-filter-swatch" :style="{ backgroundColor: item.color }"></span>
+          <span>{{ item.label }}</span>
+        </button>
+      </div>
     </div>
 
     <!-- 導覽列 -->
-    <nav
-      class="fixed bottom-0 left-0 right-0 bg-[var(--bujo-page)] border-t border-[var(--bujo-line)] flex justify-around items-center py-3 z-50"
-    >
+    <nav class="bujo-mobile-nav-bar">
       <!-- 箭頭按鈕：僅月曆頁顯示 -->
       <button
         v-if="isCalendarPage"
         @click="drawerOpen = !drawerOpen"
-        class="absolute left-1/2 -translate-x-1/2 bottom-full w-9 h-6 bg-[var(--bujo-page)] border border-[var(--bujo-line)] border-b-0 flex items-center justify-center text-[var(--bujo-ink)] text-[10px] font-[space-mono]"
+        class="bujo-mobile-filter-toggle"
+        :class="{ 'is-open': drawerOpen }"
+        :aria-label="drawerOpen ? '收合篩選' : '展開篩選'"
       >
-        {{ drawerOpen ? '▼' : '▲' }}
+        {{ drawerOpen ? '▾' : '▴' }}
       </button>
 
       <RouterLink
@@ -145,6 +152,7 @@
 import { ref, computed } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import bujoLogoUrl from '@/assets/bujo-logo.svg'
 import { toAvatarSrc } from '@/utils/avatar'
 import ProfileAccountModal from './ProfileAccountModal.vue'
 
@@ -187,12 +195,15 @@ async function handleLogout() {
 </script>
 
 <style scoped>
-.bujo-sidebar-logo-mark {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--bujo-ink);
-  background: var(--bujo-accent);
-  box-shadow: -5px 5px 0 var(--bujo-card-yellow);
+.bujo-sidebar-brand {
+  display: flex;
+  align-items: center;
+}
+
+.bujo-sidebar-logo {
+  display: block;
+  width: 118px;
+  height: auto;
 }
 
 .bujo-sidebar-link {
@@ -462,23 +473,167 @@ async function handleLogout() {
   text-decoration: none;
 }
 
+.bujo-mobile-nav-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  display: flex;
+  height: 62px;
+  align-items: center;
+  justify-content: space-around;
+  border-top: 1px solid rgb(var(--bujo-line-rgb) / 0.68);
+  background:
+    radial-gradient(circle, rgb(var(--bujo-line-rgb) / 0.12) 1px, transparent 1px) 0 0 / 22px 22px,
+    rgb(var(--bujo-surface-rgb, 251 251 248) / 0.96);
+  box-shadow: 0 -10px 24px rgb(var(--bujo-ink-rgb) / 0.045);
+}
+
+.bujo-mobile-nav-bar::before {
+  position: absolute;
+  inset: 0 14px auto;
+  height: 1px;
+  background: rgb(var(--bujo-white-rgb) / 0.8);
+  content: '';
+}
+
+.bujo-mobile-filter-toggle {
+  position: absolute;
+  bottom: calc(100% - 1px);
+  left: 50%;
+  display: grid;
+  width: 30px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
+  border-bottom: 0;
+  background: var(--bujo-surface);
+  color: var(--bujo-ink);
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  line-height: 1;
+  transform: translateX(-50%);
+}
+
+.bujo-mobile-filter-toggle.is-open {
+  background: var(--bujo-white);
+}
+
+.bujo-mobile-filter-tray {
+  position: fixed;
+  right: 12px;
+  bottom: 74px;
+  left: 12px;
+  z-index: 49;
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.66);
+  background:
+    linear-gradient(to bottom, rgb(var(--bujo-white-rgb) / 0.72), transparent 34px),
+    var(--bujo-surface);
+  box-shadow:
+    0 10px 18px rgb(var(--bujo-ink-rgb) / 0.055),
+    -5px 5px 0 rgb(var(--bujo-line-rgb) / 0.08);
+  padding: 12px;
+}
+
+.bujo-mobile-filter-tray::before {
+  position: absolute;
+  right: 8px;
+  bottom: -7px;
+  left: 8px;
+  height: 7px;
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.22);
+  border-top: 0;
+  background: rgb(var(--bujo-white-rgb) / 0.42);
+  content: '';
+}
+
+.bujo-mobile-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: rgb(var(--bujo-ink-rgb) / 0.58);
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.bujo-mobile-filter-close {
+  display: grid;
+  width: 28px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.62);
+  background: var(--bujo-surface-muted);
+  color: var(--bujo-ink);
+  line-height: 1;
+}
+
+.bujo-mobile-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.bujo-mobile-filter-chip {
+  display: flex;
+  min-width: 0;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
+  background: rgb(var(--bujo-white-rgb) / 0.58);
+  color: var(--bujo-ink);
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    opacity 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.bujo-mobile-filter-chip.is-muted {
+  border-style: dashed;
+  background: transparent;
+  opacity: 0.46;
+}
+
 .bujo-mobile-nav-link {
+  position: relative;
   display: grid;
   place-items: center;
   width: 48px;
-  height: 42px;
+  height: 44px;
   color: var(--bujo-muted-strong);
-  transition: color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition:
+    color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .bujo-mobile-nav-link.is-active,
 .bujo-mobile-nav-link:hover {
+  background: rgb(var(--bujo-white-rgb) / 0.44);
   color: var(--bujo-ink);
+}
+
+.bujo-mobile-nav-link.is-active::after {
+  position: absolute;
+  right: 12px;
+  bottom: 4px;
+  left: 12px;
+  height: 2px;
+  background: var(--bujo-accent);
+  content: '';
 }
 
 .bujo-mobile-profile {
   display: flex;
-  height: 42px;
+  height: 44px;
   width: 48px;
   align-items: center;
   justify-content: center;

@@ -917,7 +917,7 @@
   <!-- 建立成功彈窗：點右上角 × 關閉 -->
   <BaseModal :isOpen="showSuccessModal" title="建立成功" @close="dismissSuccessModal">
     <div class="flex flex-col items-center gap-2 py-6 text-center">
-      <span class="text-4xl" aria-hidden="true">🎉</span>
+      <img :src="partyDanceUrl" alt="" class="h-12 w-12" aria-hidden="true" />
       <p class="text-lg font-bold text-[var(--bujo-ink)]">已成功建立活動</p>
       <p class="text-sm text-[var(--bujo-muted-strong)]">好友會在活動列表看到這個揪團</p>
     </div>
@@ -929,6 +929,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { useRoute, useRouter } from 'vue-router'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
+import partyDanceUrl from '@/assets/party-dance.png'
 
 const props = defineProps({
   isOpen: Boolean,
