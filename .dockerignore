@@ -1,0 +1,17 @@
+node_modules
+dist
+.env
+.env.local
+.env.example
+.git
+.vscode
+
+AGENTS.md
+CLAUDE.md.example
+BuJo_Visual_Specification_v1.md
+openspec
+
+src/__tests__
+vitest.config.js
+.eslintcache
+*.log
