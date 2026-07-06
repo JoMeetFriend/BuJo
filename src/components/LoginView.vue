@@ -10,10 +10,7 @@
       <article class="login-invite-card">
         <!-- Logo -->
         <div class="flex flex-col items-center mb-6">
-          <div class="flex items-center gap-3">
-            <div class="bujo-login-logo-mark shrink-0"></div>
-            <h1 class="bujo-login-wordmark">BuJo</h1>
-          </div>
+          <img :src="bujoLogoUrl" alt="BuJo" class="bujo-login-logo-image" />
           <p class="text-xs text-[var(--bujo-muted-strong)] mt-2">不揪喔～說完，你就揪到了</p>
         </div>
 
@@ -172,6 +169,7 @@ import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
+import bujoLogoUrl from '@/assets/bujo-logo-auth.svg'
 
 const router = useRouter()
 const route = useRoute()
@@ -361,7 +359,7 @@ onUnmounted(() => {
 .login-envelope::after {
   position: absolute;
   z-index: 5;
-  top: -28px;
+  top: -20px;
   width: 315px;
   height: 16px;
   background: linear-gradient(
@@ -605,21 +603,10 @@ input:-webkit-autofill:focus {
   transition: background-color 9999s ease-in-out 0s;
 }
 
-.bujo-login-logo-mark {
-  width: 32px;
-  height: 32px;
-  border: 2px solid var(--bujo-ink);
-  background: var(--bujo-accent);
-  box-shadow: -6px 6px 0 var(--bujo-card-yellow);
-}
-
-.bujo-login-wordmark {
-  margin: 0;
-  color: var(--bujo-ink);
-  font-family: var(--bujo-font-heading);
-  font-size: 36px;
-  font-weight: 800;
-  line-height: 1;
+.bujo-login-logo-image {
+  display: block;
+  width: min(178px, 58vw);
+  height: auto;
 }
 
 .bujo-hero-btn {
@@ -725,7 +712,7 @@ input:-webkit-autofill:focus {
     left: 50%;
     width: 558px;
     min-height: 760px;
-    transform: translate(-50%, -50%) scale(0.58);
+    transform: translate(-50%, -50%) scale(0.67);
   }
 
   .login-invite-card {
@@ -733,13 +720,14 @@ input:-webkit-autofill:focus {
   }
 
   .login-envelope {
+    top: 4px;
     width: 558px;
   }
 }
 
 @media (min-width: 390px) and (max-width: 640px) {
   .login-envelope-scene {
-    transform: translate(-50%, -50%) scale(0.64);
+    transform: translate(-50%, -50%) scale(0.74);
   }
 }
 
