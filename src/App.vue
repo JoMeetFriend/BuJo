@@ -28,7 +28,7 @@
 
 <script setup>
 import { RouterView, useRoute } from 'vue-router'
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import AppSidebar from './components/AppSidebar.vue'
 
 const route = useRoute()
@@ -38,14 +38,6 @@ const filters = ref({ joined: true, formed: true, personal: true })
 const showSidebar = computed(() => !['/login', '/register'].includes(route.path))
 const isAuthPage = computed(() => ['/login', '/register'].includes(route.path))
 const isCalendarPage = computed(() => route.name === 'calendar-page')
-
-watch(
-  () => route.path,
-  (path) => {
-    sidebarOpen.value = path !== '/activity'
-  },
-  { immediate: true },
-)
 
 function toggleFilter(key) {
   filters.value[key] = !filters.value[key]
