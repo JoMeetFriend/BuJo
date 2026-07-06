@@ -1,6 +1,9 @@
 {
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "git": {
-    "deploymentBranches": ["main"]
+    "deploymentEnabled": {
+      "main": true,
+      "*": false
+    }
   }
 }
