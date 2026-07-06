@@ -58,18 +58,7 @@
 
         <!-- Hero + controls -->
         <section class="calendar-hero-composition">
-          <div class="calendar-hero-copy">
-            <!-- 漢堡選單（僅桌機顯示） -->
-            <button
-              @click="emit('toggle-sidebar')"
-              class="calendar-menu-button hidden md:flex"
-              aria-label="切換側邊欄"
-            >
-              <span></span>
-              <span></span>
-              <span></span>
-            </button>
-
+          <div class="calendar-hero-copy" :class="{ 'md:pl-[50px]': !sidebarOpen }">
             <div>
               <p class="calendar-eyebrow">SOCIAL INBOX CALENDAR</p>
               <div class="calendar-title-line">
@@ -331,7 +320,6 @@ const props = defineProps({
     default: () => ({ joined: true, formed: true, personal: true }),
   },
 })
-const emit = defineEmits(['toggle-sidebar'])
 
 const isMobile = ref(window.innerWidth < 768)
 const showProfileModal = ref(false)
@@ -647,36 +635,6 @@ function isToday(date) {
   align-items: flex-start;
   gap: 14px;
   min-width: 0;
-}
-
-.calendar-menu-button {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  margin-top: 28px;
-  border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
-  background: var(--bujo-surface);
-  transition:
-    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.calendar-menu-button:hover {
-  border-color: var(--bujo-ink);
-  background: var(--bujo-white);
-}
-
-.calendar-menu-button span {
-  display: block;
-  width: 14px;
-  height: 1.5px;
-  background: var(--bujo-text-primary);
-}
-
-.calendar-menu-button span + span {
-  margin-top: 4px;
 }
 
 .calendar-eyebrow,

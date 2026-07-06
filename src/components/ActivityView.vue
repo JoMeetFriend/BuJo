@@ -1,8 +1,6 @@
 <template>
   <div class="activity-gallery-page">
     <header class="activity-gallery-header">
-      <button class="activity-menu-button" type="button" @click="emit('toggle-sidebar')">☰</button>
-
       <div class="activity-heading">
         <p class="activity-eyebrow">SOCIAL ACTIVITY INDEX</p>
         <h1>BuJo Activity</h1>
@@ -27,12 +25,6 @@
           </PixelButton>
         </div>
       </div>
-
-      <p class="activity-note">
-        small rooms<br />
-        open with one click<br />
-        keep the plan moving
-      </p>
     </header>
 
     <section v-if="loading" class="activity-state-message">載入中...</section>
@@ -44,8 +36,6 @@
       <section class="activity-stage">
         <span class="activity-stage-sheet activity-stage-sheet--back" aria-hidden="true"></span>
         <span class="activity-stage-sheet activity-stage-sheet--middle" aria-hidden="true"></span>
-        <div class="activity-ghost activity-ghost--left">room<br />index</div>
-        <div class="activity-ghost activity-ghost--right">friends<br />active</div>
         <ActivityDetailModal
           :is-open="true"
           :activity-id="featuredActivity.id"
@@ -91,8 +81,6 @@ import { ref, computed, onMounted } from 'vue'
 import ActivityDetailModal from './ActivityDetailModal.vue'
 import EventPage from './EventPage.vue'
 import PixelButton from './ui/PixelButton.vue'
-
-const emit = defineEmits(['toggle-sidebar'])
 
 const filters = [
   { key: 'recruiting', text: 'RECRUITING' },
@@ -225,38 +213,10 @@ onMounted(fetchActivities)
 
 .activity-gallery-header {
   display: grid;
-  grid-template-columns: minmax(120px, 1fr) minmax(420px, 2.4fr) minmax(150px, 1fr);
+  grid-template-columns: minmax(120px, 1fr) minmax(420px, 2.25fr) minmax(120px, 1fr);
   gap: clamp(18px, 3vw, 42px);
   align-items: start;
   min-height: clamp(118px, 16vh, 148px);
-}
-
-.activity-menu-button {
-  grid-column: 1;
-  grid-row: 1;
-  margin-top: 30px;
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--activity-line);
-  background: var(--activity-surface);
-  color: var(--activity-ink);
-  display: grid;
-  place-items: center;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background-color 160ms ease,
-    color 160ms ease,
-    transform 160ms ease;
-}
-
-.activity-menu-button:hover {
-  background: var(--activity-ink);
-  color: var(--activity-surface);
-}
-
-.activity-menu-button:active {
-  transform: translateY(1px);
 }
 
 .activity-heading {
@@ -284,8 +244,8 @@ onMounted(fetchActivities)
   margin: 0;
   color: var(--activity-ink);
   font-family: var(--bujo-font-heading);
-  font-size: clamp(48px, 6.2vw, 82px);
-  line-height: 0.96;
+  font-size: clamp(42px, 5.05vw, 66px);
+  line-height: 0.98;
   letter-spacing: 0;
   font-weight: 800;
   white-space: nowrap;
@@ -293,7 +253,7 @@ onMounted(fetchActivities)
 }
 
 .activity-caption {
-  margin: 6px 0 16px;
+  margin: 5px 0 14px;
   font-weight: 400;
   letter-spacing: 0.04em;
 }
@@ -303,7 +263,7 @@ onMounted(fetchActivities)
   justify-content: center;
   flex-wrap: wrap;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   font-family: var(--bujo-font-meta);
 }
 
@@ -316,27 +276,27 @@ onMounted(fetchActivities)
 }
 
 .activity-create-button {
-  min-height: 26px;
-  padding: 3px 11px;
-  font-size: 11px;
+  min-height: 28px;
+  padding: 4px 11px;
+  font-size: 10px;
 }
 
 .activity-filter {
+  --ticket-bg: rgb(var(--bujo-white-rgb) / 0.56);
   display: inline-flex;
   min-height: 30px;
+  position: relative;
   align-items: center;
   gap: 7px;
-  border: 1px solid rgb(var(--bujo-line-rgb) / 0.58);
-  background: rgb(var(--bujo-white-rgb) / 0.48);
-  color: var(--activity-ink);
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.32);
+  background: var(--ticket-bg);
+  color: rgb(var(--bujo-ink-rgb) / 0.66);
   font-size: 10px;
   font-weight: 700;
   line-height: 1.08;
   cursor: pointer;
-  padding: 5px 8px;
-  opacity: 0.72;
+  padding: 6px 11px;
   transition:
-    opacity 160ms ease,
     color 160ms ease,
     background-color 160ms ease,
     border-color 160ms ease,
@@ -344,36 +304,26 @@ onMounted(fetchActivities)
 }
 
 .activity-filter:hover {
-  opacity: 1;
   transform: translateY(-1px);
+  color: rgb(var(--bujo-ink-rgb) / 0.88);
+  border-color: rgb(var(--bujo-ink-rgb) / 0.28);
 }
 
 .activity-filter b {
-  color: var(--activity-muted);
-  font-size: 13px;
+  color: rgb(var(--bujo-ink-rgb) / 0.42);
+  font-size: 12px;
   font-weight: 700;
 }
 
 .activity-filter--active {
-  border-color: var(--activity-ink);
-  background: var(--activity-surface);
-  opacity: 1;
+  background: rgb(var(--bujo-white-rgb) / 0.88);
+  color: var(--activity-ink);
+  border-color: rgb(var(--bujo-ink-rgb) / 0.7);
+  box-shadow: 2px 3px 0 rgb(var(--bujo-line-rgb) / 0.18);
 }
 
 .activity-filter--active b {
   color: var(--bujo-accent);
-}
-
-.activity-note {
-  grid-column: 3;
-  grid-row: 1;
-  margin: 0;
-  justify-self: end;
-  text-align: right;
-  font-family: 'Space Mono', monospace;
-  font-size: 11px;
-  line-height: 1.2;
-  color: var(--activity-muted);
 }
 
 .activity-stage {
@@ -387,57 +337,34 @@ onMounted(fetchActivities)
 
 .activity-stage::before {
   position: absolute;
-  inset: clamp(12px, 2vh, 24px) max(120px, 18vw) clamp(18px, 3vh, 30px);
-  border: 1px solid rgb(var(--bujo-line-rgb) / 0.34);
+  inset: clamp(18px, 2.8vh, 34px) max(126px, 19vw) clamp(24px, 4vh, 42px);
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.18);
   background:
-    linear-gradient(to bottom, rgb(var(--bujo-white-rgb) / 0.62), transparent 42px),
-    rgb(var(--bujo-surface-rgb, 251 251 248) / 0.78);
-  box-shadow: 0 14px 26px rgb(var(--bujo-ink-rgb) / 0.045);
+    linear-gradient(to bottom, rgb(var(--bujo-white-rgb) / 0.36), transparent 42px),
+    rgb(var(--bujo-white-rgb) / 0.28);
+  box-shadow: 0 10px 18px rgb(var(--bujo-ink-rgb) / 0.025);
   content: '';
 }
 
 .activity-stage-sheet {
   position: absolute;
-  inset: clamp(20px, 3vh, 34px) max(112px, 17vw) clamp(8px, 2vh, 18px);
-  border: 1px solid rgb(var(--bujo-line-rgb) / 0.2);
-  background: rgb(var(--bujo-white-rgb) / 0.42);
+  inset: clamp(26px, 4vh, 42px) max(122px, 18.5vw) clamp(14px, 3vh, 28px);
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.11);
+  background: rgb(var(--bujo-white-rgb) / 0.2);
   pointer-events: none;
 }
 
 .activity-stage-sheet--back {
-  transform: rotate(-0.55deg) translate(-12px, 10px);
+  transform: rotate(-0.3deg) translate(-8px, 7px);
 }
 
 .activity-stage-sheet--middle {
-  transform: rotate(0.45deg) translate(12px, 5px);
+  transform: rotate(0.24deg) translate(8px, 4px);
 }
 
 .activity-stage :deep(.activity-detail-panel) {
   position: relative;
   z-index: 2;
-}
-
-.activity-ghost {
-  position: absolute;
-  z-index: 1;
-  color: rgba(var(--bujo-ink-rgb), 0.22);
-  font-family: var(--bujo-font-meta);
-  font-size: 12px;
-  line-height: 1.25;
-  font-weight: 400;
-  pointer-events: none;
-  user-select: none;
-}
-
-.activity-ghost--left {
-  left: max(36px, 7vw);
-  top: 35%;
-}
-
-.activity-ghost--right {
-  right: max(42px, 8vw);
-  top: 45%;
-  text-align: right;
 }
 
 .activity-card-rail {
@@ -585,18 +512,9 @@ onMounted(fetchActivities)
     gap: 16px;
   }
 
-  .activity-menu-button,
-  .activity-heading,
-  .activity-note {
+  .activity-heading {
     grid-column: 1;
     grid-row: auto;
-  }
-
-  .activity-menu-button {
-    margin-top: 0;
-  }
-
-  .activity-heading {
     text-align: left;
   }
 
@@ -645,10 +563,6 @@ onMounted(fetchActivities)
     white-space: nowrap;
   }
 
-  .activity-note {
-    display: none;
-  }
-
   .activity-stage {
     position: relative;
     z-index: 3;
@@ -678,10 +592,6 @@ onMounted(fetchActivities)
 
   .activity-strip {
     padding-bottom: 8px;
-  }
-
-  .activity-ghost {
-    display: none;
   }
 
   .activity-mini-card {

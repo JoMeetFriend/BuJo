@@ -1,16 +1,13 @@
 <template>
   <!-- 桌機版側邊欄 -->
   <aside
-    class="hidden md:flex flex-col justify-between bg-[var(--bujo-page)] border-r border-[var(--bujo-line)] transition-all duration-300 overflow-hidden"
+    class="hidden md:flex flex-col justify-between bg-[#f3f5ef] border-r border-[var(--bujo-line)] transition-all duration-300 overflow-hidden"
     :class="isOpen ? 'w-[210px] px-5 py-6' : 'w-0 px-0 py-6'"
   >
     <div>
       <!-- Logo -->
-      <div class="flex items-center gap-3 mb-12 whitespace-nowrap">
-        <div class="bujo-sidebar-logo-mark shrink-0"></div>
-        <span class="font-inter text-[var(--bujo-ink)] text-[21px] font-extrabold tracking-normal"
-          >BuJo</span
-        >
+      <div class="bujo-sidebar-brand mb-12 whitespace-nowrap">
+        <img :src="bujoLogoUrl" alt="BuJo" class="bujo-sidebar-logo" />
       </div>
 
       <!-- 導覽項目 -->
@@ -155,6 +152,7 @@
 import { ref, computed } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import bujoLogoUrl from '@/assets/bujo-logo.svg'
 import { toAvatarSrc } from '@/utils/avatar'
 import ProfileAccountModal from './ProfileAccountModal.vue'
 
@@ -197,12 +195,15 @@ async function handleLogout() {
 </script>
 
 <style scoped>
-.bujo-sidebar-logo-mark {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--bujo-ink);
-  background: var(--bujo-accent);
-  box-shadow: -5px 5px 0 var(--bujo-card-yellow);
+.bujo-sidebar-brand {
+  display: flex;
+  align-items: center;
+}
+
+.bujo-sidebar-logo {
+  display: block;
+  width: 118px;
+  height: auto;
 }
 
 .bujo-sidebar-link {

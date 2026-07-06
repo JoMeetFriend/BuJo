@@ -444,7 +444,87 @@ Hover / active:
 
 ## 7. Color System
 
-Main visual structure is built through neutral grayscale, not large brand color areas.
+BuJo's color system should feel like paper keepsakes collected from daily life.
+
+The interface should not rely on one large brand color. Its visual structure comes from quiet paper neutrals, soft ink colors, and small saturated collage accents.
+
+Core color principle:
+
+```text
+Paper is the stage.
+Ink is the structure.
+Stickers are the emotion.
+App signals are the function.
+```
+
+In product language:
+
+> BuJo uses quiet paper neutrals as the stage, dark ink for structure, and small saturated collage colors as emotional evidence of lived moments.
+
+### Color Roles
+
+Use color by role, not by decoration impulse.
+
+```text
+Paper Base        main page, cards, notebook sheets, envelopes, postcards
+Ink               headings, body text, labels, important structure
+Soft Accent       stickers, stars, tape, small paper details
+Object Color      ticket, note, postcard, invitation, polaroid, envelope families
+Functional Signal focus, active, selected, status, actionable UI states
+```
+
+Recommended base tokens:
+
+```css
+--bujo-paper: #fbfaf4;
+--bujo-paper-warm: #f4f1e8;
+--bujo-paper-muted: #eeece3;
+--bujo-paper-pink: #efd0e6;
+--bujo-paper-blue: #cfe3f2;
+--bujo-paper-yellow: #eee3a8;
+--bujo-paper-green: #98d0a2;
+
+--bujo-sticker-pink: #e883bd;
+--bujo-sticker-blue: #63a6df;
+--bujo-sticker-red: #ef5c3c;
+--bujo-sticker-yellow: #e2c84d;
+--bujo-sticker-grass: #4ba66b;
+```
+
+### Text Color System
+
+Text should avoid pure black except for rare graphic emphasis.
+
+BuJo text should feel printed, not digitally harsh. Use a soft ink scale so hierarchy is created through tone before decoration.
+
+Recommended text tokens:
+
+```css
+--bujo-text-primary: #20261f;
+--bujo-text-body: #3f473f;
+--bujo-text-muted: #6f776d;
+--bujo-text-faint: #9ca49a;
+--bujo-text-inverse: #f8f7f0;
+```
+
+Usage:
+
+```text
+Primary   page titles, card titles, important labels, selected states
+Body      readable product text, descriptions, form labels, event titles
+Muted     secondary captions, helper text, inactive shell text
+Faint     metadata, dates, tiny labels, decorative system text
+Inverse   dark buttons, dark chips, dark status labels
+```
+
+Rules:
+
+- do not use pure black as the default text color
+- do not make metadata the same darkness as headings
+- date labels and weekday labels should usually use `Muted` or `Faint`
+- decorative text may be faint, but must remain readable
+- dark buttons should use `Inverse`, not pure white
+- Chinese body copy should use `Body` or `Primary`, never too faint
 
 ### Signature Accent
 
@@ -454,7 +534,7 @@ Main visual structure is built through neutral grayscale, not large brand color 
 
 Role:
 
-`#98D0A2` is BuJo's Signature Accent. It is used for brand recognition and subtle identity moments.
+`#98D0A2` is BuJo's Signature Accent. It is used for brand recognition, confirmed social presence, and subtle identity moments.
 
 It is not:
 
@@ -512,37 +592,66 @@ Rules:
 - do not make pink the only decoration color
 - decoration should remain small
 - if decoration is not the brightest object, reduce saturation around it instead of increasing decoration size
+- each page should choose 2-3 emotional accent colors at most
+- saturated accents should appear as evidence of collage, not as a full theme wash
 
 ---
 
 ## 8. Typography System
 
 ```text
-SH Pinscher：main English display / months / Activity supporting hero
-IBM Plex Sans TC：Chinese body / UI / buttons / content
-Space Mono：metadata / date / caption
-Doto：information object feel / numbers / status small text / social inbox details
-cubic11：small Chinese pixel memory
-Chaos16：rare emotional text, about 0.1%
+Inter：Display / Heading / top mood line / UI shell
+Nunito：Body / readable product text / event chip title
+Space Mono：metadata / caption / small labels / weekdays / date labels
+Doto：special decorative numbers, such as Social Rail date numbers
+IBM Plex Sans TC：Chinese fallback
 ```
 
 Rules:
 
 - body text must not use pixel fonts
-- buttons should not use SH Pinscher, Doto, or Chaos16
+- buttons should use Inter or Space Mono depending on hierarchy
 - one component should use no more than two font families
-- Chaos16 is only for rare emotional text
-- Doto should not replace all metadata
+- Doto is only for decorative numbers and should not replace all metadata
+- Space Mono Micro text may use 400-700 weight
 - Chinese content should remain readable
 
 Suggested weight hierarchy:
 
 ```text
-body / UI: 400-500
-button: 600
-card title: 700
-hero: 700-800
-metadata: 400 or 700
+Display / Hero: Inter 700-800
+Heading: Inter 700
+Body: Nunito 400-600
+UI shell: Inter 500-700
+Button: Inter or Space Mono 600-700
+Card title: Inter or Nunito 700
+Metadata / Caption: Space Mono 400-700
+Decorative number: Doto 700
+```
+
+Level mapping:
+
+```text
+Hero      Inter 700-800
+Display   Inter 700-800
+Heading   Inter 700
+Body      Nunito 400-600
+Caption   Space Mono 400-500
+Micro     Space Mono 400-700
+Decor     Doto 700, numbers only
+Chinese   IBM Plex Sans TC fallback with the same level weight
+```
+
+Typography should pair with the text color system:
+
+```text
+Hero / Display       Text Primary
+Heading              Text Primary
+Body                 Text Body
+Caption              Text Muted
+Micro / metadata     Text Faint or Muted
+Disabled text        Text Faint
+Dark buttons         Text Inverse
 ```
 
 ---
@@ -987,4 +1096,3 @@ Second phase:
 - do not make labels into colorful capsules
 - do not let decoration overpower content
 - do not make every interaction noisy
-
