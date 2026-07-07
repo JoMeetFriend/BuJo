@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :isOpen="true" :title="formattedDate" @close="emit('close')">
+  <BaseModal :isOpen="!isModalOpen" :title="formattedDate" @close="emit('close')">
     <template #header-actions>
       <button
         type="button"
@@ -63,10 +63,12 @@
     </template>
   </BaseModal>
 
-  <BaseModal :isOpen="isModalOpen" title="活動詳情" @close="isModalOpen = false">
+  <BaseModal :isOpen="isModalOpen" title="活動詳情" bare @close="isModalOpen = false">
     <ActivityDetailModal
       :is-open="isModalOpen"
       :activity-id="selectedActivityId"
+      closable
+      @close="isModalOpen = false"
       @status-changed="emit('refresh')"
     />
   </BaseModal>

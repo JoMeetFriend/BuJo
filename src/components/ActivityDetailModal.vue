@@ -5,7 +5,18 @@
         <div class="activity-detail-kicker">ACTIVITY ROOM</div>
         <h2>{{ activity?.title || '活動詳情' }}</h2>
       </div>
-      <span v-if="activity" class="activity-detail-date">{{ panelDate }}</span>
+      <div class="activity-detail-header-right">
+        <button
+          v-if="closable"
+          type="button"
+          class="activity-detail-close"
+          aria-label="關閉活動詳情"
+          @click="emit('close')"
+        >
+          ×
+        </button>
+        <span v-if="activity" class="activity-detail-date">{{ panelDate }}</span>
+      </div>
     </header>
 
     <section class="activity-detail-body">
@@ -271,9 +282,11 @@ import { toAvatarSrc } from '@/utils/avatar'
 const props = defineProps({
   isOpen: Boolean,
   activityId: { type: String, default: null },
+  // 是否顯示右上角的關閉按鈕（包在 modal 裡才需要；ActivityView.vue 直接內嵌時不需要）
+  closable: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['status-changed'])
+const emit = defineEmits(['status-changed', 'close'])
 
 const activity = ref(null)
 const loading = ref(false)
@@ -586,6 +599,13 @@ function formatTime(date) {
   font-weight: 700;
 }
 
+.activity-detail-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
 .activity-detail-date {
   color: rgba(var(--bujo-ink-rgb), 0.72);
   font-family: 'Space Mono', monospace;
@@ -593,6 +613,25 @@ function formatTime(date) {
   line-height: 1;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.activity-detail-close {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin: -4px -4px 0 0;
+  border: 0;
+  background: transparent;
+  color: rgba(var(--bujo-ink-rgb), 0.5);
+  font-size: 15px;
+  line-height: 1;
+  transition: color 150ms ease;
+}
+
+.activity-detail-close:hover {
+  color: var(--bujo-ink);
 }
 
 .activity-detail-body {
