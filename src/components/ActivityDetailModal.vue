@@ -115,7 +115,7 @@
         <div
           v-if="
             activity.requires_voting &&
-            ((activity.status === 'recruiting' && (activity.is_creator || activity.has_joined)) ||
+            ((activity.status === 'recruiting' && activity.is_creator) ||
               activity.status === 'voting' ||
               activity.status === 'tiebreaking')
           "

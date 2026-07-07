@@ -154,6 +154,10 @@ describe('ActivityDetailModal - 報名後保留使用者自己勾選的候選時
     expect(checkboxB.element.checked).toBe(false)
     expect(checkboxA.attributes('disabled')).toBeDefined()
     expect(checkboxB.attributes('disabled')).toBeDefined()
+
+    // 非建立者在 recruiting 階段沒有任何操作可以用到這個區塊，不該重複顯示決選票數框
+    expect(wrapper.text()).not.toContain('候選時段（目前票數，可提前手動成團）')
+    expect(wrapper.find('input[type="radio"]').exists()).toBe(false)
   })
 
   test('決選投票階段依 decision_candidates 的 is_selected 還原使用者自己投的那一票', async () => {
