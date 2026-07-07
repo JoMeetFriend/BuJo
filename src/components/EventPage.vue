@@ -155,6 +155,7 @@
           @click="closePicker"
         >
           <div
+            v-if="!isStartDateToday"
             class="grid grid-cols-[72px_1fr] max-sm:grid-cols-[56px_1fr] items-center gap-3 max-sm:gap-2"
           >
             <span :class="[fieldLabelClass, 'text-right']">整日：</span>
@@ -985,6 +986,13 @@ const form = reactive({
   endTime: null,
   singleDate: today,
   note: '',
+})
+
+// 情境一（日期X時間皆已確定）：開始日期是今天時，只能約當天某個時段，不能整日，
+// 所以把「整日」選項藏起來，並清掉可能殘留的勾選
+const isStartDateToday = computed(() => form.startDate === today)
+watch(isStartDateToday, (isToday) => {
+  if (isToday) form.allDay = false
 })
 
 // 日期／時間確定情境
