@@ -475,13 +475,14 @@ const events = computed(() =>
   activities.value
     .map((activity) => ({
       id: activity.id,
-      date: activity.date,
+      date: activity.date_iso,
       title: activity.title,
       status: toCalendarStatus(activity),
       time: activity.time,
       location: activity.location,
     }))
-    .filter((event) => event.status),
+    // date_iso 為 null 代表還在投票中、尚未有確定的單一日期，無法對應到行事曆的某一格
+    .filter((event) => event.status && event.date),
 )
 
 async function fetchActivities() {
