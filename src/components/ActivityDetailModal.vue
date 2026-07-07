@@ -109,29 +109,15 @@
         </div>
 
         <div
-          v-else-if="activity.requires_voting && activity.status === 'recruiting'"
-          class="activity-detail-options"
-        >
-          <div class="activity-detail-label">候選時段</div>
-          <div
-            v-for="slot in activity.candidate_slots"
-            :key="slot.id"
-            class="activity-detail-option-read"
-          >
-            {{ slotText(slot) }}
-          </div>
-        </div>
-
-        <div
           v-if="
             activity.requires_voting &&
-            (activity.status === 'voting' || activity.status === 'tiebreaking')
+            ((activity.status === 'recruiting' && (activity.is_creator || activity.has_joined)) ||
+              activity.status === 'voting' ||
+              activity.status === 'tiebreaking')
           "
           class="activity-detail-options"
         >
-          <div class="activity-detail-label">
-            {{ activity.status === 'voting' ? '候選時段（並列最高票）' : '決選投票中' }}
-          </div>
+          <div class="activity-detail-label">{{ decisionSectionLabel }}</div>
           <label
             v-for="slot in activity.decision_candidates"
             :key="slot.id"
@@ -184,6 +170,13 @@
             activity?.is_creator && activity.status === 'recruiting' && activity.requires_voting
           "
         >
+          <PixelButton
+            type="button"
+            :disabled="actionLoading || !selectedDecisionSlotId"
+            @click="handleConfirmFormation"
+          >
+            {{ actionLoading ? '處理中...' : '提前成團' }}
+          </PixelButton>
           <PixelButton
             variant="danger"
             type="button"
@@ -322,6 +315,15 @@ const statusText = computed(() => {
     cancelled: '已取消',
   }
   return map[activity.value?.status] ?? activity.value?.status
+})
+
+const decisionSectionLabel = computed(() => {
+  const map = {
+    recruiting: '候選時段（目前票數，可提前手動成團）',
+    voting: '候選時段（並列最高票）',
+    tiebreaking: '決選投票中',
+  }
+  return map[activity.value?.status] ?? '候選時段'
 })
 
 const statusBadgeClass = computed(() => {
