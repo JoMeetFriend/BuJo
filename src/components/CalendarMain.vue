@@ -464,18 +464,18 @@ const weekDays = ['一', '二', '三', '四', '五', '六', '日']
 
 const activities = ref([])
 
-// 後端 ActivityStatus（draft/recruiting/voting/tiebreaking/confirmed/cancelled）＋
-// is_creator/has_joined 換算成行事曆用的四種分類；draft／cancelled 不算完成發布，不顯示
+// 後端保證 date_iso 只有在 status === 'confirmed' 時才非 null，行事曆只依這個欄位
+// 決定要不要畫進去，不需要另外判斷情境（免投票/單選/複選日期/各自時段）
 function toCalendarStatus(activity) {
-  if (activity.status === 'draft' || activity.status === 'cancelled') return null
-  if (activity.status === 'confirmed') return 'formed'
+  if (!activity.date_iso) return null
   if (activity.is_creator) return 'personal'
   if (activity.has_joined) return 'joined'
-  return 'recruiting'
+  return 'formed'
 }
 
 const events = computed(() =>
   activities.value
+    .filter((activity) => activity.date_iso)
     .map((activity) => ({
       id: activity.id,
       date: activity.date_iso,
@@ -483,9 +483,7 @@ const events = computed(() =>
       status: toCalendarStatus(activity),
       time: activity.time,
       location: activity.location,
-    }))
-    // date_iso 為 null 代表還在投票中、尚未有確定的單一日期，無法對應到行事曆的某一格
-    .filter((event) => event.status && event.date),
+    })),
 )
 
 const activitiesFetchError = ref('')
@@ -591,7 +589,6 @@ function getEvents(date) {
   if (!date) return []
   return events.value.filter((e) => {
     if (e.date !== date) return false
-    if (e.status === 'recruiting') return false
     if (e.status === 'joined' && !props.filters.joined) return false
     if (e.status === 'formed' && !props.filters.formed) return false
     if (e.status === 'personal' && !props.filters.personal) return false

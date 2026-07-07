@@ -1,7 +1,7 @@
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test, vi } from 'vitest'
 import CalendarMain from '@/components/CalendarMain.vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -37,6 +37,67 @@ async function mountCalendarMain(user = {}) {
     },
   })
 }
+
+function isoToday() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+describe('CalendarMain - 行事曆只依 date_iso 決定是否顯示活動', () => {
+  test('只有 date_iso 非 null（已成團）的活動會畫進行事曆，recruiting 且 date_iso 為 null 的活動不會顯示', async () => {
+    const originalFetch = global.fetch
+    const today = isoToday()
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            activities: [
+              {
+                id: 'a-personal',
+                title: '我建立且已成團',
+                status: 'confirmed',
+                is_creator: true,
+                has_joined: true,
+                date_iso: today,
+                time: '10:00 - 12:00',
+                location: '',
+              },
+              {
+                id: 'a-joined',
+                title: '我加入且已成團',
+                status: 'confirmed',
+                is_creator: false,
+                has_joined: true,
+                date_iso: today,
+                time: '14:00 - 16:00',
+                location: '',
+              },
+              {
+                id: 'a-recruiting',
+                title: '情境二三四揪團中，尚未成團',
+                status: 'recruiting',
+                is_creator: true,
+                has_joined: true,
+                date_iso: null,
+                time: '投票中',
+                location: '',
+              },
+            ],
+          }),
+      }),
+    )
+
+    const wrapper = await mountCalendarMain()
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('我建立且已成團')
+    expect(wrapper.text()).toContain('我加入且已成團')
+    expect(wrapper.text()).not.toContain('情境二三四揪團中，尚未成團')
+
+    global.fetch = originalFetch
+  })
+})
 
 describe('CalendarMain', () => {
   test('主頁右上角帳號按鈕會顯示正規化後的使用者頭像', async () => {
