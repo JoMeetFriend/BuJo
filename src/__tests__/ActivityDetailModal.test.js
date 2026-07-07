@@ -20,8 +20,18 @@ function makeActivity(overrides = {}) {
       { id: 'slot-b', slot_start: '2026-07-11T10:00:00Z', slot_end: '2026-07-11T12:00:00Z' },
     ],
     decision_candidates: [
-      { id: 'slot-a', slot_start: '2026-07-10T10:00:00Z', slot_end: '2026-07-10T12:00:00Z', count: 2 },
-      { id: 'slot-b', slot_start: '2026-07-11T10:00:00Z', slot_end: '2026-07-11T12:00:00Z', count: 1 },
+      {
+        id: 'slot-a',
+        slot_start: '2026-07-10T10:00:00Z',
+        slot_end: '2026-07-10T12:00:00Z',
+        count: 2,
+      },
+      {
+        id: 'slot-b',
+        slot_start: '2026-07-11T10:00:00Z',
+        slot_end: '2026-07-11T12:00:00Z',
+        count: 1,
+      },
     ],
     confirmed_slot: null,
     participants: [],
@@ -65,9 +75,7 @@ describe('ActivityDetailModal - 情境二三四(requires_voting) 揪團中提前
     expect(wrapper.text()).toContain('候選時段（目前票數，可提前手動成團）')
     expect(wrapper.text()).toContain('2 票')
 
-    const confirmButton = wrapper
-      .findAll('button')
-      .find((b) => b.text().includes('提前成團'))
+    const confirmButton = wrapper.findAll('button').find((b) => b.text().includes('提前成團'))
     expect(confirmButton).toBeTruthy()
     expect(confirmButton.attributes('disabled')).toBeDefined()
 
@@ -85,9 +93,7 @@ describe('ActivityDetailModal - 情境二三四(requires_voting) 揪團中提前
     await flushPromises()
 
     await wrapper.find('input[type="radio"][value="slot-a"]').setValue(true)
-    const confirmButton = wrapper
-      .findAll('button')
-      .find((b) => b.text().includes('提前成團'))
+    const confirmButton = wrapper.findAll('button').find((b) => b.text().includes('提前成團'))
     await confirmButton.trigger('click')
     await flushPromises()
 
@@ -109,5 +115,80 @@ describe('ActivityDetailModal - 情境二三四(requires_voting) 揪團中提前
 
     expect(wrapper.text()).toContain('選擇你方便的候選時段')
     expect(wrapper.text()).not.toContain('候選時段（目前票數，可提前手動成團）')
+  })
+})
+
+describe('ActivityDetailModal - 報名後保留使用者自己勾選的候選時段', () => {
+  test('已報名時改顯示唯讀的「你選擇的候選時段」，並依 is_selected 還原勾選狀態', async () => {
+    const activity = makeActivity({
+      is_creator: false,
+      has_joined: true,
+      candidate_slots: [
+        {
+          id: 'slot-a',
+          slot_start: '2026-07-10T10:00:00Z',
+          slot_end: '2026-07-10T12:00:00Z',
+          is_selected: true,
+        },
+        {
+          id: 'slot-b',
+          slot_start: '2026-07-11T10:00:00Z',
+          slot_end: '2026-07-11T12:00:00Z',
+          is_selected: false,
+        },
+      ],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('你選擇的候選時段')
+    expect(wrapper.text()).not.toContain('選擇你方便的候選時段（可複選）')
+
+    const checkboxA = wrapper.find('input[type="checkbox"][value="slot-a"]')
+    const checkboxB = wrapper.find('input[type="checkbox"][value="slot-b"]')
+    expect(checkboxA.element.checked).toBe(true)
+    expect(checkboxB.element.checked).toBe(false)
+    expect(checkboxA.attributes('disabled')).toBeDefined()
+    expect(checkboxB.attributes('disabled')).toBeDefined()
+  })
+
+  test('決選投票階段依 decision_candidates 的 is_selected 還原使用者自己投的那一票', async () => {
+    const activity = makeActivity({
+      is_creator: false,
+      has_joined: true,
+      status: 'tiebreaking',
+      decision_candidates: [
+        {
+          id: 'slot-a',
+          slot_start: '2026-07-10T10:00:00Z',
+          slot_end: '2026-07-10T12:00:00Z',
+          count: 2,
+          is_selected: true,
+        },
+        {
+          id: 'slot-b',
+          slot_start: '2026-07-11T10:00:00Z',
+          slot_end: '2026-07-11T12:00:00Z',
+          count: 1,
+          is_selected: false,
+        },
+      ],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.find('input[type="radio"][value="slot-a"]').element.checked).toBe(true)
+
+    const voteButton = wrapper.findAll('button').find((b) => b.text().includes('送出決選投票'))
+    expect(voteButton).toBeTruthy()
+    expect(voteButton.attributes('disabled')).toBeUndefined()
   })
 })

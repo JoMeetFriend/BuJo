@@ -90,20 +90,24 @@
 
         <div
           v-if="
-            activity.requires_voting &&
-            activity.status === 'recruiting' &&
-            !activity.is_creator &&
-            !activity.has_joined
+            activity.requires_voting && activity.status === 'recruiting' && !activity.is_creator
           "
           class="activity-detail-options"
         >
-          <div class="activity-detail-label">選擇你方便的候選時段（可複選）</div>
+          <div class="activity-detail-label">
+            {{ activity.has_joined ? '你選擇的候選時段' : '選擇你方便的候選時段（可複選）' }}
+          </div>
           <label
             v-for="slot in activity.candidate_slots"
             :key="slot.id"
             class="activity-detail-option"
           >
-            <input type="checkbox" :value="slot.id" v-model="selectedJoinSlotIds" />
+            <input
+              type="checkbox"
+              :value="slot.id"
+              v-model="selectedJoinSlotIds"
+              :disabled="activity.has_joined"
+            />
             <span>{{ slotText(slot) }}</span>
           </label>
         </div>
@@ -364,8 +368,14 @@ async function fetchActivity(id) {
     }
     const data = await res.json()
     activity.value = data.activity
-    selectedJoinSlotIds.value = []
-    selectedDecisionSlotId.value = null
+    // 用後端回傳的 is_selected 還原使用者自己先前的勾選狀態，讓她點回活動頁面時看到的還是原本的答案
+    selectedJoinSlotIds.value = (data.activity.candidate_slots ?? [])
+      .filter((slot) => slot.is_selected)
+      .map((slot) => slot.id)
+    const myDecisionVote = (data.activity.decision_candidates ?? []).find(
+      (slot) => slot.is_selected,
+    )
+    selectedDecisionSlotId.value = myDecisionVote?.id ?? null
   } catch (err) {
     if (err.name === 'AbortError') return
     fetchError.value = '無法連線到伺服器'
