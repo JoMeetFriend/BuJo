@@ -248,7 +248,7 @@ describe('ActivityDetailModal - 有人數上限時顯示還缺多少人成團', 
     })
     await flushPromises()
 
-    expect(wrapper.text()).toContain('已報名 2 人 / 5')
+    expect(wrapper.text()).toContain('已報名 2 / 5 人')
     expect(wrapper.text()).toContain('還差 3 人')
   })
 
@@ -264,7 +264,8 @@ describe('ActivityDetailModal - 有人數上限時顯示還缺多少人成團', 
     expect(wrapper.text()).not.toContain('還差')
     expect(wrapper.text()).not.toContain('人數上限')
     expect(wrapper.text()).toContain('沒有限制報名人數')
-    expect(wrapper.text()).toContain('已報名 2 人 / ∞')
+    expect(wrapper.text()).toContain('已報名 2 / ∞ 人')
+    expect(wrapper.find('.activity-detail-infinity').exists()).toBe(true)
   })
 
   test('有設定人數上限時，不顯示「沒有限制報名人數」', async () => {

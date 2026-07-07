@@ -52,7 +52,10 @@
 
         <div class="activity-detail-join">
           <div class="activity-detail-label">
-            已報名 {{ activity.current_count }} 人 / {{ activity.participant_target ?? '∞' }}
+            已報名 {{ activity.current_count }} /
+            <span v-if="activity.participant_target">{{ activity.participant_target }}</span>
+            <span v-else class="activity-detail-infinity">∞</span>
+            人
           </div>
           <div class="activity-detail-participants">
             <div class="activity-detail-avatars">
@@ -662,6 +665,14 @@ function formatTime(date) {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.activity-detail-infinity {
+  display: inline-block;
+  font-size: 2em;
+  line-height: 1;
+  vertical-align: middle;
+  transform: translateY(-2px);
 }
 
 .activity-detail-description {
