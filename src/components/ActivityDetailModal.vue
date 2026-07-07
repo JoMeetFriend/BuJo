@@ -52,9 +52,7 @@
 
         <div class="activity-detail-join">
           <div class="activity-detail-label">
-            已報名 {{ activity.current_count }} 人{{
-              activity.participant_target ? ` / ${activity.participant_target}` : ''
-            }}
+            已報名 {{ activity.current_count }} 人 / {{ activity.participant_target ?? '∞' }}
           </div>
           <div class="activity-detail-participants">
             <div class="activity-detail-avatars">
