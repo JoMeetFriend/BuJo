@@ -2,9 +2,7 @@
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "git": {
     "deploymentEnabled": {
-      "main": true,
-      "dev": true,
-      "*": false
+      "main": true
     }
   }
 }
