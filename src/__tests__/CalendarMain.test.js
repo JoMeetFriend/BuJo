@@ -97,6 +97,54 @@ describe('CalendarMain - 行事曆只依 date_iso 決定是否顯示活動', () 
 
     global.fetch = originalFetch
   })
+
+  test('已成團的活動不分建立者或參與者身分，一律歸類為 formed 樣式', async () => {
+    const originalFetch = global.fetch
+    const today = isoToday()
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            activities: [
+              {
+                id: 'a-creator-confirmed',
+                title: '我建立且已成團',
+                status: 'confirmed',
+                is_creator: true,
+                has_joined: true,
+                date_iso: today,
+                time: '10:00 - 12:00',
+                location: '',
+              },
+              {
+                id: 'a-joined-confirmed',
+                title: '我加入且已成團',
+                status: 'confirmed',
+                is_creator: false,
+                has_joined: true,
+                date_iso: today,
+                time: '14:00 - 16:00',
+                location: '',
+              },
+            ],
+          }),
+      }),
+    )
+
+    const wrapper = await mountCalendarMain()
+    await flushPromises()
+
+    const chips = wrapper.findAll('.calendar-event-chip')
+    expect(chips).toHaveLength(2)
+    for (const chip of chips) {
+      expect(chip.classes()).toContain('calendar-event-chip--formed')
+      expect(chip.classes()).not.toContain('calendar-event-chip--personal')
+      expect(chip.classes()).not.toContain('calendar-event-chip--joined')
+    }
+
+    global.fetch = originalFetch
+  })
 })
 
 describe('CalendarMain', () => {

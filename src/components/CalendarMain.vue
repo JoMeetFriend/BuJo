@@ -465,11 +465,10 @@ const weekDays = ['一', '二', '三', '四', '五', '六', '日']
 const activities = ref([])
 
 // 後端保證 date_iso 只有在 status === 'confirmed' 時才非 null，行事曆只依這個欄位
-// 決定要不要畫進去，不需要另外判斷情境（免投票/單選/複選日期/各自時段）
+// 決定要不要畫進去，不需要另外判斷情境（免投票/單選/複選日期/各自時段）。
+// 已成團的活動一律歸類為 formed，不分建立者或參與者身分。
 function toCalendarStatus(activity) {
   if (!activity.date_iso) return null
-  if (activity.is_creator) return 'personal'
-  if (activity.has_joined) return 'joined'
   return 'formed'
 }
 
