@@ -12,7 +12,7 @@ function makeActivity(overrides = {}) {
     status: 'recruiting',
     requires_voting: true,
     current_count: 2,
-    max_participants: null,
+    participant_target: null,
     location: '',
     description: '',
     candidate_slots: [
@@ -194,5 +194,73 @@ describe('ActivityDetailModal - 報名後保留使用者自己勾選的候選時
     const voteButton = wrapper.findAll('button').find((b) => b.text().includes('送出決選投票'))
     expect(voteButton).toBeTruthy()
     expect(voteButton.attributes('disabled')).toBeUndefined()
+  })
+})
+
+describe('ActivityDetailModal - 標題日期顯示候選時段的完整日期區間', () => {
+  test('候選時段橫跨多個日期時，標題顯示日期區間', async () => {
+    const activity = makeActivity({
+      candidate_slots: [
+        { id: 'slot-a', slot_start: '2026-07-15T04:00:00Z', slot_end: '2026-07-15T05:00:00Z' },
+        { id: 'slot-b', slot_start: '2026-07-16T04:00:00Z', slot_end: '2026-07-16T05:00:00Z' },
+        { id: 'slot-c', slot_start: '2026-07-17T04:00:00Z', slot_end: '2026-07-17T05:00:00Z' },
+      ],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.find('.activity-detail-date').text()).toBe('7/15 ~ 7/17')
+  })
+
+  test('候選時段都在同一天時，標題只顯示單一日期', async () => {
+    const activity = makeActivity({
+      candidate_slots: [
+        { id: 'slot-a', slot_start: '2026-07-15T02:00:00Z', slot_end: '2026-07-15T03:00:00Z' },
+        { id: 'slot-b', slot_start: '2026-07-15T09:00:00Z', slot_end: '2026-07-15T10:00:00Z' },
+      ],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.find('.activity-detail-date').text()).toBe('7/15')
+  })
+})
+
+describe('ActivityDetailModal - 有人數上限時顯示還缺多少人成團', () => {
+  test('recruiting 狀態下且未達標時，顯示「還差 N 人」', async () => {
+    const activity = makeActivity({
+      participant_target: 5,
+      current_count: 2,
+      status: 'recruiting',
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('已報名 2 人 / 5')
+    expect(wrapper.text()).toContain('還差 3 人')
+  })
+
+  test('沒有設定人數上限時，不顯示還差人數', async () => {
+    const activity = makeActivity({ participant_target: null })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('還差')
   })
 })

@@ -44,15 +44,15 @@
           <span class="activity-detail-badge" :class="statusBadgeClass">
             {{ statusText }}
           </span>
-          <span v-if="activity.max_participants" class="activity-detail-capacity">
-            人數上限 {{ activity.max_participants }} 人
+          <span v-if="activity.participant_target" class="activity-detail-capacity">
+            人數上限 {{ activity.participant_target }} 人
           </span>
         </div>
 
         <div class="activity-detail-join">
           <div class="activity-detail-label">
             已報名 {{ activity.current_count }} 人{{
-              activity.max_participants ? ` / ${activity.max_participants}` : ''
+              activity.participant_target ? ` / ${activity.participant_target}` : ''
             }}
           </div>
           <div class="activity-detail-participants">
@@ -78,12 +78,12 @@
             <span
               v-if="
                 activity.status === 'recruiting' &&
-                activity.max_participants &&
-                activity.max_participants - activity.current_count > 0
+                activity.participant_target &&
+                activity.participant_target - activity.current_count > 0
               "
               class="activity-detail-needed"
             >
-              還差 {{ activity.max_participants - activity.current_count }} 人
+              還差 {{ activity.participant_target - activity.current_count }} 人
             </span>
           </div>
         </div>
@@ -279,16 +279,22 @@ const selectedDecisionSlotId = ref(null)
 
 let activeFetchController = null
 
+function formatShortDate(date) {
+  return `${date.getMonth() + 1}/${date.getDate()}`
+}
+
 const panelDate = computed(() => {
   const a = activity.value
   if (!a) return ''
   if (a.confirmed_slot) {
-    const start = new Date(a.confirmed_slot.slot_start)
-    return `${start.getMonth() + 1}/${start.getDate()}`
+    return formatShortDate(new Date(a.confirmed_slot.slot_start))
   }
-  if (a.candidate_slots?.[0]) {
-    const start = new Date(a.candidate_slots[0].slot_start)
-    return `${start.getMonth() + 1}/${start.getDate()}`
+  if (a.candidate_slots?.length) {
+    // 候選時段可能橫跨多個日期（情境三、四），標題要顯示完整的日期區間，不能只看第一筆
+    const starts = a.candidate_slots.map((slot) => new Date(slot.slot_start).getTime())
+    const minText = formatShortDate(new Date(Math.min(...starts)))
+    const maxText = formatShortDate(new Date(Math.max(...starts)))
+    return minText === maxText ? minText : `${minText} ~ ${maxText}`
   }
   return ''
 })
