@@ -670,9 +670,10 @@ function formatTime(date) {
 .activity-detail-infinity {
   display: inline-block;
   font-size: 2em;
+  font-weight: 400;
   line-height: 1;
   vertical-align: middle;
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
 .activity-detail-description {
