@@ -243,7 +243,11 @@ const handleCredentialResponse = async (response) => {
 }
 
 const handleGoogleLogin = () => {
-  window.google?.accounts.id.prompt()
+  window.google?.accounts.id.prompt((notification) => {
+    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+      errorMsg.value = 'Google 登入目前無法使用，請改用帳密或 LINE 登入'
+    }
+  })
 }
 
 const handleLineLogin = () => {
