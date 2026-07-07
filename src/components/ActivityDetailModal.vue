@@ -280,6 +280,8 @@ const successMessage = ref(null)
 const selectedJoinSlotIds = ref([])
 const selectedDecisionSlotId = ref(null)
 
+let activeFetchController = null
+
 const panelDate = computed(() => {
   const a = activity.value
   if (!a) return ''
@@ -343,11 +345,16 @@ watch(
 )
 
 async function fetchActivity(id) {
+  if (activeFetchController) activeFetchController.abort()
+  const controller = new AbortController()
+  activeFetchController = controller
+
   loading.value = true
   fetchError.value = ''
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities/${id}`, {
       credentials: 'include',
+      signal: controller.signal,
     })
     if (!res.ok) {
       fetchError.value = res.status === 404 ? '找不到此活動' : '載入失敗'
@@ -357,10 +364,13 @@ async function fetchActivity(id) {
     activity.value = data.activity
     selectedJoinSlotIds.value = []
     selectedDecisionSlotId.value = null
-  } catch {
+  } catch (err) {
+    if (err.name === 'AbortError') return
     fetchError.value = '無法連線到伺服器'
   } finally {
-    loading.value = false
+    if (controller === activeFetchController) {
+      loading.value = false
+    }
   }
 }
 
@@ -451,6 +461,7 @@ async function handleCancel() {
 }
 
 function resetPanel() {
+  if (activeFetchController) activeFetchController.abort()
   activity.value = null
   fetchError.value = ''
   actionError.value = ''

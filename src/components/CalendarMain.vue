@@ -49,6 +49,9 @@
       <span>.</span>
       <span class="calendar-mood-flag" aria-hidden="true"></span>
     </p>
+    <p v-if="activitiesFetchError" class="calendar-fetch-error" role="alert">
+      {{ activitiesFetchError }}
+    </p>
     <div class="md:hidden h-5"></div>
 
     <section class="calendar-content-composition">
@@ -485,16 +488,24 @@ const events = computed(() =>
     .filter((event) => event.status && event.date),
 )
 
+const activitiesFetchError = ref('')
+
 async function fetchActivities() {
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities`, {
       credentials: 'include',
     })
-    if (!res.ok) return
+    if (!res.ok) {
+      console.error('fetchActivities 失敗：', res.status)
+      activitiesFetchError.value = '活動載入失敗，顯示的可能是舊資料'
+      return
+    }
     const data = await res.json()
     activities.value = data.activities ?? []
-  } catch {
-    // 行事曆載入失敗時維持現有資料，不中斷頁面
+    activitiesFetchError.value = ''
+  } catch (err) {
+    console.error('fetchActivities 失敗：', err)
+    activitiesFetchError.value = '無法連線到伺服器，顯示的可能是舊資料'
   }
 }
 
@@ -836,6 +847,16 @@ function isToday(date) {
     0 9px 18px rgb(var(--bujo-ink-rgb) / 0.1),
     -4px 4px 0 rgb(var(--bujo-deco-pink) / 0.42);
   transform: rotate(0deg) translateY(-1px);
+}
+
+.calendar-fetch-error {
+  position: relative;
+  z-index: 8;
+  margin: 0 0 8px;
+  color: #dc2626;
+  font-family: var(--bujo-font-meta);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .calendar-mood-line {

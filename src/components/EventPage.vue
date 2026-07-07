@@ -891,7 +891,9 @@
 
     <template #footer>
       <PixelButton variant="white" type="button" @click="closeForm">取消</PixelButton>
-      <PixelButton form="event-form" type="submit">送出揪團</PixelButton>
+      <PixelButton form="event-form" type="submit" :disabled="isSubmitting">
+        {{ isSubmitting ? '送出中...' : '送出揪團' }}
+      </PixelButton>
     </template>
   </BaseModal>
 
@@ -910,7 +912,9 @@
       <PixelButton variant="white" type="button" @click="showUrgentConfirm = false"
         >取消</PixelButton
       >
-      <PixelButton type="button" @click="confirmUrgentSubmit">確定送出</PixelButton>
+      <PixelButton type="button" :disabled="isSubmitting" @click="confirmUrgentSubmit">
+        {{ isSubmitting ? '送出中...' : '確定送出' }}
+      </PixelButton>
     </template>
   </BaseModal>
 
@@ -1189,6 +1193,7 @@ const deadline = reactive({ value: 1, unit: 'day' })
 const showDeadlineEditor = ref(false)
 const showUrgentConfirm = ref(false)
 const showSuccessModal = ref(false)
+const isSubmitting = ref(false)
 const submitError = ref('')
 const endTimeUserSet = ref(false)
 const timeError = ref('')
@@ -1513,6 +1518,16 @@ async function confirmUrgentSubmit() {
 }
 
 async function doSubmit() {
+  if (isSubmitting.value) return
+  isSubmitting.value = true
+  try {
+    await doSubmitInternal()
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+async function doSubmitInternal() {
   submitError.value = ''
   const isScenario2 = dateMode.value === 'fixed' && timeMode.value === 'vote'
   const isScenario3 = dateMode.value === 'range' && timeMode.value === 'fixed'
