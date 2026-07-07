@@ -97,22 +97,23 @@ const currentFilter = ref('all')
 const selectedFeaturedActivityId = ref(null)
 const showCreateModal = ref(false)
 
+// 四個 tab 是各自獨立的狀態/角色 facet，不是互斥分類，同一筆活動可以同時符合多個 tab：
+// RECRUITING = 招募中（status 為 recruiting，不分自建或別人的）
+// JOINED = 揪團中（已報名、非自己建立、且還沒成團/取消）
+// CONFIRMED = 已成團（status 為 confirmed，不分自建或別人的）
+// HOSTING = 自己建立的活動（is_creator，不分狀態）
+const filterPredicates = {
+  mine: (a) => a.is_creator,
+  joined: (a) =>
+    a.has_joined && !a.is_creator && a.status !== 'confirmed' && a.status !== 'cancelled',
+  recruiting: (a) => a.status === 'recruiting',
+  confirmed: (a) => a.status === 'confirmed',
+}
+
 const filteredActivities = computed(() => {
   if (currentFilter.value === 'all') return activities.value
-  if (currentFilter.value === 'mine') return activities.value.filter((a) => a.is_creator)
-  if (currentFilter.value === 'joined') {
-    return activities.value.filter(
-      (a) => a.has_joined && !a.is_creator && a.status === 'recruiting',
-    )
-  }
-  if (currentFilter.value === 'recruiting') {
-    return activities.value.filter((a) => a.status === 'recruiting' && !a.is_creator)
-  }
-  if (currentFilter.value === 'confirmed') {
-    return activities.value.filter(
-      (a) => a.status === 'confirmed' && (a.has_joined || a.is_creator),
-    )
-  }
+  const predicate = filterPredicates[currentFilter.value]
+  if (predicate) return activities.value.filter(predicate)
   return activities.value.filter((a) => a.status === currentFilter.value)
 })
 
@@ -126,13 +127,10 @@ const featuredActivity = computed(() => {
 
 const filterCounts = computed(() => ({
   all: activities.value.length,
-  mine: activities.value.filter((a) => a.is_creator).length,
-  joined: activities.value.filter((a) => a.has_joined && !a.is_creator && a.status === 'recruiting')
-    .length,
-  recruiting: activities.value.filter((a) => a.status === 'recruiting' && !a.is_creator).length,
-  confirmed: activities.value.filter(
-    (a) => a.status === 'confirmed' && (a.has_joined || a.is_creator),
-  ).length,
+  mine: activities.value.filter(filterPredicates.mine).length,
+  joined: activities.value.filter(filterPredicates.joined).length,
+  recruiting: activities.value.filter(filterPredicates.recruiting).length,
+  confirmed: activities.value.filter(filterPredicates.confirmed).length,
 }))
 
 function cardStatus(activity) {
