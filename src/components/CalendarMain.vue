@@ -44,16 +44,10 @@
       <strong>BuJo</strong>
       <span class="calendar-mood-divider"></span>
       <span>catches the little plans</span>
-      <span class="calendar-mood-dot" aria-hidden="true"></span>
       <span>, keeps your people close</span>
-      <span class="calendar-mood-flag" aria-hidden="true"></span>
       <span>, and nudges the day into motion</span>
-      <span class="calendar-mood-spark" aria-hidden="true">
-        <span></span>
-        <span></span>
-        <span></span>
-      </span>
       <span>.</span>
+      <span class="calendar-mood-flag" aria-hidden="true"></span>
     </p>
     <div class="md:hidden h-5"></div>
 
@@ -64,18 +58,7 @@
 
         <!-- Hero + controls -->
         <section class="calendar-hero-composition">
-          <div class="calendar-hero-copy">
-            <!-- 漢堡選單（僅桌機顯示） -->
-            <button
-              @click="emit('toggle-sidebar')"
-              class="calendar-menu-button hidden md:flex"
-              aria-label="切換側邊欄"
-            >
-              <span></span>
-              <span></span>
-              <span></span>
-            </button>
-
+          <div class="calendar-hero-copy" :class="{ 'md:pl-[50px]': !sidebarOpen }">
             <div>
               <p class="calendar-eyebrow">SOCIAL INBOX CALENDAR</p>
               <div class="calendar-title-line">
@@ -87,16 +70,45 @@
           </div>
 
           <div class="calendar-hero-actions">
-            <button @click="prevMonth" class="calendar-arrow-button" aria-label="上一個月">
+            <button
+              @click="prevMonth"
+              class="calendar-arrow-button calendar-arrow-button--prev"
+              aria-label="上一個月"
+            >
               &lt;
+              <svg
+                class="calendar-crayon-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="M15.4 4.6 C12.6 7.1 10.1 9.7 7.8 12.2 C10.2 14.7 12.8 17.3 15.3 19.1" />
+                <path d="M16 6.2 C13.4 8.4 11 10.7 9.1 12.1 C11.1 13.8 13.2 16 15.8 17.8" />
+                <path d="M14.4 5.7 C12.2 8.1 9.6 10.3 8.6 12.5" />
+              </svg>
             </button>
-            <button @click="nextMonth" class="calendar-arrow-button" aria-label="下一個月">
+            <button
+              @click="nextMonth"
+              class="calendar-arrow-button calendar-arrow-button--next"
+              aria-label="下一個月"
+            >
               &gt;
+              <svg
+                class="calendar-crayon-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="M8.6 4.8 C11.5 7.2 14 9.8 16.2 12.1 C13.9 14.8 11.3 17.2 8.7 19" />
+                <path d="M8.1 6.3 C10.7 8.2 13 10.5 14.9 12.1 C12.9 13.9 10.7 16 8.2 17.8" />
+                <path d="M9.6 5.9 C11.8 8.1 14.4 10.3 15.4 12.5" />
+              </svg>
             </button>
 
             <!-- 揪一團按鈕 -->
             <PixelButton class="calendar-create-button" @click="openEventModal">
-              ＋<span class="hidden md:inline"> CREATE</span>
+              <span class="calendar-create-plus">＋</span
+              ><span class="hidden md:inline">CREATE</span>
             </PixelButton>
           </div>
         </section>
@@ -114,9 +126,7 @@
           <div
             class="calendar-grid grid grid-cols-7 md:flex-1 md:min-h-0"
             :style="{
-              gridTemplateRows: isMobile
-                ? 'repeat(6, clamp(50px, 8.4vh, 110px))'
-                : 'repeat(6, 1fr)',
+              gridTemplateRows: isMobile ? 'repeat(6, minmax(0, 1fr))' : 'repeat(6, 1fr)',
             }"
           >
             <div
@@ -164,6 +174,41 @@
             </div>
           </div>
         </div>
+
+        <section class="calendar-mobile-pocket" aria-label="Mobile social pocket">
+          <div class="calendar-mobile-pocket-header">
+            <span>KEEPSAKE POCKET</span>
+            <strong>{{ visibleEvents.length }}</strong>
+          </div>
+
+          <div class="calendar-mobile-pocket-strip">
+            <button
+              v-for="item in mobilePocketItems"
+              :key="item.id"
+              type="button"
+              class="calendar-mobile-ticket"
+              @click="openDateModal(item.date)"
+            >
+              <span class="calendar-mobile-ticket-date">
+                <strong>{{ item.dayNumber }}</strong>
+                <em>{{ item.monthShort }}</em>
+              </span>
+              <span class="calendar-mobile-ticket-title">{{ item.title }}</span>
+              <small>{{ item.statusLabel }}</small>
+            </button>
+
+            <div v-if="mobilePocketItems.length === 0" class="calendar-mobile-ticket is-empty">
+              <span class="calendar-mobile-ticket-date">
+                <strong>{{ currentMonth + 1 }}</strong>
+                <em>{{ currentYear }}</em>
+              </span>
+              <span class="calendar-mobile-ticket-title">no saved plans yet</span>
+              <small>room notes</small>
+            </div>
+          </div>
+
+          <p class="calendar-mobile-pocket-note">little plans, kept close.</p>
+        </section>
       </div>
 
       <aside class="calendar-social-rail" aria-label="Social rail">
@@ -275,7 +320,6 @@ const props = defineProps({
     default: () => ({ joined: true, formed: true, personal: true }),
   },
 })
-const emit = defineEmits(['toggle-sidebar'])
 
 const isMobile = ref(window.innerWidth < 768)
 const showProfileModal = ref(false)
@@ -550,6 +594,10 @@ const socialRailItems = computed(() => {
   }
 })
 
+const mobilePocketItems = computed(() =>
+  [...socialRailItems.value.mustSee, ...socialRailItems.value.fyi].slice(0, 3),
+)
+
 function isToday(date) {
   const today = new Date()
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
@@ -562,10 +610,12 @@ function isToday(date) {
   gap: clamp(16px, 2vw, 26px);
   height: 100%;
   overflow: hidden;
-  background-image: radial-gradient(circle, rgb(var(--bujo-line-rgb) / 0.13) 1px, transparent 1px);
+  background-color: #f5f3ec;
+  background-image:
+    radial-gradient(circle, rgb(var(--bujo-line-rgb) / 0.11) 1px, transparent 1px);
   background-position: 0 0;
   background-size: 24px 24px;
-  color: var(--bujo-ink);
+  color: var(--bujo-text-body);
   font-family: 'Inter', var(--bujo-font-body);
 }
 
@@ -587,36 +637,6 @@ function isToday(date) {
   min-width: 0;
 }
 
-.calendar-menu-button {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  margin-top: 28px;
-  border: 1px solid var(--bujo-line);
-  background: var(--bujo-surface);
-  transition:
-    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.calendar-menu-button:hover {
-  border-color: var(--bujo-ink);
-  background: var(--bujo-white);
-}
-
-.calendar-menu-button span {
-  display: block;
-  width: 14px;
-  height: 1.5px;
-  background: var(--bujo-ink);
-}
-
-.calendar-menu-button span + span {
-  margin-top: 4px;
-}
-
 .calendar-eyebrow,
 .calendar-exhibition-caption {
   font-family: var(--bujo-font-meta);
@@ -625,7 +645,7 @@ function isToday(date) {
 
 .calendar-eyebrow {
   margin-bottom: 2px;
-  color: var(--bujo-muted-strong);
+  color: var(--bujo-text-muted);
   font-size: 11px;
   font-weight: 700;
 }
@@ -641,7 +661,7 @@ function isToday(date) {
 }
 
 .calendar-title-line h1 {
-  color: rgb(var(--bujo-ink-rgb) / 0.88);
+  color: var(--bujo-text-primary);
   font-family: 'Inter', var(--bujo-font-body);
   font-size: clamp(36px, 4.5vw, 60px);
   font-weight: 700;
@@ -654,7 +674,7 @@ function isToday(date) {
 
 .calendar-year-mark {
   display: inline-block;
-  color: var(--bujo-muted);
+  color: var(--bujo-text-muted);
   font-family: var(--bujo-font-meta);
   font-size: clamp(10px, 1vw, 12px);
   font-weight: 400;
@@ -664,7 +684,7 @@ function isToday(date) {
 
 .calendar-exhibition-caption {
   margin-top: 8px;
-  color: rgb(var(--bujo-ink-rgb) / 0.55);
+  color: var(--bujo-text-faint);
   font-size: 10px;
   font-weight: 400;
   line-height: 1.45;
@@ -687,9 +707,9 @@ function isToday(date) {
   place-items: center;
   width: 36px;
   height: 36px;
-  border: 1px solid var(--bujo-line);
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
   background: transparent;
-  color: var(--bujo-ink);
+  color: var(--bujo-text-primary);
   font-family: var(--bujo-font-meta);
   font-size: 14px;
   transition:
@@ -708,12 +728,16 @@ function isToday(date) {
   letter-spacing: 0;
 }
 
+.calendar-crayon-icon {
+  display: none;
+}
+
 .calendar-profile-button {
   align-items: center;
   justify-content: center;
   width: 38px;
   height: 38px;
-  border: 1px solid var(--bujo-line);
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
   background: var(--bujo-surface);
   transition:
     background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -730,6 +754,65 @@ function isToday(date) {
   top: 22px;
   right: 32px;
   z-index: 8;
+  width: 42px;
+  height: 42px;
+  border-color: rgb(var(--bujo-line-rgb) / 0.62);
+  background:
+    linear-gradient(135deg, rgb(var(--bujo-white-rgb) / 0.92), rgb(var(--bujo-surface-rgb) / 0.94)),
+    var(--bujo-surface);
+  box-shadow:
+    0 8px 16px rgb(var(--bujo-ink-rgb) / 0.08),
+    -4px 4px 0 rgb(var(--bujo-deco-pink) / 0.28);
+  transform: rotate(-2.5deg);
+  transition:
+    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.calendar-page-profile-button::before,
+.calendar-page-profile-button::after {
+  position: absolute;
+  pointer-events: none;
+  clip-path: polygon(
+    50% 0,
+    61% 35%,
+    98% 35%,
+    68% 56%,
+    79% 91%,
+    50% 70%,
+    21% 91%,
+    32% 56%,
+    2% 35%,
+    39% 35%
+  );
+  content: '';
+}
+
+.calendar-page-profile-button::before {
+  top: -9px;
+  right: -7px;
+  width: 17px;
+  height: 17px;
+  background: #ef6f9f;
+  transform: rotate(16deg);
+}
+
+.calendar-page-profile-button::after {
+  bottom: -6px;
+  left: -7px;
+  width: 12px;
+  height: 12px;
+  background: #56b597;
+  transform: rotate(-18deg);
+}
+
+.calendar-page-profile-button:hover {
+  border-color: var(--bujo-ink);
+  box-shadow:
+    0 9px 18px rgb(var(--bujo-ink-rgb) / 0.1),
+    -4px 4px 0 rgb(var(--bujo-deco-pink) / 0.42);
+  transform: rotate(0deg) translateY(-1px);
 }
 
 .calendar-mood-line {
@@ -742,7 +825,7 @@ function isToday(date) {
   max-width: calc(100% - 260px);
   align-items: center;
   gap: 6px;
-  color: rgb(var(--bujo-ink-rgb) / 0.58);
+  color: var(--bujo-text-muted);
   font-family: 'Inter', var(--bujo-font-body);
   font-size: 18px;
   font-weight: 400;
@@ -751,7 +834,7 @@ function isToday(date) {
 }
 
 .calendar-mood-line strong {
-  color: rgb(var(--bujo-ink-rgb) / 0.72);
+  color: var(--bujo-text-body);
   font-weight: 700;
 }
 
@@ -759,13 +842,6 @@ function isToday(date) {
   width: 1px;
   height: 32px;
   background: rgb(var(--bujo-line-rgb) / 0.35);
-}
-
-.calendar-mood-dot {
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  background: #4fa46d;
 }
 
 .calendar-mood-flag {
@@ -786,46 +862,6 @@ function isToday(date) {
   content: '';
 }
 
-.calendar-mood-spark {
-  position: relative;
-  display: inline-grid;
-  width: 24px;
-  height: 26px;
-  place-items: end center;
-}
-
-.calendar-mood-spark::before {
-  width: 15px;
-  height: 15px;
-  border-radius: 3px 3px 6px 6px;
-  background: #ed5f35;
-  content: '';
-}
-
-.calendar-mood-spark span {
-  position: absolute;
-  bottom: 12px;
-  width: 5px;
-  height: 15px;
-  border-radius: 999px;
-  background: #ed5f35;
-}
-
-.calendar-mood-spark span:nth-child(1) {
-  left: 3px;
-  transform: rotate(-13deg);
-}
-
-.calendar-mood-spark span:nth-child(2) {
-  left: 9px;
-  height: 19px;
-}
-
-.calendar-mood-spark span:nth-child(3) {
-  right: 4px;
-  transform: rotate(16deg);
-}
-
 .calendar-content-composition {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(190px, 240px);
@@ -840,9 +876,11 @@ function isToday(date) {
   position: relative;
   isolation: isolate;
   overflow: visible;
-  border: 1px solid var(--bujo-line-soft);
-  background: var(--bujo-surface);
-  box-shadow: 0 10px 18px rgb(var(--bujo-ink-rgb) / 0.035);
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.52);
+  background: #fffefa;
+  box-shadow:
+    0 18px 32px rgb(var(--bujo-ink-rgb) / 0.055),
+    0 1px 0 rgb(var(--bujo-white-rgb) / 0.7) inset;
   padding: clamp(22px, 2.5vw, 34px) clamp(18px, 2.6vw, 34px) clamp(22px, 2.6vw, 36px)
     clamp(58px, 5vw, 74px);
   display: flex;
@@ -855,20 +893,20 @@ function isToday(date) {
 .calendar-stack-sheet {
   position: absolute;
   z-index: -1;
-  border: 1px solid rgb(var(--bujo-line-rgb) / 0.24);
-  background: var(--bujo-surface);
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.16);
+  background: rgb(var(--bujo-white-rgb) / 0.54);
   pointer-events: none;
 }
 
 .calendar-stack-sheet--back {
   inset: 18px -11px -14px 18px;
-  background: rgb(var(--bujo-white-rgb) / 0.54);
+  background: rgb(var(--bujo-white-rgb) / 0.38);
   transform: rotate(0.6deg);
 }
 
 .calendar-stack-sheet--middle {
   inset: 9px -6px -8px 8px;
-  background: var(--bujo-surface);
+  background: rgb(var(--bujo-white-rgb) / 0.5);
   transform: rotate(-0.28deg);
 }
 
@@ -885,18 +923,18 @@ function isToday(date) {
   left: 0;
   z-index: 2;
   width: 42px;
-  border-right: 1px solid rgb(var(--bujo-line-rgb) / 0.24);
+  border-right: 1px solid rgb(var(--bujo-line-rgb) / 0.16);
   background:
-    radial-gradient(circle at 48% 22px, rgb(var(--bujo-line-rgb) / 0.15) 0 8px, transparent 8.5px) 0
+    radial-gradient(circle at 48% 22px, rgb(var(--bujo-line-rgb) / 0.12) 0 8px, transparent 8.5px) 0
       18px / 42px 86px repeat-y,
-    var(--bujo-surface);
+    #fffefa;
 }
 
 .calendar-paper-page::after {
   left: -11px;
   z-index: 1;
   width: 20px;
-  background: linear-gradient(to right, rgb(var(--bujo-ink-rgb) / 0.08), transparent 72%);
+  background: linear-gradient(to right, rgb(var(--bujo-ink-rgb) / 0.055), transparent 72%);
   clip-path: polygon(22% 0, 100% 0, 78% 31%, 94% 62%, 62% 100%, 0 100%, 18% 68%, 0 37%);
   opacity: 0.72;
 }
@@ -905,8 +943,8 @@ function isToday(date) {
   position: relative;
   z-index: 3;
   overflow: hidden;
-  border: 1px solid rgb(var(--bujo-line-rgb) / 0.55);
-  background: rgb(var(--bujo-white-rgb) / 0.72);
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.42);
+  background: rgb(var(--bujo-white-rgb) / 0.9);
   display: flex;
   flex-direction: column;
   height: clamp(390px, 53vh, 440px);
@@ -917,13 +955,14 @@ function isToday(date) {
 .calendar-week-row {
   position: relative;
   z-index: 3;
-  border-bottom: 1px solid var(--bujo-line-soft);
-  background: var(--bujo-surface-muted);
+  border-bottom: 1px solid rgb(var(--bujo-line-rgb) / 0.36);
+  background: #f0f1eb;
 }
 
 .calendar-grid {
   position: relative;
   z-index: 3;
+  flex: 1 1 auto;
   grid-auto-rows: minmax(0, 1fr);
   min-height: 0;
   overflow: hidden;
@@ -931,7 +970,7 @@ function isToday(date) {
 
 .calendar-weekday {
   padding: 10px 0;
-  color: var(--bujo-muted-strong);
+  color: var(--bujo-text-muted);
   text-align: center;
   font-family: var(--bujo-font-meta);
   font-size: 12px;
@@ -941,9 +980,9 @@ function isToday(date) {
 .calendar-cell {
   min-width: 0;
   min-height: 0;
-  border-right: 1px solid rgb(var(--bujo-line-rgb) / 0.38);
-  border-bottom: 1px solid rgb(var(--bujo-line-rgb) / 0.38);
-  background: rgb(var(--bujo-white-rgb) / 0.76);
+  border-right: 1px solid rgb(var(--bujo-line-rgb) / 0.24);
+  border-bottom: 1px solid rgb(var(--bujo-line-rgb) / 0.24);
+  background: rgb(var(--bujo-white-rgb) / 0.84);
   transition:
     background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -955,12 +994,12 @@ function isToday(date) {
 }
 
 .calendar-cell:hover {
-  background: var(--bujo-white);
+  background: #fffefa;
   box-shadow: inset 0 0 0 1px var(--bujo-accent);
 }
 
 .calendar-cell.is-faded {
-  background: rgb(var(--bujo-page-rgb) / 0.55);
+  background: rgb(var(--bujo-page-rgb) / 0.36);
 }
 
 .calendar-cell.is-today {
@@ -970,7 +1009,7 @@ function isToday(date) {
 
 .calendar-day-number {
   display: block;
-  color: var(--bujo-muted-strong);
+  color: var(--bujo-text-muted);
   font-family: var(--bujo-font-meta);
   font-size: 11px;
   font-weight: 700;
@@ -1038,7 +1077,7 @@ function isToday(date) {
   right: 6px;
   bottom: 5px;
   background: var(--bujo-white);
-  color: var(--bujo-ink);
+  color: var(--bujo-text-primary);
   font-family: var(--bujo-font-meta);
   font-size: 9px;
   font-weight: 700;
@@ -1049,8 +1088,8 @@ function isToday(date) {
 .calendar-social-rail {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  border-left: 1px solid rgb(var(--bujo-line-rgb) / 0.45);
+  gap: 17px;
+  border-left: 1px solid rgb(var(--bujo-line-rgb) / 0.32);
   padding: 10px 0 0 20px;
 }
 
@@ -1059,7 +1098,7 @@ function isToday(date) {
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  color: var(--bujo-ink);
+  color: var(--bujo-text-primary);
 }
 
 .calendar-rail-heading span,
@@ -1083,17 +1122,21 @@ function isToday(date) {
 }
 
 .calendar-rail-section p {
-  color: rgb(var(--bujo-ink-rgb) / 0.42);
+  color: var(--bujo-text-faint);
 }
 
 .calendar-rail-item {
+  position: relative;
   display: grid;
   gap: 7px;
   width: 100%;
-  border: 1px solid rgb(var(--bujo-line-rgb) / 0.7);
-  background: var(--bujo-surface);
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.46);
+  background:
+    linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.64), transparent 48%),
+    rgb(var(--bujo-white-rgb) / 0.72);
   padding: 12px 12px 11px;
   text-align: left;
+  box-shadow: 3px 4px 0 rgb(var(--bujo-ink-rgb) / 0.028);
   transition:
     background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
     border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -1101,16 +1144,34 @@ function isToday(date) {
 }
 
 .calendar-rail-item:hover {
-  border-color: var(--bujo-ink);
-  background: var(--bujo-white);
+  border-color: rgb(var(--bujo-ink-rgb) / 0.58);
+  background: linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.72), transparent 48%), #fffefa;
   transform: translateY(-1px);
+}
+
+.calendar-rail-item:nth-of-type(2n) {
+  background:
+    linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.5), transparent 48%),
+    color-mix(in srgb, var(--bujo-card-yellow) 44%, var(--bujo-white));
+}
+
+.calendar-rail-section:not(:first-of-type) .calendar-rail-item {
+  background:
+    linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.62), transparent 48%),
+    rgb(var(--bujo-white-rgb) / 0.54);
+}
+
+.calendar-rail-section:not(:first-of-type) .calendar-rail-item:nth-of-type(2n) {
+  background:
+    linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.48), transparent 48%),
+    color-mix(in srgb, var(--bujo-card-blue) 44%, var(--bujo-white));
 }
 
 .calendar-rail-date {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  color: var(--bujo-ink);
+  color: var(--bujo-text-primary);
   line-height: 0.8;
 }
 
@@ -1123,7 +1184,7 @@ function isToday(date) {
 }
 
 .calendar-rail-date em {
-  color: var(--bujo-muted);
+  color: var(--bujo-text-muted);
   font-family: var(--bujo-font-meta);
   font-size: 11px;
   font-style: normal;
@@ -1132,14 +1193,14 @@ function isToday(date) {
 }
 
 .calendar-rail-title {
-  color: var(--bujo-ink);
+  color: var(--bujo-text-primary);
   font-size: 13px;
   font-weight: 500;
   line-height: 1.25;
 }
 
 .calendar-rail-item small {
-  color: var(--bujo-muted);
+  color: var(--bujo-text-muted);
   font-family: var(--bujo-font-meta);
   font-size: 10px;
   font-weight: 400;
@@ -1152,13 +1213,157 @@ function isToday(date) {
 
 .calendar-rail-note {
   margin-top: auto;
-  color: var(--bujo-muted);
+  color: var(--bujo-text-muted);
   font-size: 13px;
   line-height: 1.45;
 }
 
 .calendar-rail-note p {
   margin-top: 5px;
+}
+
+.calendar-mobile-pocket {
+  display: none;
+}
+
+.calendar-mobile-pocket-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.calendar-mobile-pocket-header span {
+  color: var(--bujo-text-faint);
+  font-family: var(--bujo-font-meta);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.calendar-mobile-pocket-header strong {
+  color: var(--bujo-accent);
+  font-family: var(--bujo-font-meta);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.calendar-mobile-pocket-strip {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.calendar-mobile-pocket-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.calendar-mobile-ticket {
+  position: relative;
+  display: grid;
+  flex: 0 0 118px;
+  min-height: 74px;
+  gap: 5px;
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.58);
+  background:
+    linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.62), transparent 44%), var(--bujo-surface);
+  padding: 10px 10px 9px;
+  text-align: left;
+  box-shadow: 3px 4px 0 rgb(var(--bujo-ink-rgb) / 0.035);
+  transform: rotate(-0.7deg);
+}
+
+.calendar-mobile-ticket:nth-child(2n) {
+  background: var(--bujo-card-yellow);
+  transform: rotate(0.55deg);
+}
+
+.calendar-mobile-ticket:nth-child(3n) {
+  background: var(--bujo-card-blue);
+  transform: rotate(-0.25deg);
+}
+
+.calendar-mobile-ticket::after {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  width: 5px;
+  height: 5px;
+  background: rgb(var(--bujo-ink-rgb) / 0.58);
+  content: '';
+}
+
+.calendar-mobile-ticket-date {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  color: var(--bujo-text-primary);
+  line-height: 0.82;
+}
+
+.calendar-mobile-ticket-date strong {
+  font-family: var(--bujo-font-deco);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 0.72;
+}
+
+.calendar-mobile-ticket-date em {
+  color: var(--bujo-text-muted);
+  font-family: var(--bujo-font-meta);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.calendar-mobile-ticket-title {
+  overflow: hidden;
+  color: var(--bujo-text-primary);
+  font-family: var(--bujo-font-body);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-mobile-ticket small {
+  color: var(--bujo-text-muted);
+  font-family: var(--bujo-font-meta);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.calendar-mobile-ticket.is-empty {
+  flex-basis: 172px;
+  border-style: dashed;
+  background: rgb(var(--bujo-white-rgb) / 0.54);
+  transform: rotate(0.45deg);
+}
+
+.calendar-mobile-ticket.is-empty::before {
+  position: absolute;
+  top: -7px;
+  right: 18px;
+  width: 34px;
+  height: 10px;
+  background: rgb(222 212 156 / 0.68);
+  transform: rotate(-2deg);
+  content: '';
+}
+
+.calendar-mobile-pocket-note {
+  margin-top: 8px;
+  color: var(--bujo-text-muted);
+  font-family: var(--bujo-font-meta);
+  font-size: 10px;
+  line-height: 1.3;
 }
 
 .profile-pixel-face {
@@ -1255,10 +1460,21 @@ function isToday(date) {
 @media (max-width: 640px) {
   .calendar-main-shell {
     gap: 14px;
+    padding: 8px 8px 72px;
+  }
+
+  .calendar-content-composition {
+    margin-top: 6px;
+  }
+
+  .calendar-hero-composition {
+    position: relative;
+    margin-bottom: 24px;
+    padding-right: 94px;
   }
 
   .calendar-title-line h1 {
-    font-size: 40px;
+    font-size: 36px;
   }
 
   .calendar-exhibition-caption,
@@ -1267,15 +1483,163 @@ function isToday(date) {
   }
 
   .calendar-hero-actions {
-    flex-wrap: wrap;
+    position: absolute;
+    right: 3px;
+    bottom: 1px;
+    width: auto;
+    align-self: auto;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: 0;
+    padding-bottom: 0;
+  }
+
+  .calendar-arrow-button {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 25px;
+    height: 25px;
+    border: 0;
+    background: transparent;
+    color: rgb(var(--bujo-ink-rgb) / 0.72);
+    cursor: pointer;
+    font-size: 0;
+    transform-origin: center;
+    transition:
+      color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform 120ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .calendar-crayon-icon {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 20px;
+    height: 20px;
+    overflow: visible;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+
+  .calendar-crayon-icon path {
+    stroke-dasharray: 1.2 1.6;
+    stroke-width: 2.25;
+  }
+
+  .calendar-crayon-icon path:nth-child(2) {
+    opacity: 0.42;
+    stroke-dasharray: 0.6 2.2;
+    stroke-width: 1.35;
+  }
+
+  .calendar-crayon-icon path:nth-child(3) {
+    opacity: 0.26;
+    stroke-dasharray: 0.35 2.7;
+    stroke-width: 1;
+  }
+
+  .calendar-arrow-button--prev {
+    transform: rotate(-4deg);
+  }
+
+  .calendar-arrow-button--next {
+    transform: rotate(3deg);
+  }
+
+  .calendar-arrow-button--prev:hover {
+    color: var(--bujo-deco-blue);
+    transform: rotate(-7deg) scale(1.08);
+  }
+
+  .calendar-arrow-button--next:hover {
+    color: #c9a84d;
+    transform: rotate(6deg) scale(1.08);
+  }
+
+  .calendar-arrow-button:active {
+    color: var(--bujo-deco-pink);
+    transform: rotate(0deg) scale(0.94);
+  }
+
+  .calendar-create-button {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 42px;
+    height: 40px;
+    margin-left: 6px;
+    padding: 0;
+    border: 0;
+    background: transparent !important;
+    color: rgb(var(--bujo-ink-rgb) / 0.72);
+    font-family: var(--bujo-font-meta);
+    font-size: 20px;
+    font-weight: 700;
+    box-shadow: none;
+    transition: color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .calendar-create-button:hover:not(:disabled) {
+    background: transparent !important;
+    color: var(--bujo-ink);
+  }
+
+  .calendar-create-button:active:not(:disabled) {
+    background: transparent !important;
+    transform: scale(0.94);
   }
 
   .calendar-paper-page {
-    padding: 18px 12px 18px 34px;
+    padding: 14px 10px 18px 32px;
   }
 
   .calendar-board {
+    height: clamp(292px, calc(100dvh - 360px), 360px);
     box-shadow: none;
+  }
+
+  .calendar-mobile-pocket {
+    position: relative;
+    z-index: 4;
+    display: block;
+    margin-top: 12px;
+    overflow: visible;
+    border-top: 1px dashed rgb(var(--bujo-line-rgb) / 0.48);
+    padding-top: 10px;
+    padding-bottom: 6px;
+  }
+
+  .calendar-mobile-pocket::before {
+    position: absolute;
+    top: 2px;
+    left: 14px;
+    width: 28px;
+    height: 9px;
+    background: rgb(var(--bujo-deco-pink) / 0.34);
+    transform: rotate(-3deg);
+    content: '';
+  }
+
+  .calendar-mobile-ticket {
+    flex-basis: 110px;
+    min-height: 64px;
+    padding: 8px 9px;
+  }
+
+  .calendar-mobile-ticket-date strong {
+    font-size: 24px;
+  }
+
+  .calendar-mobile-ticket-title {
+    font-size: 11px;
+  }
+
+  .calendar-mobile-pocket-note {
+    display: none;
   }
 
   .calendar-stack-sheet--back {

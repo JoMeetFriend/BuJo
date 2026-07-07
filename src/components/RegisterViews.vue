@@ -9,10 +9,7 @@
 
       <!-- Logo -->
       <div class="flex flex-col items-center mb-6">
-        <div class="flex items-center gap-3">
-          <div class="bujo-login-logo-mark shrink-0"></div>
-          <h1 class="bujo-login-wordmark">BuJo</h1>
-        </div>
+        <img :src="bujoLogoUrl" alt="BuJo" class="bujo-login-logo-image" />
         <p class="text-xs text-[var(--bujo-muted-strong)] mt-2">不揪喔～說完，你就揪到了</p>
       </div>
 
@@ -136,6 +133,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
+import bujoLogoUrl from '@/assets/bujo-logo-auth.svg'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -172,7 +170,7 @@ const handleRegister = async () => {
 
   isLoading.value = true
   try {
-    const res = await fetch('http://localhost:3000/api/auth/signup', {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -218,21 +216,10 @@ input:-webkit-autofill:focus {
   transition: background-color 9999s ease-in-out 0s;
 }
 
-.bujo-login-logo-mark {
-  width: 32px;
-  height: 32px;
-  border: 2px solid var(--bujo-ink);
-  background: var(--bujo-accent);
-  box-shadow: -6px 6px 0 var(--bujo-card-yellow);
-}
-
-.bujo-login-wordmark {
-  margin: 0;
-  color: var(--bujo-ink);
-  font-family: var(--bujo-font-heading);
-  font-size: 36px;
-  font-weight: 800;
-  line-height: 1;
+.bujo-login-logo-image {
+  display: block;
+  width: min(178px, 58vw);
+  height: auto;
 }
 
 .bujo-hero-btn {

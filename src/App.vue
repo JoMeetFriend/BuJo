@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen bg-[var(--bujo-page)] overflow-hidden text-[var(--bujo-ink)]">
+  <div class="relative flex h-screen bg-[var(--bujo-page)] overflow-hidden text-[var(--bujo-ink)]">
     <AppSidebar
       v-if="showSidebar"
       :isOpen="sidebarOpen"
@@ -7,20 +7,22 @@
       @toggle-filter="toggleFilter"
     />
 
+    <SidebarToggleButton
+      v-if="showSidebar"
+      class="hidden md:flex"
+      :class="sidebarOpen ? 'app-sidebar-toggle app-sidebar-toggle--open' : 'app-sidebar-toggle app-sidebar-toggle--closed'"
+      @click="sidebarOpen = !sidebarOpen"
+    />
+
     <main
-      class="flex-1 flex flex-col"
+      class="flex-1 min-w-0 flex flex-col"
       :class="[
-        isCalendarPage ? 'overflow-hidden' : 'overflow-auto',
-        { 'pb-20': route.path !== '/activity' && !isCalendarPage },
+        isCalendarPage || isAuthPage ? 'overflow-hidden' : 'overflow-auto',
+        { 'pb-20': route.path !== '/activity' && !isCalendarPage && !isAuthPage },
       ]"
     >
       <RouterView v-slot="{ Component }">
-        <component
-          :is="Component"
-          :sidebarOpen="sidebarOpen"
-          :filters="filters"
-          @toggle-sidebar="sidebarOpen = !sidebarOpen"
-        />
+        <component :is="Component" :sidebarOpen="sidebarOpen" :filters="filters" />
       </RouterView>
     </main>
   </div>
@@ -28,25 +30,36 @@
 
 <script setup>
 import { RouterView, useRoute } from 'vue-router'
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import AppSidebar from './components/AppSidebar.vue'
+import SidebarToggleButton from './components/ui/SidebarToggleButton.vue'
 
 const route = useRoute()
 const sidebarOpen = ref(true)
 const filters = ref({ joined: true, formed: true, personal: true })
 
 const showSidebar = computed(() => !['/login', '/register'].includes(route.path))
+const isAuthPage = computed(() => ['/login', '/register'].includes(route.path))
 const isCalendarPage = computed(() => route.name === 'calendar-page')
-
-watch(
-  () => route.path,
-  (path) => {
-    sidebarOpen.value = path !== '/activity'
-  },
-  { immediate: true },
-)
 
 function toggleFilter(key) {
   filters.value[key] = !filters.value[key]
 }
 </script>
+
+<style scoped>
+.app-sidebar-toggle {
+  position: absolute;
+  top: 22px;
+  z-index: 20;
+  transition: left 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-sidebar-toggle--open {
+  left: 156px;
+}
+
+.app-sidebar-toggle--closed {
+  left: 16px;
+}
+</style>

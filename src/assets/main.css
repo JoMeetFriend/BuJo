@@ -13,6 +13,11 @@
   --bujo-ink-rgb: 32 37 31;
   --bujo-muted: #6b7068;
   --bujo-muted-strong: #60675f;
+  --bujo-text-primary: #20261f;
+  --bujo-text-body: #3f473f;
+  --bujo-text-muted: #6f776d;
+  --bujo-text-faint: #9ca49a;
+  --bujo-text-inverse: #f8f7f0;
   --bujo-line: #9aa197;
   --bujo-line-rgb: 154 161 151;
   --bujo-line-soft: #aeb4aa;

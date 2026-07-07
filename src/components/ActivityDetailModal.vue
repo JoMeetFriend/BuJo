@@ -786,8 +786,45 @@ function formatTime(date) {
   .activity-detail-panel {
     --activity-detail-scale: 1;
     width: min(100%, 360px);
-    max-height: none;
-    min-height: 340px;
+    height: auto;
+    max-height: clamp(340px, 45dvh, 430px);
+    min-height: 250px;
+  }
+
+  .activity-detail-header,
+  .activity-detail-footer {
+    flex: 0 0 auto;
+  }
+
+  .activity-detail-footer {
+    margin-top: auto;
+    background: var(--activity-focus-bg, #a5dcfb);
+    padding-bottom: 18px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .activity-detail-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .activity-detail-body::-webkit-scrollbar {
+    display: none;
+  }
+
+  .activity-detail-panel:hover {
+    --activity-detail-lift: 0px;
+  }
+
+  .activity-detail-description {
+    scrollbar-width: none;
+  }
+
+  .activity-detail-description::-webkit-scrollbar {
+    display: none;
   }
 }
 </style>
