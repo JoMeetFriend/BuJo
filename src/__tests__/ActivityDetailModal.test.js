@@ -252,7 +252,7 @@ describe('ActivityDetailModal - 有人數上限時顯示還缺多少人成團', 
     expect(wrapper.text()).toContain('還差 3 人')
   })
 
-  test('沒有設定人數上限時，不顯示還差人數', async () => {
+  test('沒有設定人數上限時，不顯示還差人數，改顯示「沒有限制報名人數」', async () => {
     const activity = makeActivity({ participant_target: null })
     stubFetch(activity)
 
@@ -262,5 +262,20 @@ describe('ActivityDetailModal - 有人數上限時顯示還缺多少人成團', 
     await flushPromises()
 
     expect(wrapper.text()).not.toContain('還差')
+    expect(wrapper.text()).not.toContain('人數上限')
+    expect(wrapper.text()).toContain('沒有限制報名人數')
+  })
+
+  test('有設定人數上限時，不顯示「沒有限制報名人數」', async () => {
+    const activity = makeActivity({ participant_target: 5, current_count: 2 })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('沒有限制報名人數')
+    expect(wrapper.text()).toContain('人數上限 5 人')
   })
 })

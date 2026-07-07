@@ -47,6 +47,7 @@
           <span v-if="activity.participant_target" class="activity-detail-capacity">
             人數上限 {{ activity.participant_target }} 人
           </span>
+          <span v-else class="activity-detail-capacity">沒有限制報名人數</span>
         </div>
 
         <div class="activity-detail-join">
