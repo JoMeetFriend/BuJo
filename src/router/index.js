@@ -71,7 +71,9 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
-  if (!authStore.initialized) {
+  // 第一次載入一定要確認；之後只在進入需要登入的頁面時重新跟後端確認，
+  // 避免 cookie 過期或被後端強制登出後，分頁只要沒重新整理就一直被當成已登入
+  if (!authStore.initialized || to.meta.requiresAuth) {
     await authStore.fetchMe()
   }
 
