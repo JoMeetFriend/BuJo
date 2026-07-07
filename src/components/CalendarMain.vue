@@ -150,11 +150,11 @@
                 </span>
               </div>
 
-              <!-- 活動條 -->
+              <!-- 活動條：只顯示時間最早的一筆，其餘用 +N 表示，點格子仍看得到完整清單 -->
               <div class="calendar-event-list flex flex-col gap-[3px] px-1 pb-1 md:px-2 md:pb-3">
                 <template v-for="(event, i) in getEvents(cell.date)" :key="event.id">
                   <div
-                    v-if="(isMobile && i < 2) || (!isMobile && i < 3)"
+                    v-if="i === 0"
                     class="calendar-event-chip"
                     :class="statusStyle[event.status]"
                   >
@@ -168,11 +168,8 @@
               </div>
 
               <!-- +N：定位相對格子，不受 events 容器高度影響 -->
-              <div
-                v-if="getEvents(cell.date).length > (isMobile ? 2 : 3)"
-                class="calendar-more-count"
-              >
-                +{{ getEvents(cell.date).length - (isMobile ? 2 : 3) }}
+              <div v-if="getEvents(cell.date).length > 1" class="calendar-more-count">
+                +{{ getEvents(cell.date).length - 1 }}
               </div>
             </div>
           </div>
@@ -482,7 +479,9 @@ const events = computed(() =>
       status: toCalendarStatus(activity),
       time: activity.time,
       location: activity.location,
-    })),
+      sortTime: activity.confirmed_start ?? activity.date_iso,
+    }))
+    .sort((a, b) => new Date(a.sortTime) - new Date(b.sortTime)),
 )
 
 const activitiesFetchError = ref('')

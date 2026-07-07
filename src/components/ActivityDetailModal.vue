@@ -17,7 +17,11 @@
       <template v-else-if="activity">
         <div class="activity-detail-creator">
           <div class="activity-detail-avatar">
-            <img v-if="activity.creator.avatar_url" :src="activity.creator.avatar_url" alt="" />
+            <img
+              v-if="activity.creator.avatar_url"
+              :src="toAvatarSrc(activity.creator.avatar_url)"
+              alt=""
+            />
             <span v-else>⭐</span>
           </div>
           <span>{{ activity.creator.display_name }} 發起</span>
@@ -63,7 +67,7 @@
                 <img
                   v-if="p.avatar_url"
                   class="activity-detail-avatar"
-                  :src="p.avatar_url"
+                  :src="toAvatarSrc(p.avatar_url)"
                   alt=""
                 />
                 <div v-else class="activity-detail-avatar activity-detail-avatar--text">
@@ -262,6 +266,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import PixelButton from './ui/PixelButton.vue'
+import { toAvatarSrc } from '@/utils/avatar'
 
 const props = defineProps({
   isOpen: Boolean,

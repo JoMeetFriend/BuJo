@@ -281,3 +281,39 @@ describe('ActivityDetailModal - 有人數上限時顯示還缺多少人成團', 
     expect(wrapper.text()).toContain('人數上限 5 人')
   })
 })
+
+describe('ActivityDetailModal - 頭像相對路徑要補上 API base URL，避免破圖', () => {
+  test('建立者頭像是相對路徑時，會補上 API base URL', async () => {
+    const activity = makeActivity({
+      creator: { display_name: '小明', avatar_url: '/uploads/avatars/creator.png' },
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.find('.activity-detail-creator img').attributes('src')).toBe(
+      'http://localhost:3000/uploads/avatars/creator.png',
+    )
+  })
+
+  test('參與者頭像是相對路徑時，會補上 API base URL', async () => {
+    const activity = makeActivity({
+      participants: [
+        { id: 'p-1', display_name: '小華', avatar_url: '/uploads/avatars/participant.png' },
+      ],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.find('.activity-detail-avatars img').attributes('src')).toBe(
+      'http://localhost:3000/uploads/avatars/participant.png',
+    )
+  })
+})

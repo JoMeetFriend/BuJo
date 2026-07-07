@@ -114,17 +114,8 @@ describe('CalendarMain - 行事曆只依 date_iso 決定是否顯示活動', () 
                 is_creator: true,
                 has_joined: true,
                 date_iso: today,
+                confirmed_start: `${today}T02:00:00.000Z`,
                 time: '10:00 - 12:00',
-                location: '',
-              },
-              {
-                id: 'a-joined-confirmed',
-                title: '我加入且已成團',
-                status: 'confirmed',
-                is_creator: false,
-                has_joined: true,
-                date_iso: today,
-                time: '14:00 - 16:00',
                 location: '',
               },
             ],
@@ -136,12 +127,93 @@ describe('CalendarMain - 行事曆只依 date_iso 決定是否顯示活動', () 
     await flushPromises()
 
     const chips = wrapper.findAll('.calendar-event-chip')
-    expect(chips).toHaveLength(2)
-    for (const chip of chips) {
-      expect(chip.classes()).toContain('calendar-event-chip--formed')
-      expect(chip.classes()).not.toContain('calendar-event-chip--personal')
-      expect(chip.classes()).not.toContain('calendar-event-chip--joined')
-    }
+    expect(chips).toHaveLength(1)
+    expect(chips[0].classes()).toContain('calendar-event-chip--formed')
+    expect(chips[0].classes()).not.toContain('calendar-event-chip--personal')
+    expect(chips[0].classes()).not.toContain('calendar-event-chip--joined')
+
+    global.fetch = originalFetch
+  })
+})
+
+describe('CalendarMain - 同一天有多筆活動時，只顯示最早的一條，其餘用 +N 表示', () => {
+  test('同一天有 2 筆活動時，只顯示時間最早的一條，並顯示 +1', async () => {
+    const originalFetch = global.fetch
+    const today = isoToday()
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            activities: [
+              {
+                id: 'a-later',
+                title: '較晚的活動',
+                status: 'confirmed',
+                is_creator: true,
+                has_joined: true,
+                date_iso: today,
+                confirmed_start: `${today}T06:00:00.000Z`,
+                time: '14:00 - 16:00',
+                location: '',
+              },
+              {
+                id: 'a-earlier',
+                title: '較早的活動',
+                status: 'confirmed',
+                is_creator: true,
+                has_joined: true,
+                date_iso: today,
+                confirmed_start: `${today}T02:00:00.000Z`,
+                time: '10:00 - 12:00',
+                location: '',
+              },
+            ],
+          }),
+      }),
+    )
+
+    const wrapper = await mountCalendarMain()
+    await flushPromises()
+
+    const chips = wrapper.findAll('.calendar-event-chip')
+    expect(chips).toHaveLength(1)
+    expect(chips[0].text()).toContain('較早的活動')
+    expect(wrapper.find('.calendar-more-count').text()).toBe('+1')
+
+    global.fetch = originalFetch
+  })
+
+  test('同一天只有 1 筆活動時，不顯示 +N', async () => {
+    const originalFetch = global.fetch
+    const today = isoToday()
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            activities: [
+              {
+                id: 'a-only',
+                title: '唯一的活動',
+                status: 'confirmed',
+                is_creator: true,
+                has_joined: true,
+                date_iso: today,
+                confirmed_start: `${today}T02:00:00.000Z`,
+                time: '10:00 - 12:00',
+                location: '',
+              },
+            ],
+          }),
+      }),
+    )
+
+    const wrapper = await mountCalendarMain()
+    await flushPromises()
+
+    expect(wrapper.findAll('.calendar-event-chip')).toHaveLength(1)
+    expect(wrapper.find('.calendar-more-count').exists()).toBe(false)
 
     global.fetch = originalFetch
   })
