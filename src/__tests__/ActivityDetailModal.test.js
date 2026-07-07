@@ -159,28 +159,14 @@ describe('ActivityDetailModal - 報名後保留使用者自己勾選的候選時
     expect(wrapper.text()).not.toContain('候選時段（目前票數，可提前手動成團）')
     expect(wrapper.find('input[type="radio"]').exists()).toBe(false)
   })
+})
 
-  test('決選投票階段依 decision_candidates 的 is_selected 還原使用者自己投的那一票', async () => {
+describe('ActivityDetailModal - voting 狀態下，候選時段清單留著給大家看，但圈圈只有建立者才有', () => {
+  test('非建立者在 voting 狀態仍看得到候選時段跟票數，但沒有圈圈，footer 顯示「已報名」', async () => {
     const activity = makeActivity({
       is_creator: false,
       has_joined: true,
-      status: 'tiebreaking',
-      decision_candidates: [
-        {
-          id: 'slot-a',
-          slot_start: '2026-07-10T10:00:00Z',
-          slot_end: '2026-07-10T12:00:00Z',
-          count: 2,
-          is_selected: true,
-        },
-        {
-          id: 'slot-b',
-          slot_start: '2026-07-11T10:00:00Z',
-          slot_end: '2026-07-11T12:00:00Z',
-          count: 1,
-          is_selected: false,
-        },
-      ],
+      status: 'voting',
     })
     stubFetch(activity)
 
@@ -189,11 +175,25 @@ describe('ActivityDetailModal - 報名後保留使用者自己勾選的候選時
     })
     await flushPromises()
 
-    expect(wrapper.find('input[type="radio"][value="slot-a"]').element.checked).toBe(true)
+    expect(wrapper.text()).toContain('候選時段（並列最高票')
+    expect(wrapper.text()).toContain('2 票')
+    expect(wrapper.find('input[type="radio"]').exists()).toBe(false)
 
-    const voteButton = wrapper.findAll('button').find((b) => b.text().includes('送出決選投票'))
-    expect(voteButton).toBeTruthy()
-    expect(voteButton.attributes('disabled')).toBeUndefined()
+    const joinedBadge = wrapper.findAll('span').find((s) => s.text() === '已報名')
+    expect(joinedBadge).toBeTruthy()
+  })
+
+  test('建立者在 voting 狀態看得到候選時段的圈圈可以裁決', async () => {
+    const activity = makeActivity({ is_creator: true, status: 'voting' })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.find('input[type="radio"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('候選時段（並列最高票')
   })
 })
 

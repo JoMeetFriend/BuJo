@@ -133,8 +133,7 @@
           v-if="
             activity.requires_voting &&
             ((activity.status === 'recruiting' && activity.is_creator) ||
-              activity.status === 'voting' ||
-              activity.status === 'tiebreaking')
+              activity.status === 'voting')
           "
           class="activity-detail-options"
         >
@@ -147,6 +146,7 @@
           >
             <span>
               <input
+                v-if="activity.is_creator"
                 type="radio"
                 name="decision-slot"
                 :value="slot.id"
@@ -208,27 +208,13 @@
           </PixelButton>
         </template>
 
-        <template
-          v-else-if="
-            activity?.is_creator &&
-            (activity.status === 'voting' || activity.status === 'tiebreaking')
-          "
-        >
+        <template v-else-if="activity?.is_creator && activity.status === 'voting'">
           <PixelButton
             type="button"
             :disabled="actionLoading || !selectedDecisionSlotId"
             @click="handleConfirmFormation"
           >
             {{ actionLoading ? '處理中...' : '確認此時段成團' }}
-          </PixelButton>
-          <PixelButton
-            v-if="activity.status === 'voting'"
-            variant="white"
-            type="button"
-            :disabled="actionLoading"
-            @click="handleStartTiebreak"
-          >
-            發起決選投票
           </PixelButton>
           <PixelButton
             variant="danger"
@@ -260,14 +246,12 @@
           >
             取消報名
           </PixelButton>
-          <PixelButton
-            v-else-if="activity.status === 'tiebreaking' && activity.has_joined"
-            type="button"
-            :disabled="actionLoading || !selectedDecisionSlotId"
-            @click="handleTiebreakVote"
+          <span
+            v-else-if="activity.status === 'voting' && activity.has_joined"
+            class="activity-detail-badge"
           >
-            {{ actionLoading ? '處理中...' : '送出決選投票' }}
-          </PixelButton>
+            已報名
+          </span>
         </template>
       </template>
     </footer>
@@ -340,7 +324,6 @@ const statusText = computed(() => {
   const map = {
     recruiting: '揪團中',
     voting: '建立者決選中',
-    tiebreaking: '決選投票中',
     confirmed: '已成團',
     cancelled: '已取消',
   }
@@ -350,8 +333,7 @@ const statusText = computed(() => {
 const decisionSectionLabel = computed(() => {
   const map = {
     recruiting: '候選時段（目前票數，可提前手動成團）',
-    voting: '候選時段（並列最高票）',
-    tiebreaking: '決選投票中',
+    voting: '候選時段（並列最高票，由建立者裁決）',
   }
   return map[activity.value?.status] ?? '候選時段'
 })
@@ -360,7 +342,6 @@ const statusBadgeClass = computed(() => {
   const map = {
     recruiting: 'activity-detail-badge--recruiting',
     voting: 'activity-detail-badge--light',
-    tiebreaking: 'activity-detail-badge--light',
     confirmed: 'activity-detail-badge--confirmed',
     cancelled: 'activity-detail-badge--cancelled',
   }
@@ -398,10 +379,7 @@ async function fetchActivity(id) {
     selectedJoinSlotIds.value = (data.activity.candidate_slots ?? [])
       .filter((slot) => slot.is_selected)
       .map((slot) => slot.id)
-    const myDecisionVote = (data.activity.decision_candidates ?? []).find(
-      (slot) => slot.is_selected,
-    )
-    selectedDecisionSlotId.value = myDecisionVote?.id ?? null
+    selectedDecisionSlotId.value = null
   } catch (err) {
     if (err.name === 'AbortError') return
     fetchError.value = '無法連線到伺服器'
@@ -480,18 +458,6 @@ async function handleConfirmFormation() {
     return
   }
   await callAction('confirm-formation', 'POST', '✅ 成團成功！')
-}
-
-async function handleStartTiebreak() {
-  await callAction('tiebreak/start', 'POST')
-}
-
-async function handleTiebreakVote() {
-  if (!selectedDecisionSlotId.value) {
-    actionError.value = '請選擇一個候選時段'
-    return
-  }
-  await callAction('tiebreak/vote', 'POST', '', { candidateSlotId: selectedDecisionSlotId.value })
 }
 
 async function handleCancel() {
