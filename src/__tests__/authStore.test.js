@@ -57,12 +57,12 @@ describe('useAuthStore', () => {
       expect(store.user).toBeNull()
     })
 
-    it('登出 API 失敗時仍會清除本地 user 狀態', async () => {
+    it('登出 API 失敗時仍會清除本地 user 狀態，且不會往外拋出例外', async () => {
       fetch.mockRejectedValue(new Error('network error'))
       const store = useAuthStore()
       store.setUser({ id: 'user-1' })
 
-      await expect(store.logout()).rejects.toThrow('network error')
+      await expect(store.logout()).resolves.toBeUndefined()
       expect(store.user).toBeNull()
     })
   })

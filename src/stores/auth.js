@@ -21,6 +21,8 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout() {
     try {
       await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' })
+    } catch {
+      // 網路或後端失敗都視同登出：清空本地狀態，讓呼叫端一定能導向 /login
     } finally {
       user.value = null
     }
