@@ -379,7 +379,9 @@ async function fetchActivity(id) {
     selectedJoinSlotIds.value = (data.activity.candidate_slots ?? [])
       .filter((slot) => slot.is_selected)
       .map((slot) => slot.id)
-    selectedDecisionSlotId.value = null
+    // 只有一個候選時段最高票時不用強迫建立者多點一次圈圈，直接預選好讓她能馬上按下成團
+    const decisionCandidates = data.activity.decision_candidates ?? []
+    selectedDecisionSlotId.value = decisionCandidates.length === 1 ? decisionCandidates[0].id : null
   } catch (err) {
     if (err.name === 'AbortError') return
     fetchError.value = '無法連線到伺服器'
