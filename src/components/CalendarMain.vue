@@ -266,6 +266,7 @@
       :events="selectedDateEvents"
       @close="closeDateModal"
       @add="openEventModalFromDate"
+      @refresh="fetchActivities"
     />
   </div>
 
@@ -280,6 +281,7 @@
     :isOpen="showEventModal"
     :initialDate="eventModalInitialDate"
     @close="showEventModal = false"
+    @submit="fetchActivities"
   />
 </template>
 
@@ -416,6 +418,7 @@ onMounted(() => {
   window.addEventListener('resize', handleResize)
   initDots()
   dotAnimId = requestAnimationFrame(tickDots)
+  fetchActivities()
 })
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
@@ -456,24 +459,43 @@ const monthShortNames = [
 ]
 const weekDays = ['一', '二', '三', '四', '五', '六', '日']
 
-const events = ref([
-  { id: 1, date: '2026-06-02', title: 'KTV', status: 'joined' },
-  { id: 2, date: '2026-06-04', title: '小酌', status: 'personal' },
-  { id: 3, date: '2026-06-05', title: '晚餐', status: 'formed' },
-  {
-    id: 4,
-    date: '2026-06-10',
-    title: '爬山',
-    status: 'joined',
-    time: '06:00 – 14:00',
-    location: '象山步道',
-  },
-  { id: 5, date: '2026-06-12', title: '桌遊', status: 'recruiting' },
-  { id: 6, date: '2026-06-18', title: '歌唱', status: 'formed' },
-  { id: 7, date: '2026-06-02', title: 'KTV', status: 'joined' },
-  { id: 8, date: '2026-06-02', title: '小酌', status: 'personal' },
-  { id: 9, date: '2026-06-02', title: '晚餐', status: 'formed' },
-])
+const activities = ref([])
+
+// 後端 ActivityStatus（draft/recruiting/voting/tiebreaking/confirmed/cancelled）＋
+// is_creator/has_joined 換算成行事曆用的四種分類；draft／cancelled 不算完成發布，不顯示
+function toCalendarStatus(activity) {
+  if (activity.status === 'draft' || activity.status === 'cancelled') return null
+  if (activity.status === 'confirmed') return 'formed'
+  if (activity.is_creator) return 'personal'
+  if (activity.has_joined) return 'joined'
+  return 'recruiting'
+}
+
+const events = computed(() =>
+  activities.value
+    .map((activity) => ({
+      id: activity.id,
+      date: activity.date,
+      title: activity.title,
+      status: toCalendarStatus(activity),
+      time: activity.time,
+      location: activity.location,
+    }))
+    .filter((event) => event.status),
+)
+
+async function fetchActivities() {
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities`, {
+      credentials: 'include',
+    })
+    if (!res.ok) return
+    const data = await res.json()
+    activities.value = data.activities ?? []
+  } catch {
+    // 行事曆載入失敗時維持現有資料，不中斷頁面
+  }
+}
 
 const statusStyle = {
   joined: 'calendar-event-chip--joined',
