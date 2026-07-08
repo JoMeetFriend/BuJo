@@ -155,6 +155,7 @@
           @click="closePicker"
         >
           <div
+            v-if="!isStartDateToday"
             class="grid grid-cols-[72px_1fr] max-sm:grid-cols-[56px_1fr] items-center gap-3 max-sm:gap-2"
           >
             <span :class="[fieldLabelClass, 'text-right']">整日：</span>
@@ -891,7 +892,9 @@
 
     <template #footer>
       <PixelButton variant="white" type="button" @click="closeForm">取消</PixelButton>
-      <PixelButton form="event-form" type="submit">送出揪團</PixelButton>
+      <PixelButton form="event-form" type="submit" :disabled="isSubmitting">
+        {{ isSubmitting ? '送出中...' : '送出揪團' }}
+      </PixelButton>
     </template>
   </BaseModal>
 
@@ -910,7 +913,9 @@
       <PixelButton variant="white" type="button" @click="showUrgentConfirm = false"
         >取消</PixelButton
       >
-      <PixelButton type="button" @click="confirmUrgentSubmit">確定送出</PixelButton>
+      <PixelButton type="button" :disabled="isSubmitting" @click="confirmUrgentSubmit">
+        {{ isSubmitting ? '送出中...' : '確定送出' }}
+      </PixelButton>
     </template>
   </BaseModal>
 
@@ -981,6 +986,13 @@ const form = reactive({
   endTime: null,
   singleDate: today,
   note: '',
+})
+
+// 情境一（日期X時間皆已確定）：開始日期是今天時，只能約當天某個時段，不能整日，
+// 所以把「整日」選項藏起來，並清掉可能殘留的勾選
+const isStartDateToday = computed(() => form.startDate === today)
+watch(isStartDateToday, (isToday) => {
+  if (isToday) form.allDay = false
 })
 
 // 日期／時間確定情境
@@ -1189,6 +1201,7 @@ const deadline = reactive({ value: 1, unit: 'day' })
 const showDeadlineEditor = ref(false)
 const showUrgentConfirm = ref(false)
 const showSuccessModal = ref(false)
+const isSubmitting = ref(false)
 const submitError = ref('')
 const endTimeUserSet = ref(false)
 const timeError = ref('')
@@ -1513,6 +1526,16 @@ async function confirmUrgentSubmit() {
 }
 
 async function doSubmit() {
+  if (isSubmitting.value) return
+  isSubmitting.value = true
+  try {
+    await doSubmitInternal()
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+async function doSubmitInternal() {
   submitError.value = ''
   const isScenario2 = dateMode.value === 'fixed' && timeMode.value === 'vote'
   const isScenario3 = dateMode.value === 'range' && timeMode.value === 'fixed'

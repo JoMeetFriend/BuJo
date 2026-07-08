@@ -1,9 +1,12 @@
 <!-- BaseModal — 統一彈窗外殼
   Props:
     isOpen   Boolean  — 控制顯示
-    title    String   — 標題文字（同時用於 aria-labelledby）
+    title    String   — 標題文字（同時用於 aria-labelledby／bare 模式的 aria-label）
     scrollable Boolean — 是否可捲動（預設 false）；true 時 body 可捲、footer 固定在底部
     maxWidth String   — 彈窗最大寬度（預設 '440px'）
+    bare     Boolean  — 不顯示標題列/外框/內距，用於內容本身已經是完整卡片
+                        （例如 ActivityDetailModal 的便利貼樣式，卡片要自己提供關閉按鈕）的情境；
+                        點遮罩背景仍會觸發 close，跟一般模式一樣
 
   Slots:
     default  — body 內容（必填）
@@ -38,16 +41,24 @@
       @click="emit('close')"
     >
       <div
-        class="bujo-modal-panel w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] font-nunito text-[var(--bujo-ink)]"
-        :class="scrollable ? 'flex flex-col max-h-[80vh]' : ''"
-        :style="{ maxWidth }"
+        class="relative max-h-[90vh] font-nunito text-[var(--bujo-ink)]"
+        :class="[
+          scrollable ? 'flex flex-col max-h-[80vh]' : '',
+          bare
+            ? ''
+            : 'bujo-modal-panel w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)]',
+        ]"
+        :style="bare ? {} : { maxWidth }"
         role="dialog"
         aria-modal="true"
-        :aria-labelledby="titleId"
+        :aria-labelledby="bare ? undefined : titleId"
+        :aria-label="bare ? title : undefined"
         @click.stop
       >
+        <!-- bare：不顯示標題列，內容本身已經是完整卡片，卡片要自己提供關閉按鈕 -->
         <!-- header -->
         <header
+          v-if="!bare"
           class="flex items-center justify-between border-b border-[var(--bujo-line)] px-5 py-3"
           :class="scrollable ? 'shrink-0 sticky top-0 bg-[var(--bujo-surface)]' : ''"
         >
@@ -70,7 +81,7 @@
         <!-- scrollable: body 可捲、footer 固定 -->
         <template v-if="scrollable">
           <div class="flex flex-col flex-1 overflow-hidden">
-            <div class="flex-1 overflow-y-auto overflow-x-hidden px-5 py-4">
+            <div class="flex-1 overflow-y-auto overflow-x-hidden" :class="bare ? '' : 'px-5 py-4'">
               <slot />
             </div>
           </div>
@@ -84,7 +95,7 @@
 
         <!-- 非捲動：body 直接撐開 -->
         <template v-else>
-          <div class="px-5 py-4">
+          <div :class="bare ? '' : 'px-5 py-4'">
             <slot />
           </div>
           <footer
@@ -118,6 +129,10 @@ const props = defineProps({
   maxWidth: {
     type: String,
     default: '440px',
+  },
+  bare: {
+    type: Boolean,
+    default: false,
   },
 })
 

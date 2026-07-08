@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :isOpen="true" :title="formattedDate" @close="emit('close')">
+  <BaseModal :isOpen="!isModalOpen" :title="formattedDate" @close="emit('close')">
     <template #header-actions>
       <button
         type="button"
@@ -63,17 +63,21 @@
     </template>
   </BaseModal>
 
-  <ItineraryDetailModal
-    :is-open="isModalOpen"
-    :activity-id="selectedActivityId"
-    @close="isModalOpen = false"
-  />
+  <BaseModal :isOpen="isModalOpen" title="活動詳情" bare @close="isModalOpen = false">
+    <ActivityDetailModal
+      :is-open="isModalOpen"
+      :activity-id="selectedActivityId"
+      closable
+      @close="isModalOpen = false"
+      @status-changed="emit('refresh')"
+    />
+  </BaseModal>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import BaseModal from './ui/BaseModal.vue'
-import ItineraryDetailModal from './ItineraryDetailModal.vue'
+import ActivityDetailModal from './ActivityDetailModal.vue'
 
 const isModalOpen = ref(false)
 const selectedActivityId = ref(null)
@@ -94,7 +98,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['close', 'add'])
+const emit = defineEmits(['close', 'add', 'refresh'])
 
 const formattedDate = computed(() => {
   const parts = props.date.split('-')

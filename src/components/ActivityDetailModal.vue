@@ -5,7 +5,18 @@
         <div class="activity-detail-kicker">ACTIVITY ROOM</div>
         <h2>{{ activity?.title || '活動詳情' }}</h2>
       </div>
-      <span v-if="activity" class="activity-detail-date">{{ panelDate }}</span>
+      <div class="activity-detail-header-right">
+        <button
+          v-if="closable"
+          type="button"
+          class="activity-detail-close"
+          aria-label="關閉活動詳情"
+          @click="emit('close')"
+        >
+          ×
+        </button>
+        <span v-if="activity" class="activity-detail-date">{{ panelDate }}</span>
+      </div>
     </header>
 
     <section class="activity-detail-body">
@@ -17,7 +28,11 @@
       <template v-else-if="activity">
         <div class="activity-detail-creator">
           <div class="activity-detail-avatar">
-            <img v-if="activity.creator.avatar_url" :src="activity.creator.avatar_url" alt="" />
+            <img
+              v-if="activity.creator.avatar_url"
+              :src="toAvatarSrc(activity.creator.avatar_url)"
+              alt=""
+            />
             <span v-else>⭐</span>
           </div>
           <span>{{ activity.creator.display_name }} 發起</span>
@@ -44,16 +59,18 @@
           <span class="activity-detail-badge" :class="statusBadgeClass">
             {{ statusText }}
           </span>
-          <span v-if="activity.max_participants" class="activity-detail-capacity">
-            人數上限 {{ activity.max_participants }} 人
+          <span v-if="activity.participant_target" class="activity-detail-capacity">
+            人數上限 {{ activity.participant_target }} 人
           </span>
+          <span v-else class="activity-detail-capacity">沒有限制報名人數</span>
         </div>
 
         <div class="activity-detail-join">
           <div class="activity-detail-label">
-            已報名 {{ activity.current_count }} 人{{
-              activity.max_participants ? ` / ${activity.max_participants}` : ''
-            }}
+            已報名 {{ activity.current_count }} /
+            <span v-if="activity.participant_target">{{ activity.participant_target }}</span>
+            <span v-else class="activity-detail-infinity">∞</span>
+            人
           </div>
           <div class="activity-detail-participants">
             <div class="activity-detail-avatars">
@@ -61,7 +78,7 @@
                 <img
                   v-if="p.avatar_url"
                   class="activity-detail-avatar"
-                  :src="p.avatar_url"
+                  :src="toAvatarSrc(p.avatar_url)"
                   alt=""
                 />
                 <div v-else class="activity-detail-avatar activity-detail-avatar--text">
@@ -78,60 +95,49 @@
             <span
               v-if="
                 activity.status === 'recruiting' &&
-                activity.max_participants &&
-                activity.max_participants - activity.current_count > 0
+                activity.participant_target &&
+                activity.participant_target - activity.current_count > 0
               "
               class="activity-detail-needed"
             >
-              還差 {{ activity.max_participants - activity.current_count }} 人
+              還差 {{ activity.participant_target - activity.current_count }} 人
             </span>
           </div>
         </div>
 
         <div
           v-if="
-            activity.requires_voting &&
-            activity.status === 'recruiting' &&
-            !activity.is_creator &&
-            !activity.has_joined
+            activity.requires_voting && activity.status === 'recruiting' && !activity.is_creator
           "
           class="activity-detail-options"
         >
-          <div class="activity-detail-label">選擇你方便的候選時段（可複選）</div>
+          <div class="activity-detail-label">
+            {{ activity.has_joined ? '你選擇的候選時段' : '選擇你方便的候選時段（可複選）' }}
+          </div>
           <label
             v-for="slot in activity.candidate_slots"
             :key="slot.id"
             class="activity-detail-option"
           >
-            <input type="checkbox" :value="slot.id" v-model="selectedJoinSlotIds" />
+            <input
+              type="checkbox"
+              :value="slot.id"
+              v-model="selectedJoinSlotIds"
+              :disabled="activity.has_joined"
+            />
             <span>{{ slotText(slot) }}</span>
           </label>
         </div>
 
         <div
-          v-else-if="activity.requires_voting && activity.status === 'recruiting'"
-          class="activity-detail-options"
-        >
-          <div class="activity-detail-label">候選時段</div>
-          <div
-            v-for="slot in activity.candidate_slots"
-            :key="slot.id"
-            class="activity-detail-option-read"
-          >
-            {{ slotText(slot) }}
-          </div>
-        </div>
-
-        <div
           v-if="
             activity.requires_voting &&
-            (activity.status === 'voting' || activity.status === 'tiebreaking')
+            ((activity.status === 'recruiting' && activity.is_creator) ||
+              activity.status === 'voting')
           "
           class="activity-detail-options"
         >
-          <div class="activity-detail-label">
-            {{ activity.status === 'voting' ? '候選時段（並列最高票）' : '決選投票中' }}
-          </div>
+          <div class="activity-detail-label">{{ decisionSectionLabel }}</div>
           <label
             v-for="slot in activity.decision_candidates"
             :key="slot.id"
@@ -140,6 +146,7 @@
           >
             <span>
               <input
+                v-if="activity.is_creator"
                 type="radio"
                 name="decision-slot"
                 :value="slot.id"
@@ -185,6 +192,13 @@
           "
         >
           <PixelButton
+            type="button"
+            :disabled="actionLoading || !selectedDecisionSlotId"
+            @click="handleConfirmFormation"
+          >
+            {{ actionLoading ? '處理中...' : '提前成團' }}
+          </PixelButton>
+          <PixelButton
             variant="danger"
             type="button"
             :disabled="actionLoading"
@@ -194,27 +208,13 @@
           </PixelButton>
         </template>
 
-        <template
-          v-else-if="
-            activity?.is_creator &&
-            (activity.status === 'voting' || activity.status === 'tiebreaking')
-          "
-        >
+        <template v-else-if="activity?.is_creator && activity.status === 'voting'">
           <PixelButton
             type="button"
             :disabled="actionLoading || !selectedDecisionSlotId"
             @click="handleConfirmFormation"
           >
             {{ actionLoading ? '處理中...' : '確認此時段成團' }}
-          </PixelButton>
-          <PixelButton
-            v-if="activity.status === 'voting'"
-            variant="white"
-            type="button"
-            :disabled="actionLoading"
-            @click="handleStartTiebreak"
-          >
-            發起決選投票
           </PixelButton>
           <PixelButton
             variant="danger"
@@ -246,14 +246,12 @@
           >
             取消報名
           </PixelButton>
-          <PixelButton
-            v-else-if="activity.status === 'tiebreaking' && activity.has_joined"
-            type="button"
-            :disabled="actionLoading || !selectedDecisionSlotId"
-            @click="handleTiebreakVote"
+          <span
+            v-else-if="activity.status === 'voting' && activity.has_joined"
+            class="activity-detail-badge"
           >
-            {{ actionLoading ? '處理中...' : '送出決選投票' }}
-          </PixelButton>
+            已報名
+          </span>
         </template>
       </template>
     </footer>
@@ -263,13 +261,16 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import PixelButton from './ui/PixelButton.vue'
+import { toAvatarSrc } from '@/utils/avatar'
 
 const props = defineProps({
   isOpen: Boolean,
   activityId: { type: String, default: null },
+  // 是否顯示右上角的關閉按鈕（包在 modal 裡才需要；ActivityView.vue 直接內嵌時不需要）
+  closable: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['status-changed'])
+const emit = defineEmits(['status-changed', 'close'])
 
 const activity = ref(null)
 const loading = ref(false)
@@ -280,16 +281,24 @@ const successMessage = ref(null)
 const selectedJoinSlotIds = ref([])
 const selectedDecisionSlotId = ref(null)
 
+let activeFetchController = null
+
+function formatShortDate(date) {
+  return `${date.getMonth() + 1}/${date.getDate()}`
+}
+
 const panelDate = computed(() => {
   const a = activity.value
   if (!a) return ''
   if (a.confirmed_slot) {
-    const start = new Date(a.confirmed_slot.slot_start)
-    return `${start.getMonth() + 1}/${start.getDate()}`
+    return formatShortDate(new Date(a.confirmed_slot.slot_start))
   }
-  if (a.candidate_slots?.[0]) {
-    const start = new Date(a.candidate_slots[0].slot_start)
-    return `${start.getMonth() + 1}/${start.getDate()}`
+  if (a.candidate_slots?.length) {
+    // 候選時段可能橫跨多個日期（情境三、四），標題要顯示完整的日期區間，不能只看第一筆
+    const starts = a.candidate_slots.map((slot) => new Date(slot.slot_start).getTime())
+    const minText = formatShortDate(new Date(Math.min(...starts)))
+    const maxText = formatShortDate(new Date(Math.max(...starts)))
+    return minText === maxText ? minText : `${minText} ~ ${maxText}`
   }
   return ''
 })
@@ -315,18 +324,24 @@ const statusText = computed(() => {
   const map = {
     recruiting: '揪團中',
     voting: '建立者決選中',
-    tiebreaking: '決選投票中',
     confirmed: '已成團',
     cancelled: '已取消',
   }
   return map[activity.value?.status] ?? activity.value?.status
 })
 
+const decisionSectionLabel = computed(() => {
+  const map = {
+    recruiting: '候選時段（目前票數，可提前手動成團）',
+    voting: '候選時段（並列最高票，由建立者裁決）',
+  }
+  return map[activity.value?.status] ?? '候選時段'
+})
+
 const statusBadgeClass = computed(() => {
   const map = {
     recruiting: 'activity-detail-badge--recruiting',
     voting: 'activity-detail-badge--light',
-    tiebreaking: 'activity-detail-badge--light',
     confirmed: 'activity-detail-badge--confirmed',
     cancelled: 'activity-detail-badge--cancelled',
   }
@@ -343,11 +358,16 @@ watch(
 )
 
 async function fetchActivity(id) {
+  if (activeFetchController) activeFetchController.abort()
+  const controller = new AbortController()
+  activeFetchController = controller
+
   loading.value = true
   fetchError.value = ''
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities/${id}`, {
       credentials: 'include',
+      signal: controller.signal,
     })
     if (!res.ok) {
       fetchError.value = res.status === 404 ? '找不到此活動' : '載入失敗'
@@ -355,12 +375,20 @@ async function fetchActivity(id) {
     }
     const data = await res.json()
     activity.value = data.activity
-    selectedJoinSlotIds.value = []
-    selectedDecisionSlotId.value = null
-  } catch {
+    // 用後端回傳的 is_selected 還原使用者自己先前的勾選狀態，讓她點回活動頁面時看到的還是原本的答案
+    selectedJoinSlotIds.value = (data.activity.candidate_slots ?? [])
+      .filter((slot) => slot.is_selected)
+      .map((slot) => slot.id)
+    // 只有一個候選時段最高票時不用強迫建立者多點一次圈圈，直接預選好讓她能馬上按下成團
+    const decisionCandidates = data.activity.decision_candidates ?? []
+    selectedDecisionSlotId.value = decisionCandidates.length === 1 ? decisionCandidates[0].id : null
+  } catch (err) {
+    if (err.name === 'AbortError') return
     fetchError.value = '無法連線到伺服器'
   } finally {
-    loading.value = false
+    if (controller === activeFetchController) {
+      loading.value = false
+    }
   }
 }
 
@@ -434,23 +462,12 @@ async function handleConfirmFormation() {
   await callAction('confirm-formation', 'POST', '✅ 成團成功！')
 }
 
-async function handleStartTiebreak() {
-  await callAction('tiebreak/start', 'POST')
-}
-
-async function handleTiebreakVote() {
-  if (!selectedDecisionSlotId.value) {
-    actionError.value = '請選擇一個候選時段'
-    return
-  }
-  await callAction('tiebreak/vote', 'POST', '', { candidateSlotId: selectedDecisionSlotId.value })
-}
-
 async function handleCancel() {
   await callAction('cancel', 'POST', '✅ 活動已取消')
 }
 
 function resetPanel() {
+  if (activeFetchController) activeFetchController.abort()
   activity.value = null
   fetchError.value = ''
   actionError.value = ''
@@ -550,6 +567,13 @@ function formatTime(date) {
   font-weight: 700;
 }
 
+.activity-detail-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
 .activity-detail-date {
   color: rgba(var(--bujo-ink-rgb), 0.72);
   font-family: 'Space Mono', monospace;
@@ -557,6 +581,25 @@ function formatTime(date) {
   line-height: 1;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.activity-detail-close {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin: -4px -4px 0 0;
+  border: 0;
+  background: transparent;
+  color: rgba(var(--bujo-ink-rgb), 0.5);
+  font-size: 15px;
+  line-height: 1;
+  transition: color 150ms ease;
+}
+
+.activity-detail-close:hover {
+  color: var(--bujo-ink);
 }
 
 .activity-detail-body {
@@ -634,6 +677,15 @@ function formatTime(date) {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.activity-detail-infinity {
+  display: inline-block;
+  font-size: 2em;
+  font-weight: 400;
+  line-height: 1;
+  vertical-align: middle;
+  transform: translateY(-3px);
 }
 
 .activity-detail-description {
