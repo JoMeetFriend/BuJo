@@ -49,6 +49,9 @@
       <span>.</span>
       <span class="calendar-mood-flag" aria-hidden="true"></span>
     </p>
+    <p v-if="activitiesFetchError" class="calendar-fetch-error" role="alert">
+      {{ activitiesFetchError }}
+    </p>
     <div class="md:hidden h-5"></div>
 
     <section class="calendar-content-composition">
@@ -147,11 +150,11 @@
                 </span>
               </div>
 
-              <!-- 活動條 -->
+              <!-- 活動條：只顯示時間最早的一筆，其餘用 +N 表示，點格子仍看得到完整清單 -->
               <div class="calendar-event-list flex flex-col gap-[3px] px-1 pb-1 md:px-2 md:pb-3">
                 <template v-for="(event, i) in getEvents(cell.date)" :key="event.id">
                   <div
-                    v-if="(isMobile && i < 2) || (!isMobile && i < 3)"
+                    v-if="i === 0"
                     class="calendar-event-chip"
                     :class="statusStyle[event.status]"
                   >
@@ -165,11 +168,8 @@
               </div>
 
               <!-- +N：定位相對格子，不受 events 容器高度影響 -->
-              <div
-                v-if="getEvents(cell.date).length > (isMobile ? 2 : 3)"
-                class="calendar-more-count"
-              >
-                +{{ getEvents(cell.date).length - (isMobile ? 2 : 3) }}
+              <div v-if="getEvents(cell.date).length > 1" class="calendar-more-count">
+                +{{ getEvents(cell.date).length - 1 }}
               </div>
             </div>
           </div>
@@ -266,6 +266,7 @@
       :events="selectedDateEvents"
       @close="closeDateModal"
       @add="openEventModalFromDate"
+      @refresh="fetchActivities"
     />
   </div>
 
@@ -280,6 +281,7 @@
     :isOpen="showEventModal"
     :initialDate="eventModalInitialDate"
     @close="showEventModal = false"
+    @submit="fetchActivities"
   />
 </template>
 
@@ -416,6 +418,7 @@ onMounted(() => {
   window.addEventListener('resize', handleResize)
   initDots()
   dotAnimId = requestAnimationFrame(tickDots)
+  fetchActivities()
 })
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
@@ -456,24 +459,51 @@ const monthShortNames = [
 ]
 const weekDays = ['一', '二', '三', '四', '五', '六', '日']
 
-const events = ref([
-  { id: 1, date: '2026-06-02', title: 'KTV', status: 'joined' },
-  { id: 2, date: '2026-06-04', title: '小酌', status: 'personal' },
-  { id: 3, date: '2026-06-05', title: '晚餐', status: 'formed' },
-  {
-    id: 4,
-    date: '2026-06-10',
-    title: '爬山',
-    status: 'joined',
-    time: '06:00 – 14:00',
-    location: '象山步道',
-  },
-  { id: 5, date: '2026-06-12', title: '桌遊', status: 'recruiting' },
-  { id: 6, date: '2026-06-18', title: '歌唱', status: 'formed' },
-  { id: 7, date: '2026-06-02', title: 'KTV', status: 'joined' },
-  { id: 8, date: '2026-06-02', title: '小酌', status: 'personal' },
-  { id: 9, date: '2026-06-02', title: '晚餐', status: 'formed' },
-])
+const activities = ref([])
+
+// 後端保證 date_iso 只有在 status === 'confirmed' 時才非 null，行事曆只依這個欄位
+// 決定要不要畫進去，不需要另外判斷情境（免投票/單選/複選日期/各自時段）。
+// 已成團的活動一律歸類為 formed，不分建立者或參與者身分。
+function toCalendarStatus(activity) {
+  if (!activity.date_iso) return null
+  return 'formed'
+}
+
+const events = computed(() =>
+  activities.value
+    .filter((activity) => activity.date_iso)
+    .map((activity) => ({
+      id: activity.id,
+      date: activity.date_iso,
+      title: activity.title,
+      status: toCalendarStatus(activity),
+      time: activity.time,
+      location: activity.location,
+      sortTime: activity.confirmed_start ?? activity.date_iso,
+    }))
+    .sort((a, b) => new Date(a.sortTime) - new Date(b.sortTime)),
+)
+
+const activitiesFetchError = ref('')
+
+async function fetchActivities() {
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities`, {
+      credentials: 'include',
+    })
+    if (!res.ok) {
+      console.error('fetchActivities 失敗：', res.status)
+      activitiesFetchError.value = '活動載入失敗，顯示的可能是舊資料'
+      return
+    }
+    const data = await res.json()
+    activities.value = data.activities ?? []
+    activitiesFetchError.value = ''
+  } catch (err) {
+    console.error('fetchActivities 失敗：', err)
+    activitiesFetchError.value = '無法連線到伺服器，顯示的可能是舊資料'
+  }
+}
 
 const statusStyle = {
   joined: 'calendar-event-chip--joined',
@@ -557,7 +587,6 @@ function getEvents(date) {
   if (!date) return []
   return events.value.filter((e) => {
     if (e.date !== date) return false
-    if (e.status === 'recruiting') return false
     if (e.status === 'joined' && !props.filters.joined) return false
     if (e.status === 'formed' && !props.filters.formed) return false
     if (e.status === 'personal' && !props.filters.personal) return false
@@ -813,6 +842,16 @@ function isToday(date) {
     0 9px 18px rgb(var(--bujo-ink-rgb) / 0.1),
     -4px 4px 0 rgb(var(--bujo-deco-pink) / 0.42);
   transform: rotate(0deg) translateY(-1px);
+}
+
+.calendar-fetch-error {
+  position: relative;
+  z-index: 8;
+  margin: 0 0 8px;
+  color: #dc2626;
+  font-family: var(--bujo-font-meta);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .calendar-mood-line {
