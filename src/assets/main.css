@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bujo-page: #f3f4ef;
+  --bujo-page-rgb: 243 244 239;
+  --bujo-surface: #fbfbf8;
+  --bujo-surface-muted: #eceee8;
+  --bujo-white: #ffffff;
+  --bujo-white-rgb: 255 255 255;
+  --bujo-ink: #20251f;
+  --bujo-ink-rgb: 32 37 31;
+  --bujo-muted: #6b7068;
+  --bujo-muted-strong: #60675f;
+  --bujo-text-primary: #20261f;
+  --bujo-text-body: #3f473f;
+  --bujo-text-muted: #6f776d;
+  --bujo-text-faint: #9ca49a;
+  --bujo-text-inverse: #f8f7f0;
+  --bujo-line: #9aa197;
+  --bujo-line-rgb: 154 161 151;
+  --bujo-line-soft: #aeb4aa;
+  --bujo-accent: #98d0a2;
+  --bujo-card-blue: #a8d0cf;
+  --bujo-card-yellow: #ded49c;
+  --bujo-card-pink: #ebcae6;
+  --bujo-today: #f6f0f7;
+  --bujo-deco-pink: #da90c7;
+  --bujo-deco-blue: #5ea5e1;
+  --bujo-deco-green: #56b597;
+  --bujo-font-heading: 'Inter', 'IBM Plex Sans TC', sans-serif;
+  --bujo-font-body: 'Nunito', 'IBM Plex Sans TC', sans-serif;
+  --bujo-font-meta: 'Space Mono', 'IBM Plex Sans TC', monospace;
+  --bujo-font-deco: 'Doto', 'Space Mono', 'IBM Plex Sans TC', sans-serif;
+  --bujo-font-zh: 'IBM Plex Sans TC', sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--bujo-page);
+    color: var(--bujo-ink);
+    font-family: var(--bujo-font-body);
+  }
+}
+
+/* IBM Plex Sans TC（@ibm/plex-sans-tc） */
+@font-face {
+  font-family: 'IBM Plex Sans TC';
+  src: url('../../node_modules/@ibm/plex-sans-tc/fonts/complete/woff2/hinted/IBMPlexSansTC-Regular.woff2')
+    format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans TC';
+  src: url('../../node_modules/@ibm/plex-sans-tc/fonts/complete/woff2/hinted/IBMPlexSansTC-SemiBold.woff2')
+    format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans TC';
+  src: url('../../node_modules/@ibm/plex-sans-tc/fonts/complete/woff2/hinted/IBMPlexSansTC-Bold.woff2')
+    format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
