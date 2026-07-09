@@ -376,30 +376,25 @@
           </div>
 
           <div class="grid gap-2">
-            <span :class="fieldLabelClass">候選時段（開始／結束）</span>
+            <span :class="fieldLabelClass">時段範圍（選填，限制參與者可回報的時間）</span>
 
-            <div
-              v-for="(slot, index) in voteSlots"
-              :key="slot.id"
-              class="grid grid-cols-[52px_1fr_12px_1fr_28px] max-sm:grid-cols-[40px_1fr_10px_1fr_24px] items-center gap-2"
-            >
-              <span :class="fieldLabelClass">時段{{ index + 1 }}</span>
-
+            <div class="grid max-w-[280px] grid-cols-[1fr_12px_1fr] items-center gap-2">
               <span class="relative block">
                 <button
+                  id="event-time-window-start"
                   :class="[pickerButtonClass, 'w-full']"
                   type="button"
-                  @click.stop="toggleSlotPicker(`${slot.id}:startTime`)"
+                  @click.stop="toggleSlotPicker('timeWindow:startTime')"
                 >
-                  <span :class="slot.startTime ? '' : 'text-[var(--bujo-muted)]'">{{
-                    slot.startTime ?? '-- : --'
+                  <span :class="timeWindow.startTime ? '' : 'text-[var(--bujo-muted)]'">{{
+                    timeWindow.startTime ?? '-- : --'
                   }}</span>
                 </button>
                 <div
-                  v-if="openSlotPicker === `${slot.id}:startTime`"
+                  v-if="openSlotPicker === 'timeWindow:startTime'"
                   :class="[pickerPanelClass, 'left-0 w-full min-w-[160px]']"
                   role="listbox"
-                  aria-label="候選開始時間選單"
+                  aria-label="時段範圍開始時間選單"
                   @click.stop
                 >
                   <div class="max-h-[208px] overflow-y-auto pr-1">
@@ -408,14 +403,14 @@
                       :key="time"
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                       :class="
-                        slot.startTime === time
+                        timeWindow.startTime === time
                           ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
                           : ''
                       "
                       type="button"
                       role="option"
-                      :aria-selected="slot.startTime === time"
-                      @click="selectSlotTime(slot, 'startTime', time)"
+                      :aria-selected="timeWindow.startTime === time"
+                      @click="selectSlotTime(timeWindow, 'startTime', time)"
                     >
                       {{ time }}
                     </button>
@@ -427,59 +422,43 @@
 
               <span class="relative block">
                 <button
+                  id="event-time-window-end"
                   :class="[pickerButtonClass, 'w-full']"
                   type="button"
-                  @click.stop="toggleSlotPicker(`${slot.id}:endTime`)"
+                  @click.stop="toggleSlotPicker('timeWindow:endTime')"
                 >
-                  <span :class="slot.endTime ? '' : 'text-[var(--bujo-muted)]'">{{
-                    slot.endTime ?? '-- : --'
+                  <span :class="timeWindow.endTime ? '' : 'text-[var(--bujo-muted)]'">{{
+                    timeWindow.endTime ?? '-- : --'
                   }}</span>
                 </button>
                 <div
-                  v-if="openSlotPicker === `${slot.id}:endTime`"
+                  v-if="openSlotPicker === 'timeWindow:endTime'"
                   :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
                   role="listbox"
-                  aria-label="候選結束時間選單"
+                  aria-label="時段範圍結束時間選單"
                   @click.stop
                 >
                   <div class="max-h-[208px] overflow-y-auto pr-1">
                     <button
-                      v-for="time in slotEndTimeOptions(slot)"
+                      v-for="time in timeWindowEndTimeOptions"
                       :key="time"
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                       :class="
-                        slot.endTime === time
+                        timeWindow.endTime === time
                           ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
                           : ''
                       "
                       type="button"
                       role="option"
-                      :aria-selected="slot.endTime === time"
-                      @click="selectSlotTime(slot, 'endTime', time)"
+                      :aria-selected="timeWindow.endTime === time"
+                      @click="selectSlotTime(timeWindow, 'endTime', time)"
                     >
                       {{ time }}
                     </button>
                   </div>
                 </div>
               </span>
-
-              <button
-                type="button"
-                class="grid h-8 w-8 place-items-center text-[var(--bujo-muted-strong)] hover:text-[#dc2626]"
-                aria-label="刪除候選時段"
-                @click.stop="removeVoteSlot(slot.id)"
-              >
-                🗑
-              </button>
             </div>
-
-            <button
-              type="button"
-              class="w-fit border border-dashed border-[var(--bujo-line)] bg-transparent px-3 py-1.5 text-sm text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-              @click.stop="addVoteSlot"
-            >
-              ＋ 新增候選時段
-            </button>
           </div>
         </div>
 
@@ -1027,18 +1006,9 @@ const scenarioDescription = computed(() => {
   return '日期與時間都開放投票——成員需先選日期，再針對該日期選時段。'
 })
 
-// 情境二：候選時段（日期已確定，時間讓大家選）
-let voteSlotIdSeq = 1
-const voteSlots = ref([{ id: voteSlotIdSeq++, startTime: null, endTime: null }])
+// 情境二：選填的時段範圍，限制參與者可回報的時間
+const timeWindow = reactive({ startTime: null, endTime: null })
 const openSlotPicker = ref(null) // `${slotId}:startTime` | `${slotId}:endTime` | null
-
-function addVoteSlot() {
-  voteSlots.value.push({ id: voteSlotIdSeq++, startTime: null, endTime: null })
-}
-
-function removeVoteSlot(id) {
-  voteSlots.value = voteSlots.value.filter((slot) => slot.id !== id)
-}
 
 function toggleSlotPicker(key) {
   openSlotPicker.value = openSlotPicker.value === key ? null : key
@@ -1261,12 +1231,19 @@ const uniformEndTimeOptions = computed(() => {
   return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
 })
 
-// 情境二／情境四：每個候選時段各自的結束時間須晚於該時段自己的開始時間
+// 情境四：每個候選時段各自的結束時間須晚於該時段自己的開始時間
 function slotEndTimeOptions(slot) {
   if (!slot.startTime) return timeOptions
   const startHour = parseHourFromTimeStr(slot.startTime)
   return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
 }
+
+// 情境二：時段範圍結束時間須晚於開始時間
+const timeWindowEndTimeOptions = computed(() => {
+  if (!timeWindow.startTime) return timeOptions
+  const startHour = parseHourFromTimeStr(timeWindow.startTime)
+  return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
+})
 
 const activeDateField = computed(() =>
   dateFields.includes(activePicker.value) ? activePicker.value : 'startDate',
@@ -1309,17 +1286,12 @@ const dateCells = computed(() => {
   })
 })
 
-// 流團時間／緊急判斷的錨點日期時間：情境二用「已確定的日期」+「最早的候選開始時間」，
+// 流團時間／緊急判斷的錨點日期時間：情境二用「已確定的日期」+「時段範圍的開始時間」，
 // 情境三用「最早的候選日期」+「統一開始時間」，情境四用「最早已設定完成的候選日期時段」，
 // 情境一沿用原本的 form.startDate/startTime
 const scheduleAnchor = computed(() => {
   if (dateMode.value === 'fixed' && timeMode.value === 'vote') {
-    const earliest =
-      voteSlots.value
-        .map((s) => s.startTime)
-        .filter(Boolean)
-        .sort((a, b) => parseHourFromTimeStr(a) - parseHourFromTimeStr(b))[0] ?? null
-    return { date: form.singleDate, time: earliest }
+    return { date: form.singleDate, time: timeWindow.startTime ?? null }
   }
   if (dateMode.value === 'range' && timeMode.value === 'fixed') {
     return { date: candidateDates.value[0] ?? null, time: uniformTime.startTime }
@@ -1479,8 +1451,8 @@ function resetForm() {
   form.note = ''
   dateMode.value = 'fixed'
   timeMode.value = 'fixed'
-  voteSlotIdSeq = 1
-  voteSlots.value = [{ id: voteSlotIdSeq++, startTime: null, endTime: null }]
+  timeWindow.startTime = null
+  timeWindow.endTime = null
   candidateDates.value = []
   uniformTime.startTime = null
   uniformTime.endTime = null
@@ -1542,12 +1514,14 @@ async function doSubmitInternal() {
   const isScenario4 = dateMode.value === 'range' && timeMode.value === 'vote'
 
   if (isScenario2) {
-    if (voteSlots.value.length === 0 || voteSlots.value.some((s) => !s.startTime || !s.endTime)) {
-      submitError.value = '請完整填寫每個候選時段的開始／結束時間'
+    const hasStart = !!timeWindow.startTime
+    const hasEnd = !!timeWindow.endTime
+    if (hasStart !== hasEnd) {
+      submitError.value = '時段範圍要嘛都填，要嘛都不填'
       return
     }
-    if (voteSlots.value.some((s) => !isEndAfterStart(s.startTime, s.endTime))) {
-      submitError.value = '每個候選時段的結束時間都要晚於開始時間'
+    if (hasStart && hasEnd && !isEndAfterStart(timeWindow.startTime, timeWindow.endTime)) {
+      submitError.value = '時段範圍的結束時間要晚於開始時間'
       return
     }
   } else if (isScenario3) {
@@ -1609,9 +1583,9 @@ async function doSubmitInternal() {
     payload = {
       ...commonPayload,
       singleDate: form.singleDate,
-      slots: voteSlots.value.map((s) => ({ startTime: s.startTime, endTime: s.endTime })),
-      // 建立者預設對所有自己新增的候選時段都算「方便」
-      creatorSlotIndexes: voteSlots.value.map((_, i) => i),
+      ...(timeWindow.startTime && timeWindow.endTime
+        ? { timeWindowStart: timeWindow.startTime, timeWindowEnd: timeWindow.endTime }
+        : {}),
     }
   } else if (isScenario3) {
     payload = {
