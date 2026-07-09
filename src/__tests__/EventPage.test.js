@@ -184,3 +184,25 @@ describe('EventPage - 情境二（日期X時間讓大家選）表單簡化', () 
     wrapper.unmount()
   })
 })
+
+describe('EventPage - isSameDay watcher 掛載時立即生效', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 6, 15))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  test('情境二表單掛載時 singleDate 已經是今天，掛載後 deadline.unit 應立即是 hour，不需要先觸發日期變更', async () => {
+    const wrapper = await mountEventPage()
+
+    enterScenario2()
+    await flushPromises()
+
+    expect(wrapper.vm.deadline.unit).toBe('hour')
+
+    wrapper.unmount()
+  })
+})

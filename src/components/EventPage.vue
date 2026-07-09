@@ -1362,16 +1362,21 @@ const deadlineUnitOptions = computed(() => {
   ]
 })
 
-// 當天活動時強制切換為小時
-watch(isSameDay, (val) => {
-  if (val && deadline.unit === 'day') {
-    deadline.unit = 'hour'
-    deadline.value = 1
-  } else if (!val && deadline.unit === 'hour') {
-    deadline.unit = 'day'
-    deadline.value = 1
-  }
-})
+// 當天活動時強制切換為小時；immediate: true 確保掛載當下錨點日期就已經是今天時也會立即修正
+// （例如情境二的 singleDate 預設值就是今天，不會有「從非今天變成今天」這個變化觸發 watch）
+watch(
+  isSameDay,
+  (val) => {
+    if (val && deadline.unit === 'day') {
+      deadline.unit = 'hour'
+      deadline.value = 1
+    } else if (!val && deadline.unit === 'hour') {
+      deadline.unit = 'day'
+      deadline.value = 1
+    }
+  },
+  { immediate: true },
+)
 
 watch(
   () => form.startTime,
@@ -1823,9 +1828,6 @@ function scenarioButtonClass(active) {
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick)
   document.addEventListener('keydown', handleEscape)
-  if (isSameDay.value) {
-    deadline.unit = 'hour'
-  }
 })
 
 onBeforeUnmount(() => {
