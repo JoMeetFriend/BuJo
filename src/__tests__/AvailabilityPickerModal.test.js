@@ -91,3 +91,26 @@ describe('AvailabilityPickerModal - timeWindow 限制可選小時', () => {
     expect(options).toEqual(['上午 10:00', '上午 11:00', '下午 12:00', '下午 1:00', '下午 2:00'])
   })
 })
+
+describe('AvailabilityPickerModal - 共用 BaseModal 外殼', () => {
+  test('彈窗開啟時按 Escape 會關閉', async () => {
+    const wrapper = mount(AvailabilityPickerModal, {
+      props: {
+        modelValue: true,
+        rangeStart: '2026-06-11',
+        rangeEnd: '2026-06-17',
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.emitted('update:modelValue')).toBeTruthy()
+    expect(wrapper.emitted('update:modelValue')[0]).toEqual([false])
+  })
+})

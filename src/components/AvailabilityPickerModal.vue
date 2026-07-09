@@ -1,36 +1,15 @@
 <template>
-  <Teleport to="body">
-    <div
-      v-if="modelValue"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(var(--bujo-ink-rgb)/0.35)] p-4"
-      @click.self="close"
-    >
+  <BaseModal :isOpen="modelValue" title="選取有空時間" scrollable max-width="800px" @close="close">
+    <div class="font-nunito flex h-[70vh] md:h-[550px] flex-col overflow-hidden -mx-5 -my-4">
+      <!-- Activity range -->
       <div
-        class="font-nunito bg-[var(--bujo-surface)] border border-[var(--bujo-line-soft)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] w-full max-w-[800px] h-[70vh] md:h-[600px] flex flex-col overflow-hidden"
+        class="bg-[var(--bujo-surface-muted)] border-b border-[var(--bujo-line-soft)] px-4 py-1.5 shrink-0 text-[12px] font-bold text-[var(--bujo-muted-strong)]"
       >
-        <!-- Header -->
-        <div
-          class="border-b border-[var(--bujo-line)] px-4 py-3 flex items-center justify-between shrink-0"
-        >
-          <h2 class="font-bold text-[var(--bujo-ink)] text-sm md:text-base">選取有空時間</h2>
-          <button
-            @click="close"
-            class="w-7 h-7 flex items-center justify-center text-[var(--bujo-muted-strong)] text-sm transition-colors duration-150 hover:text-[var(--bujo-ink)]"
-          >
-            ✕
-          </button>
-        </div>
+        活動日期範圍：{{ rangeStart }} — {{ rangeEnd }}
+      </div>
 
-        <!-- Activity range -->
+      <!-- Body -->
         <div
-          class="bg-[var(--bujo-surface-muted)] border-b border-[var(--bujo-line-soft)] px-4 py-1.5 shrink-0 text-[12px] font-bold text-[var(--bujo-muted-strong)]"
-        >
-          活動日期範圍：{{ rangeStart }} — {{ rangeEnd }}
-        </div>
-
-        <!-- Body -->
-        <div
-          ref="modalBody"
           class="flex md:flex-row flex-col flex-1 min-h-0 overflow-y-auto md:overflow-hidden"
         >
           <!-- 日曆區：fixedDate 模式下不渲染，只顯示固定日期的時段選取面板 -->
@@ -237,22 +216,18 @@
             </template>
           </div>
         </div>
-
-        <!-- Footer -->
-        <div class="border-t border-[var(--bujo-line)] px-4 py-2.5 flex justify-end gap-2 shrink-0">
-          <PixelButton variant="white" type="button" @click="close">取消</PixelButton>
-          <PixelButton type="button" @click="handleConfirm">確認報名</PixelButton>
-        </div>
       </div>
-    </div>
-  </Teleport>
+    <template #footer>
+      <PixelButton variant="white" type="button" @click="close">取消</PixelButton>
+      <PixelButton type="button" @click="handleConfirm">確認報名</PixelButton>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import PixelButton from './ui/PixelButton.vue'
-
-const modalBody = ref(null)
+import BaseModal from './ui/BaseModal.vue'
 
 const props = defineProps({
   modelValue: Boolean,
