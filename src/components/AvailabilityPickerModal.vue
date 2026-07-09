@@ -33,8 +33,9 @@
           ref="modalBody"
           class="flex md:flex-row flex-col flex-1 min-h-0 overflow-y-auto md:overflow-hidden"
         >
-          <!-- 日曆區 -->
+          <!-- 日曆區：fixedDate 模式下不渲染，只顯示固定日期的時段選取面板 -->
           <div
+            v-if="!fixedDate"
             class="border-b md:border-b-0 md:border-r border-[var(--bujo-line-soft)] p-3 md:p-4 w-full md:flex-1 flex flex-col"
           >
             <!-- 月份標題 -->
@@ -257,13 +258,16 @@ const props = defineProps({
   modelValue: Boolean,
   rangeStart: { type: String, default: '2026-07-10' },
   rangeEnd: { type: String, default: '2026-07-16' },
+  fixedDate: { type: String, default: null },
+  timeWindowStart: { type: String, default: null },
+  timeWindowEnd: { type: String, default: null },
 })
 const emit = defineEmits(['update:modelValue', 'confirm'])
 
 // ── 狀態 ──
 // key = 'YYYY-MM-DD', value = null（整天）或 [{from,to},...]
-const selectedDates = ref({})
-const activeDate = ref(null)
+const selectedDates = ref(props.fixedDate ? { [props.fixedDate]: null } : {})
+const activeDate = ref(props.fixedDate ?? null)
 const dragState = reactive({ active: false, startDate: null, hovering: new Set() })
 
 // ── 日曆 computed ──
@@ -406,11 +410,20 @@ function resetAllDay() {
   selectedDates.value[activeDate.value] = null
 }
 
-const hourOptions = Array.from({ length: 24 }, (_, hour) => {
+const allHourOptions = Array.from({ length: 24 }, (_, hour) => {
   const period = hour < 12 ? '上午' : '下午'
   const display = String(hour % 12 || 12)
   const value = String(hour).padStart(2, '0') + ':00'
   return { label: `${period} ${display}:00`, value }
+})
+
+const hourOptions = computed(() => {
+  if (!props.timeWindowStart && !props.timeWindowEnd) return allHourOptions
+  return allHourOptions.filter(
+    (opt) =>
+      (!props.timeWindowStart || opt.value >= props.timeWindowStart) &&
+      (!props.timeWindowEnd || opt.value <= props.timeWindowEnd),
+  )
 })
 
 const activeTimePicker = ref(null)
