@@ -1,6 +1,7 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, expect, test, vi, afterEach } from 'vitest'
 import ActivityDetailModal from '@/components/ActivityDetailModal.vue'
+import AvailabilityPickerModal from '@/components/AvailabilityPickerModal.vue'
 
 function makeActivity(overrides = {}) {
   return {
@@ -384,5 +385,220 @@ describe('ActivityDetailModal - closable 時右上角提供小關閉按鈕（不
     await wrapper.find('.activity-detail-close').trigger('click')
 
     expect(wrapper.emitted('close')).toHaveLength(1)
+  })
+})
+
+describe('ActivityDetailModal - availability_mode: slot 的活動行為維持現況不變（回歸測試）', () => {
+  test('slot 模式的活動報名與決選畫面行為維持現況不變', async () => {
+    const activity = makeActivity({ availability_mode: 'slot' })
+    const calls = stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('候選時段（目前票數，可提前手動成團）')
+    expect(wrapper.text()).toContain('2 票')
+
+    await wrapper.find('input[type="radio"][value="slot-a"]').setValue(true)
+    const confirmButton = wrapper.findAll('button').find((b) => b.text().includes('提前成團'))
+    await confirmButton.trigger('click')
+    await flushPromises()
+
+    const confirmCall = calls.find((c) => c.url.includes('/confirm-formation'))
+    expect(JSON.parse(confirmCall.options.body)).toEqual({ candidateSlotId: 'slot-a' })
+  })
+
+  test('非建立者在 slot 模式下點「報名參加」仍走原本的 candidateSlotIds 流程，不會開啟 AvailabilityPickerModal', async () => {
+    const activity = makeActivity({
+      availability_mode: 'slot',
+      is_creator: false,
+      has_joined: false,
+    })
+    const calls = stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    await wrapper.find('input[type="checkbox"][value="slot-a"]').setValue(true)
+    const joinButton = wrapper.findAll('button').find((b) => b.text().includes('報名參加'))
+    await joinButton.trigger('click')
+    await flushPromises()
+
+    const joinCall = calls.find((c) => c.url.includes('/join'))
+    expect(JSON.parse(joinCall.options.body)).toEqual({ candidateSlotIds: ['slot-a'] })
+    expect(wrapper.findComponent(AvailabilityPickerModal).exists()).toBe(false)
+  })
+})
+
+function makeRangeActivity(overrides = {}) {
+  return makeActivity({
+    availability_mode: 'range',
+    requires_voting: false,
+    is_creator: false,
+    has_joined: false,
+    status: 'recruiting',
+    fixed_date: '2026-07-12',
+    time_window_start: '10:00',
+    time_window_end: '18:00',
+    candidate_slots: [],
+    decision_candidates: { perfect_overlap: [], partial_overlap: [] },
+    ...overrides,
+  })
+}
+
+describe('ActivityDetailModal - availability_mode: range 的報名流程', () => {
+  test('非建立者點「報名參加」會開啟 AvailabilityPickerModal 並帶入 fixedDate/timeWindowStart/timeWindowEnd', async () => {
+    const activity = makeRangeActivity()
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    const joinButton = wrapper.findAll('button').find((b) => b.text().includes('報名參加'))
+    await joinButton.trigger('click')
+    await flushPromises()
+
+    const picker = wrapper.findComponent(AvailabilityPickerModal)
+    expect(picker.exists()).toBe(true)
+    expect(picker.props('modelValue')).toBe(true)
+    expect(picker.props('fixedDate')).toBe('2026-07-12')
+    expect(picker.props('timeWindowStart')).toBe('10:00')
+    expect(picker.props('timeWindowEnd')).toBe('18:00')
+  })
+
+  test('確認彈窗選取後，把回傳結果轉成 {ranges} 呼叫 join API；整天視為當日 00:00–23:59 的單一 range', async () => {
+    const activity = makeRangeActivity()
+    const calls = stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    const joinButton = wrapper.findAll('button').find((b) => b.text().includes('報名參加'))
+    await joinButton.trigger('click')
+    await flushPromises()
+
+    const picker = wrapper.findComponent(AvailabilityPickerModal)
+    await picker.vm.$emit('confirm', [{ date: '2026-07-12', allDay: true, timeRanges: [] }])
+    await flushPromises()
+
+    const joinCall = calls.find((c) => c.url.includes('/join'))
+    expect(JSON.parse(joinCall.options.body)).toEqual({
+      ranges: [{ start: '2026-07-12T00:00:00', end: '2026-07-12T23:59:00' }],
+    })
+  })
+
+  test('確認彈窗選取多段自訂時段時，每段都轉成一個 range', async () => {
+    const activity = makeRangeActivity()
+    const calls = stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    const joinButton = wrapper.findAll('button').find((b) => b.text().includes('報名參加'))
+    await joinButton.trigger('click')
+    await flushPromises()
+
+    const picker = wrapper.findComponent(AvailabilityPickerModal)
+    await picker.vm.$emit('confirm', [
+      {
+        date: '2026-07-12',
+        allDay: false,
+        timeRanges: [
+          { from: '10:00', to: '12:00' },
+          { from: '14:00', to: '16:00' },
+        ],
+      },
+    ])
+    await flushPromises()
+
+    const joinCall = calls.find((c) => c.url.includes('/join'))
+    expect(JSON.parse(joinCall.options.body)).toEqual({
+      ranges: [
+        { start: '2026-07-12T10:00:00', end: '2026-07-12T12:00:00' },
+        { start: '2026-07-12T14:00:00', end: '2026-07-12T16:00:00' },
+      ],
+    })
+  })
+})
+
+function makeRangeDecisionActivity(overrides = {}) {
+  return makeRangeActivity({
+    requires_voting: true,
+    is_creator: true,
+    status: 'voting',
+    decision_candidates: {
+      perfect_overlap: [
+        {
+          slot_start: '2026-07-12T10:00:00Z',
+          slot_end: '2026-07-12T12:00:00Z',
+          count: 3,
+        },
+      ],
+      partial_overlap: [
+        {
+          slot_start: '2026-07-12T14:00:00Z',
+          slot_end: '2026-07-12T16:00:00Z',
+          count: 2,
+        },
+        {
+          slot_start: '2026-07-12T16:00:00Z',
+          slot_end: '2026-07-12T18:00:00Z',
+          count: 1,
+        },
+      ],
+    },
+    ...overrides,
+  })
+}
+
+describe('ActivityDetailModal - availability_mode: range 的決選畫面', () => {
+  test('建立者的決選畫面分別渲染 perfect_overlap／partial_overlap 兩個區塊', async () => {
+    const activity = makeRangeDecisionActivity()
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('完全重疊')
+    expect(wrapper.text()).toContain('部分重疊')
+
+    const radios = wrapper.findAll('input[type="radio"][name="decision-slot"]')
+    expect(radios).toHaveLength(3)
+  })
+
+  test('建立者選取 partial_overlap 候選並確認成團時，呼叫 confirm-formation 帶上 {slotStart, slotEnd}', async () => {
+    const activity = makeRangeDecisionActivity()
+    const calls = stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    const radios = wrapper.findAll('input[type="radio"][name="decision-slot"]')
+    // partial_overlap 的第二筆：16:00–18:00
+    await radios[2].setValue(true)
+
+    const confirmButton = wrapper.findAll('button').find((b) => b.text().includes('確認此時段成團'))
+    await confirmButton.trigger('click')
+    await flushPromises()
+
+    const confirmCall = calls.find((c) => c.url.includes('/confirm-formation'))
+    expect(JSON.parse(confirmCall.options.body)).toEqual({
+      slotStart: '2026-07-12T16:00:00Z',
+      slotEnd: '2026-07-12T18:00:00Z',
+    })
   })
 })

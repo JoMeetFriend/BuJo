@@ -137,25 +137,69 @@
           "
           class="activity-detail-options"
         >
-          <div class="activity-detail-label">{{ decisionSectionLabel }}</div>
-          <label
-            v-for="slot in activity.decision_candidates"
-            :key="slot.id"
-            class="activity-detail-option activity-detail-option--spread"
-            :class="{ 'activity-detail-option--selected': selectedDecisionSlotId === slot.id }"
-          >
-            <span>
-              <input
-                v-if="activity.is_creator"
-                type="radio"
-                name="decision-slot"
-                :value="slot.id"
-                v-model="selectedDecisionSlotId"
-              />
-              {{ slotText(slot) }}
-            </span>
-            <span>{{ slot.count }} 票</span>
-          </label>
+          <template v-if="!isRangeMode">
+            <div class="activity-detail-label">{{ decisionSectionLabel }}</div>
+            <label
+              v-for="slot in activity.decision_candidates"
+              :key="slot.id"
+              class="activity-detail-option activity-detail-option--spread"
+              :class="{ 'activity-detail-option--selected': selectedDecisionSlotId === slot.id }"
+            >
+              <span>
+                <input
+                  v-if="activity.is_creator"
+                  type="radio"
+                  name="decision-slot"
+                  :value="slot.id"
+                  v-model="selectedDecisionSlotId"
+                />
+                {{ slotText(slot) }}
+              </span>
+              <span>{{ slot.count }} 票</span>
+            </label>
+          </template>
+
+          <template v-else>
+            <div class="activity-detail-label">完全重疊</div>
+            <label
+              v-for="slot in perfectOverlapCandidates"
+              :key="slot.id"
+              class="activity-detail-option activity-detail-option--spread"
+              :class="{ 'activity-detail-option--selected': selectedDecisionSlotId === slot.id }"
+            >
+              <span>
+                <input
+                  v-if="activity.is_creator"
+                  type="radio"
+                  name="decision-slot"
+                  :value="slot.id"
+                  v-model="selectedDecisionSlotId"
+                />
+                {{ slotText(slot) }}
+              </span>
+              <span>{{ slot.count }} 票</span>
+            </label>
+
+            <div class="activity-detail-label">部分重疊</div>
+            <label
+              v-for="slot in partialOverlapCandidates"
+              :key="slot.id"
+              class="activity-detail-option activity-detail-option--spread"
+              :class="{ 'activity-detail-option--selected': selectedDecisionSlotId === slot.id }"
+            >
+              <span>
+                <input
+                  v-if="activity.is_creator"
+                  type="radio"
+                  name="decision-slot"
+                  :value="slot.id"
+                  v-model="selectedDecisionSlotId"
+                />
+                {{ slotText(slot) }}
+              </span>
+              <span>{{ slot.count }} 票</span>
+            </label>
+          </template>
         </div>
 
         <p v-if="actionError" class="activity-detail-error">{{ actionError }}</p>
@@ -256,11 +300,21 @@
       </template>
     </footer>
   </article>
+
+  <AvailabilityPickerModal
+    v-if="isRangeMode && activity"
+    v-model="showAvailabilityPicker"
+    :fixed-date="activity.fixed_date"
+    :time-window-start="activity.time_window_start"
+    :time-window-end="activity.time_window_end"
+    @confirm="handleAvailabilityConfirm"
+  />
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
 import PixelButton from './ui/PixelButton.vue'
+import AvailabilityPickerModal from './AvailabilityPickerModal.vue'
 import { toAvatarSrc } from '@/utils/avatar'
 
 const props = defineProps({
@@ -280,6 +334,22 @@ const actionError = ref('')
 const successMessage = ref(null)
 const selectedJoinSlotIds = ref([])
 const selectedDecisionSlotId = ref(null)
+const showAvailabilityPicker = ref(false)
+
+const isRangeMode = computed(() => activity.value?.availability_mode === 'range')
+
+const perfectOverlapCandidates = computed(() =>
+  (activity.value?.decision_candidates?.perfect_overlap ?? []).map((c, i) => ({
+    ...c,
+    id: `temp-perfect-${i}`,
+  })),
+)
+const partialOverlapCandidates = computed(() =>
+  (activity.value?.decision_candidates?.partial_overlap ?? []).map((c, i) => ({
+    ...c,
+    id: `temp-partial-${i}`,
+  })),
+)
 
 let activeFetchController = null
 
@@ -380,8 +450,12 @@ async function fetchActivity(id) {
       .filter((slot) => slot.is_selected)
       .map((slot) => slot.id)
     // 只有一個候選時段最高票時不用強迫建立者多點一次圈圈，直接預選好讓她能馬上按下成團
-    const decisionCandidates = data.activity.decision_candidates ?? []
-    selectedDecisionSlotId.value = decisionCandidates.length === 1 ? decisionCandidates[0].id : null
+    // range 模式的 decision_candidates 是 {perfect_overlap, partial_overlap} 物件，不適用這個「只有一個就自動選」的簡化邏輯
+    const decisionCandidates = data.activity.decision_candidates
+    selectedDecisionSlotId.value =
+      Array.isArray(decisionCandidates) && decisionCandidates.length === 1
+        ? decisionCandidates[0].id
+        : null
   } catch (err) {
     if (err.name === 'AbortError') return
     fetchError.value = '無法連線到伺服器'
@@ -431,6 +505,10 @@ async function callAction(path, method = 'POST', successMsg = '', body = undefin
 }
 
 async function handleJoin() {
+  if (isRangeMode.value) {
+    showAvailabilityPicker.value = true
+    return
+  }
   if (activity.value?.requires_voting) {
     if (selectedJoinSlotIds.value.length === 0) {
       actionError.value = '請選擇至少一個候選時段'
@@ -444,11 +522,39 @@ async function handleJoin() {
   await callAction('join', 'POST', '✅ 報名成功！')
 }
 
+async function handleAvailabilityConfirm(entries) {
+  const ranges = entries.flatMap((entry) => {
+    if (entry.allDay) {
+      return [{ start: `${entry.date}T00:00:00`, end: `${entry.date}T23:59:00` }]
+    }
+    return entry.timeRanges.map((r) => ({
+      start: `${entry.date}T${r.from}:00`,
+      end: `${entry.date}T${r.to}:00`,
+    }))
+  })
+  await callAction('join', 'POST', '✅ 報名成功！', { ranges })
+}
+
 async function handleCancelJoin() {
   await callAction('join', 'DELETE', '✅ 已取消報名')
 }
 
 async function handleConfirmFormation() {
+  if (isRangeMode.value) {
+    if (!selectedDecisionSlotId.value) {
+      actionError.value = '請選擇要確認的候選時段'
+      return
+    }
+    const candidate = [...perfectOverlapCandidates.value, ...partialOverlapCandidates.value].find(
+      (c) => c.id === selectedDecisionSlotId.value,
+    )
+    if (!candidate) return
+    await callAction('confirm-formation', 'POST', '✅ 成團成功！', {
+      slotStart: candidate.slot_start,
+      slotEnd: candidate.slot_end,
+    })
+    return
+  }
   if (activity.value?.requires_voting) {
     if (!selectedDecisionSlotId.value) {
       actionError.value = '請選擇要確認的候選時段'
@@ -473,6 +579,7 @@ function resetPanel() {
   actionError.value = ''
   selectedJoinSlotIds.value = []
   selectedDecisionSlotId.value = null
+  showAvailabilityPicker.value = false
 }
 
 function formatDateTime(date) {
