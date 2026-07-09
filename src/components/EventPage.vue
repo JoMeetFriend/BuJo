@@ -839,24 +839,25 @@
             <!-- 流團編輯器 -->
             <div
               v-if="showDeadlineEditor"
-              class="flex items-center gap-2 border border-dashed border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-3 py-2"
+              class="flex flex-wrap items-center gap-2 border border-dashed border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-3 py-2"
             >
-              <span class="text-xs text-[var(--bujo-ink)]">活動開始前</span>
-              <input
-                v-model.number="deadline.value"
-                type="number"
-                min="1"
-                class="h-8 w-14 rounded-none border border-[var(--bujo-line)] bg-white px-2 text-xs text-[var(--bujo-ink)] outline-none focus:border-[var(--bujo-accent)] focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
-              />
-              <select
-                v-model="deadline.unit"
-                class="h-8 rounded-none border border-[var(--bujo-line)] bg-white px-2 text-xs text-[var(--bujo-ink)] outline-none focus:border-[var(--bujo-accent)]"
+              <button
+                v-for="preset in deadlineValidPresets"
+                :key="preset.key"
+                type="button"
+                class="h-8 rounded-none border px-2 text-xs transition-colors"
+                :class="
+                  selectedDeadlinePresetKey === preset.key
+                    ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                    : 'border-[var(--bujo-line)] bg-white text-[var(--bujo-ink)] hover:border-[var(--bujo-ink)]'
+                "
+                @click="selectedDeadlinePresetKey = preset.key"
               >
-                <option v-for="opt in deadlineUnitOptions" :key="opt.value" :value="opt.value">
-                  {{ opt.label }}
-                </option>
-              </select>
-              <span class="text-xs text-[var(--bujo-ink)]">自動取消</span>
+                {{ preset.label }}
+              </button>
+              <span v-if="deadlineValidPresets.length === 0" class="text-xs text-[var(--bujo-muted)]"
+                >目前沒有可選的流團時間</span
+              >
             </div>
           </template>
         </label>
@@ -1166,8 +1167,17 @@ function shortDate(dateStr) {
   return `${Number(month)}/${Number(day)}`
 }
 
-// 流團設定
-const deadline = reactive({ value: 1, unit: 'day' })
+// 流團設定固定預設清單，由大到小排序（提前量最大排最前面）
+const DEADLINE_PRESETS = [
+  { key: '1d', label: '1 天前', offsetMs: 24 * 3600000 },
+  { key: '12h', label: '12 小時前', offsetMs: 12 * 3600000 },
+  { key: '3h', label: '3 小時前', offsetMs: 3 * 3600000 },
+  { key: '1h', label: '1 小時前', offsetMs: 1 * 3600000 },
+  { key: '30m', label: '30 分鐘前', offsetMs: 30 * 60000 },
+]
+
+// 流團設定：選中的預設 key（'1d' | '12h' | '3h' | '1h' | '30m'），null 代表尚未選（或目前沒有有效選項）
+const selectedDeadlinePresetKey = ref(null)
 const showDeadlineEditor = ref(false)
 const showUrgentConfirm = ref(false)
 const showSuccessModal = ref(false)
@@ -1316,18 +1326,6 @@ const isUrgent = computed(() => {
   return diffMs > 0 && diffMs <= 60 * 60 * 1000
 })
 
-// 是否為當天活動
-const isSameDay = computed(() => {
-  const start = parseDateValue(scheduleAnchor.value.date)
-  if (!start) return false
-  const now = new Date()
-  return (
-    start.getFullYear() === now.getFullYear() &&
-    start.getMonth() === now.getMonth() &&
-    start.getDate() === now.getDate()
-  )
-})
-
 // 距今幾分鐘（緊急顯示用）
 const minutesUntilStart = computed(() => {
   const start = parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time)
@@ -1335,48 +1333,39 @@ const minutesUntilStart = computed(() => {
   return Math.max(1, Math.ceil((start.getTime() - Date.now()) / 60000))
 })
 
+// 目前錨點日期時間下，仍然會落在未來的流團設定預設選項（由大到小排序）
+const deadlineValidPresets = computed(() =>
+  getValidDeadlinePresets(scheduleAnchor.value.date, scheduleAnchor.value.time),
+)
+
+const deadlineOffsetMs = computed(
+  () => DEADLINE_PRESETS.find((p) => p.key === selectedDeadlinePresetKey.value)?.offsetMs ?? null,
+)
+
+// 目前選中的預設如果不再是有效清單裡的選項（或尚未選過），改選清單中最大（最早）的有效選項
+function syncDeadlinePresetSelection() {
+  const list = deadlineValidPresets.value
+  if (!list.some((p) => p.key === selectedDeadlinePresetKey.value)) {
+    selectedDeadlinePresetKey.value = list[0]?.key ?? null
+  }
+}
+
+watch(deadlineValidPresets, syncDeadlinePresetSelection, { immediate: true })
+
 // 流團時間顯示文字
 const deadlineDisplayText = computed(() => {
-  if (deadline.unit === 'day') {
-    const start = parseDateValue(scheduleAnchor.value.date)
-    if (!start) return ''
-    const d = new Date(start)
-    d.setDate(d.getDate() - deadline.value)
-    return `${formatDateValue(d)}（活動前 ${deadline.value} 天）`
-  } else {
-    const start = parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time)
-    if (!start) return ''
-    const d = new Date(start.getTime() - deadline.value * 3600000)
-    const period = d.getHours() < 12 ? '上午' : '下午'
-    const hour = d.getHours() % 12 || 12
-    return `${formatDateValue(d)} ${period} ${hour}:00（活動前 ${deadline.value} 小時）`
-  }
+  const preset = DEADLINE_PRESETS.find((p) => p.key === selectedDeadlinePresetKey.value)
+  if (!preset) return ''
+  const anchor =
+    parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time) ??
+    parseDateValue(scheduleAnchor.value.date)
+  if (!anchor) return ''
+  const d = new Date(anchor.getTime() - preset.offsetMs)
+  const period = d.getHours() < 12 ? '上午' : '下午'
+  const hour = d.getHours() % 12 || 12
+  const minute = String(d.getMinutes()).padStart(2, '0')
+  return `${formatDateValue(d)} ${period} ${hour}:${minute}（${preset.label}）`
 })
-
-// 可選的單位（當天只能選小時）
-const deadlineUnitOptions = computed(() => {
-  if (isSameDay.value) return [{ value: 'hour', label: '小時' }]
-  return [
-    { value: 'day', label: '天' },
-    { value: 'hour', label: '小時' },
-  ]
-})
-
-// 當天活動時強制切換為小時；immediate: true 確保掛載當下錨點日期就已經是今天時也會立即修正
-// （例如情境二的 singleDate 預設值就是今天，不會有「從非今天變成今天」這個變化觸發 watch）
-watch(
-  isSameDay,
-  (val) => {
-    if (val && deadline.unit === 'day') {
-      deadline.unit = 'hour'
-      deadline.value = 1
-    } else if (!val && deadline.unit === 'hour') {
-      deadline.unit = 'day'
-      deadline.value = 1
-    }
-  },
-  { immediate: true },
-)
 
 watch(
   () => form.startTime,
@@ -1465,8 +1454,8 @@ function resetForm() {
   scenario4SlotIdSeq = 1
   candidateSlots.value = []
   editingSlotDate.value = null
-  deadline.value = 1
-  deadline.unit = 'day'
+  selectedDeadlinePresetKey.value = null
+  syncDeadlinePresetSelection()
   showDeadlineEditor.value = false
   endTimeUserSet.value = false
   submitError.value = ''
@@ -1572,7 +1561,7 @@ async function doSubmitInternal() {
   const deadlineISO = isUrgent.value
     ? (parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time)?.toISOString() ??
       null)
-    : computeDeadlineISO(scheduleAnchor.value.date, scheduleAnchor.value.time, deadline)
+    : computeDeadlineISO(scheduleAnchor.value.date, scheduleAnchor.value.time, deadlineOffsetMs.value)
 
   const commonPayload = {
     title: form.name,
@@ -1760,16 +1749,19 @@ function parseDateTimeValue(dateStr, timeStr) {
   return date
 }
 
-function computeDeadlineISO(startDateStr, startTimeStr, deadlineObj) {
-  if (deadlineObj.unit === 'day') {
-    const start = parseDateValue(startDateStr)
-    if (!start) return null
-    start.setDate(start.getDate() - deadlineObj.value)
-    return start.toISOString()
-  }
-  const start = parseDateTimeValue(startDateStr, startTimeStr)
+// 只回傳套用在 anchorDate/anchorTime 上仍然晚於現在的預設；anchorTime 缺漏時退回當天 00:00 當錨點
+function getValidDeadlinePresets(anchorDate, anchorTime) {
+  const anchor = parseDateTimeValue(anchorDate, anchorTime) ?? parseDateValue(anchorDate)
+  if (!anchor) return []
+  const now = Date.now()
+  return DEADLINE_PRESETS.filter((preset) => anchor.getTime() - preset.offsetMs > now)
+}
+
+function computeDeadlineISO(startDateStr, startTimeStr, offsetMs) {
+  if (offsetMs == null) return null
+  const start = parseDateTimeValue(startDateStr, startTimeStr) ?? parseDateValue(startDateStr)
   if (!start) return null
-  return new Date(start.getTime() - deadlineObj.value * 3600000).toISOString()
+  return new Date(start.getTime() - offsetMs).toISOString()
 }
 
 function isSameDate(firstDate, secondDate) {

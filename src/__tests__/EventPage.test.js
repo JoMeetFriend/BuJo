@@ -185,23 +185,94 @@ describe('EventPage - 情境二（日期X時間讓大家選）表單簡化', () 
   })
 })
 
-describe('EventPage - isSameDay watcher 掛載時立即生效', () => {
+describe('EventPage - 流團預設選項掛載/變更時立即同步', () => {
   beforeEach(() => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 6, 15))
+    // 15:00 前 45 分鐘
+    vi.setSystemTime(new Date(2026, 6, 15, 14, 15))
   })
 
   afterEach(() => {
     vi.useRealTimers()
   })
 
-  test('情境二表單掛載時 singleDate 已經是今天，掛載後 deadline.unit 應立即是 hour，不需要先觸發日期變更', async () => {
+  test('選擇距今 45 分鐘的開始時間後，立即自動選中對應的流團預設，不需要額外觸發', async () => {
     const wrapper = await mountEventPage()
 
-    enterScenario2()
+    queryBody('#event-start-time').click()
+    await flushPromises()
+    clickTimeOption('開始時間選單', '下午 3:00')
     await flushPromises()
 
-    expect(wrapper.vm.deadline.unit).toBe('hour')
+    expect(wrapper.vm.selectedDeadlinePresetKey).toBe('30m')
+
+    wrapper.unmount()
+  })
+
+  test('錨點時間改變導致原本選中的預設失效時，自動改選新清單中最大的有效預設', async () => {
+    const wrapper = await mountEventPage()
+
+    // 先選一個遠在未來的日期＋時間，五個預設都有效，預期預設選中「1 天前」
+    queryBody('#event-start-date').click()
+    await flushPromises()
+    queryBody('[data-date="2026/07/20"]').click()
+    await flushPromises()
+    queryBody('#event-start-time').click()
+    await flushPromises()
+    clickTimeOption('開始時間選單', '下午 3:00')
+    await flushPromises()
+
+    expect(wrapper.vm.selectedDeadlinePresetKey).toBe('1d')
+
+    // 把日期改回今天，讓原本選中的「1 天前」失效（同一天不可能提前一整天還在未來）
+    queryBody('#event-start-date').click()
+    await flushPromises()
+    queryBody('[data-date="2026/07/15"]').click()
+    await flushPromises()
+
+    expect(wrapper.vm.selectedDeadlinePresetKey).toBe('30m')
+
+    wrapper.unmount()
+  })
+})
+
+describe('EventPage - getValidDeadlinePresets：依到活動的提前量回傳可選預設清單', () => {
+  const ANCHOR_DATE = '2026/07/15'
+  const ANCHOR_TIME = '下午 3:00' // 15:00
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  test.each([
+    {
+      leadTime: '2 天',
+      now: new Date(2026, 6, 13, 15, 0),
+      expected: ['1 天前', '12 小時前', '3 小時前', '1 小時前', '30 分鐘前'],
+    },
+    {
+      leadTime: '6 小時',
+      now: new Date(2026, 6, 15, 9, 0),
+      expected: ['3 小時前', '1 小時前', '30 分鐘前'],
+    },
+    {
+      leadTime: '45 分鐘',
+      now: new Date(2026, 6, 15, 14, 15),
+      expected: ['30 分鐘前'],
+    },
+    {
+      leadTime: '20 分鐘',
+      now: new Date(2026, 6, 15, 14, 40),
+      expected: [],
+    },
+  ])('距離活動 $leadTime 時，可選預設為 $expected', async ({ now, expected }) => {
+    vi.useFakeTimers()
+    vi.setSystemTime(now)
+    const wrapper = await mountEventPage()
+
+    const presets = wrapper.vm.getValidDeadlinePresets(ANCHOR_DATE, ANCHOR_TIME)
+
+    expect(presets.map((p) => p.label)).toEqual(expected)
 
     wrapper.unmount()
   })
