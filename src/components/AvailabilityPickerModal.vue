@@ -119,7 +119,7 @@
                       </button>
                       <div
                         v-if="activeTimePicker === `from-${i}`"
-                        class="fixed z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] overflow-y-auto"
+                        class="time-picker-panel fixed z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] overflow-y-auto"
                         :style="pickerStyle"
                       >
                         <button
@@ -153,7 +153,7 @@
                       </button>
                       <div
                         v-if="activeTimePicker === `to-${i}`"
-                        class="fixed z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] overflow-y-auto"
+                        class="time-picker-panel fixed z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] overflow-y-auto"
                         :style="pickerStyle"
                       >
                         <button
@@ -475,23 +475,32 @@ const pickerStyle = reactive({
 
 function computePickerPosition(triggerEl) {
   const rect = triggerEl.getBoundingClientRect()
-  const vw = window.innerWidth
-  const vh = window.innerHeight
 
-  const spaceBelow = vh - rect.bottom - TRIGGER_GAP - VIEWPORT_MARGIN
-  const spaceAbove = rect.top - TRIGGER_GAP - VIEWPORT_MARGIN
+  // 選單要留在「彈窗卡片本身」的範圍內，不是整個瀏覽器視窗——不然彈窗變緊湊之後，
+  // 選單雖然沒被裁切，卻會飄出卡片邊界疊在背景上。BaseModal 自己的外層卡片有
+  // .bujo-modal-panel 這個 scoped class，找不到時（理論上不會發生）退回整個視窗當邊界
+  const modalPanel = triggerEl.closest('.bujo-modal-panel')
+  const boundary = modalPanel
+    ? modalPanel.getBoundingClientRect()
+    : { top: 0, bottom: window.innerHeight, left: 0, right: window.innerWidth }
+
+  const spaceBelow = boundary.bottom - rect.bottom - TRIGGER_GAP - VIEWPORT_MARGIN
+  const spaceAbove = rect.top - boundary.top - TRIGGER_GAP - VIEWPORT_MARGIN
   const openUpward = spaceBelow < PANEL_MIN_HEIGHT && spaceAbove > spaceBelow
 
   const maxHeight = Math.max(80, Math.min(PANEL_MAX_HEIGHT, openUpward ? spaceAbove : spaceBelow))
 
   let left = rect.left
-  left = Math.min(left, vw - PANEL_WIDTH - VIEWPORT_MARGIN)
-  left = Math.max(left, VIEWPORT_MARGIN)
+  left = Math.min(left, boundary.right - PANEL_WIDTH - VIEWPORT_MARGIN)
+  left = Math.max(left, boundary.left + VIEWPORT_MARGIN)
 
+  // top/bottom 是 position: fixed 的座標，一律相對「瀏覽器視窗」本身，不是相對 boundary——
+  // boundary 只用來判斷「翻不翻面」跟算 maxHeight，不能拿來當 fixed 定位的錨點，
+  // 否則面板會對不準（這裡曾經寫錯成 boundary.bottom，算出來的位置整個偏掉）
   return {
     left: `${left}px`,
     top: openUpward ? null : `${rect.bottom + TRIGGER_GAP}px`,
-    bottom: openUpward ? `${vh - rect.top + TRIGGER_GAP}px` : null,
+    bottom: openUpward ? `${window.innerHeight - rect.top + TRIGGER_GAP}px` : null,
     width: `${PANEL_WIDTH}px`,
     maxHeight: `${maxHeight}px`,
   }
@@ -506,8 +515,12 @@ function handleWindowResize() {
   if (activeTimePicker.value) updatePickerPosition()
 }
 
-function handleScrollClose() {
-  if (activeTimePicker.value) closeTimePicker()
+function handleScrollClose(e) {
+  if (!activeTimePicker.value) return
+  // 選單自己的選項列表也是可捲動的（overflow-y-auto），使用者在裡面捲動選小時選項時
+  // 不該被這個「捲動就關閉」的規則誤判成「使用者在捲背景」而把選單關掉
+  if (e.target?.closest?.('.time-picker-panel')) return
+  closeTimePicker()
 }
 
 function closeTimePicker() {
@@ -581,8 +594,11 @@ const summaryItems = computed(() =>
 
 // ── Modal 控制 ──
 function close() {
-  selectedDates.value = {}
-  activeDate.value = null
+  // 元件實例會一直存在（v-model 只是切換 BaseModal 顯不顯示，不會重新掛載），
+  // 所以「關閉」要重設回跟第一次掛載時一樣的初始狀態，不能無條件清空——
+  // fixedDate 模式沒有日曆可以重新選日期，清空會卡在「選取日期」這個死路
+  selectedDates.value = props.fixedDate ? { [props.fixedDate]: defaultDayValue() } : {}
+  activeDate.value = props.fixedDate ?? null
   emit('update:modelValue', false)
 }
 
