@@ -511,6 +511,29 @@ describe('ActivityDetailModal - Scenario C 日期-only 報名流程', () => {
     expect(picker.props('allowedDates')).toEqual(['2026-08-01', '2026-08-03', '2026-08-09'])
   })
 
+  test('已經過去的候選日期不會出現在報名者可選的日期清單裡——那天已經開始/結束，選了沒有意義', async () => {
+    vi.useFakeTimers()
+    // 8/1 這個候選日的時段是 19:00-21:00，設在 8/2 代表 8/1 已經完全過去；8/3、8/9 都還沒到
+    vi.setSystemTime(new Date('2026-08-02T00:00:00'))
+
+    const activity = makeScenarioCActivity()
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    const joinButton = wrapper.findAll('button').find((b) => b.text().includes('報名參加'))
+    await joinButton.trigger('click')
+    await flushPromises()
+
+    const picker = wrapper.findComponent(AvailabilityPickerModal)
+    expect(picker.props('allowedDates')).toEqual(['2026-08-03', '2026-08-09'])
+
+    vi.useRealTimers()
+  })
+
   test('時間欄位顯示候選時段的固定時間，不是「候選時段投票中」，並提示日期投票中', async () => {
     const activity = makeScenarioCActivity()
     stubFetch(activity)
@@ -541,6 +564,19 @@ describe('ActivityDetailModal - Scenario C 日期-only 報名流程', () => {
     await flushPromises()
 
     expect(wrapper.text()).not.toContain('日期投票中')
+    expect(wrapper.text()).toContain('8/1')
+  })
+
+  test('尚未成團時，「日期」欄位顯示「日期投票中」', async () => {
+    const activity = makeScenarioCActivity()
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('日期投票中')
   })
 
   test('未提供 schedule_variant 時維持舊 checkbox 流程', async () => {
@@ -670,6 +706,78 @@ describe('ActivityDetailModal - availability_mode: range 的報名流程', () =>
     expect(picker.props('fixedDate')).toBe('2026-07-12')
     expect(picker.props('timeWindowStart')).toBe('10:00')
     expect(picker.props('timeWindowEnd')).toBe('18:00')
+  })
+
+  test('標題日期顯示活動的 fixed_date，不是空白——range 模式沒有 candidate_slots/confirmed_slot 可以推導', async () => {
+    const activity = makeRangeActivity()
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.find('.activity-detail-date').text()).toBe('7/12')
+  })
+
+  test('卡片內文的「日期」欄位也顯示 fixed_date，不是「投票中」——range 模式日期本來就是固定的', async () => {
+    const activity = makeRangeActivity()
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    const dateLabel = wrapper.findAll('.activity-detail-label').find((l) => l.text() === '日期')
+    expect(dateLabel).toBeTruthy()
+    expect(dateLabel.element.nextElementSibling.textContent).toBe('7/12')
+    expect(wrapper.text()).not.toContain('日期投票中')
+  })
+
+  test('時間欄位顯示「時段回報中」，不是暗示有候選清單的「候選時段投票中」', async () => {
+    const activity = makeRangeActivity()
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('時段回報中')
+    expect(wrapper.text()).not.toContain('候選時段投票中')
+  })
+
+  test('未報名時不顯示可複選候選時段的文案，改顯示「選擇你方便的時間」跟提示點擊報名參加', async () => {
+    const activity = makeRangeActivity()
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('選擇你方便的時間')
+    expect(wrapper.text()).toContain('點擊下方報名參加，回報你方便的時間')
+    expect(wrapper.text()).not.toContain('候選時段（可複選）')
+  })
+
+  test('已報名、recruiting 狀態顯示實際回報的時間摘要', async () => {
+    const activity = makeRangeActivity({
+      has_joined: true,
+      my_ranges: [{ start: '2026-07-12T10:00:00Z', end: '2026-07-12T13:00:00Z' }],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('你已回報的時間')
+    expect(wrapper.text()).toContain('7/12')
+    expect(wrapper.text()).toContain('下午 6:00')
+    expect(wrapper.text()).toContain('下午 9:00')
   })
 
   test('確認彈窗選取後，把回傳結果轉成 {ranges} 呼叫 join API；整天視為當日 00:00–23:59 的單一 range', async () => {

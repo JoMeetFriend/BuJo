@@ -605,7 +605,7 @@
               </div>
             </template>
 
-            <UrgentStartWarning v-if="isUrgent" :minutes="minutesUntilStart" />
+            <UrgentStartWarning v-if="isUrgent" :text="scenarioCUrgentText" />
           </div>
         </div>
 
@@ -1335,6 +1335,14 @@ const minutesUntilStart = computed(() => {
   const start = parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time)
   if (!start) return 0
   return Math.max(1, Math.ceil((start.getTime() - Date.now()) / 60000))
+})
+
+// 情境三候選日期不連續，「N 分鐘後開始」的通用文案不準確——逼近的只是候選日裡最早的
+// 那天，不代表活動真的快開始了（投票會開放到最晚候選日，其他候選日不受影響）
+const scenarioCUrgentText = computed(() => {
+  const date = scheduleAnchor.value.date
+  const label = date ? shortDate(date) : ''
+  return `${label} 快到了，選這天的話記得手動確認成團呦～其他候選日不受影響，照常開放投票！`
 })
 
 // 目前錨點日期時間下，仍然會落在未來的流團設定預設選項（由大到小排序）

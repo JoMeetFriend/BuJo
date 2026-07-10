@@ -39,12 +39,13 @@
         </div>
 
         <div class="activity-detail-info">
+          <div v-if="dateText">
+            <div class="activity-detail-label">日期</div>
+            <div>{{ dateText }}</div>
+          </div>
           <div>
             <div class="activity-detail-label">時間</div>
-            <div>{{ scheduleText }}</div>
-            <div v-if="isScenarioCMode && !activity.confirmed_slot" class="activity-detail-muted">
-              日期投票中
-            </div>
+            <div>{{ timeText }}</div>
           </div>
           <div v-if="activity.location">
             <div class="activity-detail-label">地點</div>
@@ -122,6 +123,17 @@
               <span v-for="date in selectedScenarioCDateLabels" :key="date">{{ date }}</span>
             </div>
             <div v-else class="activity-detail-muted">尚未選擇日期</div>
+          </template>
+          <template v-else-if="isRangeMode">
+            <div class="activity-detail-label">
+              {{ activity.has_joined ? '你已回報的時間' : '選擇你方便的時間' }}
+            </div>
+            <div v-if="myRangesSummaryLabels.length" class="activity-detail-date-list">
+              <span v-for="label in myRangesSummaryLabels" :key="label">{{ label }}</span>
+            </div>
+            <div v-else class="activity-detail-muted">
+              {{ activity.has_joined ? '尚未回報時間' : '點擊下方報名參加，回報你方便的時間' }}
+            </div>
           </template>
           <template v-else>
             <div class="activity-detail-label">
@@ -358,7 +370,7 @@
     :fixed-date="activity.fixed_date"
     :time-window-start="activity.time_window_start"
     :time-window-end="activity.time_window_end"
-    :allowed-dates="scenarioCCandidateDates"
+    :allowed-dates="scenarioCAvailableCandidateDates"
     :date-only="isScenarioCMode"
     :fixed-time-label="scenarioCFixedTimeLabel"
     :initial-dates="scenarioCInitialDates"
@@ -412,6 +424,18 @@ const scenarioCSlotByDate = computed(() => {
 
 const scenarioCCandidateDates = computed(() => [...scenarioCSlotByDate.value.keys()].sort())
 
+// 已經過去的候選日期不該再讓報名者選——那天已經開始/結束了，選了也沒有意義，
+// 投票理應開放到最晚候選日（後端 vote_deadline_at 的判定基準），過期的候選日提早濾掉
+const scenarioCAvailableCandidateDates = computed(() => {
+  const now = new Date()
+  const slots = activity.value?.candidate_slots ?? []
+  return scenarioCCandidateDates.value.filter((date) => {
+    const slotId = scenarioCSlotByDate.value.get(date)
+    const slot = slots.find((s) => s.id === slotId)
+    return slot && new Date(slot.slot_start) > now
+  })
+})
+
 const scenarioCSelectedDates = computed(() =>
   (activity.value?.candidate_slots ?? [])
     .filter((slot) => slot.is_selected)
@@ -439,6 +463,16 @@ const myRangesInitial = computed(() =>
     const start = new Date(r.start)
     const end = new Date(r.end)
     return { date: toLocalDateKey(r.start), from: toHHMM(start), to: toHHMM(end) }
+  }),
+)
+
+// range 模式（情境二）已報名者自己回報的時間摘要，格式跟情境三的日期 chip 呼應，
+// 例如「7/12 下午 6:00–下午 9:00」
+const myRangesSummaryLabels = computed(() =>
+  (activity.value?.my_ranges ?? []).map((r) => {
+    const start = new Date(r.start)
+    const end = new Date(r.end)
+    return `${formatDateKey(toLocalDateKey(r.start))} ${formatTime(start)}–${formatTime(end)}`
   }),
 )
 
@@ -494,6 +528,11 @@ const panelDate = computed(() => {
   if (a.confirmed_slot) {
     return formatShortDate(new Date(a.confirmed_slot.slot_start))
   }
+  // range 模式（情境二）沒有 candidate_slots 也沒有 confirmed_slot 可以推導日期——
+  // 日期本來就是固定的，直接讀 fixed_date，不然標題完全不會顯示是哪一天
+  if (isRangeMode.value && a.fixed_date) {
+    return formatDateKey(a.fixed_date)
+  }
   if (a.candidate_slots?.length) {
     // 候選時段可能橫跨多個日期（情境三、四），標題要顯示完整的日期區間，不能只看第一筆
     const starts = a.candidate_slots.map((slot) => new Date(slot.slot_start).getTime())
@@ -504,15 +543,44 @@ const panelDate = computed(() => {
   return ''
 })
 
-const scheduleText = computed(() => {
+// 卡片改成「日期」「時間」兩個獨立標籤欄位，各自依情境顯示實際值或「投票/回報中」狀態，
+// 不再把兩者的資訊混在同一個「時間」欄位裡（例如 Mode C 的時間欄位曾經要同時塞固定時間
+// 又附註日期投票中，Mode B 完全沒有欄位顯示日期）
+function timeOnlyText(slot) {
+  if (!slot) return ''
+  if (slot.all_day) return '整天'
+  return `${formatTime(new Date(slot.slot_start))} – ${formatTime(new Date(slot.slot_end))}`
+}
+
+const dateText = computed(() => {
+  const a = activity.value
+  if (!a) return ''
+  if (a.confirmed_slot) return formatShortDate(new Date(a.confirmed_slot.slot_start))
+  // Mode B（range 模式）的日期本來就是固定的，不會投票，直接讀 fixed_date
+  if (isRangeMode.value) return a.fixed_date ? formatDateKey(a.fixed_date) : ''
+  // Mode C 的日期還沒定，時間才是固定的
+  if (isScenarioCMode.value) return '日期投票中'
+  if (a.candidate_slots?.length) {
+    const starts = a.candidate_slots.map((slot) => new Date(slot.slot_start).getTime())
+    const minText = formatShortDate(new Date(Math.min(...starts)))
+    const maxText = formatShortDate(new Date(Math.max(...starts)))
+    return minText === maxText ? minText : `${minText} ~ ${maxText}`
+  }
+  return ''
+})
+
+const timeText = computed(() => {
   const a = activity.value
   if (!a) return '時間未設定'
-  if (a.confirmed_slot) return slotText(a.confirmed_slot)
+  if (a.confirmed_slot) return timeOnlyText(a.confirmed_slot)
   // Mode C 的時間本來就是固定的，投票的是日期，不是時段——不能顯示「候選時段投票中」，
   // 那句話的意思是時間還沒定，跟 Mode C 的實際狀況相反，而且會藏掉使用者最需要的固定時間資訊
   if (isScenarioCMode.value) return scenarioCFixedTimeLabel.value || '時間未設定'
+  // range 模式（情境二）是回報一段連續可用時間，沒有離散的候選清單可以「投票」，
+  // 「候選時段投票中」的語氣會讓人誤以為有清單可以勾選
+  if (isRangeMode.value) return '時段回報中'
   if (a.requires_voting) return '候選時段投票中'
-  if (a.candidate_slots?.[0]) return slotText(a.candidate_slots[0])
+  if (a.candidate_slots?.[0]) return timeOnlyText(a.candidate_slots[0])
   return '時間未設定'
 })
 
