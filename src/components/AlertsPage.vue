@@ -90,12 +90,15 @@
 import axios from 'axios'
 import { computed, onMounted, ref } from 'vue'
 import PixelButton from './ui/PixelButton.vue'
+import { useNotificationStore } from '@/stores/notificationStore'
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: 5000,
   withCredentials: true,
 })
+
+const notificationStore = useNotificationStore()
 
 const notifications = ref([])
 const isLoading = ref(false)
@@ -128,6 +131,9 @@ async function fetchNotifications() {
     notifications.value = []
   } finally {
     isLoading.value = false
+    notificationStore.setUnreadCount(
+      notifications.value.filter((notification) => !notification.isRead).length,
+    )
   }
 }
 
@@ -137,6 +143,7 @@ async function markAsRead(notification) {
   try {
     await apiClient.patch(`/api/notifications/${notification.id}/read`)
     notification.isRead = true
+    notificationStore.setUnreadCount(notificationStore.unreadCount - 1)
   } catch (err) {
     console.error('標記通知已讀失敗:', err)
     error.value = err.response?.data?.message || '無法標記已讀'
@@ -152,6 +159,7 @@ async function markAllAsRead() {
       ...notification,
       isRead: true,
     }))
+    notificationStore.setUnreadCount(0)
   } catch (err) {
     console.error('全部已讀失敗:', err)
     error.value = err.response?.data?.message || '無法全部已讀'

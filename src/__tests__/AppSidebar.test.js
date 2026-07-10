@@ -1,9 +1,17 @@
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test, vi } from 'vitest'
+import axios from 'axios'
 import AppSidebar from '@/components/AppSidebar.vue'
 import { useAuthStore } from '@/stores/auth'
+
+vi.mock('axios', () => {
+  const apiClient = { get: vi.fn().mockResolvedValue({ data: { notifications: [] } }) }
+  return { default: { create: vi.fn(() => apiClient) } }
+})
+
+const notificationApiClient = axios.create()
 
 async function mountAppSidebar(user = {}) {
   const pinia = createPinia()
@@ -80,5 +88,46 @@ describe('AppSidebar', () => {
     await wrapper.get('[aria-label="開啟側邊欄個人帳號"]').trigger('click')
 
     expect(wrapper.findComponent({ name: 'ProfileAccountModal' }).exists()).toBe(true)
+  })
+
+  test('沒有未讀通知時不顯示 ALERTS 未讀數徽章', async () => {
+    const wrapper = await mountAppSidebar()
+    await flushPromises()
+
+    expect(wrapper.find('.bujo-nav-badge').exists()).toBe(false)
+  })
+
+  test('有未讀通知時 ALERTS 圖示會顯示未讀數徽章', async () => {
+    notificationApiClient.get.mockResolvedValueOnce({
+      data: {
+        notifications: [
+          { id: '1', isRead: false },
+          { id: '2', isRead: false },
+        ],
+      },
+    })
+
+    const wrapper = await mountAppSidebar()
+    await flushPromises()
+
+    const badge = wrapper.get('.bujo-nav-badge')
+    expect(badge.text()).toBe('2')
+  })
+
+  test('未讀通知數超過 9 則時徽章顯示 9+', async () => {
+    notificationApiClient.get.mockResolvedValueOnce({
+      data: {
+        notifications: Array.from({ length: 12 }, (_, index) => ({
+          id: String(index),
+          isRead: false,
+        })),
+      },
+    })
+
+    const wrapper = await mountAppSidebar()
+    await flushPromises()
+
+    const badge = wrapper.get('.bujo-nav-badge')
+    expect(badge.text()).toBe('9+')
   })
 })
