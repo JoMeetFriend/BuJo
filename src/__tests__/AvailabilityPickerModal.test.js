@@ -80,15 +80,142 @@ describe('AvailabilityPickerModal - timeWindow 限制可選小時', () => {
       },
     })
 
-    // 預設整天有空，先切到自訂時段才會出現時間下拉選單
-    const customButton = wrapper.findAll('button').find((b) => b.text() === '指定時段')
-    await customButton.trigger('click')
-
+    // 有設時段範圍時預設直接顯示時段編輯器（不再是整天有空），不用先點「指定時段」
     const startButtons = wrapper.findAll('.time-picker-wrap button')
     await startButtons[0].trigger('click')
 
     const options = wrapper.findAll('button[data-hour]').map((o) => o.text())
     expect(options).toEqual(['上午 10:00', '上午 11:00', '下午 12:00', '下午 1:00', '下午 2:00'])
+  })
+})
+
+describe('AvailabilityPickerModal - 有設時段範圍時預設直接顯示該時段，不是整天有空', () => {
+  test('預設的候選時段就是創建者設定的 timeWindowStart~timeWindowEnd，不是硬寫的 09:00-17:00', () => {
+    const wrapper = mount(AvailabilityPickerModal, {
+      props: {
+        modelValue: true,
+        rangeStart: '2026-06-11',
+        rangeEnd: '2026-06-17',
+        fixedDate: '2026-06-12',
+        timeWindowStart: '13:00',
+        timeWindowEnd: '17:00',
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    expect(wrapper.text()).not.toContain('整天有空')
+    expect(wrapper.text()).not.toContain('指定時段')
+    expect(wrapper.text()).toContain('下午 1:00')
+    expect(wrapper.text()).toContain('下午 5:00')
+    expect(wrapper.text()).toContain('6/12 13:00–17:00')
+  })
+
+  test('沒有設時段範圍時維持現況：預設整天有空', () => {
+    const wrapper = mount(AvailabilityPickerModal, {
+      props: {
+        modelValue: true,
+        rangeStart: '2026-06-11',
+        rangeEnd: '2026-06-17',
+        fixedDate: '2026-06-12',
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('整天有空')
+    expect(wrapper.text()).toContain('指定時段')
+  })
+
+  test('移除唯一一筆候選時段後，回到創建者設定的時段範圍，不會變成「選取日期」提示', async () => {
+    const wrapper = mount(AvailabilityPickerModal, {
+      props: {
+        modelValue: true,
+        rangeStart: '2026-06-11',
+        rangeEnd: '2026-06-17',
+        fixedDate: '2026-06-12',
+        timeWindowStart: '13:00',
+        timeWindowEnd: '17:00',
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    const removeButton = wrapper.findAll('button').find((b) => b.text() === '✕')
+    await removeButton.trigger('click')
+
+    expect(wrapper.text()).not.toContain('← 選取日期')
+    expect(wrapper.text()).toContain('下午 1:00')
+    expect(wrapper.text()).toContain('下午 5:00')
+  })
+})
+
+describe('AvailabilityPickerModal - 頂部標題依情境顯示正確內容', () => {
+  test('fixedDate 且有設時段範圍時，顯示活動時間而非活動日期範圍', () => {
+    const wrapper = mount(AvailabilityPickerModal, {
+      props: {
+        modelValue: true,
+        rangeStart: '2026-06-11',
+        rangeEnd: '2026-06-17',
+        fixedDate: '2026-06-12',
+        timeWindowStart: '13:00',
+        timeWindowEnd: '17:00',
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('活動時間：6/12')
+    expect(wrapper.text()).toContain('下午 1:00 – 下午 5:00')
+    expect(wrapper.text()).not.toContain('活動日期範圍')
+  })
+
+  test('fixedDate 但沒設時段範圍時，只顯示活動日期', () => {
+    const wrapper = mount(AvailabilityPickerModal, {
+      props: {
+        modelValue: true,
+        rangeStart: '2026-06-11',
+        rangeEnd: '2026-06-17',
+        fixedDate: '2026-06-12',
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('活動時間：6/12')
+    expect(wrapper.text()).not.toContain('活動日期範圍')
+  })
+
+  test('沒有 fixedDate 時維持現況：顯示活動日期範圍', () => {
+    const wrapper = mount(AvailabilityPickerModal, {
+      props: {
+        modelValue: true,
+        rangeStart: '2026-06-11',
+        rangeEnd: '2026-06-17',
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('活動日期範圍：2026-06-11 — 2026-06-17')
   })
 })
 

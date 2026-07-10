@@ -14,7 +14,11 @@
       <div
         class="bg-[var(--bujo-surface-muted)] border-b border-[var(--bujo-line-soft)] px-4 py-1.5 shrink-0 text-[12px] font-bold text-[var(--bujo-muted-strong)]"
       >
-        活動日期範圍：{{ rangeStart }} — {{ rangeEnd }}
+        <template v-if="fixedDate">
+          活動時間：{{ formatChip(fixedDate)
+          }}{{ hasTimeWindow ? `　${toLabel(timeWindowStart)} – ${toLabel(timeWindowEnd)}` : '' }}
+        </template>
+        <template v-else> 活動日期範圍：{{ rangeStart }} — {{ rangeEnd }} </template>
       </div>
 
       <!-- Body -->
@@ -183,6 +187,7 @@
                 </button>
 
                 <button
+                  v-if="!hasTimeWindow"
                   @click="resetAllDay"
                   class="mt-2 text-[10px] text-[var(--bujo-muted)] transition-colors duration-150 hover:text-[var(--bujo-ink)] block"
                 >
@@ -249,8 +254,19 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'confirm'])
 
 // ── 狀態 ──
+const hasTimeWindow = computed(() => !!(props.timeWindowStart && props.timeWindowEnd))
+
+// 有設時段範圍（timeWindowStart/timeWindowEnd）時，「預設」代表整個時段範圍都有空，
+// 不是無邊界的「整天有空」——創建者已經限制過參與者能回報的時間，兩者意義不同
+function defaultDayValue() {
+  if (hasTimeWindow.value) {
+    return [{ from: props.timeWindowStart, to: props.timeWindowEnd, endTimeUserSet: false }]
+  }
+  return null
+}
+
 // key = 'YYYY-MM-DD', value = null（整天）或 [{from,to},...]
-const selectedDates = ref(props.fixedDate ? { [props.fixedDate]: null } : {})
+const selectedDates = ref(props.fixedDate ? { [props.fixedDate]: defaultDayValue() } : {})
 const activeDate = ref(props.fixedDate ?? null)
 const dragState = reactive({ active: false, startDate: null, hovering: new Set() })
 
@@ -380,18 +396,21 @@ function addRange() {
   if (!Array.isArray(selectedDates.value[activeDate.value])) {
     selectedDates.value[activeDate.value] = []
   }
-  selectedDates.value[activeDate.value].push({ from: '09:00', to: '17:00', endTimeUserSet: false })
+  const fallback = hasTimeWindow.value
+    ? { from: props.timeWindowStart, to: props.timeWindowEnd }
+    : { from: '09:00', to: '17:00' }
+  selectedDates.value[activeDate.value].push({ ...fallback, endTimeUserSet: false })
 }
 
 function removeRange(i) {
   selectedDates.value[activeDate.value].splice(i, 1)
   if (selectedDates.value[activeDate.value].length === 0) {
-    selectedDates.value[activeDate.value] = null
+    selectedDates.value[activeDate.value] = defaultDayValue()
   }
 }
 
 function resetAllDay() {
-  selectedDates.value[activeDate.value] = null
+  selectedDates.value[activeDate.value] = defaultDayValue()
 }
 
 const allHourOptions = Array.from({ length: 24 }, (_, hour) => {
