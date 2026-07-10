@@ -119,7 +119,8 @@
                       </button>
                       <div
                         v-if="activeTimePicker === `from-${i}`"
-                        class="absolute top-[calc(100%+4px)] left-0 z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] w-[130px] max-h-[200px] overflow-y-auto"
+                        class="fixed z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] overflow-y-auto"
+                        :style="pickerStyle"
                       >
                         <button
                           v-for="opt in startHourOptions"
@@ -152,7 +153,8 @@
                       </button>
                       <div
                         v-if="activeTimePicker === `to-${i}`"
-                        class="absolute top-[calc(100%+4px)] left-0 z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] w-[130px] max-h-[200px] overflow-y-auto"
+                        class="fixed z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] overflow-y-auto"
+                        :style="pickerStyle"
                       >
                         <button
                           v-for="opt in endHourOptionsFor(range)"
@@ -377,10 +379,15 @@ function onMouseup() {
 onMounted(() => {
   window.addEventListener('mouseup', onMouseup)
   document.addEventListener('click', handleDocumentClickTimePicker)
+  window.addEventListener('resize', handleWindowResize)
+  // capture: true——scroll 不會冒泡，日曆模式彈窗內部 overflow-y-auto 容器的捲動要在 capture 階段才抓得到
+  window.addEventListener('scroll', handleScrollClose, true)
 })
 onUnmounted(() => {
   window.removeEventListener('mouseup', onMouseup)
   document.removeEventListener('click', handleDocumentClickTimePicker)
+  window.removeEventListener('resize', handleWindowResize)
+  window.removeEventListener('scroll', handleScrollClose, true)
 })
 
 // ── 時段操作 ──
@@ -450,6 +457,64 @@ function endHourOptionsFor(range) {
 
 const activeTimePicker = ref(null)
 
+// ── 下拉選單浮動定位：自動判斷往上/往下展開、水平夾在視窗內 ──
+const PANEL_WIDTH = 130
+const PANEL_MAX_HEIGHT = 200
+const PANEL_MIN_HEIGHT = 120 // 低於這個高度才考慮翻到另一邊
+const VIEWPORT_MARGIN = 8 // 留白舒適：面板跟螢幕邊緣至少留這麼多
+const TRIGGER_GAP = 4 // 對應原本的 calc(100%+4px)
+
+const activePickerTriggerEl = ref(null) // 記錄目前開著的選單是哪個按鈕觸發的，resize 時要重算
+const pickerStyle = reactive({
+  left: '0px',
+  top: null,
+  bottom: null,
+  width: `${PANEL_WIDTH}px`,
+  maxHeight: `${PANEL_MAX_HEIGHT}px`,
+})
+
+function computePickerPosition(triggerEl) {
+  const rect = triggerEl.getBoundingClientRect()
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+
+  const spaceBelow = vh - rect.bottom - TRIGGER_GAP - VIEWPORT_MARGIN
+  const spaceAbove = rect.top - TRIGGER_GAP - VIEWPORT_MARGIN
+  const openUpward = spaceBelow < PANEL_MIN_HEIGHT && spaceAbove > spaceBelow
+
+  const maxHeight = Math.max(80, Math.min(PANEL_MAX_HEIGHT, openUpward ? spaceAbove : spaceBelow))
+
+  let left = rect.left
+  left = Math.min(left, vw - PANEL_WIDTH - VIEWPORT_MARGIN)
+  left = Math.max(left, VIEWPORT_MARGIN)
+
+  return {
+    left: `${left}px`,
+    top: openUpward ? null : `${rect.bottom + TRIGGER_GAP}px`,
+    bottom: openUpward ? `${vh - rect.top + TRIGGER_GAP}px` : null,
+    width: `${PANEL_WIDTH}px`,
+    maxHeight: `${maxHeight}px`,
+  }
+}
+
+function updatePickerPosition() {
+  if (!activePickerTriggerEl.value) return
+  Object.assign(pickerStyle, computePickerPosition(activePickerTriggerEl.value))
+}
+
+function handleWindowResize() {
+  if (activeTimePicker.value) updatePickerPosition()
+}
+
+function handleScrollClose() {
+  if (activeTimePicker.value) closeTimePicker()
+}
+
+function closeTimePicker() {
+  activeTimePicker.value = null
+  activePickerTriggerEl.value = null
+}
+
 function toLabel(value) {
   if (!value) return ''
   const hour = parseInt(value.split(':')[0])
@@ -458,11 +523,14 @@ function toLabel(value) {
   return `${period} ${display}:00`
 }
 
-function openTimePicker(key, containerEl) {
-  activeTimePicker.value = activeTimePicker.value === key ? null : key
-  if (activeTimePicker.value === key) {
+function openTimePicker(key, wrapEl) {
+  const willOpen = activeTimePicker.value !== key
+  activeTimePicker.value = willOpen ? key : null
+  activePickerTriggerEl.value = willOpen ? wrapEl : null
+  if (willOpen) {
+    updatePickerPosition()
     nextTick(() => {
-      const el = containerEl?.querySelector('[data-hour="9"]')
+      const el = wrapEl?.querySelector('[data-hour="9"]')
       el?.scrollIntoView({ block: 'center' })
     })
   }
@@ -482,18 +550,18 @@ function selectRangeStart(range, value) {
     const hour = parseInt(value.split(':')[0])
     range.to = hour === 23 ? null : `${String(hour + 1).padStart(2, '0')}:00`
   }
-  activeTimePicker.value = null
+  closeTimePicker()
 }
 
 function selectRangeEnd(range, value) {
   range.to = value
   range.endTimeUserSet = true
-  activeTimePicker.value = null
+  closeTimePicker()
 }
 
 function handleDocumentClickTimePicker(e) {
   if (!e.target.closest('.time-picker-wrap')) {
-    activeTimePicker.value = null
+    closeTimePicker()
   }
 }
 
