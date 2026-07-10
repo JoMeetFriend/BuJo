@@ -1042,26 +1042,11 @@ const uniformTime = reactive({ startTime: null, endTime: null, allDay: false, en
 
 const candidateDateCells = computed(() => {
   const todayValue = formatDateValue(new Date())
-  const firstDay = startOfMonth(visibleMonth.value)
-  const startOffset = firstDay.getDay()
-  const gridStart = new Date(firstDay)
-  gridStart.setDate(firstDay.getDate() - startOffset)
-
-  return Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(gridStart)
-    date.setDate(gridStart.getDate() + index)
-    const dateValue = formatDateValue(date)
-
-    return {
-      key: dateValue,
-      date,
-      label: date.getDate(),
-      isCurrentMonth: date.getMonth() === visibleMonth.value.getMonth(),
-      isSelected: candidateDates.value.includes(dateValue),
-      isToday: isSameDate(date, new Date()),
-      isDisabled: dateValue < todayValue,
-    }
-  })
+  return buildMonthGridCells(visibleMonth.value).map((cell) => ({
+    ...cell,
+    isSelected: candidateDates.value.includes(cell.key),
+    isDisabled: cell.key < todayValue,
+  }))
 })
 
 function toggleCandidateDate(cell) {
@@ -1095,27 +1080,14 @@ const configuredSlots = computed(() =>
 
 const scenario4DateCells = computed(() => {
   const todayValue = formatDateValue(new Date())
-  const firstDay = startOfMonth(visibleMonth.value)
-  const startOffset = firstDay.getDay()
-  const gridStart = new Date(firstDay)
-  gridStart.setDate(firstDay.getDate() - startOffset)
-
-  return Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(gridStart)
-    date.setDate(gridStart.getDate() + index)
-    const dateValue = formatDateValue(date)
-    const entry = candidateSlots.value.find((s) => s.date === dateValue)
-
+  return buildMonthGridCells(visibleMonth.value).map((cell) => {
+    const entry = candidateSlots.value.find((s) => s.date === cell.key)
     return {
-      key: dateValue,
-      date,
-      label: date.getDate(),
-      isCurrentMonth: date.getMonth() === visibleMonth.value.getMonth(),
+      ...cell,
       isCandidate: !!entry,
-      isEditing: editingSlotDate.value === dateValue,
+      isEditing: editingSlotDate.value === cell.key,
       isConfigured: !!entry?.timeSlots.some((slot) => slot.startTime && slot.endTime),
-      isToday: isSameDate(date, new Date()),
-      isDisabled: dateValue < todayValue,
+      isDisabled: cell.key < todayValue,
     }
   })
 })
@@ -1237,16 +1209,29 @@ function isEndAfterStart(startTime, endTime) {
   return parseHourFromTimeStr(endTime) > parseHourFromTimeStr(startTime)
 }
 
-const startTimeOptions = computed(() => {
-  if (form.startDate !== formatDateValue(new Date())) return timeOptions
+// 四情境共用：目標日期是今天時，排除已經過去的小時，否則回傳完整清單。
+// 「是不是今天」怎麼算交給呼叫端決定（單一日期比較 vs 候選日期陣列成員判斷），
+// 這裡不需要知道資料來源
+function excludePastHoursIfToday(isTargetToday, options) {
+  if (!isTargetToday) return options
   const currentHour = new Date().getHours()
-  return timeOptions.filter((t) => parseHourFromTimeStr(t) > currentHour)
-})
+  return options.filter((t) => parseHourFromTimeStr(t) > currentHour)
+}
+
+// 四情境共用：排除不晚於已選開始時間的小時
+function excludeNotAfterStart(startTime, options) {
+  if (!startTime) return options
+  const startHour = parseHourFromTimeStr(startTime)
+  return options.filter((t) => parseHourFromTimeStr(t) > startHour)
+}
+
+const startTimeOptions = computed(() =>
+  excludePastHoursIfToday(form.startDate === formatDateValue(new Date()), timeOptions),
+)
 
 const endTimeOptions = computed(() => {
-  if (form.endDate !== form.startDate || !form.startTime) return timeOptions
-  const startHour = parseHourFromTimeStr(form.startTime)
-  return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
+  if (form.endDate !== form.startDate) return timeOptions
+  return excludeNotAfterStart(form.startTime, timeOptions)
 })
 
 const currentPickerTimeOptions = computed(() =>
@@ -1254,47 +1239,35 @@ const currentPickerTimeOptions = computed(() =>
 )
 
 // 情境三：統一結束時間須晚於統一開始時間
-const uniformEndTimeOptions = computed(() => {
-  if (!uniformTime.startTime) return timeOptions
-  const startHour = parseHourFromTimeStr(uniformTime.startTime)
-  return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
-})
+const uniformEndTimeOptions = computed(() => excludeNotAfterStart(uniformTime.startTime, timeOptions))
 
 // 情境三：統一開始時間——今天的日期存在於候選日期時，排除已經過去的小時
-const uniformStartTimeOptions = computed(() => {
-  const todayValue = formatDateValue(new Date())
-  if (!candidateDates.value.includes(todayValue)) return timeOptions
-  const currentHour = new Date().getHours()
-  return timeOptions.filter((t) => parseHourFromTimeStr(t) > currentHour)
-})
+const uniformStartTimeOptions = computed(() =>
+  excludePastHoursIfToday(
+    candidateDates.value.includes(formatDateValue(new Date())),
+    timeOptions,
+  ),
+)
 
 // 情境四：每個候選時段各自的結束時間須晚於該時段自己的開始時間
 function slotEndTimeOptions(slot) {
-  if (!slot.startTime) return timeOptions
-  const startHour = parseHourFromTimeStr(slot.startTime)
-  return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
+  return excludeNotAfterStart(slot.startTime, timeOptions)
 }
 
 // 情境四：每個候選時段的開始時間——只看該時段自己的日期是不是今天，不受其他候選時段的日期影響
 function slotStartTimeOptions(date) {
-  if (date !== formatDateValue(new Date())) return timeOptions
-  const currentHour = new Date().getHours()
-  return timeOptions.filter((t) => parseHourFromTimeStr(t) > currentHour)
+  return excludePastHoursIfToday(date === formatDateValue(new Date()), timeOptions)
 }
 
 // 情境二：時段範圍結束時間須晚於開始時間
-const timeWindowEndTimeOptions = computed(() => {
-  if (!timeWindow.startTime) return timeOptions
-  const startHour = parseHourFromTimeStr(timeWindow.startTime)
-  return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
-})
+const timeWindowEndTimeOptions = computed(() =>
+  excludeNotAfterStart(timeWindow.startTime, timeOptions),
+)
 
 // 情境二：時段範圍開始時間——singleDate 是今天時，排除已經過去的小時
-const timeWindowStartOptions = computed(() => {
-  if (form.singleDate !== formatDateValue(new Date())) return timeOptions
-  const currentHour = new Date().getHours()
-  return timeOptions.filter((t) => parseHourFromTimeStr(t) > currentHour)
-})
+const timeWindowStartOptions = computed(() =>
+  excludePastHoursIfToday(form.singleDate === formatDateValue(new Date()), timeOptions),
+)
 
 const activeDateField = computed(() =>
   dateFields.includes(activePicker.value) ? activePicker.value : 'startDate',
@@ -1314,27 +1287,11 @@ const monthTitle = computed(() => {
 const dateCells = computed(() => {
   const todayValue = formatDateValue(new Date())
   const minDate = activeDateField.value === 'endDate' ? form.startDate : todayValue
-
-  const firstDay = startOfMonth(visibleMonth.value)
-  const startOffset = firstDay.getDay()
-  const gridStart = new Date(firstDay)
-  gridStart.setDate(firstDay.getDate() - startOffset)
-
-  return Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(gridStart)
-    date.setDate(gridStart.getDate() + index)
-    const dateValue = formatDateValue(date)
-
-    return {
-      key: dateValue,
-      date,
-      label: date.getDate(),
-      isCurrentMonth: date.getMonth() === visibleMonth.value.getMonth(),
-      isSelected: selectedDate.value ? isSameDate(date, selectedDate.value) : false,
-      isToday: isSameDate(date, new Date()),
-      isDisabled: dateValue < minDate,
-    }
-  })
+  return buildMonthGridCells(visibleMonth.value).map((cell) => ({
+    ...cell,
+    isSelected: selectedDate.value ? isSameDate(cell.date, selectedDate.value) : false,
+    isDisabled: cell.key < minDate,
+  }))
 })
 
 // 流團時間／緊急判斷的錨點日期時間：情境二用「已確定的日期」+「時段範圍的開始時間」，
@@ -1818,6 +1775,29 @@ function isSameDate(firstDate, secondDate) {
     firstDate.getMonth() === secondDate.getMonth() &&
     firstDate.getDate() === secondDate.getDate()
   )
+}
+
+// 三個情境的月曆共用的 42 格網格數學（算第一天、往前補到週日、產生 42 格）。
+// 每格的情境專屬欄位（isSelected/isCandidate/isEditing/isConfigured/isDisabled）
+// 由呼叫端疊加，這裡不需要知道是哪個情境——key 本身就是每格的日期字串，可以直接當
+// 比較用的日期值，不用另外多存一個 dateValue 欄位
+function buildMonthGridCells(month) {
+  const firstDay = startOfMonth(month)
+  const startOffset = firstDay.getDay()
+  const gridStart = new Date(firstDay)
+  gridStart.setDate(firstDay.getDate() - startOffset)
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(gridStart)
+    date.setDate(gridStart.getDate() + index)
+    return {
+      key: formatDateValue(date),
+      date,
+      label: date.getDate(),
+      isCurrentMonth: date.getMonth() === month.getMonth(),
+      isToday: isSameDate(date, new Date()),
+    }
+  })
 }
 
 function createTimeOptions() {
