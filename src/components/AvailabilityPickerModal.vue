@@ -113,7 +113,7 @@
                         class="w-full border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-1.5 py-1.5 font-bold text-[var(--bujo-ink)] text-[13px] outline-none transition-colors duration-150 hover:border-[var(--bujo-accent)] text-left"
                         :class="{ 'border-[var(--bujo-accent)]': activeTimePicker === `from-${i}` }"
                         type="button"
-                        @click="openTimePicker(`from-${i}`, $el.parentElement)"
+                        @click="openTimePicker(`from-${i}`, $event.currentTarget.parentElement)"
                       >
                         {{ toLabel(range.from) }}
                       </button>
@@ -147,7 +147,7 @@
                         class="w-full border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-1.5 py-1.5 font-bold text-[var(--bujo-ink)] text-[13px] outline-none transition-colors duration-150 hover:border-[var(--bujo-accent)] text-left"
                         :class="{ 'border-[var(--bujo-accent)]': activeTimePicker === `to-${i}` }"
                         type="button"
-                        @click="openTimePicker(`to-${i}`, $el.parentElement)"
+                        @click="openTimePicker(`to-${i}`, $event.currentTarget.parentElement)"
                       >
                         {{ toLabel(range.to) }}
                       </button>
