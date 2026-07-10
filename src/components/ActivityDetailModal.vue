@@ -112,7 +112,9 @@
           class="activity-detail-options"
         >
           <template v-if="isScenarioCMode">
-            <div class="activity-detail-label">你選擇的日期</div>
+            <div class="activity-detail-label">
+              {{ activity.has_joined ? '你已選擇的日期' : '選擇你方便的日期' }}
+            </div>
             <div v-if="selectedScenarioCDateLabels.length" class="activity-detail-date-list">
               <span v-for="date in selectedScenarioCDateLabels" :key="date">{{ date }}</span>
             </div>
@@ -146,7 +148,7 @@
           "
           class="activity-detail-options"
         >
-          <div class="activity-detail-label">你選擇的日期</div>
+          <div class="activity-detail-label">你已選擇的日期</div>
           <div v-if="selectedScenarioCDateLabels.length" class="activity-detail-date-list">
             <span v-for="date in selectedScenarioCDateLabels" :key="date">{{ date }}</span>
           </div>
@@ -347,6 +349,7 @@
     :time-window-end="activity.time_window_end"
     :allowed-dates="scenarioCCandidateDates"
     :date-only="isScenarioCMode"
+    :fixed-time-label="scenarioCFixedTimeLabel"
     :initial-dates="scenarioCInitialDates"
     @confirm="handlePickerConfirm"
   />
@@ -416,6 +419,15 @@ const scenarioCInitialDates = computed(() => {
 const selectedScenarioCDateLabels = computed(() =>
   scenarioCSelectedDates.value.map((date) => formatDateKey(date)),
 )
+
+const scenarioCFixedTimeLabel = computed(() => {
+  const slots = activity.value?.candidate_slots ?? []
+  if (!slots.length) return ''
+  if (slots.every((slot) => slot.all_day)) return '整日'
+  const start = new Date(slots[0].slot_start)
+  const end = new Date(slots[0].slot_end)
+  return `${formatTime(start)} – ${formatTime(end)}`
+})
 
 const availabilityPickerRangeStart = computed(() => {
   if (isScenarioCMode.value && scenarioCCandidateDates.value.length) {

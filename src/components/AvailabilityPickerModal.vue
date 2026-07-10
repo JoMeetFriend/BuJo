@@ -1,7 +1,7 @@
 <template>
   <BaseModal
     :isOpen="modelValue"
-    title="選取有空時間"
+    :title="dateOnly ? '選擇可參加日期' : '選取有空時間'"
     :scrollable="!fixedDate"
     :max-width="fixedDate ? '440px' : '800px'"
     @close="close"
@@ -14,7 +14,8 @@
       <div
         class="bg-[var(--bujo-surface-muted)] border-b border-[var(--bujo-line-soft)] px-4 py-1.5 shrink-0 text-[12px] font-bold text-[var(--bujo-muted-strong)]"
       >
-        <template v-if="fixedDate">
+        <template v-if="dateOnly"> 活動時間：{{ fixedTimeLabel }} </template>
+        <template v-else-if="fixedDate">
           活動時間：{{ formatChip(fixedDate)
           }}{{ hasTimeWindow ? `　${toLabel(timeWindowStart)} – ${toLabel(timeWindowEnd)}` : '' }}
         </template>
@@ -252,6 +253,12 @@
             >
               {{ item.chip }} {{ item.label }}
             </button>
+            <span
+              v-if="dateOnly"
+              class="flex items-center text-[10px] md:text-[12px] font-black text-[var(--bujo-muted-strong)] shrink-0"
+            >
+              已選 {{ summaryItems.length }} 天
+            </span>
           </template>
         </div>
         <div
@@ -283,6 +290,7 @@ const props = defineProps({
   timeWindowEnd: { type: String, default: null },
   allowedDates: { type: Array, default: () => [] },
   dateOnly: { type: Boolean, default: false },
+  fixedTimeLabel: { type: String, default: '' },
   initialDates: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['update:modelValue', 'confirm'])
@@ -710,7 +718,7 @@ function findOverlapConflictDate() {
 
 function handleConfirm() {
   if (props.dateOnly && Object.keys(selectedDates.value).length === 0) {
-    confirmError.value = '請至少選擇一個日期'
+    confirmError.value = '請至少選擇一天'
     return
   }
 

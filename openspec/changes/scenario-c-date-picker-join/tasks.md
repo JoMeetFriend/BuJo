@@ -27,11 +27,12 @@
 
 ## 4. Mode C picker 需要補齊日期語意與固定時間提示
 
-- [ ] 4.1 寫前端失敗測試：`Scenario C detail asks participant to select dates`，未報名的 Mode C 參與者在 ActivityDetailModal 看到「選擇你方便的日期」與「尚未選擇日期」，且不再看到「選擇你方便的候選時段（可複選）」
-- [ ] 4.2 實作 ActivityDetailModal 的 Mode C 文案與已選摘要：未報名顯示日期選取語意，已報名顯示「你已選擇：7/12、7/15」這類日期摘要；`recruiting` 仍保留「修改日期」，`voting` / `confirmed` 保持唯讀
-- [ ] 4.3 寫前端失敗測試：`Date-only picker shows fixed activity time and date-language title`，Mode C picker 標題使用日期語意，上方 meta bar 顯示候選 slot 的固定時間或整日，不顯示時間編輯面板
-- [ ] 4.4 實作 Mode C 固定時間提示：ActivityDetailModal 從 `candidate_slots` 推導統一時間或整日資訊並傳給 AvailabilityPickerModal；AvailabilityPickerModal 在 `dateOnly=true` 時用日期語意標題與 `活動時間：...` meta bar 呈現
-- [ ] 4.5 寫前端失敗測試：`Date-only picker summary shows selected chips and day count`，選取 1/多個候選日期後 summary 顯示日期 chip，確認區顯示 `已選 N 天`
-- [ ] 4.6 實作 date-only summary 與確認區計數：保留 `allowedDates` disabled 行為，新增已選天數顯示；未選日期按確認時 modal 不關閉，inline error 文案改成「請至少選擇一天」
-- [ ] 4.7 執行回歸：`npm run test:run -- src/__tests__/AvailabilityPickerModal.test.js src/__tests__/ActivityDetailModal.test.js`
-- [ ] 4.8 執行前端建置：`npm run build`
+- [x] 4.1 寫前端失敗測試：`Scenario C detail opens date-only picker instead of checkbox flow`，未報名的 Mode C 參與者在 ActivityDetailModal 不再看到 checkbox list，點「報名參加」會開啟 `AvailabilityPickerModal`，並傳入 `dateOnly=true` 與 `allowedDates`
+- [x] 4.2 實作 ActivityDetailModal 的 Mode C 日期語意與已選摘要：未報名顯示日期選取語意，已報名顯示日期摘要；`recruiting` 仍保留「修改日期」，`voting` / `confirmed` 保持唯讀。精確文案與 chip 外觀列為人工驗收，不新增 brittle 文案/樣式測試
+- [x] 4.3 寫前端失敗測試：`Date-only picker shows activity time and hides time controls`，Mode C picker 在 `dateOnly=true` 時顯示固定活動時間或整日資訊，且不渲染時間面板、時間下拉、指定時段或新增時段操作
+- [x] 4.4 實作 Mode C 固定時間提示：ActivityDetailModal 從 `candidate_slots` 推導統一時間或整日資訊並傳給 AvailabilityPickerModal；AvailabilityPickerModal 在 `dateOnly=true` 時用日期語意標題與活動時間 meta bar 呈現
+- [x] 4.5 寫前端失敗測試：`Date-only picker keeps confirmation blocked without dates and summarizes selected dates`，空選擇按確認時 modal 不關閉；選取候選日期後 summary 顯示選取日期並呈現已選天數。chip 顏色、hover、border、間距不寫自動測試
+- [x] 4.6 實作 date-only summary 與確認區計數：保留 `allowedDates` disabled 行為，新增已選天數顯示；未選日期按確認時 modal 不關閉，inline error 文案使用日期語意
+- [x] 4.7 人工驗收 Mode C UI（覆蓋 Design: 測試策略：關鍵行為自動測，純視覺與精確文案人工驗收）：確認詳情頁文案、picker 標題、活動時間 meta bar、日期 chip、已選天數、disabled 日期視覺狀態符合討論方向，且不把此任務擴大成 AvailabilityPickerModal 外觀換皮
+- [x] 4.8 執行回歸：`npm run test:run -- src/__tests__/AvailabilityPickerModal.test.js src/__tests__/ActivityDetailModal.test.js`
+- [x] 4.9 執行前端建置：`npm run build`

@@ -79,7 +79,32 @@ describe('AvailabilityPickerModal - dateOnly 與 allowedDates', () => {
 
     expect(wrapper.emitted('confirm')).toBeUndefined()
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
-    expect(wrapper.text()).toContain('請至少選擇一個日期')
+    expect(wrapper.text()).toContain('請至少選擇一天')
+  })
+
+  test('Date-only picker shows fixed activity time and date-language title', () => {
+    const wrapper = mountDateOnly({ fixedTimeLabel: '下午 7:00 – 下午 9:00' })
+
+    expect(wrapper.text()).not.toContain('選取有空時間')
+    expect(wrapper.text()).toContain('選擇可參加日期')
+    expect(wrapper.text()).toContain('活動時間：下午 7:00 – 下午 9:00')
+    expect(wrapper.text()).not.toContain('活動日期範圍')
+    expect(wrapper.find('.time-picker-wrap').exists()).toBe(false)
+
+    const allDayWrapper = mountDateOnly({ fixedTimeLabel: '整日' })
+    expect(allDayWrapper.text()).toContain('活動時間：整日')
+    expect(allDayWrapper.find('.time-picker-wrap').exists()).toBe(false)
+  })
+
+  test('Date-only picker summary shows selected chips and day count', async () => {
+    const wrapper = mountDateOnly()
+
+    await findDay(wrapper, 3).trigger('mousedown')
+    expect(wrapper.text()).toContain('已選 1 天')
+
+    await wrapper.find('[aria-label="下一個月"]').trigger('click')
+    await findDay(wrapper, 2).trigger('mousedown')
+    expect(wrapper.text()).toContain('已選 2 天')
   })
 })
 

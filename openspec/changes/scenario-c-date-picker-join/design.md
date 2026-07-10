@@ -58,6 +58,27 @@ Mode B 已完成「range 模式 + AvailabilityPickerModal」報名流程，但 M
 
 固定時間提示由前端從 Mode C 的 `candidate_slots` 推導：若所有候選 slot 都是 `all_day=true`，顯示整日；否則取統一的 `slot_start` / `slot_end` 時分格式化。Mode C 的後端資料模型仍是 slot，因此不新增後端欄位。
 
+### 測試策略：關鍵行為自動測，純視覺與精確文案人工驗收
+
+Mode C 的補齊包含資料流、互動狀態與 UI 呈現。自動測試只覆蓋容易回歸且會破壞流程的行為，不為每個精確文案、chip 樣式、disabled 顏色、hover 效果或排版寫測試，避免測試過度脆弱。
+
+需要自動測試的部分：
+
+- ActivityDetailModal 在 `schedule_variant === 'find_date'` 時不走舊 checkbox 流程，點報名會開 date-only picker
+- AvailabilityPickerModal 在 `dateOnly=true` 時隱藏時間面板，且顯示固定活動時間或整日資訊
+- `allowedDates` 非候選日期不可被選取
+- 空選擇按確認時 modal 不關閉，且有 inline validation
+- 選取日期後仍能轉成正確 `candidateSlotIds`
+- `recruiting` 已報名可修改，`voting` / `confirmed` 不可修改
+
+只需要人工驗收的部分：
+
+- 精確文案是否符合產品語氣，例如「選擇你方便的日期」或等價日期語意
+- chip 的顏色、border、hover、間距、圓角與視覺層次
+- 確認區「已選 N 天」的呈現位置與排版
+- disabled 日期的視覺樣式是否足夠清楚
+- modal 標題與 meta bar 的字距、留白與整體觀感
+
 ### Mode C confirm 轉回 candidateSlotIds 而不是 ranges
 
 ActivityDetailModal 建立 `date -> candidateSlotId` 對照表：以 `candidate_slots[*].slot_start` 的本地日期字串作為 key。Mode C picker confirm 後，將選取日期轉成對應 `candidateSlotIds` 呼叫既有 `POST /:id/join` slot 分支。

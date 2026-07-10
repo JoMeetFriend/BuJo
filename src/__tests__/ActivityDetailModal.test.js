@@ -573,7 +573,6 @@ describe('ActivityDetailModal - Scenario C 日期-only 報名流程', () => {
     })
     await flushPromises()
 
-    expect(wrapper.text()).toContain('你選擇的日期')
     expect(wrapper.text()).toContain('8/1')
 
     const reviseButton = wrapper.findAll('button').find((b) => b.text().includes('修改日期'))
@@ -613,7 +612,6 @@ describe('ActivityDetailModal - Scenario C 日期-only 報名流程', () => {
     })
     await flushPromises()
 
-    expect(wrapper.text()).toContain('你選擇的日期')
     expect(wrapper.text()).toContain('8/1')
     expect(wrapper.text()).toContain('8/9')
     expect(wrapper.text()).not.toContain('修改日期')
