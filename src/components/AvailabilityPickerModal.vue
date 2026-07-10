@@ -2,13 +2,13 @@
   <BaseModal
     :isOpen="modelValue"
     title="選取有空時間"
-    scrollable
+    :scrollable="!fixedDate"
     :max-width="fixedDate ? '440px' : '800px'"
     @close="close"
   >
     <div
-      class="font-nunito flex flex-col overflow-hidden -mx-5 -my-4"
-      :class="fixedDate ? '' : 'h-[70vh] md:h-[550px]'"
+      class="font-nunito flex flex-col -mx-5 -my-4"
+      :class="fixedDate ? '' : 'h-[70vh] md:h-[550px] overflow-hidden'"
     >
       <!-- Activity range -->
       <div
@@ -23,7 +23,8 @@
 
       <!-- Body -->
         <div
-          class="flex md:flex-row flex-col flex-1 min-h-0 overflow-y-auto md:overflow-hidden"
+          class="flex md:flex-row flex-col flex-1 min-h-0"
+          :class="fixedDate ? '' : 'overflow-y-auto md:overflow-hidden'"
         >
           <!-- 日曆區：fixedDate 模式下不渲染，只顯示固定日期的時段選取面板 -->
           <div
