@@ -66,7 +66,7 @@
           </div>
 
           <!-- 時段面板 -->
-          <div class="p-4 min-w-0 md:flex-1 md:overflow-y-auto">
+          <div class="p-4 min-w-0 md:flex-1" :class="fixedDate ? '' : 'md:overflow-y-auto'">
             <!-- 無聚焦日期 -->
             <div
               v-if="!activeDate || !(activeDate in selectedDates)"
