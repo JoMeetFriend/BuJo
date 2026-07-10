@@ -75,12 +75,16 @@ describe('useFriendStore', () => {
 
       const result = await store.addFriend('user-2')
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/friendships/request', { receiver_id: 'user-2' })
+      expect(apiClient.post).toHaveBeenCalledWith('/api/friendships/request', {
+        receiver_id: 'user-2',
+      })
       expect(result).toEqual({ success: true })
     })
 
     it('送出好友邀請失敗時回傳後端錯誤訊息與狀態碼', async () => {
-      apiClient.post.mockRejectedValue({ response: { status: 409, data: { message: '已經是好友' } } })
+      apiClient.post.mockRejectedValue({
+        response: { status: 409, data: { message: '已經是好友' } },
+      })
       const store = useFriendStore()
 
       const result = await store.addFriend('user-2')

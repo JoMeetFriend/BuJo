@@ -852,7 +852,9 @@
               >
                 {{ preset.label }}
               </button>
-              <span v-if="deadlineValidPresets.length === 0" class="text-xs text-[var(--bujo-muted)]"
+              <span
+                v-if="deadlineValidPresets.length === 0"
+                class="text-xs text-[var(--bujo-muted)]"
                 >目前沒有可選的流團時間</span
               >
             </div>
@@ -1038,7 +1040,12 @@ function selectSlotTime(slot, field, time) {
 
 // 情境三：候選日期（日期開放投票，時間固定）
 const candidateDates = ref([])
-const uniformTime = reactive({ startTime: null, endTime: null, allDay: false, endTimeUserSet: false })
+const uniformTime = reactive({
+  startTime: null,
+  endTime: null,
+  allDay: false,
+  endTimeUserSet: false,
+})
 
 const candidateDateCells = computed(() => {
   const todayValue = formatDateValue(new Date())
@@ -1239,14 +1246,13 @@ const currentPickerTimeOptions = computed(() =>
 )
 
 // 情境三：統一結束時間須晚於統一開始時間
-const uniformEndTimeOptions = computed(() => excludeNotAfterStart(uniformTime.startTime, timeOptions))
+const uniformEndTimeOptions = computed(() =>
+  excludeNotAfterStart(uniformTime.startTime, timeOptions),
+)
 
 // 情境三：統一開始時間——今天的日期存在於候選日期時，排除已經過去的小時
 const uniformStartTimeOptions = computed(() =>
-  excludePastHoursIfToday(
-    candidateDates.value.includes(formatDateValue(new Date())),
-    timeOptions,
-  ),
+  excludePastHoursIfToday(candidateDates.value.includes(formatDateValue(new Date())), timeOptions),
 )
 
 // 情境四：每個候選時段各自的結束時間須晚於該時段自己的開始時間
@@ -1547,7 +1553,11 @@ async function doSubmitInternal() {
   const deadlineISO = isUrgent.value
     ? (parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time)?.toISOString() ??
       null)
-    : computeDeadlineISO(scheduleAnchor.value.date, scheduleAnchor.value.time, deadlineOffsetMs.value)
+    : computeDeadlineISO(
+        scheduleAnchor.value.date,
+        scheduleAnchor.value.time,
+        deadlineOffsetMs.value,
+      )
 
   // 最後一道防線：即使流團設定改用預設選項（選的當下一定還在未來），送出前還是要重新驗證一次，
   // 避免選好之後過了一段時間才送出，計算出的流團時間其實已經不晚於現在

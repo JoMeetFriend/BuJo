@@ -640,8 +640,7 @@ function isToday(date) {
   height: 100%;
   overflow: hidden;
   background-color: #f5f3ec;
-  background-image:
-    radial-gradient(circle, rgb(var(--bujo-line-rgb) / 0.11) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgb(var(--bujo-line-rgb) / 0.11) 1px, transparent 1px);
   background-position: 0 0;
   background-size: 24px 24px;
   color: var(--bujo-text-body);
