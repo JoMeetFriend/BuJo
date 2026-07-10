@@ -275,7 +275,8 @@
             v-if="activity.status === 'recruiting' && !activity.has_joined"
             type="button"
             :disabled="
-              actionLoading || (activity.requires_voting && selectedJoinSlotIds.length === 0)
+              actionLoading ||
+              (activity.requires_voting && !isRangeMode && selectedJoinSlotIds.length === 0)
             "
             @click="handleJoin"
           >

@@ -437,7 +437,7 @@ describe('ActivityDetailModal - availability_mode: slot 的活動行為維持現
 function makeRangeActivity(overrides = {}) {
   return makeActivity({
     availability_mode: 'range',
-    requires_voting: false,
+    requires_voting: true,
     is_creator: false,
     has_joined: false,
     status: 'recruiting',
