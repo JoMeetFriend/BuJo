@@ -1,5 +1,7 @@
 <template>
-  <main class="min-h-screen shrink-0 bg-[var(--bujo-page)] px-5 pt-8 pb-4 md:px-14 text-[var(--bujo-ink)]">
+  <main
+    class="min-h-screen shrink-0 bg-[var(--bujo-page)] px-5 pt-8 pb-4 md:px-14 text-[var(--bujo-ink)]"
+  >
     <!-- 頁首 -->
     <header class="mb-5">
       <p class="profile-eyebrow">ACCOUNT SETTINGS</p>
@@ -78,22 +80,40 @@
       <header class="profile-section-header">
         <h2>基本資料</h2>
       </header>
-      <form class="px-5 py-4 grid gap-4" @submit.prevent>
+      <form class="px-5 py-4 grid gap-4" @submit.prevent="handleNameSubmit">
         <label class="grid gap-1.5">
           <span class="text-xs font-semibold text-[var(--bujo-ink)]">
             修改顯示名稱 <strong class="text-[var(--bujo-muted-strong)]">*</strong>
           </span>
           <input
+            v-model="editName"
+            :disabled="userStore.isLoading"
             class="profile-input h-9 w-full px-4 text-[12px]"
             type="text"
             placeholder="請輸入顯示名稱"
+            @input="userStore.errorMsg = ''"
           />
           <p class="text-xs text-[var(--bujo-muted)]">顯示名稱會出現在揪團、行事曆與留言中。</p>
         </label>
 
+        <p v-if="userStore.errorMsg" class="text-xs text-[#dc2626]" aria-live="polite">
+          {{ userStore.errorMsg }}
+        </p>
+        <p v-if="userStore.successMsg" class="text-xs text-[var(--bujo-ink)]" aria-live="polite">
+          {{ userStore.successMsg }}
+        </p>
+
         <div class="mt-1 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <PixelButton variant="white" type="button">取消</PixelButton>
-          <PixelButton type="submit">儲存變更</PixelButton>
+          <PixelButton
+            variant="white"
+            type="button"
+            :disabled="userStore.isLoading"
+            @click="editName = authStore.user?.display_name || ''"
+            >取消</PixelButton
+          >
+          <PixelButton type="submit" :disabled="userStore.isLoading">{{
+            userStore.isLoading ? '儲存中...' : '儲存變更'
+          }}</PixelButton>
         </div>
       </form>
 
@@ -238,8 +258,10 @@ import { ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
 import PixelButton from './ui/PixelButton.vue'
 import { useAuthStore } from '@/stores/auth'
 import { toAvatarSrc } from '@/utils/avatar'
+import { useUserStore } from '@/stores/userStore'
 
 const authStore = useAuthStore()
+const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
 const API = import.meta.env.VITE_API_URL || ''
@@ -253,6 +275,7 @@ const logoutLoading = ref(false)
 const linkMsg = ref('')
 const linkMsgType = ref('success')
 const copyStatus = ref('idle')
+const editName = ref(authStore.user?.display_name || '')
 
 const identities = computed(() => authStore.user?.identities ?? [])
 const identityCount = computed(() => identities.value.length)
@@ -433,6 +456,11 @@ onMounted(async () => {
   }
   document.head.appendChild(script)
 })
+
+const handleNameSubmit = async () => {
+  await userStore.updateName(editName.value)
+  editName.value = authStore.user?.display_name || ''
+}
 </script>
 
 <style scoped>
