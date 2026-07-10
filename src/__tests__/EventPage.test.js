@@ -265,6 +265,114 @@ describe('EventPage - 情境二/三/四開始時間選單排除今天已過去�
   })
 })
 
+// 這組測試是重構「時間過濾/月曆格子共用邏輯」前先補上的安全網——鎖住目前（重構前）
+// 已經存在但完全沒被測過的行為，重構前後都要跑過、結果要一致，用來證明重構沒有偷偷
+// 改變行為。不是抓 bug 用的 red→green，是等價性驗證。
+describe('EventPage - 月曆格子與結束時間過濾（重構前安全網）', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 6, 15, 9, 30))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  test('情境三 candidateDateCells：候選日期格子 isSelected 為 true，今天以前的日期 isDisabled 為 true', async () => {
+    const wrapper = await mountEventPage()
+    wrapper.vm.dateMode = 'range'
+    wrapper.vm.timeMode = 'fixed'
+    wrapper.vm.candidateDates = ['2026/07/15', '2026/07/20']
+    await flushPromises()
+
+    const selectedCell = wrapper.vm.candidateDateCells.find((c) => c.key === '2026/07/20')
+    const pastCell = wrapper.vm.candidateDateCells.find((c) => c.key === '2026/07/01')
+    const notSelectedCell = wrapper.vm.candidateDateCells.find((c) => c.key === '2026/07/16')
+
+    expect(selectedCell.isSelected).toBe(true)
+    expect(pastCell.isDisabled).toBe(true)
+    expect(notSelectedCell.isSelected).toBe(false)
+
+    wrapper.unmount()
+  })
+
+  test('情境四 scenario4DateCells：候選時段日期 isCandidate/isConfigured 為 true，編輯中日期 isEditing 為 true', async () => {
+    const wrapper = await mountEventPage()
+    wrapper.vm.candidateSlots = [
+      { date: '2026/07/15', timeSlots: [{ id: 1, startTime: '上午 10:00', endTime: '上午 11:00' }] },
+      { date: '2026/07/20', timeSlots: [{ id: 2, startTime: null, endTime: null }] },
+    ]
+    wrapper.vm.editingSlotDate = '2026/07/15'
+    await flushPromises()
+
+    const configuredCell = wrapper.vm.scenario4DateCells.find((c) => c.key === '2026/07/15')
+    const unconfiguredCell = wrapper.vm.scenario4DateCells.find((c) => c.key === '2026/07/20')
+    const notCandidateCell = wrapper.vm.scenario4DateCells.find((c) => c.key === '2026/07/21')
+
+    expect(configuredCell.isCandidate).toBe(true)
+    expect(configuredCell.isConfigured).toBe(true)
+    expect(configuredCell.isEditing).toBe(true)
+    expect(unconfiguredCell.isCandidate).toBe(true)
+    expect(unconfiguredCell.isConfigured).toBe(false)
+    expect(unconfiguredCell.isEditing).toBe(false)
+    expect(notCandidateCell.isCandidate).toBe(false)
+
+    wrapper.unmount()
+  })
+
+  test('月曆格子 isToday：等於今天的格子為 true，其餘為 false', async () => {
+    const wrapper = await mountEventPage()
+    await flushPromises()
+
+    const todayCell = wrapper.vm.dateCells.find((c) => c.key === '2026/07/15')
+    const otherCell = wrapper.vm.dateCells.find((c) => c.key === '2026/07/16')
+
+    expect(todayCell.isToday).toBe(true)
+    expect(otherCell.isToday).toBe(false)
+
+    wrapper.unmount()
+  })
+
+  test('情境二 timeWindowEndTimeOptions：排除不晚於已選開始時間的選項', async () => {
+    const wrapper = await mountEventPage()
+    enterScenario2()
+    await flushPromises()
+
+    wrapper.vm.timeWindow.startTime = '上午 9:00'
+    await flushPromises()
+
+    expect(wrapper.vm.timeWindowEndTimeOptions).not.toContain('上午 9:00')
+    expect(wrapper.vm.timeWindowEndTimeOptions[0]).toBe('上午 10:00')
+
+    wrapper.unmount()
+  })
+
+  test('情境三 uniformEndTimeOptions：排除不晚於已選開始時間的選項', async () => {
+    const wrapper = await mountEventPage()
+    wrapper.vm.dateMode = 'range'
+    wrapper.vm.timeMode = 'fixed'
+    wrapper.vm.uniformTime.startTime = '上午 9:00'
+    await flushPromises()
+
+    expect(wrapper.vm.uniformEndTimeOptions).not.toContain('上午 9:00')
+    expect(wrapper.vm.uniformEndTimeOptions[0]).toBe('上午 10:00')
+
+    wrapper.unmount()
+  })
+
+  test('情境四 slotEndTimeOptions：排除不晚於該時段自己已選開始時間的選項', async () => {
+    const wrapper = await mountEventPage()
+    await flushPromises()
+
+    const options = wrapper.vm.slotEndTimeOptions({ startTime: '上午 9:00', endTime: null })
+
+    expect(options).not.toContain('上午 9:00')
+    expect(options[0]).toBe('上午 10:00')
+
+    wrapper.unmount()
+  })
+})
+
 describe('EventPage - 情境二/三/四距今 ≤ 1 小時也要顯示緊急警告（原本只有情境一有）', () => {
   beforeEach(() => {
     vi.useFakeTimers()
