@@ -232,6 +232,12 @@
               </button>
             </template>
           </div>
+          <div
+            v-if="confirmError"
+            class="mt-1 flex items-start gap-2 border border-[#dc2626] bg-[var(--bujo-surface)] px-2 py-1.5 text-[11px] text-[#dc2626]"
+          >
+            ⚠️ {{ confirmError }}
+          </div>
         </div>
       </div>
     <template #footer>
@@ -271,6 +277,7 @@ function defaultDayValue() {
 // key = 'YYYY-MM-DD', value = null（整天）或 [{from,to},...]
 const selectedDates = ref(props.fixedDate ? { [props.fixedDate]: defaultDayValue() } : {})
 const activeDate = ref(props.fixedDate ?? null)
+const confirmError = ref('')
 const dragState = reactive({ active: false, startDate: null, hovering: new Set() })
 
 // ── 日曆 computed ──
@@ -404,13 +411,27 @@ function addRange() {
   if (!Array.isArray(selectedDates.value[activeDate.value])) {
     selectedDates.value[activeDate.value] = []
   }
+  confirmError.value = ''
+  const existing = selectedDates.value[activeDate.value]
   const fallback = hasTimeWindow.value
     ? { from: props.timeWindowStart, to: props.timeWindowEnd }
     : { from: '09:00', to: '17:00' }
-  selectedDates.value[activeDate.value].push({ ...fallback, endTimeUserSet: false })
+  // 預設值不直接沿用固定的 fallback——如果已經有時段，接在最後一筆的結束時間之後，
+  // 避免使用者連續點兩次「+ 新增時段」時，兩筆時段預設值完全相同（一開始就重疊）
+  let from = fallback.from
+  let to = fallback.to
+  const last = existing[existing.length - 1]
+  if (last?.to && last.to < fallback.to) {
+    from = last.to
+    const nextHour = parseInt(from.split(':')[0]) + 1
+    const windowEndHour = parseInt(fallback.to.split(':')[0])
+    to = nextHour < windowEndHour ? `${String(nextHour).padStart(2, '0')}:00` : fallback.to
+  }
+  existing.push({ from, to, endTimeUserSet: false })
 }
 
 function removeRange(i) {
+  confirmError.value = ''
   selectedDates.value[activeDate.value].splice(i, 1)
   if (selectedDates.value[activeDate.value].length === 0) {
     selectedDates.value[activeDate.value] = defaultDayValue()
@@ -550,6 +571,7 @@ function openTimePicker(key, wrapEl) {
 }
 
 function selectRangeStart(range, value) {
+  confirmError.value = ''
   range.from = value
   if (range.endTimeUserSet) {
     // 使用者已經手動選過結束時間：只有在新的開始時間讓它不再合理時才清掉，不然尊重使用者的選擇
@@ -567,6 +589,7 @@ function selectRangeStart(range, value) {
 }
 
 function selectRangeEnd(range, value) {
+  confirmError.value = ''
   range.to = value
   range.endTimeUserSet = true
   closeTimePicker()
@@ -599,10 +622,37 @@ function close() {
   // fixedDate 模式沒有日曆可以重新選日期，清空會卡在「選取日期」這個死路
   selectedDates.value = props.fixedDate ? { [props.fixedDate]: defaultDayValue() } : {}
   activeDate.value = props.fixedDate ?? null
+  confirmError.value = ''
   emit('update:modelValue', false)
 }
 
+// 兩個時段重疊的判斷：a 的開始早於 b 的結束，且 b 的開始早於 a 的結束。
+// 首尾相接（例如 10:00–11:00 跟 11:00–12:00）不算重疊，允許無縫銜接。
+// 完全相同的兩筆時段也會被這個公式判定為重疊，不用另外寫重複檢查。
+function rangesOverlap(a, b) {
+  return a.from < b.to && b.from < a.to
+}
+
+function findOverlapConflictDate() {
+  for (const [date, ranges] of Object.entries(selectedDates.value)) {
+    if (!Array.isArray(ranges)) continue
+    for (let i = 0; i < ranges.length; i++) {
+      for (let j = i + 1; j < ranges.length; j++) {
+        if (rangesOverlap(ranges[i], ranges[j])) return date
+      }
+    }
+  }
+  return null
+}
+
 function handleConfirm() {
+  const conflictDate = findOverlapConflictDate()
+  if (conflictDate) {
+    confirmError.value = `${formatChip(conflictDate)} 有重疊或重複的時段，請修改後再送出`
+    activeDate.value = conflictDate
+    return
+  }
+  confirmError.value = ''
   const result = Object.entries(selectedDates.value).map(([date, ranges]) => ({
     date,
     allDay: ranges === null || ranges.length === 0,
