@@ -1,6 +1,15 @@
 <template>
-  <BaseModal :isOpen="modelValue" title="選取有空時間" scrollable max-width="800px" @close="close">
-    <div class="font-nunito flex h-[70vh] md:h-[550px] flex-col overflow-hidden -mx-5 -my-4">
+  <BaseModal
+    :isOpen="modelValue"
+    title="選取有空時間"
+    scrollable
+    :max-width="fixedDate ? '440px' : '800px'"
+    @close="close"
+  >
+    <div
+      class="font-nunito flex flex-col overflow-hidden -mx-5 -my-4"
+      :class="fixedDate ? '' : 'h-[70vh] md:h-[550px]'"
+    >
       <!-- Activity range -->
       <div
         class="bg-[var(--bujo-surface-muted)] border-b border-[var(--bujo-line-soft)] px-4 py-1.5 shrink-0 text-[12px] font-bold text-[var(--bujo-muted-strong)]"
