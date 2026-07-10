@@ -1343,11 +1343,10 @@ const deadlineOffsetMs = computed(
 )
 
 // 目前選中的預設如果不再是有效清單裡的選項（或尚未選過），改選清單中最大（最早）的有效選項
+// scheduleAnchor 改變時一律重新選最大的有效預設（deadlineValidPresets 只在 anchor 改變時才會重新計算，
+// 手動點選預設按鈕本身不會影響 anchor，所以不會被這裡蓋掉）
 function syncDeadlinePresetSelection() {
-  const list = deadlineValidPresets.value
-  if (!list.some((p) => p.key === selectedDeadlinePresetKey.value)) {
-    selectedDeadlinePresetKey.value = list[0]?.key ?? null
-  }
+  selectedDeadlinePresetKey.value = deadlineValidPresets.value[0]?.key ?? null
 }
 
 watch(deadlineValidPresets, syncDeadlinePresetSelection, { immediate: true })
@@ -1356,9 +1355,7 @@ watch(deadlineValidPresets, syncDeadlinePresetSelection, { immediate: true })
 const deadlineDisplayText = computed(() => {
   const preset = DEADLINE_PRESETS.find((p) => p.key === selectedDeadlinePresetKey.value)
   if (!preset) return ''
-  const anchor =
-    parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time) ??
-    parseDateValue(scheduleAnchor.value.date)
+  const anchor = resolveDeadlineAnchor(scheduleAnchor.value.date, scheduleAnchor.value.time)
   if (!anchor) return ''
   const d = new Date(anchor.getTime() - preset.offsetMs)
   const period = d.getHours() < 12 ? '上午' : '下午'
@@ -1563,6 +1560,13 @@ async function doSubmitInternal() {
       null)
     : computeDeadlineISO(scheduleAnchor.value.date, scheduleAnchor.value.time, deadlineOffsetMs.value)
 
+  // 最後一道防線：即使流團設定改用預設選項（選的當下一定還在未來），送出前還是要重新驗證一次，
+  // 避免選好之後過了一段時間才送出，計算出的流團時間其實已經不晚於現在
+  if (!deadlineISO || new Date(deadlineISO) <= new Date()) {
+    submitError.value = '流團時間已經不在未來，請重新調整流團設定或活動時間'
+    return
+  }
+
   const commonPayload = {
     title: form.name,
     location: form.location || null,
@@ -1749,9 +1753,21 @@ function parseDateTimeValue(dateStr, timeStr) {
   return date
 }
 
-// 只回傳套用在 anchorDate/anchorTime 上仍然晚於現在的預設；anchorTime 缺漏時退回當天 00:00 當錨點
+// 沒有指定時間的日期（情境二沒填時段範圍、allDay 等）視為「整天都有可能發生」，
+// 用當天最晚的時間點（23:59:59）當計算基準，而不是當天 00:00——
+// 用 00:00 的話同一天的活動一定會被算成「已經過期」，當天的活動反而永遠不能設定流團時間
+function resolveDeadlineAnchor(dateStr, timeStr) {
+  const withTime = parseDateTimeValue(dateStr, timeStr)
+  if (withTime) return withTime
+  const dateOnly = parseDateValue(dateStr)
+  if (!dateOnly) return null
+  dateOnly.setHours(23, 59, 59, 999)
+  return dateOnly
+}
+
+// 只回傳套用在 anchorDate/anchorTime 上仍然晚於現在的預設
 function getValidDeadlinePresets(anchorDate, anchorTime) {
-  const anchor = parseDateTimeValue(anchorDate, anchorTime) ?? parseDateValue(anchorDate)
+  const anchor = resolveDeadlineAnchor(anchorDate, anchorTime)
   if (!anchor) return []
   const now = Date.now()
   return DEADLINE_PRESETS.filter((preset) => anchor.getTime() - preset.offsetMs > now)
@@ -1759,7 +1775,7 @@ function getValidDeadlinePresets(anchorDate, anchorTime) {
 
 function computeDeadlineISO(startDateStr, startTimeStr, offsetMs) {
   if (offsetMs == null) return null
-  const start = parseDateTimeValue(startDateStr, startTimeStr) ?? parseDateValue(startDateStr)
+  const start = resolveDeadlineAnchor(startDateStr, startTimeStr)
   if (!start) return null
   return new Date(start.getTime() - offsetMs).toISOString()
 }
