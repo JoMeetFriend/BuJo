@@ -1008,7 +1008,7 @@ const scenarioDescription = computed(() => {
 })
 
 // 情境二：選填的時段範圍，限制參與者可回報的時間
-const timeWindow = reactive({ startTime: null, endTime: null })
+const timeWindow = reactive({ startTime: null, endTime: null, endTimeUserSet: false })
 const openSlotPicker = ref(null) // `${slotId}:startTime` | `${slotId}:endTime` | null
 
 function toggleSlotPicker(key) {
@@ -1016,20 +1016,31 @@ function toggleSlotPicker(key) {
 }
 
 function selectSlotTime(slot, field, time) {
-  slot[field] = time
-  if (
-    field === 'startTime' &&
-    slot.endTime &&
-    parseHourFromTimeStr(slot.endTime) <= parseHourFromTimeStr(time)
-  ) {
-    slot.endTime = null
+  if (field === 'endTime') {
+    slot.endTime = time
+    slot.endTimeUserSet = true
+    openSlotPicker.value = null
+    return
+  }
+
+  slot.startTime = time
+  if (slot.endTimeUserSet) {
+    // 使用者已經手動選過結束時間：只有在新的開始時間讓它不再合理時才清掉，不然尊重使用者的選擇
+    if (slot.endTime && parseHourFromTimeStr(slot.endTime) <= parseHourFromTimeStr(time)) {
+      slot.endTime = null
+      slot.endTimeUserSet = false
+    }
+  } else {
+    // 還沒手動選過結束時間：自動帶入開始時間 +1 小時，一小時是常見的活動時長，省一次選取動作
+    const endHour = (parseHourFromTimeStr(time) + 1) % 24
+    slot.endTime = timeOptions[endHour]
   }
   openSlotPicker.value = null
 }
 
 // 情境三：候選日期（日期開放投票，時間固定）
 const candidateDates = ref([])
-const uniformTime = reactive({ startTime: null, endTime: null, allDay: false })
+const uniformTime = reactive({ startTime: null, endTime: null, allDay: false, endTimeUserSet: false })
 
 const candidateDateCells = computed(() => {
   const todayValue = formatDateValue(new Date())
@@ -1142,7 +1153,12 @@ function toggleScenario4Date(cell) {
   if (!cell.isCandidate) {
     candidateSlots.value = [
       ...candidateSlots.value,
-      { date: cell.key, timeSlots: [{ id: scenario4SlotIdSeq++, startTime: null, endTime: null }] },
+      {
+        date: cell.key,
+        timeSlots: [
+          { id: scenario4SlotIdSeq++, startTime: null, endTime: null, endTimeUserSet: false },
+        ],
+      },
     ].sort((a, b) => a.date.localeCompare(b.date))
     return
   }
@@ -1155,7 +1171,12 @@ function removeCandidateSlot(date) {
 }
 
 function addCandidateTimeSlot(entry) {
-  entry.timeSlots.push({ id: scenario4SlotIdSeq++, startTime: null, endTime: null })
+  entry.timeSlots.push({
+    id: scenario4SlotIdSeq++,
+    startTime: null,
+    endTime: null,
+    endTimeUserSet: false,
+  })
 }
 
 function removeCandidateTimeSlot(entry, slotId) {
@@ -1399,18 +1420,7 @@ watch(
   },
 )
 
-watch(
-  () => uniformTime.startTime,
-  (val) => {
-    if (
-      val &&
-      uniformTime.endTime &&
-      parseHourFromTimeStr(uniformTime.endTime) <= parseHourFromTimeStr(val)
-    ) {
-      uniformTime.endTime = null
-    }
-  },
-)
+// 統一開始時間變動時「結束時間不合理就清掉」的邏輯已經內建在 selectSlotTime() 裡，這裡不用重複判斷
 
 watch(
   () => form.startDate,
@@ -1466,10 +1476,12 @@ function resetForm() {
   timeMode.value = 'fixed'
   timeWindow.startTime = null
   timeWindow.endTime = null
+  timeWindow.endTimeUserSet = false
   candidateDates.value = []
   uniformTime.startTime = null
   uniformTime.endTime = null
   uniformTime.allDay = false
+  uniformTime.endTimeUserSet = false
   scenario4SlotIdSeq = 1
   candidateSlots.value = []
   editingSlotDate.value = null
