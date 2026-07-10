@@ -293,6 +293,9 @@ const props = defineProps({
   dateOnly: { type: Boolean, default: false },
   fixedTimeLabel: { type: String, default: '' },
   initialDates: { type: Array, default: () => [] },
+  // 「修改時間」重開 picker 時，預填參與者自己先前送出的實際時段範圍（不是只有日期）。
+  // 形狀：[{ date: 'YYYY-MM-DD', from: 'HH:mm', to: 'HH:mm' }]，同一天可以有多筆
+  initialRanges: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['update:modelValue', 'confirm'])
 
@@ -314,14 +317,26 @@ function defaultDayValue() {
 
 // key = 'YYYY-MM-DD', value = null（整天）或 [{from,to},...]
 function initialSelectedDates() {
+  if (props.initialRanges.length) {
+    const grouped = {}
+    for (const r of props.initialRanges) {
+      if (!grouped[r.date]) grouped[r.date] = []
+      grouped[r.date].push({ from: r.from, to: r.to, endTimeUserSet: true })
+    }
+    return grouped
+  }
   if (props.initialDates.length) {
     return Object.fromEntries(props.initialDates.map((date) => [date, defaultDayValue()]))
   }
   return props.fixedDate ? { [props.fixedDate]: defaultDayValue() } : {}
 }
 
+function initialActiveDate() {
+  return props.initialRanges[0]?.date ?? props.initialDates[0] ?? props.fixedDate ?? null
+}
+
 const selectedDates = ref(initialSelectedDates())
-const activeDate = ref(props.initialDates[0] ?? props.fixedDate ?? null)
+const activeDate = ref(initialActiveDate())
 const confirmError = ref('')
 const dragState = reactive({ active: false, startDate: null, hovering: new Set() })
 
@@ -706,7 +721,7 @@ function close() {
   // 所以「關閉」要重設回跟第一次掛載時一樣的初始狀態，不能無條件清空——
   // fixedDate 模式沒有日曆可以重新選日期，清空會卡在「選取日期」這個死路
   selectedDates.value = initialSelectedDates()
-  activeDate.value = props.initialDates[0] ?? props.fixedDate ?? null
+  activeDate.value = initialActiveDate()
   confirmError.value = ''
   emit('update:modelValue', false)
 }

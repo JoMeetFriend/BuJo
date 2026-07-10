@@ -730,6 +730,41 @@ describe('ActivityDetailModal - availability_mode: range 的報名流程', () =>
     })
   })
 
+  test('已報名、recruiting 狀態顯示「修改時間」而不是「取消報名」，跟情境三的「修改日期」一致', async () => {
+    const activity = makeRangeActivity({
+      has_joined: true,
+      my_ranges: [{ start: '2026-07-12T10:00:00Z', end: '2026-07-12T13:00:00Z' }],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('修改時間')
+    expect(wrapper.text()).not.toContain('取消報名')
+  })
+
+  test('點「修改時間」重開 picker，會用 my_ranges 預填參與者自己先前送出的時段', async () => {
+    const activity = makeRangeActivity({
+      has_joined: true,
+      my_ranges: [{ start: '2026-07-12T10:00:00Z', end: '2026-07-12T13:00:00Z' }],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    const editButton = wrapper.findAll('button').find((b) => b.text().includes('修改時間'))
+    await editButton.trigger('click')
+    await flushPromises()
+
+    const picker = wrapper.findComponent(AvailabilityPickerModal)
+    expect(picker.props('initialRanges')).toEqual([{ date: '2026-07-12', from: '18:00', to: '21:00' }])
+  })
 })
 
 function makeRangeDecisionActivity(overrides = {}) {

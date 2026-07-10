@@ -323,6 +323,14 @@
             {{ actionLoading ? '處理中...' : '修改日期' }}
           </PixelButton>
           <PixelButton
+            v-else-if="activity.status === 'recruiting' && activity.has_joined && isRangeMode"
+            type="button"
+            :disabled="actionLoading"
+            @click="openRangePicker"
+          >
+            {{ actionLoading ? '處理中...' : '修改時間' }}
+          </PixelButton>
+          <PixelButton
             v-else-if="activity.status === 'recruiting' && activity.has_joined"
             variant="white"
             type="button"
@@ -354,6 +362,7 @@
     :date-only="isScenarioCMode"
     :fixed-time-label="scenarioCFixedTimeLabel"
     :initial-dates="scenarioCInitialDates"
+    :initial-ranges="isRangeMode ? myRangesInitial : []"
     @confirm="handlePickerConfirm"
   />
 </template>
@@ -418,6 +427,20 @@ const scenarioCInitialDates = computed(() => {
     .map((slot) => toLocalDateKey(slot.slot_start))
     .sort()
 })
+
+function toHHMM(date) {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+// 「修改時間」重開 picker 時，把後端回傳的 my_ranges（純 start/end ISO 字串）
+// 轉成 AvailabilityPickerModal 的 initialRanges 形狀，讓 picker 能還原參與者自己先前的答案
+const myRangesInitial = computed(() =>
+  (activity.value?.my_ranges ?? []).map((r) => {
+    const start = new Date(r.start)
+    const end = new Date(r.end)
+    return { date: toLocalDateKey(r.start), from: toHHMM(start), to: toHHMM(end) }
+  }),
+)
 
 const selectedScenarioCDateLabels = computed(() =>
   scenarioCSelectedDates.value.map((date) => formatDateKey(date)),
@@ -638,6 +661,10 @@ async function handleJoin() {
 }
 
 function openScenarioCPicker() {
+  showAvailabilityPicker.value = true
+}
+
+function openRangePicker() {
   showAvailabilityPicker.value = true
 }
 
