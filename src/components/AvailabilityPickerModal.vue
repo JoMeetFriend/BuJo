@@ -22,224 +22,246 @@
       </div>
 
       <!-- Body -->
+      <div
+        class="flex md:flex-row flex-col flex-1 min-h-0"
+        :class="fixedDate ? '' : 'overflow-y-auto md:overflow-hidden'"
+      >
+        <!-- 日曆區：fixedDate 模式下不渲染，只顯示固定日期的時段選取面板 -->
         <div
-          class="flex md:flex-row flex-col flex-1 min-h-0"
-          :class="fixedDate ? '' : 'overflow-y-auto md:overflow-hidden'"
+          v-if="!fixedDate"
+          class="border-b md:border-b-0 md:border-r border-[var(--bujo-line-soft)] p-3 md:p-4 w-full md:flex-1 flex flex-col"
         >
-          <!-- 日曆區：fixedDate 模式下不渲染，只顯示固定日期的時段選取面板 -->
+          <!-- 月份標題 -->
+          <div class="flex items-center justify-between mb-2 shrink-0">
+            <button
+              type="button"
+              class="text-[13px] font-black text-[var(--bujo-muted-strong)] disabled:opacity-30"
+              :disabled="!canGoPrevMonth"
+              aria-label="上一個月"
+              @click="goPrevMonth"
+            >
+              ‹
+            </button>
+            <span class="text-[13px] md:text-base font-bold text-[var(--bujo-ink)]">
+              {{ calYear }} / {{ calMonth }}
+            </span>
+            <button
+              type="button"
+              class="text-[13px] font-black text-[var(--bujo-muted-strong)] disabled:opacity-30"
+              :disabled="!canGoNextMonth"
+              aria-label="下一個月"
+              @click="goNextMonth"
+            >
+              ›
+            </button>
+          </div>
+
+          <!-- 格線：flex-1 讓格子填滿剩餘高度 -->
           <div
-            v-if="!fixedDate"
-            class="border-b md:border-b-0 md:border-r border-[var(--bujo-line-soft)] p-3 md:p-4 w-full md:flex-1 flex flex-col"
+            class="grid grid-cols-7 gap-0.5 md:gap-1 md:flex-1 md:min-h-0"
+            :style="{ gridTemplateRows: `auto repeat(${calRows}, 1fr)` }"
           >
-            <!-- 月份標題 -->
-            <div class="flex items-center justify-between mb-2 shrink-0">
-              <span class="text-[13px] md:text-base font-bold text-[var(--bujo-ink)]">
-                {{ calYear }} / {{ calMonth }}
+            <div
+              v-for="d in DOW_LABELS"
+              :key="d"
+              class="text-xs md:text-[13px] font-bold text-[var(--bujo-muted-strong)] text-center flex items-end justify-center pb-1"
+            >
+              {{ d }}
+            </div>
+
+            <div v-for="i in firstDayOffset" :key="'e' + i"></div>
+
+            <div
+              v-for="day in daysInMonth"
+              :key="day"
+              :class="dayClass(day)"
+              @mousedown.prevent="onDayMousedown(day)"
+              @mouseover="onDayMouseover(day)"
+            >
+              {{ day }}
+            </div>
+          </div>
+        </div>
+
+        <!-- 時段面板 -->
+        <div
+          v-if="!dateOnly"
+          class="p-4 min-w-0 md:flex-1"
+          :class="fixedDate ? '' : 'md:overflow-y-auto'"
+        >
+          <!-- 無聚焦日期 -->
+          <div
+            v-if="!activeDate || !(activeDate in selectedDates)"
+            class="text-[11px] text-[var(--bujo-muted)] py-8 text-center border border-dashed border-[var(--bujo-line-soft)]"
+          >
+            ← 選取日期
+          </div>
+
+          <template v-else>
+            <!-- 日期標題 -->
+            <div class="flex items-center gap-2 mb-1">
+              <span class="w-2 h-2 bg-[var(--bujo-accent)] shrink-0 inline-block"></span>
+              <span class="font-bold text-[13px] md:text-sm text-[var(--bujo-ink)]">
+                {{ formatChip(activeDate) }}
               </span>
             </div>
 
-            <!-- 格線：flex-1 讓格子填滿剩餘高度 -->
+            <!-- 整天狀態 -->
             <div
-              class="grid grid-cols-7 gap-0.5 md:gap-1 md:flex-1 md:min-h-0"
-              :style="{ gridTemplateRows: `auto repeat(${calRows}, 1fr)` }"
+              v-if="isAllDay(activeDate)"
+              class="bg-[var(--bujo-surface-muted)] border border-[var(--bujo-line)] px-3 py-2 flex items-center justify-between mb-2"
             >
-              <div
-                v-for="d in DOW_LABELS"
-                :key="d"
-                class="text-xs md:text-[13px] font-bold text-[var(--bujo-muted-strong)] text-center flex items-end justify-center pb-1"
-              >
-                {{ d }}
-              </div>
-
-              <div v-for="i in firstDayOffset" :key="'e' + i"></div>
-
-              <div
-                v-for="day in daysInMonth"
-                :key="day"
-                :class="dayClass(day)"
-                @mousedown.prevent="onDayMousedown(day)"
-                @mouseover="onDayMouseover(day)"
-              >
-                {{ day }}
-              </div>
-            </div>
-          </div>
-
-          <!-- 時段面板 -->
-          <div class="p-4 min-w-0 md:flex-1" :class="fixedDate ? '' : 'md:overflow-y-auto'">
-            <!-- 無聚焦日期 -->
-            <div
-              v-if="!activeDate || !(activeDate in selectedDates)"
-              class="text-[11px] text-[var(--bujo-muted)] py-8 text-center border border-dashed border-[var(--bujo-line-soft)]"
-            >
-              ← 選取日期
-            </div>
-
-            <template v-else>
-              <!-- 日期標題 -->
-              <div class="flex items-center gap-2 mb-1">
-                <span class="w-2 h-2 bg-[var(--bujo-accent)] shrink-0 inline-block"></span>
-                <span class="font-bold text-[13px] md:text-sm text-[var(--bujo-ink)]">
-                  {{ formatChip(activeDate) }}
-                </span>
-              </div>
-
-              <!-- 整天狀態 -->
-              <div
-                v-if="isAllDay(activeDate)"
-                class="bg-[var(--bujo-surface-muted)] border border-[var(--bujo-line)] px-3 py-2 flex items-center justify-between mb-2"
-              >
-                <span class="text-[12px] md:text-[13px] font-bold text-[var(--bujo-ink)]">
-                  整天有空
-                </span>
-                <button
-                  @click="startCustom"
-                  class="text-[11px] md:text-xs font-bold border border-[var(--bujo-line)] px-2 py-1 transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
-                >
-                  指定時段
-                </button>
-              </div>
-
-              <!-- 時段列表 -->
-              <template v-else>
-                <div class="flex flex-col gap-2 mb-2 pr-1">
-                  <div
-                    v-for="(range, i) in selectedDates[activeDate]"
-                    :key="i"
-                    class="flex items-center gap-1.5 shrink-0 min-w-0"
-                  >
-                    <div class="relative time-picker-wrap flex-1 min-w-0" @click.stop>
-                      <button
-                        class="w-full border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-1.5 py-1.5 font-bold text-[var(--bujo-ink)] text-[13px] outline-none transition-colors duration-150 hover:border-[var(--bujo-accent)] text-left"
-                        :class="{ 'border-[var(--bujo-accent)]': activeTimePicker === `from-${i}` }"
-                        type="button"
-                        @click="openTimePicker(`from-${i}`, $event.currentTarget.parentElement)"
-                      >
-                        {{ toLabel(range.from) }}
-                      </button>
-                      <div
-                        v-if="activeTimePicker === `from-${i}`"
-                        class="time-picker-panel fixed z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] overflow-y-auto"
-                        :style="pickerStyle"
-                      >
-                        <button
-                          v-for="opt in startHourOptions"
-                          :key="opt.value"
-                          :data-hour="parseInt(opt.value)"
-                          class="block w-full px-2 py-1.5 text-left text-[12px] font-bold border-b border-[var(--bujo-line-soft)] last:border-b-0 transition-colors duration-150 hover:bg-[var(--bujo-surface-muted)]"
-                          :class="
-                            range.from === opt.value
-                              ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
-                              : 'text-[var(--bujo-muted-strong)] bg-[var(--bujo-surface)]'
-                          "
-                          type="button"
-                          @click="selectRangeStart(range, opt.value)"
-                        >
-                          {{ opt.label }}
-                        </button>
-                      </div>
-                    </div>
-                    <span class="text-[12px] text-[var(--bujo-muted-strong)] font-bold shrink-0"
-                      >→</span
-                    >
-                    <div class="relative time-picker-wrap flex-1 min-w-0" @click.stop>
-                      <button
-                        class="w-full border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-1.5 py-1.5 font-bold text-[var(--bujo-ink)] text-[13px] outline-none transition-colors duration-150 hover:border-[var(--bujo-accent)] text-left"
-                        :class="{ 'border-[var(--bujo-accent)]': activeTimePicker === `to-${i}` }"
-                        type="button"
-                        @click="openTimePicker(`to-${i}`, $event.currentTarget.parentElement)"
-                      >
-                        {{ toLabel(range.to) }}
-                      </button>
-                      <div
-                        v-if="activeTimePicker === `to-${i}`"
-                        class="time-picker-panel fixed z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] overflow-y-auto"
-                        :style="pickerStyle"
-                      >
-                        <button
-                          v-for="opt in endHourOptionsFor(range)"
-                          :key="opt.value"
-                          :data-hour="parseInt(opt.value)"
-                          class="block w-full px-2 py-1.5 text-left text-[12px] font-bold border-b border-[var(--bujo-line-soft)] last:border-b-0 transition-colors duration-150 hover:bg-[var(--bujo-surface-muted)]"
-                          :class="
-                            range.to === opt.value
-                              ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
-                              : 'text-[var(--bujo-muted-strong)] bg-[var(--bujo-surface)]'
-                          "
-                          type="button"
-                          @click="selectRangeEnd(range, opt.value)"
-                        >
-                          {{ opt.label }}
-                        </button>
-                      </div>
-                    </div>
-                    <button
-                      @click="removeRange(i)"
-                      class="w-6 h-6 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-[var(--bujo-muted-strong)] text-[11px] font-bold flex items-center justify-center shrink-0 transition-colors duration-150 hover:border-[#dc2626] hover:text-[#dc2626]"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  @click="addRange"
-                  class="w-full text-[11px] font-bold text-[var(--bujo-muted-strong)] border border-dashed border-[var(--bujo-line)] py-1.5 transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                >
-                  ＋ 新增時段
-                </button>
-
-                <button
-                  v-if="!hasTimeWindow"
-                  @click="resetAllDay"
-                  class="mt-2 text-[10px] text-[var(--bujo-muted)] transition-colors duration-150 hover:text-[var(--bujo-ink)] block"
-                >
-                  ↩ 改回整天有空
-                </button>
-              </template>
-            </template>
-          </div>
-        </div>
-
-        <!-- Summary strip -->
-        <div
-          class="border-t border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-4 py-2 shrink-0 min-h-[36px] max-h-[70px] overflow-y-auto"
-        >
-          <div class="flex items-start gap-2 flex-wrap">
-            <span
-              v-if="!summaryItems.length"
-              class="text-[10px] md:text-[12px] text-[var(--bujo-muted)]"
-            >
-              尚未選取任何時段
-            </span>
-            <template v-else>
-              <span
-                class="flex items-center text-[10px] md:text-[12px] font-black text-[var(--bujo-muted-strong)] shrink-0"
-                >已選：</span
-              >
+              <span class="text-[12px] md:text-[13px] font-bold text-[var(--bujo-ink)]">
+                整天有空
+              </span>
               <button
-                v-for="item in summaryItems"
-                :key="item.chip"
-                @click="activeDate = item.date"
-                class="text-[10px] md:text-[12px] font-bold px-2 py-0.5 border transition-colors duration-150"
-                :class="
-                  activeDate === item.date
-                    ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)] border-[var(--bujo-ink)]'
-                    : 'bg-[var(--bujo-surface)] text-[var(--bujo-ink)] border-[var(--bujo-line)] hover:border-[var(--bujo-ink)]'
-                "
+                @click="startCustom"
+                class="text-[11px] md:text-xs font-bold border border-[var(--bujo-line)] px-2 py-1 transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
               >
-                {{ item.chip }} {{ item.label }}
+                指定時段
+              </button>
+            </div>
+
+            <!-- 時段列表 -->
+            <template v-else>
+              <div class="flex flex-col gap-2 mb-2 pr-1">
+                <div
+                  v-for="(range, i) in selectedDates[activeDate]"
+                  :key="i"
+                  class="flex items-center gap-1.5 shrink-0 min-w-0"
+                >
+                  <div class="relative time-picker-wrap flex-1 min-w-0" @click.stop>
+                    <button
+                      class="w-full border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-1.5 py-1.5 font-bold text-[var(--bujo-ink)] text-[13px] outline-none transition-colors duration-150 hover:border-[var(--bujo-accent)] text-left"
+                      :class="{ 'border-[var(--bujo-accent)]': activeTimePicker === `from-${i}` }"
+                      type="button"
+                      @click="openTimePicker(`from-${i}`, $event.currentTarget.parentElement)"
+                    >
+                      {{ toLabel(range.from) }}
+                    </button>
+                    <div
+                      v-if="activeTimePicker === `from-${i}`"
+                      class="time-picker-panel fixed z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] overflow-y-auto"
+                      :style="pickerStyle"
+                    >
+                      <button
+                        v-for="opt in startHourOptions"
+                        :key="opt.value"
+                        :data-hour="parseInt(opt.value)"
+                        class="block w-full px-2 py-1.5 text-left text-[12px] font-bold border-b border-[var(--bujo-line-soft)] last:border-b-0 transition-colors duration-150 hover:bg-[var(--bujo-surface-muted)]"
+                        :class="
+                          range.from === opt.value
+                            ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                            : 'text-[var(--bujo-muted-strong)] bg-[var(--bujo-surface)]'
+                        "
+                        type="button"
+                        @click="selectRangeStart(range, opt.value)"
+                      >
+                        {{ opt.label }}
+                      </button>
+                    </div>
+                  </div>
+                  <span class="text-[12px] text-[var(--bujo-muted-strong)] font-bold shrink-0"
+                    >→</span
+                  >
+                  <div class="relative time-picker-wrap flex-1 min-w-0" @click.stop>
+                    <button
+                      class="w-full border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-1.5 py-1.5 font-bold text-[var(--bujo-ink)] text-[13px] outline-none transition-colors duration-150 hover:border-[var(--bujo-accent)] text-left"
+                      :class="{ 'border-[var(--bujo-accent)]': activeTimePicker === `to-${i}` }"
+                      type="button"
+                      @click="openTimePicker(`to-${i}`, $event.currentTarget.parentElement)"
+                    >
+                      {{ toLabel(range.to) }}
+                    </button>
+                    <div
+                      v-if="activeTimePicker === `to-${i}`"
+                      class="time-picker-panel fixed z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] overflow-y-auto"
+                      :style="pickerStyle"
+                    >
+                      <button
+                        v-for="opt in endHourOptionsFor(range)"
+                        :key="opt.value"
+                        :data-hour="parseInt(opt.value)"
+                        class="block w-full px-2 py-1.5 text-left text-[12px] font-bold border-b border-[var(--bujo-line-soft)] last:border-b-0 transition-colors duration-150 hover:bg-[var(--bujo-surface-muted)]"
+                        :class="
+                          range.to === opt.value
+                            ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                            : 'text-[var(--bujo-muted-strong)] bg-[var(--bujo-surface)]'
+                        "
+                        type="button"
+                        @click="selectRangeEnd(range, opt.value)"
+                      >
+                        {{ opt.label }}
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    @click="removeRange(i)"
+                    class="w-6 h-6 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-[var(--bujo-muted-strong)] text-[11px] font-bold flex items-center justify-center shrink-0 transition-colors duration-150 hover:border-[#dc2626] hover:text-[#dc2626]"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <button
+                @click="addRange"
+                class="w-full text-[11px] font-bold text-[var(--bujo-muted-strong)] border border-dashed border-[var(--bujo-line)] py-1.5 transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+              >
+                ＋ 新增時段
+              </button>
+
+              <button
+                v-if="!hasTimeWindow"
+                @click="resetAllDay"
+                class="mt-2 text-[10px] text-[var(--bujo-muted)] transition-colors duration-150 hover:text-[var(--bujo-ink)] block"
+              >
+                ↩ 改回整天有空
               </button>
             </template>
-          </div>
-          <div
-            v-if="confirmError"
-            class="mt-1 flex items-start gap-2 border border-[#dc2626] bg-[var(--bujo-surface)] px-2 py-1.5 text-[11px] text-[#dc2626]"
-          >
-            ⚠️ {{ confirmError }}
-          </div>
+          </template>
         </div>
       </div>
+
+      <!-- Summary strip -->
+      <div
+        class="border-t border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-4 py-2 shrink-0 min-h-[36px] max-h-[70px] overflow-y-auto"
+      >
+        <div class="flex items-start gap-2 flex-wrap">
+          <span
+            v-if="!summaryItems.length"
+            class="text-[10px] md:text-[12px] text-[var(--bujo-muted)]"
+          >
+            {{ dateOnly ? '尚未選取任何日期' : '尚未選取任何時段' }}
+          </span>
+          <template v-else>
+            <span
+              class="flex items-center text-[10px] md:text-[12px] font-black text-[var(--bujo-muted-strong)] shrink-0"
+              >已選：</span
+            >
+            <button
+              v-for="item in summaryItems"
+              :key="item.chip"
+              @click="activeDate = item.date"
+              class="text-[10px] md:text-[12px] font-bold px-2 py-0.5 border transition-colors duration-150"
+              :class="
+                activeDate === item.date
+                  ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)] border-[var(--bujo-ink)]'
+                  : 'bg-[var(--bujo-surface)] text-[var(--bujo-ink)] border-[var(--bujo-line)] hover:border-[var(--bujo-ink)]'
+              "
+            >
+              {{ item.chip }} {{ item.label }}
+            </button>
+          </template>
+        </div>
+        <div
+          v-if="confirmError"
+          class="mt-1 flex items-start gap-2 border border-[#dc2626] bg-[var(--bujo-surface)] px-2 py-1.5 text-[11px] text-[#dc2626]"
+        >
+          ⚠️ {{ confirmError }}
+        </div>
+      </div>
+    </div>
     <template #footer>
       <PixelButton variant="white" type="button" @click="close">取消</PixelButton>
       <PixelButton type="button" @click="handleConfirm">確認報名</PixelButton>
@@ -259,6 +281,9 @@ const props = defineProps({
   fixedDate: { type: String, default: null },
   timeWindowStart: { type: String, default: null },
   timeWindowEnd: { type: String, default: null },
+  allowedDates: { type: Array, default: () => [] },
+  dateOnly: { type: Boolean, default: false },
+  initialDates: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['update:modelValue', 'confirm'])
 
@@ -268,6 +293,7 @@ const hasTimeWindow = computed(() => !!(props.timeWindowStart && props.timeWindo
 // 有設時段範圍（timeWindowStart/timeWindowEnd）時，「預設」代表整個時段範圍都有空，
 // 不是無邊界的「整天有空」——創建者已經限制過參與者能回報的時間，兩者意義不同
 function defaultDayValue() {
+  if (props.dateOnly) return null
   if (hasTimeWindow.value) {
     return [{ from: props.timeWindowStart, to: props.timeWindowEnd, endTimeUserSet: false }]
   }
@@ -275,16 +301,24 @@ function defaultDayValue() {
 }
 
 // key = 'YYYY-MM-DD', value = null（整天）或 [{from,to},...]
-const selectedDates = ref(props.fixedDate ? { [props.fixedDate]: defaultDayValue() } : {})
-const activeDate = ref(props.fixedDate ?? null)
+function initialSelectedDates() {
+  if (props.initialDates.length) {
+    return Object.fromEntries(props.initialDates.map((date) => [date, defaultDayValue()]))
+  }
+  return props.fixedDate ? { [props.fixedDate]: defaultDayValue() } : {}
+}
+
+const selectedDates = ref(initialSelectedDates())
+const activeDate = ref(props.initialDates[0] ?? props.fixedDate ?? null)
 const confirmError = ref('')
 const dragState = reactive({ active: false, startDate: null, hovering: new Set() })
 
 // ── 日曆 computed ──
 const DOW_LABELS = ['一', '二', '三', '四', '五', '六', '日']
 
-const calYear = computed(() => parseInt(props.rangeStart.split('-')[0]))
-const calMonth = computed(() => parseInt(props.rangeStart.split('-')[1]))
+const visibleMonth = ref((props.allowedDates[0] ?? props.rangeStart).slice(0, 7))
+const calYear = computed(() => parseInt(visibleMonth.value.split('-')[0]))
+const calMonth = computed(() => parseInt(visibleMonth.value.split('-')[1]))
 
 const firstDayOffset = computed(() => {
   const d = new Date(calYear.value, calMonth.value - 1, 1).getDay()
@@ -293,9 +327,15 @@ const firstDayOffset = computed(() => {
 
 const daysInMonth = computed(() => new Date(calYear.value, calMonth.value, 0).getDate())
 
-const rangeStartDay = computed(() => parseInt(props.rangeStart.split('-')[2]))
-const rangeEndDay = computed(() => parseInt(props.rangeEnd.split('-')[2]))
 const calRows = computed(() => Math.ceil((firstDayOffset.value + daysInMonth.value) / 7))
+const allowedDateSet = computed(() => new Set(props.allowedDates))
+const monthKeys = computed(() => {
+  const keys = props.allowedDates.length ? props.allowedDates : [props.rangeStart, props.rangeEnd]
+  return [...new Set(keys.map((date) => date.slice(0, 7)))].sort()
+})
+const currentMonthIndex = computed(() => monthKeys.value.indexOf(visibleMonth.value))
+const canGoPrevMonth = computed(() => currentMonthIndex.value > 0)
+const canGoNextMonth = computed(() => currentMonthIndex.value < monthKeys.value.length - 1)
 
 function toDateKey(day) {
   return `${calYear.value}-${String(calMonth.value).padStart(2, '0')}-${String(day).padStart(2, '0')}`
@@ -306,10 +346,27 @@ function formatChip(dateKey) {
   return `${parseInt(parts[1])}/${parseInt(parts[2])}`
 }
 
+function isInDateRange(key) {
+  return key >= props.rangeStart && key <= props.rangeEnd
+}
+
+function canSelectDateKey(key) {
+  if (props.allowedDates.length) return allowedDateSet.value.has(key)
+  return isInDateRange(key)
+}
+
+function goPrevMonth() {
+  if (canGoPrevMonth.value) visibleMonth.value = monthKeys.value[currentMonthIndex.value - 1]
+}
+
+function goNextMonth() {
+  if (canGoNextMonth.value) visibleMonth.value = monthKeys.value[currentMonthIndex.value + 1]
+}
+
 // ── 日期格樣式 ──
 function dayClass(day) {
-  const inRange = day >= rangeStartDay.value && day <= rangeEndDay.value
   const key = toDateKey(day)
+  const inRange = canSelectDateKey(key)
   const sel = key in selectedDates.value
   const isActive = activeDate.value === key
   const isDragHov = dragState.active && dragState.hovering.has(day)
@@ -334,10 +391,9 @@ function dayClass(day) {
 
 // ── 拖曳選取 ──
 function onDayMousedown(day) {
-  const inRange = day >= rangeStartDay.value && day <= rangeEndDay.value
-  if (!inRange) return
-
   const key = toDateKey(day)
+  if (!canSelectDateKey(key)) return
+
   if (key in selectedDates.value) {
     if (activeDate.value === key) {
       activeDate.value = null
@@ -348,6 +404,13 @@ function onDayMousedown(day) {
     return
   }
 
+  if (props.dateOnly) {
+    selectedDates.value[key] = defaultDayValue()
+    activeDate.value = key
+    confirmError.value = ''
+    return
+  }
+
   dragState.active = true
   dragState.startDate = day
   dragState.hovering = new Set([day])
@@ -355,14 +418,13 @@ function onDayMousedown(day) {
 
 function onDayMouseover(day) {
   if (!dragState.active) return
-  const inRange = day >= rangeStartDay.value && day <= rangeEndDay.value
-  if (!inRange) return
+  if (!canSelectDateKey(toDateKey(day))) return
 
   const lo = Math.min(dragState.startDate, day)
   const hi = Math.max(dragState.startDate, day)
   dragState.hovering = new Set()
   for (let d = lo; d <= hi; d++) {
-    if (d >= rangeStartDay.value && d <= rangeEndDay.value) dragState.hovering.add(d)
+    if (canSelectDateKey(toDateKey(d))) dragState.hovering.add(d)
   }
 }
 
@@ -371,7 +433,7 @@ function onMouseup() {
 
   dragState.hovering.forEach((day) => {
     const key = toDateKey(day)
-    if (!(key in selectedDates.value)) {
+    if (canSelectDateKey(key) && !(key in selectedDates.value)) {
       selectedDates.value[key] = null
     }
   })
@@ -608,8 +670,9 @@ const summaryItems = computed(() =>
     .map(([date, ranges]) => ({
       date,
       chip: formatChip(date),
-      label:
-        !ranges || ranges.length === 0
+      label: props.dateOnly
+        ? ''
+        : !ranges || ranges.length === 0
           ? '整天'
           : ranges.map((r) => `${r.from}–${r.to}`).join(' / '),
     })),
@@ -620,8 +683,8 @@ function close() {
   // 元件實例會一直存在（v-model 只是切換 BaseModal 顯不顯示，不會重新掛載），
   // 所以「關閉」要重設回跟第一次掛載時一樣的初始狀態，不能無條件清空——
   // fixedDate 模式沒有日曆可以重新選日期，清空會卡在「選取日期」這個死路
-  selectedDates.value = props.fixedDate ? { [props.fixedDate]: defaultDayValue() } : {}
-  activeDate.value = props.fixedDate ?? null
+  selectedDates.value = initialSelectedDates()
+  activeDate.value = props.initialDates[0] ?? props.fixedDate ?? null
   confirmError.value = ''
   emit('update:modelValue', false)
 }
@@ -646,6 +709,11 @@ function findOverlapConflictDate() {
 }
 
 function handleConfirm() {
+  if (props.dateOnly && Object.keys(selectedDates.value).length === 0) {
+    confirmError.value = '請至少選擇一個日期'
+    return
+  }
+
   const conflictDate = findOverlapConflictDate()
   if (conflictDate) {
     confirmError.value = `${formatChip(conflictDate)} 有重疊或重複的時段，請修改後再送出`

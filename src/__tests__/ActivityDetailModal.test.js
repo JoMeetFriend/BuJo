@@ -42,7 +42,7 @@ function makeActivity(overrides = {}) {
 
 function stubFetch(activity, { confirmOk = true } = {}) {
   const calls = []
-  global.fetch = vi.fn((url, options = {}) => {
+  globalThis.fetch = vi.fn((url, options = {}) => {
     calls.push({ url, options })
     if (options.method === 'POST' && url.includes('/confirm-formation')) {
       return Promise.resolve({
@@ -60,7 +60,7 @@ function stubFetch(activity, { confirmOk = true } = {}) {
 
 afterEach(() => {
   vi.unstubAllGlobals()
-  delete global.fetch
+  delete globalThis.fetch
 })
 
 describe('ActivityDetailModal - 情境二三四(requires_voting) 揪團中提前手動成團', () => {
@@ -449,6 +449,176 @@ function makeRangeActivity(overrides = {}) {
     ...overrides,
   })
 }
+
+function makeScenarioCActivity(overrides = {}) {
+  return makeActivity({
+    availability_mode: 'slot',
+    schedule_variant: 'find_date',
+    requires_voting: true,
+    is_creator: false,
+    has_joined: false,
+    status: 'recruiting',
+    candidate_slots: [
+      { id: 'slot-a', slot_start: '2026-08-01T19:00:00', slot_end: '2026-08-01T21:00:00' },
+      { id: 'slot-b', slot_start: '2026-08-03T19:00:00', slot_end: '2026-08-03T21:00:00' },
+      { id: 'slot-c', slot_start: '2026-08-09T19:00:00', slot_end: '2026-08-09T21:00:00' },
+    ],
+    decision_candidates: [
+      {
+        id: 'slot-a',
+        slot_start: '2026-08-01T19:00:00',
+        slot_end: '2026-08-01T21:00:00',
+        count: 2,
+      },
+      {
+        id: 'slot-b',
+        slot_start: '2026-08-03T19:00:00',
+        slot_end: '2026-08-03T21:00:00',
+        count: 1,
+      },
+      {
+        id: 'slot-c',
+        slot_start: '2026-08-09T19:00:00',
+        slot_end: '2026-08-09T21:00:00',
+        count: 2,
+      },
+    ],
+    ...overrides,
+  })
+}
+
+describe('ActivityDetailModal - Scenario C 日期-only 報名流程', () => {
+  test('Scenario C join uses a date-only availability picker', async () => {
+    const activity = makeScenarioCActivity()
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('尚未選擇日期')
+    expect(wrapper.text()).not.toContain('選擇你方便的候選時段（可複選）')
+
+    const joinButton = wrapper.findAll('button').find((b) => b.text().includes('報名參加'))
+    await joinButton.trigger('click')
+    await flushPromises()
+
+    const picker = wrapper.findComponent(AvailabilityPickerModal)
+    expect(picker.exists()).toBe(true)
+    expect(picker.props('modelValue')).toBe(true)
+    expect(picker.props('dateOnly')).toBe(true)
+    expect(picker.props('allowedDates')).toEqual(['2026-08-01', '2026-08-03', '2026-08-09'])
+  })
+
+  test('未提供 schedule_variant 時維持舊 checkbox 流程', async () => {
+    const activity = makeScenarioCActivity({ schedule_variant: undefined })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('選擇你方便的候選時段（可複選）')
+    expect(wrapper.find('input[type="checkbox"][value="slot-a"]').exists()).toBe(true)
+  })
+
+  test('Participant confirms selected dates', async () => {
+    const activity = makeScenarioCActivity()
+    const calls = stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    const joinButton = wrapper.findAll('button').find((b) => b.text().includes('報名參加'))
+    await joinButton.trigger('click')
+    await flushPromises()
+
+    const picker = wrapper.findComponent(AvailabilityPickerModal)
+    await picker.vm.$emit('confirm', [
+      { date: '2026-08-01', allDay: true, timeRanges: [] },
+      { date: '2026-08-09', allDay: true, timeRanges: [] },
+    ])
+    await flushPromises()
+
+    const joinCall = calls.find((c) => c.url.includes('/join'))
+    expect(JSON.parse(joinCall.options.body)).toEqual({ candidateSlotIds: ['slot-a', 'slot-c'] })
+  })
+
+  test('Scenario C joined state shows selected dates', async () => {
+    const activity = makeScenarioCActivity({
+      has_joined: true,
+      candidate_slots: [
+        {
+          id: 'slot-a',
+          slot_start: '2026-08-01T19:00:00',
+          slot_end: '2026-08-01T21:00:00',
+          is_selected: true,
+        },
+        {
+          id: 'slot-b',
+          slot_start: '2026-08-03T19:00:00',
+          slot_end: '2026-08-03T21:00:00',
+          is_selected: false,
+        },
+      ],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('你選擇的日期')
+    expect(wrapper.text()).toContain('8/1')
+
+    const reviseButton = wrapper.findAll('button').find((b) => b.text().includes('修改日期'))
+    expect(reviseButton).toBeTruthy()
+
+    await reviseButton.trigger('click')
+    await flushPromises()
+
+    const picker = wrapper.findComponent(AvailabilityPickerModal)
+    expect(picker.props('modelValue')).toBe(true)
+    expect(picker.props('initialDates')).toEqual(['2026-08-01'])
+  })
+
+  test('Joined participant views frozen scenario C activity', async () => {
+    const activity = makeScenarioCActivity({
+      has_joined: true,
+      status: 'voting',
+      candidate_slots: [
+        {
+          id: 'slot-a',
+          slot_start: '2026-08-01T19:00:00',
+          slot_end: '2026-08-01T21:00:00',
+          is_selected: true,
+        },
+        {
+          id: 'slot-c',
+          slot_start: '2026-08-09T19:00:00',
+          slot_end: '2026-08-09T21:00:00',
+          is_selected: true,
+        },
+      ],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('你選擇的日期')
+    expect(wrapper.text()).toContain('8/1')
+    expect(wrapper.text()).toContain('8/9')
+    expect(wrapper.text()).not.toContain('修改日期')
+  })
+})
 
 describe('ActivityDetailModal - availability_mode: range 的報名流程', () => {
   test('非建立者點「報名參加」會開啟 AvailabilityPickerModal 並帶入 fixedDate/timeWindowStart/timeWindowEnd', async () => {

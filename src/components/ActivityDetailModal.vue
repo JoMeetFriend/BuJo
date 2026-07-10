@@ -111,22 +111,46 @@
           "
           class="activity-detail-options"
         >
-          <div class="activity-detail-label">
-            {{ activity.has_joined ? '你選擇的候選時段' : '選擇你方便的候選時段（可複選）' }}
+          <template v-if="isScenarioCMode">
+            <div class="activity-detail-label">你選擇的日期</div>
+            <div v-if="selectedScenarioCDateLabels.length" class="activity-detail-date-list">
+              <span v-for="date in selectedScenarioCDateLabels" :key="date">{{ date }}</span>
+            </div>
+            <div v-else class="activity-detail-muted">尚未選擇日期</div>
+          </template>
+          <template v-else>
+            <div class="activity-detail-label">
+              {{ activity.has_joined ? '你選擇的候選時段' : '選擇你方便的候選時段（可複選）' }}
+            </div>
+            <label
+              v-for="slot in activity.candidate_slots"
+              :key="slot.id"
+              class="activity-detail-option"
+            >
+              <input
+                type="checkbox"
+                :value="slot.id"
+                v-model="selectedJoinSlotIds"
+                :disabled="activity.has_joined"
+              />
+              <span>{{ slotText(slot) }}</span>
+            </label>
+          </template>
+        </div>
+
+        <div
+          v-if="
+            isScenarioCMode &&
+            activity.has_joined &&
+            (activity.status === 'voting' || activity.status === 'confirmed')
+          "
+          class="activity-detail-options"
+        >
+          <div class="activity-detail-label">你選擇的日期</div>
+          <div v-if="selectedScenarioCDateLabels.length" class="activity-detail-date-list">
+            <span v-for="date in selectedScenarioCDateLabels" :key="date">{{ date }}</span>
           </div>
-          <label
-            v-for="slot in activity.candidate_slots"
-            :key="slot.id"
-            class="activity-detail-option"
-          >
-            <input
-              type="checkbox"
-              :value="slot.id"
-              v-model="selectedJoinSlotIds"
-              :disabled="activity.has_joined"
-            />
-            <span>{{ slotText(slot) }}</span>
-          </label>
+          <div v-else class="activity-detail-muted">尚未選擇日期</div>
         </div>
 
         <div
@@ -276,11 +300,22 @@
             type="button"
             :disabled="
               actionLoading ||
-              (activity.requires_voting && !isRangeMode && selectedJoinSlotIds.length === 0)
+              (activity.requires_voting &&
+                !isRangeMode &&
+                !isScenarioCMode &&
+                selectedJoinSlotIds.length === 0)
             "
             @click="handleJoin"
           >
             {{ actionLoading ? '處理中...' : '報名參加' }}
+          </PixelButton>
+          <PixelButton
+            v-else-if="activity.status === 'recruiting' && activity.has_joined && isScenarioCMode"
+            type="button"
+            :disabled="actionLoading"
+            @click="openScenarioCPicker"
+          >
+            {{ actionLoading ? '處理中...' : '修改日期' }}
           </PixelButton>
           <PixelButton
             v-else-if="activity.status === 'recruiting' && activity.has_joined"
@@ -303,12 +338,17 @@
   </article>
 
   <AvailabilityPickerModal
-    v-if="isRangeMode && activity"
+    v-if="(isRangeMode || isScenarioCMode) && activity"
     v-model="showAvailabilityPicker"
+    :range-start="availabilityPickerRangeStart"
+    :range-end="availabilityPickerRangeEnd"
     :fixed-date="activity.fixed_date"
     :time-window-start="activity.time_window_start"
     :time-window-end="activity.time_window_end"
-    @confirm="handleAvailabilityConfirm"
+    :allowed-dates="scenarioCCandidateDates"
+    :date-only="isScenarioCMode"
+    :initial-dates="scenarioCInitialDates"
+    @confirm="handlePickerConfirm"
   />
 </template>
 
@@ -338,6 +378,58 @@ const selectedDecisionSlotId = ref(null)
 const showAvailabilityPicker = ref(false)
 
 const isRangeMode = computed(() => activity.value?.availability_mode === 'range')
+const isScenarioCMode = computed(() => activity.value?.schedule_variant === 'find_date')
+
+function toLocalDateKey(value) {
+  const date = new Date(value)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate(),
+  ).padStart(2, '0')}`
+}
+
+const scenarioCSlotByDate = computed(() => {
+  const map = new Map()
+  for (const slot of activity.value?.candidate_slots ?? []) {
+    map.set(toLocalDateKey(slot.slot_start), slot.id)
+  }
+  return map
+})
+
+const scenarioCCandidateDates = computed(() => [...scenarioCSlotByDate.value.keys()].sort())
+
+const scenarioCSelectedDates = computed(() =>
+  (activity.value?.candidate_slots ?? [])
+    .filter((slot) => slot.is_selected)
+    .map((slot) => toLocalDateKey(slot.slot_start))
+    .sort(),
+)
+
+const scenarioCInitialDates = computed(() => {
+  if (scenarioCSelectedDates.value.length) return scenarioCSelectedDates.value
+  return selectedJoinSlotIds.value
+    .map((slotId) => (activity.value?.candidate_slots ?? []).find((slot) => slot.id === slotId))
+    .filter(Boolean)
+    .map((slot) => toLocalDateKey(slot.slot_start))
+    .sort()
+})
+
+const selectedScenarioCDateLabels = computed(() =>
+  scenarioCSelectedDates.value.map((date) => formatDateKey(date)),
+)
+
+const availabilityPickerRangeStart = computed(() => {
+  if (isScenarioCMode.value && scenarioCCandidateDates.value.length) {
+    return scenarioCCandidateDates.value[0]
+  }
+  return activity.value?.range_start ?? '2026-07-10'
+})
+
+const availabilityPickerRangeEnd = computed(() => {
+  if (isScenarioCMode.value && scenarioCCandidateDates.value.length) {
+    return scenarioCCandidateDates.value[scenarioCCandidateDates.value.length - 1]
+  }
+  return activity.value?.range_end ?? '2026-07-16'
+})
 
 const perfectOverlapCandidates = computed(() =>
   (activity.value?.decision_candidates?.perfect_overlap ?? []).map((c, i) => ({
@@ -510,6 +602,10 @@ async function handleJoin() {
     showAvailabilityPicker.value = true
     return
   }
+  if (isScenarioCMode.value) {
+    openScenarioCPicker()
+    return
+  }
   if (activity.value?.requires_voting) {
     if (selectedJoinSlotIds.value.length === 0) {
       actionError.value = '請選擇至少一個候選時段'
@@ -523,6 +619,10 @@ async function handleJoin() {
   await callAction('join', 'POST', '✅ 報名成功！')
 }
 
+function openScenarioCPicker() {
+  showAvailabilityPicker.value = true
+}
+
 async function handleAvailabilityConfirm(entries) {
   const ranges = entries.flatMap((entry) => {
     if (entry.allDay) {
@@ -534,6 +634,25 @@ async function handleAvailabilityConfirm(entries) {
     }))
   })
   await callAction('join', 'POST', '✅ 報名成功！', { ranges })
+}
+
+async function handlePickerConfirm(entries) {
+  if (isScenarioCMode.value) {
+    await handleScenarioCDateConfirm(entries)
+    return
+  }
+  await handleAvailabilityConfirm(entries)
+}
+
+async function handleScenarioCDateConfirm(entries) {
+  const candidateSlotIds = entries
+    .map((entry) => scenarioCSlotByDate.value.get(entry.date))
+    .filter(Boolean)
+  if (candidateSlotIds.length === 0) {
+    actionError.value = '請選擇至少一個候選日期'
+    return
+  }
+  await callAction('join', 'POST', '✅ 報名成功！', { candidateSlotIds })
 }
 
 async function handleCancelJoin() {
@@ -587,6 +706,11 @@ function formatDateTime(date) {
   const m = date.getMonth() + 1
   const d = date.getDate()
   return `${m}/${d} ${formatTime(date)}`
+}
+
+function formatDateKey(dateKey) {
+  const [, month, day] = dateKey.split('-')
+  return `${parseInt(month)}/${parseInt(day)}`
 }
 
 function formatTime(date) {
@@ -857,6 +981,26 @@ function formatTime(date) {
 
 .activity-detail-options {
   margin-top: 16px;
+}
+
+.activity-detail-date-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.activity-detail-date-list span {
+  border: 1px solid rgba(var(--bujo-ink-rgb), 0.32);
+  background: rgba(var(--bujo-white-rgb), 0.35);
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.activity-detail-muted {
+  color: rgba(var(--bujo-ink-rgb), 0.58);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .activity-detail-option,
