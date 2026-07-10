@@ -265,6 +265,78 @@ describe('EventPage - 情境二/三/四開始時間選單排除今天已過去�
   })
 })
 
+describe('EventPage - 情境二/三/四距今 ≤ 1 小時也要顯示緊急警告（原本只有情境一有）', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 6, 15, 9, 30))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  test('情境二：時段範圍開始時間設在 30 分鐘後，顯示緊急警告', async () => {
+    const wrapper = await mountEventPage()
+    enterScenario2()
+    await flushPromises()
+
+    wrapper.vm.selectSlotTime(wrapper.vm.timeWindow, 'startTime', '上午 10:00')
+    await flushPromises()
+
+    expect(document.body.textContent).toContain('分鐘後開始')
+    expect(document.body.textContent).toContain('建立後請手動確認成團')
+
+    wrapper.unmount()
+  })
+
+  test('情境三：統一開始時間設在 30 分鐘後，顯示緊急警告', async () => {
+    const wrapper = await mountEventPage()
+    wrapper.vm.dateMode = 'range'
+    wrapper.vm.timeMode = 'fixed'
+    wrapper.vm.candidateDates = ['2026/07/15']
+    await flushPromises()
+
+    wrapper.vm.selectSlotTime(wrapper.vm.uniformTime, 'startTime', '上午 10:00')
+    await flushPromises()
+
+    expect(document.body.textContent).toContain('分鐘後開始')
+    expect(document.body.textContent).toContain('建立後請手動確認成團')
+
+    wrapper.unmount()
+  })
+
+  test('情境三：統一開始時間設在很久以後，不顯示緊急警告', async () => {
+    const wrapper = await mountEventPage()
+    wrapper.vm.dateMode = 'range'
+    wrapper.vm.timeMode = 'fixed'
+    wrapper.vm.candidateDates = ['2026/07/20']
+    await flushPromises()
+
+    wrapper.vm.selectSlotTime(wrapper.vm.uniformTime, 'startTime', '上午 10:00')
+    await flushPromises()
+
+    expect(document.body.textContent).not.toContain('分鐘後開始')
+
+    wrapper.unmount()
+  })
+
+  test('情境四：最早的候選時段設在 30 分鐘後，顯示緊急警告', async () => {
+    const wrapper = await mountEventPage()
+    wrapper.vm.dateMode = 'range'
+    wrapper.vm.timeMode = 'vote'
+    wrapper.vm.candidateSlots = [
+      { date: '2026/07/15', timeSlots: [{ id: 1, startTime: '上午 10:00', endTime: '上午 11:00' }] },
+      { date: '2026/07/20', timeSlots: [{ id: 2, startTime: '上午 9:00', endTime: '上午 10:00' }] },
+    ]
+    await flushPromises()
+
+    expect(document.body.textContent).toContain('分鐘後開始')
+    expect(document.body.textContent).toContain('建立後請手動確認成團')
+
+    wrapper.unmount()
+  })
+})
+
 describe('EventPage - 選好開始時間後結束時間自動帶入 +1 小時', () => {
   beforeEach(() => {
     vi.useFakeTimers()

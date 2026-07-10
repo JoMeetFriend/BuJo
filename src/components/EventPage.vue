@@ -293,16 +293,7 @@
             </div>
           </div>
 
-          <!-- 緊急警告：距今 ≤ 1 小時 -->
-          <div
-            v-if="isUrgent"
-            class="flex items-start gap-2 border border-[var(--bujo-line)] bg-[var(--bujo-card-yellow)] px-3 py-2 mt-1"
-          >
-            <span class="flex-shrink-0 text-sm leading-5">⚠️</span>
-            <span class="text-xs leading-5 text-[var(--bujo-ink)]">
-              活動將在 <strong>{{ minutesUntilStart }}</strong> 分鐘後開始，建立後請手動確認成團
-            </span>
-          </div>
+          <UrgentStartWarning v-if="isUrgent" :minutes="minutesUntilStart" />
         </div>
 
         <div
@@ -459,6 +450,8 @@
                 </div>
               </span>
             </div>
+
+            <UrgentStartWarning v-if="isUrgent" :minutes="minutesUntilStart" />
           </div>
         </div>
 
@@ -611,6 +604,8 @@
                 </span>
               </div>
             </template>
+
+            <UrgentStartWarning v-if="isUrgent" :minutes="minutesUntilStart" />
           </div>
         </div>
 
@@ -806,6 +801,8 @@
               </span>
             </div>
           </div>
+
+          <UrgentStartWarning v-if="isUrgent" :minutes="minutesUntilStart" />
         </div>
 
         <label :class="[fieldClass, 'col-span-full']" for="event-note">
@@ -914,6 +911,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { useRoute, useRouter } from 'vue-router'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
+import UrgentStartWarning from './UrgentStartWarning.vue'
 import partyDanceUrl from '@/assets/party-dance.png'
 
 const props = defineProps({
