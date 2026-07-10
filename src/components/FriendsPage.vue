@@ -30,7 +30,14 @@
             class="friend-stamp"
             :style="{ background: stampColor(index) }"
           >
-            <span class="friend-stamp-mark" aria-hidden="true"></span>
+            <button
+              class="friend-stamp-delete-btn"
+              @click="handleDelete(friend)"
+              aria-label="移除好友"
+            >
+              <span class="default-mark"></span>
+              <span class="hover-cross">×</span>
+            </button>
             <div class="friend-stamp-avatar">
               <img
                 v-if="friend.avatar_url && !brokenImages.has(friend.id)"
@@ -79,6 +86,18 @@ function stampColor(index) {
 
 const handleImageError = (id) => {
   brokenImages.value = new Set([...brokenImages.value, id])
+}
+
+const handleDelete = async (friend) => {
+  const isConfirmed = window.confirm(`確定要將 ${friend.display_name} 從好友名單中移除嗎？`)
+
+  if (!isConfirmed) return
+
+  const result = await friendStore.removeFriend(friend.friendship_id)
+
+  if (!result.success) {
+    alert(result.message)
+  }
 }
 
 onMounted(() => {
@@ -146,14 +165,51 @@ onMounted(() => {
   box-shadow: 5px 7px 0 rgb(var(--bujo-ink-rgb) / 0.12);
 }
 
-.friend-stamp-mark {
+.friend-stamp-delete-btn {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 0;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.default-mark {
   width: 6px;
   height: 6px;
   background: var(--bujo-ink);
   opacity: 0.55;
+  transition: opacity 150ms ease;
+}
+
+.hover-cross {
+  position: absolute;
+  font-family: 'Space Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--bujo-ink);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 150ms ease;
+}
+
+.friend-stamp:hover .default-mark {
+  opacity: 0;
+}
+
+.friend-stamp:hover .hover-cross {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.friend-stamp-delete-btn:hover .hover-cross {
+  color: #dc2626;
 }
 
 .friend-stamp-avatar {
