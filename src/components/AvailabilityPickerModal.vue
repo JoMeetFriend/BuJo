@@ -364,14 +364,14 @@ function isAllDay(dateKey) {
 }
 
 function startCustom() {
-  selectedDates.value[activeDate.value] = [{ from: '09:00', to: '17:00' }]
+  selectedDates.value[activeDate.value] = [{ from: '09:00', to: '17:00', endTimeUserSet: false }]
 }
 
 function addRange() {
   if (!Array.isArray(selectedDates.value[activeDate.value])) {
     selectedDates.value[activeDate.value] = []
   }
-  selectedDates.value[activeDate.value].push({ from: '09:00', to: '17:00' })
+  selectedDates.value[activeDate.value].push({ from: '09:00', to: '17:00', endTimeUserSet: false })
 }
 
 function removeRange(i) {
@@ -441,11 +441,24 @@ function openTimePicker(key, containerEl) {
 
 function selectRangeStart(range, value) {
   range.from = value
+  if (range.endTimeUserSet) {
+    // 使用者已經手動選過結束時間：只有在新的開始時間讓它不再合理時才清掉，不然尊重使用者的選擇
+    if (range.to && range.to <= value) {
+      range.to = null
+      range.endTimeUserSet = false
+    }
+  } else {
+    // 還沒手動選過結束時間：自動帶入開始時間 +1 小時，一小時是常見的活動時長，省一次選取動作；
+    // 開始時間選在 23:00 時同一天內沒有合理的 +1 小時，留白讓使用者自己選
+    const hour = parseInt(value.split(':')[0])
+    range.to = hour === 23 ? null : `${String(hour + 1).padStart(2, '0')}:00`
+  }
   activeTimePicker.value = null
 }
 
 function selectRangeEnd(range, value) {
   range.to = value
+  range.endTimeUserSet = true
   activeTimePicker.value = null
 }
 
