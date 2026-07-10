@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test, afterEach, vi } from 'vitest'
 import AvailabilityPickerModal from '@/components/AvailabilityPickerModal.vue'
 
 describe('AvailabilityPickerModal', () => {
@@ -112,5 +112,143 @@ describe('AvailabilityPickerModal - 共用 BaseModal 外殼', () => {
 
     expect(wrapper.emitted('update:modelValue')).toBeTruthy()
     expect(wrapper.emitted('update:modelValue')[0]).toEqual([false])
+  })
+})
+
+describe('AvailabilityPickerModal - 結束時間選單排除等於或早於已選開始時間的選項', () => {
+  test('選了開始時間後，結束時間選單不會出現該小時或更早的選項', async () => {
+    const wrapper = mount(AvailabilityPickerModal, {
+      props: {
+        modelValue: true,
+        rangeStart: '2026-06-11',
+        rangeEnd: '2026-06-17',
+        fixedDate: '2026-06-12',
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    const customButton = wrapper.findAll('button').find((b) => b.text() === '指定時段')
+    await customButton.trigger('click')
+
+    const startButtons = wrapper.findAll('.time-picker-wrap button')
+    await startButtons[0].trigger('click')
+    const startOption = wrapper
+      .findAll('button[data-hour]')
+      .find((o) => o.text() === '上午 1:00')
+    await startOption.trigger('click')
+
+    const endButtons = wrapper.findAll('.time-picker-wrap button')
+    await endButtons[1].trigger('click')
+    const endOptions = wrapper.findAll('button[data-hour]').map((o) => o.text())
+
+    expect(endOptions).not.toContain('上午 12:00')
+    expect(endOptions).not.toContain('上午 1:00')
+    expect(endOptions[0]).toBe('上午 2:00')
+  })
+
+  test('同一天有兩筆 range 時，各自的結束時間選單只依自己的開始時間過濾', async () => {
+    const wrapper = mount(AvailabilityPickerModal, {
+      props: {
+        modelValue: true,
+        rangeStart: '2026-06-11',
+        rangeEnd: '2026-06-17',
+        fixedDate: '2026-06-12',
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    const customButton = wrapper.findAll('button').find((b) => b.text() === '指定時段')
+    await customButton.trigger('click')
+
+    let startButtons = wrapper.findAll('.time-picker-wrap button')
+    await startButtons[0].trigger('click')
+    let startOption = wrapper.findAll('button[data-hour]').find((o) => o.text() === '上午 8:00')
+    await startOption.trigger('click')
+
+    const addButton = wrapper.findAll('button').find((b) => b.text() === '＋ 新增時段')
+    await addButton.trigger('click')
+
+    startButtons = wrapper.findAll('.time-picker-wrap button')
+    await startButtons[2].trigger('click')
+    startOption = wrapper.findAll('button[data-hour]').find((o) => o.text() === '下午 3:00')
+    await startOption.trigger('click')
+
+    const endButtonsForSecondRange = wrapper.findAll('.time-picker-wrap button')
+    await endButtonsForSecondRange[3].trigger('click')
+    const secondRangeEndOptions = wrapper.findAll('button[data-hour]').map((o) => o.text())
+
+    expect(secondRangeEndOptions).not.toContain('上午 8:00')
+    expect(secondRangeEndOptions[0]).toBe('下午 4:00')
+  })
+})
+
+describe('AvailabilityPickerModal - 開始時間選單排除今天已經過去的時段', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  test('正在編輯的日期是今天時，開始時間選單只列出目前小時之後的選項', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 5, 12, 9, 30))
+
+    const wrapper = mount(AvailabilityPickerModal, {
+      props: {
+        modelValue: true,
+        rangeStart: '2026-06-11',
+        rangeEnd: '2026-06-17',
+        fixedDate: '2026-06-12',
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    const customButton = wrapper.findAll('button').find((b) => b.text() === '指定時段')
+    await customButton.trigger('click')
+
+    const startButtons = wrapper.findAll('.time-picker-wrap button')
+    await startButtons[0].trigger('click')
+    const startOptions = wrapper.findAll('button[data-hour]').map((o) => o.text())
+
+    expect(startOptions).not.toContain('上午 9:00')
+    expect(startOptions[0]).toBe('上午 10:00')
+  })
+
+  test('正在編輯的日期不是今天時，開始時間選單不受目前時間影響', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 5, 12, 9, 30))
+
+    const wrapper = mount(AvailabilityPickerModal, {
+      props: {
+        modelValue: true,
+        rangeStart: '2026-06-11',
+        rangeEnd: '2026-06-17',
+        fixedDate: '2026-06-13',
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    const customButton = wrapper.findAll('button').find((b) => b.text() === '指定時段')
+    await customButton.trigger('click')
+
+    const startButtons = wrapper.findAll('.time-picker-wrap button')
+    await startButtons[0].trigger('click')
+    const startOptions = wrapper.findAll('button[data-hour]').map((o) => o.text())
+
+    expect(startOptions[0]).toBe('上午 12:00')
   })
 })

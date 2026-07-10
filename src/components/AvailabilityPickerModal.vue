@@ -108,7 +108,7 @@
                         class="absolute top-[calc(100%+4px)] left-0 z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] w-[130px] max-h-[200px] overflow-y-auto"
                       >
                         <button
-                          v-for="opt in hourOptions"
+                          v-for="opt in startHourOptions"
                           :key="opt.value"
                           :data-hour="parseInt(opt.value)"
                           class="block w-full px-2 py-1.5 text-left text-[12px] font-bold border-b border-[var(--bujo-line-soft)] last:border-b-0 transition-colors duration-150 hover:bg-[var(--bujo-surface-muted)]"
@@ -141,7 +141,7 @@
                         class="absolute top-[calc(100%+4px)] left-0 z-50 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-[7px_8px_0_rgb(var(--bujo-ink-rgb)/0.06)] w-[130px] max-h-[200px] overflow-y-auto"
                       >
                         <button
-                          v-for="opt in hourOptions"
+                          v-for="opt in endHourOptionsFor(range)"
                           :key="opt.value"
                           :data-hour="parseInt(opt.value)"
                           class="block w-full px-2 py-1.5 text-left text-[12px] font-bold border-b border-[var(--bujo-line-soft)] last:border-b-0 transition-colors duration-150 hover:bg-[var(--bujo-surface-muted)]"
@@ -400,6 +400,24 @@ const hourOptions = computed(() => {
       (!props.timeWindowEnd || opt.value <= props.timeWindowEnd),
   )
 })
+
+function todayKey() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
+
+// 開始時間選單：疊加在 hourOptions（timeWindow 限制）之上，正在編輯的日期是今天時，排除已經過去的小時
+const startHourOptions = computed(() => {
+  if (activeDate.value !== todayKey()) return hourOptions.value
+  const currentHour = new Date().getHours()
+  return hourOptions.value.filter((opt) => parseInt(opt.value) > currentHour)
+})
+
+// 結束時間選單：疊加在 hourOptions 之上，排除等於或早於該筆 range 已選開始時間的選項
+function endHourOptionsFor(range) {
+  if (!range.from) return hourOptions.value
+  return hourOptions.value.filter((opt) => opt.value > range.from)
+}
 
 const activeTimePicker = ref(null)
 
