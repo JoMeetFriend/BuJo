@@ -2,13 +2,13 @@
   <BaseModal
     :isOpen="modelValue"
     :title="dateOnly ? '選擇可參加日期' : '選取有空時間'"
-    :scrollable="!fixedDate"
-    :max-width="fixedDate ? '440px' : '800px'"
+    :scrollable="!compact"
+    :max-width="dateOnly ? '480px' : fixedDate ? '440px' : '800px'"
     @close="close"
   >
     <div
       class="font-nunito flex flex-col -mx-5 -my-4"
-      :class="fixedDate ? '' : 'h-[70vh] md:h-[550px] overflow-hidden'"
+      :class="compact ? '' : 'h-[70vh] md:h-[550px] overflow-hidden'"
     >
       <!-- Activity range -->
       <div
@@ -25,12 +25,13 @@
       <!-- Body -->
       <div
         class="flex md:flex-row flex-col flex-1 min-h-0"
-        :class="fixedDate ? '' : 'overflow-y-auto md:overflow-hidden'"
+        :class="compact ? '' : 'overflow-y-auto md:overflow-hidden'"
       >
         <!-- 日曆區：fixedDate 模式下不渲染，只顯示固定日期的時段選取面板 -->
         <div
           v-if="!fixedDate"
-          class="border-b md:border-b-0 md:border-r border-[var(--bujo-line-soft)] p-3 md:p-4 w-full md:flex-1 flex flex-col"
+          class="p-3 md:p-4 w-full md:flex-1 flex flex-col"
+          :class="dateOnly ? '' : 'border-b md:border-b-0 md:border-r border-[var(--bujo-line-soft)]'"
         >
           <!-- 月份標題 -->
           <div class="flex items-center justify-between mb-2 shrink-0">
@@ -246,7 +247,7 @@
               @click="activeDate = item.date"
               class="text-[10px] md:text-[12px] font-bold px-2 py-0.5 border transition-colors duration-150"
               :class="
-                activeDate === item.date
+                !dateOnly && activeDate === item.date
                   ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)] border-[var(--bujo-ink)]'
                   : 'bg-[var(--bujo-surface)] text-[var(--bujo-ink)] border-[var(--bujo-line)] hover:border-[var(--bujo-ink)]'
               "
@@ -296,6 +297,9 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'confirm'])
 
 // ── 狀態 ──
+// fixedDate（單一日期＋時段面板）跟 dateOnly（只選日期，不顯示時段面板）
+// 都只有單一欄內容，不需要 BaseModal 的 scrollable 外殼或跟兩欄版面搭配的固定高度/寬度
+const compact = computed(() => !!props.fixedDate || props.dateOnly)
 const hasTimeWindow = computed(() => !!(props.timeWindowStart && props.timeWindowEnd))
 
 // 有設時段範圍（timeWindowStart/timeWindowEnd）時，「預設」代表整個時段範圍都有空，
@@ -376,7 +380,10 @@ function dayClass(day) {
   const key = toDateKey(day)
   const inRange = canSelectDateKey(key)
   const sel = key in selectedDates.value
-  const isActive = activeDate.value === key
+  // dateOnly 模式沒有時段面板可以顯示「目前作用中的是哪天」，active 這個第二種選取狀態
+  // 在畫面上沒有對應的功能意義，只保留一種「已選」樣式，不然使用者看到同樣是選取的日期
+  // 卻有綠/黑兩種顏色，會誤以為代表不同意義
+  const isActive = !props.dateOnly && activeDate.value === key
   const isDragHov = dragState.active && dragState.hovering.has(day)
 
   if (!inRange)
@@ -402,6 +409,20 @@ function onDayMousedown(day) {
   const key = toDateKey(day)
   if (!canSelectDateKey(key)) return
 
+  // dateOnly 模式：單純點選/再點一次取消，不需要「先切成 active 再點一次才刪除」這種
+  // 兩段式行為——那是給右側時段面板用的「目前正在編輯哪天」機制，dateOnly 沒有這個面板
+  if (props.dateOnly) {
+    if (key in selectedDates.value) {
+      delete selectedDates.value[key]
+      if (activeDate.value === key) activeDate.value = null
+    } else {
+      selectedDates.value[key] = defaultDayValue()
+      activeDate.value = key
+    }
+    confirmError.value = ''
+    return
+  }
+
   if (key in selectedDates.value) {
     if (activeDate.value === key) {
       activeDate.value = null
@@ -409,13 +430,6 @@ function onDayMousedown(day) {
     } else {
       activeDate.value = key
     }
-    return
-  }
-
-  if (props.dateOnly) {
-    selectedDates.value[key] = defaultDayValue()
-    activeDate.value = key
-    confirmError.value = ''
     return
   }
 

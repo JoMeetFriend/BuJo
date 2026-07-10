@@ -511,6 +511,38 @@ describe('ActivityDetailModal - Scenario C 日期-only 報名流程', () => {
     expect(picker.props('allowedDates')).toEqual(['2026-08-01', '2026-08-03', '2026-08-09'])
   })
 
+  test('時間欄位顯示候選時段的固定時間，不是「候選時段投票中」，並提示日期投票中', async () => {
+    const activity = makeScenarioCActivity()
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    // Mode C 的時間本來就是固定的，投票的是日期不是時段，不該顯示「候選時段投票中」
+    expect(wrapper.text()).not.toContain('候選時段投票中')
+    expect(wrapper.text()).toContain('下午 7:00')
+    expect(wrapper.text()).toContain('下午 9:00')
+    expect(wrapper.text()).toContain('日期投票中')
+  })
+
+  test('已成團（confirmed_slot 存在）時不顯示「日期投票中」', async () => {
+    const activity = makeScenarioCActivity({
+      status: 'confirmed',
+      has_joined: true,
+      confirmed_slot: { slot_start: '2026-08-01T19:00:00', slot_end: '2026-08-01T21:00:00' },
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('日期投票中')
+  })
+
   test('未提供 schedule_variant 時維持舊 checkbox 流程', async () => {
     const activity = makeScenarioCActivity({ schedule_variant: undefined })
     stubFetch(activity)
@@ -697,6 +729,7 @@ describe('ActivityDetailModal - availability_mode: range 的報名流程', () =>
       ],
     })
   })
+
 })
 
 function makeRangeDecisionActivity(overrides = {}) {

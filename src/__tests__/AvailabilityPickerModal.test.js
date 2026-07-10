@@ -106,6 +106,26 @@ describe('AvailabilityPickerModal - dateOnly 與 allowedDates', () => {
     await findDay(wrapper, 2).trigger('mousedown')
     expect(wrapper.text()).toContain('已選 2 天')
   })
+
+  test('已選日期只有一種樣式，不會因為是不是「最後點的」而顏色不同', async () => {
+    const wrapper = mountDateOnly()
+
+    await findDay(wrapper, 1).trigger('mousedown')
+    await findDay(wrapper, 3).trigger('mousedown')
+
+    expect(findDay(wrapper, 1).classes()).toEqual(findDay(wrapper, 3).classes())
+  })
+
+  test('點擊已選但不是最後點的日期，一次點擊就直接移除，不用先切成作用中再點一次', async () => {
+    const wrapper = mountDateOnly()
+
+    await findDay(wrapper, 1).trigger('mousedown')
+    await findDay(wrapper, 3).trigger('mousedown')
+    // 此時 8/3 是最後點的，8/1 不是——點一次 8/1 應該直接移除
+    await findDay(wrapper, 1).trigger('mousedown')
+
+    expect(Object.keys(wrapper.vm.selectedDates)).toEqual(['2026-08-03'])
+  })
 })
 
 describe('AvailabilityPickerModal - fixedDate 隱藏日曆', () => {

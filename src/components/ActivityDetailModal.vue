@@ -42,6 +42,9 @@
           <div>
             <div class="activity-detail-label">時間</div>
             <div>{{ scheduleText }}</div>
+            <div v-if="isScenarioCMode && !activity.confirmed_slot" class="activity-detail-muted">
+              日期投票中
+            </div>
           </div>
           <div v-if="activity.location">
             <div class="activity-detail-label">地點</div>
@@ -482,6 +485,9 @@ const scheduleText = computed(() => {
   const a = activity.value
   if (!a) return '時間未設定'
   if (a.confirmed_slot) return slotText(a.confirmed_slot)
+  // Mode C 的時間本來就是固定的，投票的是日期，不是時段——不能顯示「候選時段投票中」，
+  // 那句話的意思是時間還沒定，跟 Mode C 的實際狀況相反，而且會藏掉使用者最需要的固定時間資訊
+  if (isScenarioCMode.value) return scenarioCFixedTimeLabel.value || '時間未設定'
   if (a.requires_voting) return '候選時段投票中'
   if (a.candidate_slots?.[0]) return slotText(a.candidate_slots[0])
   return '時間未設定'
@@ -1002,9 +1008,10 @@ function formatTime(date) {
 }
 
 .activity-detail-date-list span {
-  border: 1px solid rgba(var(--bujo-ink-rgb), 0.32);
-  background: rgba(var(--bujo-white-rgb), 0.35);
-  padding: 5px 8px;
+  border: 1.5px solid var(--bujo-ink);
+  background: var(--bujo-white);
+  color: var(--bujo-ink);
+  padding: 5px 10px;
   font-size: 12px;
   font-weight: 800;
 }
