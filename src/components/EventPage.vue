@@ -399,7 +399,7 @@
                 >
                   <div class="max-h-[208px] overflow-y-auto pr-1">
                     <button
-                      v-for="time in timeOptions"
+                      v-for="time in timeWindowStartOptions"
                       :key="time"
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                       :class="
@@ -551,7 +551,7 @@
                   >
                     <div class="max-h-[208px] overflow-y-auto pr-1">
                       <button
-                        v-for="time in timeOptions"
+                        v-for="time in uniformStartTimeOptions"
                         :key="time"
                         class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                         :class="
@@ -714,7 +714,7 @@
                 >
                   <div class="max-h-[208px] overflow-y-auto pr-1">
                     <button
-                      v-for="time in timeOptions"
+                      v-for="time in slotStartTimeOptions(editingSlot.date)"
                       :key="time"
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                       :class="
@@ -1241,6 +1241,14 @@ const uniformEndTimeOptions = computed(() => {
   return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
 })
 
+// 情境三：統一開始時間——今天的日期存在於候選日期時，排除已經過去的小時
+const uniformStartTimeOptions = computed(() => {
+  const todayValue = formatDateValue(new Date())
+  if (!candidateDates.value.includes(todayValue)) return timeOptions
+  const currentHour = new Date().getHours()
+  return timeOptions.filter((t) => parseHourFromTimeStr(t) > currentHour)
+})
+
 // 情境四：每個候選時段各自的結束時間須晚於該時段自己的開始時間
 function slotEndTimeOptions(slot) {
   if (!slot.startTime) return timeOptions
@@ -1248,11 +1256,25 @@ function slotEndTimeOptions(slot) {
   return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
 }
 
+// 情境四：每個候選時段的開始時間——只看該時段自己的日期是不是今天，不受其他候選時段的日期影響
+function slotStartTimeOptions(date) {
+  if (date !== formatDateValue(new Date())) return timeOptions
+  const currentHour = new Date().getHours()
+  return timeOptions.filter((t) => parseHourFromTimeStr(t) > currentHour)
+}
+
 // 情境二：時段範圍結束時間須晚於開始時間
 const timeWindowEndTimeOptions = computed(() => {
   if (!timeWindow.startTime) return timeOptions
   const startHour = parseHourFromTimeStr(timeWindow.startTime)
   return timeOptions.filter((t) => parseHourFromTimeStr(t) > startHour)
+})
+
+// 情境二：時段範圍開始時間——singleDate 是今天時，排除已經過去的小時
+const timeWindowStartOptions = computed(() => {
+  if (form.singleDate !== formatDateValue(new Date())) return timeOptions
+  const currentHour = new Date().getHours()
+  return timeOptions.filter((t) => parseHourFromTimeStr(t) > currentHour)
 })
 
 const activeDateField = computed(() =>

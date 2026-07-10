@@ -199,6 +199,73 @@ describe('EventPage - 情境二（日期X時間讓大家選）表單簡化', () 
   })
 })
 
+function getTimeOptionsIn(panelAriaLabel) {
+  const panel = document.body.querySelector(`[aria-label="${panelAriaLabel}"]`)
+  return [...panel.querySelectorAll('button')].map((b) => b.textContent.trim())
+}
+
+describe('EventPage - 情境二/三/四開始時間選單排除今天已過去時段', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 6, 15, 9, 30))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  test('情境二：singleDate 是今天時，時段範圍開始時間選單排除已過去的小時', async () => {
+    const wrapper = await mountEventPage()
+    enterScenario2()
+    await flushPromises()
+
+    queryBody('#event-time-window-start').click()
+    await flushPromises()
+    const options = getTimeOptionsIn('時段範圍開始時間選單')
+
+    expect(options).not.toContain('上午 9:00')
+    expect(options[0]).toBe('上午 10:00')
+
+    wrapper.unmount()
+  })
+
+  test('情境三：今天的日期存在於 candidateDates 時，統一開始時間選單排除已過去的小時', async () => {
+    const wrapper = await mountEventPage()
+    wrapper.vm.dateMode = 'range'
+    wrapper.vm.timeMode = 'fixed'
+    wrapper.vm.candidateDates = ['2026/07/15', '2026/07/20']
+    await flushPromises()
+
+    expect(wrapper.vm.uniformStartTimeOptions.map((t) => t)).not.toContain('上午 9:00')
+    expect(wrapper.vm.uniformStartTimeOptions[0]).toBe('上午 10:00')
+
+    wrapper.unmount()
+  })
+
+  test('情境三：candidateDates 都不是今天時，統一開始時間選單不受目前時間影響', async () => {
+    const wrapper = await mountEventPage()
+    wrapper.vm.dateMode = 'range'
+    wrapper.vm.timeMode = 'fixed'
+    wrapper.vm.candidateDates = ['2026/07/20', '2026/07/21']
+    await flushPromises()
+
+    expect(wrapper.vm.uniformStartTimeOptions[0]).toBe('上午 12:00')
+
+    wrapper.unmount()
+  })
+
+  test('情境四：候選時段自己的日期是今天時，該時段的開始時間選單排除已過去的小時，不受其他候選時段日期影響', async () => {
+    const wrapper = await mountEventPage()
+    await flushPromises()
+
+    expect(wrapper.vm.slotStartTimeOptions('2026/07/15')).not.toContain('上午 9:00')
+    expect(wrapper.vm.slotStartTimeOptions('2026/07/15')[0]).toBe('上午 10:00')
+    expect(wrapper.vm.slotStartTimeOptions('2026/07/20')[0]).toBe('上午 12:00')
+
+    wrapper.unmount()
+  })
+})
+
 describe('EventPage - 流團預設選項掛載/變更時立即同步', () => {
   beforeEach(() => {
     vi.useFakeTimers()
