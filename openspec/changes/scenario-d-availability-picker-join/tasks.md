@@ -57,7 +57,7 @@
 
 - [x] 7.1 跑 `npx vitest run` 全套前端測試，確認無回歸
 - [x] 7.2 `npx vite build` 確認無語法/樣板錯誤
-- [ ] 7.3 手動流程驗證：建立一個至少兩個候選日期的情境四活動，走一次加入→查看摘要→修改→（建立者）查看巢狀決策清單→確認成團的完整流程
+- [x] 7.3 手動流程驗證：建立一個至少兩個候選日期的情境四活動，走一次加入→查看摘要→修改→（建立者）查看巢狀決策清單→確認成團的完整流程
 
 ## 8. 跨情境 UI 配色一致性修復（情境四手動驗證過程中額外發現，見 proposal.md/design.md 的 Addendum）
 
@@ -68,3 +68,13 @@
 - [x] 8.5 `DateEventsModal.vue`：當天沒有行程時，把純文字提示「點右上角 ＋ 新增」改成可點擊的 + 圖示按鈕，直接放在提示文字下方、無邊框、hover 時觸發放大效果（`hover:scale-125`）；當天已有行程時，+ 按鈕維持在標題列原本的位置（只在 `events.length > 0` 時顯示），新增行程的能力兩種情況下都要保留（Empty-state add button is a borderless icon that scales on hover; populated-list add button stays in the header）
 - [x] 8.6 把 `ActivityDetailModal.vue` 卡片狀態色（`mine-recruiting`/`mine-confirmed`/`joined`/`recruiting`/`confirmed`/`neutral` 六種）的計算從呼叫端外部綁定，改成元件內部用自己 fetch 到的 `activity` 物件算成 `computed`、綁在元件根元素上；移除 `ActivityView.vue` 裡重複的 `focusCardClass()` function 與外部綁定；`DateEventsModal.vue` 開啟 `ActivityDetailModal.vue` 時卡片現在會正確依活動狀態顯示對應顏色，不再永遠落回寫死的預設藍色（design: 卡片狀態色計算搬進 `ActivityDetailModal.vue` 內部，不再要求呼叫端外部綁定）
 - [x] 8.7 跑 `npx vitest run` 全套前端測試（201 個，含更新後的 8.4）與 `npx vite build`，每個子項改動後都各自重新驗證一次，確認無回歸
+
+## 9. 情境四子區間顯示失真、修改報名時段遺失資料（見 proposal.md 的 Addendum 2）
+
+- [x] 9.1 `slotText()` 新增可選參數，情境四的 `selectedScenarioDSlotLabels` 改成優先讀 `slot.my_range`（有值時顯示子區間起訖時間），只有 `my_range` 為 null 時才 fallback 顯示整個候選時段窗口（design: 情境四子區間顯示失真的根因）
+- [x] 9.2 測試：參與者的 `my_range` 是候選時段窗口內的子區間時，「你已選擇的候選時段」顯示子區間的起訖時間，不是整個窗口（Selected slot summary shows the participant's actual sub-range, not the full slot window）
+- [x] 9.3 測試：`my_range` 為 null（例如舊資料或未提交子區間）時，顯示 fallback 成整個候選時段窗口，不出現空白或錯誤（Summary falls back to the full slot window when no sub-range was submitted）
+- [x] 9.4 `AvailabilityPickerModal.vue` 新增 `watch(() => props.modelValue, ...)`，`isOpen` 從 false 變 true 時重新呼叫 `initialSelectedDates()`/`initialActiveDate()` 並覆蓋 `selectedDates`/`activeDate`（design: 修改報名時段不會預填的根因）
+- [x] 9.5 測試：`AvailabilityPickerModal` 元件維持掛載、`initialRanges` 在元件建立後才變成有值（模擬「掛載時未報名，報名後才有 my_range」的情境）時，重新打開（`modelValue` 從 false 變 true）後 `selectedDates` 正確反映最新的 `initialRanges`，不是元件建立當下的舊快照（Reopening the picker after `initialRanges` changes re-syncs selected dates, not the stale mount-time snapshot）
+- [x] 9.6 測試：情境四「修改報名時段」重開 picker 後，未重新勾選但先前已選的候選日期仍保留在 `selectedDates` 裡，確認送出不會遺失（Reopening for scenario D pre-fills previously selected candidate dates so resubmission doesn't drop them）
+- [x] 9.7 跑 `npx vitest run` 全套前端測試與 `npx vite build`，確認無回歸

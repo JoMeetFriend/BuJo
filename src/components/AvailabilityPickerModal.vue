@@ -281,7 +281,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import PixelButton from './ui/PixelButton.vue'
 import BaseModal from './ui/BaseModal.vue'
 
@@ -349,6 +349,19 @@ function initialActiveDate() {
 
 const selectedDates = ref(initialSelectedDates())
 const activeDate = ref(initialActiveDate())
+
+// 元件在 ActivityDetailModal 裡只會建立一次（v-if 掛載後單純用 modelValue 切換顯示/隱藏），
+// 只在建立當下跑一次 initialSelectedDates() 不夠——如果第一次掛載時 initialRanges 還是空的
+// （例如當下還沒報名），之後即使 props.initialRanges 變成有值，selectedDates 也不會自動更新。
+// 每次打開（modelValue 從 false 變 true）都重新讀一次目前最新的 initialRanges，才能正確預填
+watch(
+  () => props.modelValue,
+  (isOpen) => {
+    if (!isOpen) return
+    selectedDates.value = initialSelectedDates()
+    activeDate.value = initialActiveDate()
+  },
+)
 const confirmError = ref('')
 const dragState = reactive({ active: false, startDate: null, hovering: new Set() })
 

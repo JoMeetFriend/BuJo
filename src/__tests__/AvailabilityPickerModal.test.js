@@ -21,6 +21,73 @@ describe('AvailabilityPickerModal', () => {
   })
 })
 
+describe('AvailabilityPickerModal - 重新打開時要用最新的 initialRanges 重新預填', () => {
+  // 元件在 ActivityDetailModal 裡只會建立一次，之後單純用 modelValue 切換顯示/隱藏——
+  // 模擬「掛載時 initialRanges 還是空的（尚未報名），之後才變成有值（報名成功、activity 重新
+  // fetch）」的情境，確認重新打開（modelValue 從 false 變 true）時會重新讀最新的 initialRanges，
+  // 不是只停留在元件建立當下的舊快照
+  test('modelValue 從 false 變 true 時，重新套用最新的 initialRanges', async () => {
+    const wrapper = mount(AvailabilityPickerModal, {
+      props: {
+        modelValue: false,
+        rangeStart: '2026-08-01',
+        rangeEnd: '2026-08-31',
+        initialRanges: [],
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    expect(wrapper.vm.selectedDates).toEqual({})
+
+    await wrapper.setProps({
+      initialRanges: [{ date: '2026-08-01', from: '上午 9:00', to: '上午 10:00' }],
+    })
+    // 只更新 props，還沒打開，selectedDates 不應該自動變化（沒有其他地方會主動同步）
+    expect(wrapper.vm.selectedDates).toEqual({})
+
+    await wrapper.setProps({ modelValue: true })
+
+    expect(wrapper.vm.selectedDates).toEqual({
+      '2026-08-01': [{ from: '上午 9:00', to: '上午 10:00', endTimeUserSet: true }],
+    })
+
+    wrapper.unmount()
+  })
+
+  test('情境四修改報名時段：重開 picker 後，未重新勾選但先前已選的候選日期仍保留，不會被覆蓋成沒選', async () => {
+    const wrapper = mount(AvailabilityPickerModal, {
+      props: {
+        modelValue: false,
+        rangeStart: '2026-08-01',
+        rangeEnd: '2026-08-31',
+        initialRanges: [],
+      },
+      global: {
+        stubs: {
+          Teleport: true,
+        },
+      },
+    })
+
+    // 模擬報名成功後 activity 重新 fetch，scenarioDInitialRanges 算出先前選的兩個候選日期
+    await wrapper.setProps({
+      initialRanges: [
+        { date: '2026-08-01', from: '上午 9:00', to: '上午 10:00' },
+        { date: '2026-08-15', from: '下午 2:00', to: '下午 3:00' },
+      ],
+    })
+    await wrapper.setProps({ modelValue: true })
+
+    expect(Object.keys(wrapper.vm.selectedDates).sort()).toEqual(['2026-08-01', '2026-08-15'])
+
+    wrapper.unmount()
+  })
+})
+
 describe('AvailabilityPickerModal - dateOnly 與 allowedDates', () => {
   function mountDateOnly(props = {}) {
     return mount(AvailabilityPickerModal, {

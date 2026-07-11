@@ -77,3 +77,15 @@
 ### 卡片狀態色計算搬進 `ActivityDetailModal.vue` 內部，不再要求呼叫端外部綁定
 
 原本 `activity-focus-card--*` 狀態 class 是由呼叫端（`ActivityView.vue`）用 `focusCardClass(activity)` 算好後外部 `:class` 綁定在 `<ActivityDetailModal>` 元件上——這個設計要求每個呼叫端都要記得自己算、自己綁，`DateEventsModal.vue` 這個呼叫路徑就漏掉了，卡片永遠只會顯示 CSS 裡寫死的預設藍色，狀態色機制形同虛設。`ActivityDetailModal.vue` 本身已經有 fetch 到的完整 `activity` 物件（`is_creator`/`has_joined`/`status`），把同一套判斷邏輯搬進元件內部算成 `computed`、綁在元件自己的根元素上，不管誰呼叫這個元件都會自動套用正確狀態色，結構性地不會再出現「忘記綁定」的情況。`ActivityView.vue` 原本的外部綁定跟著移除，避免兩處邏輯重複、以後各自漂移。
+
+## Addendum 2：情境四子區間顯示失真、修改報名時段遺失資料
+
+見 proposal.md 同名 Addendum 2 段落的 Why，這裡只記錄技術決策。
+
+### 情境四子區間顯示失真的根因
+
+`selectedScenarioDSlotLabels`（`ActivityDetailModal.vue` 740 行）呼叫 `slotText(slot)` 產生「你已選擇的候選時段」文字，但 `slotText()`（880 行）是從舊版通用 checkbox 清單沿用過來的共用函式，設計上只認得 `slot.slot_start`/`slot.slot_end`（候選時段本身的窗口邊界），完全不知道情境四多了一個 `slot.my_range`（參與者實際選的子區間）這個概念。改法：`slotText()` 新增第二個可選參數（子區間 range），情境四呼叫時優先傳入 `slot.my_range`，函式內有子區間就顯示子區間的起訖，沒有（null）才 fallback 顯示整個窗口——維持這個函式給其他呼叫端（舊版 checkbox 清單、情境三/其他不帶子區間概念的地方）用時的既有行為不變。
+
+### 修改報名時段不會預填的根因
+
+`AvailabilityPickerModal.vue` 的 `selectedDates = ref(initialSelectedDates())`（350 行）只在元件**第一次建立時**執行一次。這個元件在 `ActivityDetailModal.vue` 是用 `v-if="(isRangeMode || isScenarioCMode || isScenarioDMode) && activity"` 掛載的——只要 `activity` 有值就建立，之後單純用 `v-model="showAvailabilityPicker"` 切換顯示/隱藏，**元件實例在整個 `ActivityDetailModal` 生命週期裡只建立一次**，不是每次點「修改報名時段」都重新建立。如果元件第一次掛載時 `props.initialRanges` 是空的（例如當下還沒報名），之後即使報名成功、`activity` 重新 fetch、`scenarioDInitialRanges` 這個 computed 也正確算出新值，`selectedDates` 這個 `ref` 因為沒有任何 `watch` 監聽 `props.initialRanges` 的變化，永遠停留在元件建立當下的舊快照。修法：新增 `watch(() => props.modelValue, (isOpen) => { if (isOpen) { selectedDates.value = initialSelectedDates(); activeDate.value = initialActiveDate() } })`，讓「每次打開 picker」都重新讀一次當下最新的 `props.initialRanges`，不只靠元件建立時的一次性初始化。

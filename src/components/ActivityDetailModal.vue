@@ -740,7 +740,7 @@ const scenarioDInitialRanges = computed(() =>
 const selectedScenarioDSlotLabels = computed(() =>
   (activity.value?.candidate_slots ?? [])
     .filter((slot) => slot.is_selected)
-    .map((slot) => slotText(slot)),
+    .map((slot) => slotText(slot, slot.my_range)),
 )
 
 const availabilityPickerRangeStart = computed(() => {
@@ -877,8 +877,15 @@ const rangeTimeWindowText = computed(() => {
   return `${a.time_window_start}–${a.time_window_end}區間`
 })
 
-function slotText(slot) {
+// subRange（可選）：情境四參與者實際選的子區間 {start, end}，優先顯示子區間而不是候選
+// 時段本身的整個窗口——沒有子區間時（null，例如舊資料）才 fallback 顯示整個窗口
+function slotText(slot, subRange) {
   if (!slot) return ''
+  if (subRange) {
+    const start = new Date(subRange.start)
+    const end = new Date(subRange.end)
+    return `${formatDateTime(start)} - ${formatTime(end)}`
+  }
   const start = new Date(slot.slot_start)
   if (slot.all_day) return `${start.getMonth() + 1}/${start.getDate()} 整天`
   const end = new Date(slot.slot_end)

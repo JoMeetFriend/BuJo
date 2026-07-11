@@ -1019,6 +1019,64 @@ describe('ActivityDetailModal - Scenario D 候選時段窗口報名流程', () =
     expect(wrapper.text()).not.toContain('選擇你方便的候選時段（可複選）')
   })
 
+  test('已選擇的候選時段摘要顯示參與者實際選的子區間（my_range），不是候選時段整個窗口', async () => {
+    const activity = makeScenarioDActivity({
+      has_joined: true,
+      status: 'voting',
+      candidate_slots: [
+        {
+          id: 'slot-a',
+          // 候選時段窗口是 14:00-16:00，但參與者實際只選了窗口內的 14:00-14:30 子區間
+          slot_start: '2026-08-01T14:00:00',
+          slot_end: '2026-08-01T16:00:00',
+          is_selected: true,
+          my_range: { start: '2026-08-01T14:00:00', end: '2026-08-01T14:30:00' },
+        },
+      ],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    const summary = wrapper
+      .findAll('.activity-detail-options')
+      .find((el) => el.text().includes('你已選擇的候選時段'))
+    expect(summary.text()).toContain('下午 2:30')
+    expect(summary.text()).not.toContain('下午 4:00')
+
+    wrapper.unmount()
+  })
+
+  test('已選擇的候選時段沒有 my_range（例如舊資料）時，摘要 fallback 顯示整個候選時段窗口', async () => {
+    const activity = makeScenarioDActivity({
+      has_joined: true,
+      status: 'voting',
+      candidate_slots: [
+        {
+          id: 'slot-a',
+          slot_start: '2026-08-01T14:00:00',
+          slot_end: '2026-08-01T16:00:00',
+          is_selected: true,
+          my_range: null,
+        },
+      ],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('下午 2:00')
+    expect(wrapper.text()).toContain('下午 4:00')
+
+    wrapper.unmount()
+  })
+
   test('已報名後「修改報名時段」按鈕出現、重開 picker 帶入每個候選時段自己的 my_range 預填', async () => {
     const activity = makeScenarioDActivity({
       has_joined: true,

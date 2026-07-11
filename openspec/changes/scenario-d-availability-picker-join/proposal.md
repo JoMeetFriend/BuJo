@@ -66,3 +66,26 @@
 - `src/components/ActivityDetailModal.vue`：新增內部 `focusCardClass` computed，根元素套用
 - `src/components/ActivityView.vue`：移除重複的 `focusCardClass()` function 與外部綁定
 - `src/__tests__/EventPage.test.js`：既有斷言舊顏色 class（`bujo-ink`/`bujo-card-yellow`）字串的測試改成斷言 `bujo-day-selected`
+
+## Addendum 2：情境四子區間顯示失真、修改報名時段遺失資料（與後端 scenario-d-matching-rework 的建立者幽靈投票修復配套）
+
+### Why
+
+手動驗證情境四完整流程時，實測發現兩個資料完整性問題：
+
+1. **「你已選擇的候選時段」顯示的不是參與者實際送出的子區間**：`selectedScenarioDSlotLabels`（`ActivityDetailModal.vue` 740 行）用 `slotText(slot)` 產生顯示文字，但 `slotText()`（880 行）永遠回傳候選時段本身的 `slot_start`~`slot_end`（整個窗口邊界），完全沒有讀 `slot.my_range`（參與者真正選的子區間）。這個函式是從舊版通用 checkbox 清單沿用過來的——舊版「勾選＝整個候選時段都可以」，顯示整個窗口沒問題；情境四改成子區間投票後，這個函式沒有跟著更新，導致參與者不管實際選了窗口內哪一小段，畫面永遠顯示成「選了整個窗口」，跟後端 `my_range` 存的真實資料不符。實測直接查 API 驗證：某參與者 `my_range` 是 02:00-03:00，畫面卻顯示 01:00-06:00。
+
+2. **「修改報名時段」重開 picker 不會預填之前的選擇，確認送出後靜默遺失沒有重新勾選的候選日期**：`AvailabilityPickerModal.vue` 的 `selectedDates`（350 行）用 `ref(initialSelectedDates())` 只在元件**第一次建立時**執行一次，讀取當下的 `props.initialRanges`。但這個元件在 `ActivityDetailModal.vue`（502-519 行）是用 `v-if="(isRangeMode || isScenarioCMode || isScenarioDMode) && activity"` 掛載的——只要 `activity` 有值就會建立，之後單純用 `v-model="showAvailabilityPicker"` 切換顯示/隱藏，**元件實例整個 `ActivityDetailModal` 生命週期只建立一次，不會每次打開重新建立**。如果元件第一次掛載時參與者還沒報名（`initialRanges` 是空的），之後即使成功報名、`activity` 重新 fetch、`scenarioDInitialRanges` 這個 computed 也正確算出新值，`selectedDates` 這個 `ref` 也不會跟著更新——沒有任何 `watch` 監聽 `props.initialRanges` 的變化。使用者點「修改報名時段」看到的永遠是元件第一次掛載當下的舊狀態（通常是空的），這次沒重新勾選的候選日期，確認送出時就會被覆蓋成沒有選。
+
+這兩個問題各自獨立存在，但會疊加放大彼此的影響：使用者看著（顯示錯誤的）「已選 1:00-6:00」去點修改，picker 卻是空的，重新選過一次後，其他沒注意到要重選的日期就默默消失了。
+
+### What Changes
+
+- `slotText()` 新增可選參數，情境四的 `selectedScenarioDSlotLabels` 改成優先讀 `slot.my_range`（有值時顯示子區間），只有 `my_range` 是 null 時才 fallback 顯示整個窗口
+- `AvailabilityPickerModal.vue` 新增 `watch(() => props.modelValue, ...)`，`isOpen` 從 false 變 true（每次打開 picker）時重新執行 `initialSelectedDates()`/`initialActiveDate()`，覆蓋 `selectedDates`/`activeDate`，確保每次打開都反映當下最新的 `props.initialRanges`，不是只有元件第一次建立時的快照
+
+### Impact
+
+- `src/components/ActivityDetailModal.vue`：`slotText()`、`selectedScenarioDSlotLabels`
+- `src/components/AvailabilityPickerModal.vue`：新增 `modelValue` 的 watch，重新初始化 `selectedDates`/`activeDate`
+- `src/__tests__/ActivityDetailModal.test.js`、`AvailabilityPickerModal.test.js`：新增對應測試
