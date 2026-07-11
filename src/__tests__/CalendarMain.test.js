@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import { describe, expect, test, vi } from 'vitest'
 import CalendarMain from '@/components/CalendarMain.vue'
+import calendarMainSource from '@/components/CalendarMain.vue?raw'
 import { useAuthStore } from '@/stores/auth'
 
 async function mountCalendarMain(user = {}) {
@@ -220,6 +221,50 @@ describe('CalendarMain - 同一天有多筆活動時，只顯示最早的一條�
 })
 
 describe('CalendarMain', () => {
+  test('今天只在原日期位置顯示柔和紅色圓形，並提供 aria-current 語意', async () => {
+    const originalFetch = globalThis.fetch
+    vi.setSystemTime(new Date(2026, 6, 11, 12, 0, 0))
+    globalThis.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ activities: [] }),
+      }),
+    )
+
+    const wrapper = await mountCalendarMain()
+    await flushPromises()
+
+    const todayCell = wrapper.get('.calendar-cell.is-today')
+    expect(todayCell.attributes('aria-current')).toBe('date')
+    const todayNumber = todayCell.get('.calendar-day-number--today')
+    expect(todayNumber.text()).toBe('11')
+    expect(todayNumber.classes()).toContain('calendar-day-number')
+    expect(calendarMainSource).toMatch(/\.calendar-day-number\s*\{\s*display: inline-block;/)
+    expect(calendarMainSource).toContain('class="w-full p-1 md:p-1.5"')
+    expect(calendarMainSource).toMatch(
+      /\.calendar-day-number--today::before\s*\{[\s\S]*?width: 20px;[\s\S]*?height: 20px;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /@media \(min-width: 768px\) \{[\s\S]*?\.calendar-day-number--today::before\s*\{[\s\S]*?width: 22px;[\s\S]*?height: 22px;/,
+    )
+    expect(todayCell.find('.calendar-today-suffix').exists()).toBe(false)
+    expect(wrapper.findAll('[aria-current="date"]')).toHaveLength(1)
+
+    const regularCell = wrapper
+      .findAll('.calendar-cell')
+      .find(
+        (cell) =>
+          cell.find('.calendar-day-number').exists() && !cell.classes().includes('is-today'),
+      )
+    expect(regularCell.find('.calendar-day-number--today').exists()).toBe(false)
+    expect(regularCell.get('.calendar-day-number').classes()).toEqual(['calendar-day-number'])
+    expect(regularCell.attributes('aria-current')).toBeUndefined()
+
+    wrapper.unmount()
+    globalThis.fetch = originalFetch
+    vi.useRealTimers()
+  })
+
   test('主頁右上角帳號按鈕會顯示正規化後的使用者頭像', async () => {
     const wrapper = await mountCalendarMain({
       avatar_url: '/uploads/avatars/avatar-user.png',
