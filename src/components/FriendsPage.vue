@@ -341,5 +341,8 @@ onMounted(() => {
   line-clamp: unset;
   text-align: left;
   color: var(--bujo-ink);
+
+  white-space: normal;
+  word-break: break-all;
 }
 </style>
