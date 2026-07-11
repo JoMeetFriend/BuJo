@@ -684,11 +684,11 @@
             </div>
 
             <div
-              v-for="(slot, index) in editingSlot.timeSlots"
+              v-for="slot in editingSlot.timeSlots"
               :key="slot.id"
-              class="grid grid-cols-[52px_1fr_12px_1fr_28px] max-sm:grid-cols-[40px_1fr_10px_1fr_24px] items-center gap-2"
+              class="grid grid-cols-[52px_1fr_12px_1fr] max-sm:grid-cols-[40px_1fr_10px_1fr] items-center gap-2"
             >
-              <span :class="fieldLabelClass">時段{{ index + 1 }}</span>
+              <span :class="fieldLabelClass">時段</span>
 
               <span class="relative block">
                 <button
@@ -767,24 +767,7 @@
                   </div>
                 </div>
               </span>
-
-              <button
-                type="button"
-                class="grid h-8 w-8 place-items-center text-[var(--bujo-muted-strong)] hover:text-[#dc2626]"
-                aria-label="刪除候選時段"
-                @click.stop="removeCandidateTimeSlot(editingSlot, slot.id)"
-              >
-                🗑
-              </button>
             </div>
-
-            <button
-              type="button"
-              class="w-fit border border-dashed border-[var(--bujo-line)] bg-transparent px-3 py-1.5 text-sm text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-              @click.stop="addCandidateTimeSlot(editingSlot)"
-            >
-              ＋ 新增候選時段
-            </button>
           </div>
 
           <!-- 已選候選組合 -->
@@ -1145,19 +1128,6 @@ function toggleScenario4Date(cell) {
 function removeCandidateSlot(date) {
   candidateSlots.value = candidateSlots.value.filter((slot) => slot.date !== date)
   if (editingSlotDate.value === date) editingSlotDate.value = null
-}
-
-function addCandidateTimeSlot(entry) {
-  entry.timeSlots.push({
-    id: scenario4SlotIdSeq++,
-    startTime: null,
-    endTime: null,
-    endTimeUserSet: false,
-  })
-}
-
-function removeCandidateTimeSlot(entry, slotId) {
-  entry.timeSlots = entry.timeSlots.filter((slot) => slot.id !== slotId)
 }
 
 function shortDate(dateStr) {

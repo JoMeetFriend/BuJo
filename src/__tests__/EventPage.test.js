@@ -323,6 +323,23 @@ describe('EventPage - 月曆格子與結束時間過濾（重構前安全網）'
     wrapper.unmount()
   })
 
+  test('情境四：已設定時段的候選日期正在編輯時，不會出現「新增另一組時段」的控制項', async () => {
+    const wrapper = await mountEventPage()
+    wrapper.vm.candidateSlots = [
+      {
+        date: '2026/07/15',
+        timeSlots: [{ id: 1, startTime: '上午 10:00', endTime: '上午 11:00' }],
+      },
+    ]
+    wrapper.vm.editingSlotDate = '2026/07/15'
+    await flushPromises()
+
+    expect(document.body.textContent).not.toContain('新增候選時段')
+    expect(document.body.textContent).not.toContain('時段2')
+
+    wrapper.unmount()
+  })
+
   test('月曆格子 isToday：等於今天的格子為 true，其餘為 false', async () => {
     const wrapper = await mountEventPage()
     await flushPromises()

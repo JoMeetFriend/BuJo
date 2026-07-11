@@ -124,6 +124,17 @@
             </div>
             <div v-else class="activity-detail-muted">尚未選擇日期</div>
           </template>
+          <template v-else-if="isScenarioDMode">
+            <div class="activity-detail-label">
+              {{ activity.has_joined ? '你已選擇的候選時段' : '選擇你方便的候選時段' }}
+            </div>
+            <div v-if="selectedScenarioDSlotLabels.length" class="activity-detail-date-list">
+              <span v-for="label in selectedScenarioDSlotLabels" :key="label">{{ label }}</span>
+            </div>
+            <div v-else class="activity-detail-muted">
+              {{ activity.has_joined ? '尚未選擇候選時段' : '點擊下方報名參加，選擇你方便的候選時段' }}
+            </div>
+          </template>
           <template v-else-if="isRangeMode">
             <div class="activity-detail-label">
               {{ activity.has_joined ? '你已回報的時間' : '選擇你方便的時間' }}
@@ -172,13 +183,75 @@
 
         <div
           v-if="
+            isScenarioDMode &&
+            activity.has_joined &&
+            (activity.status === 'voting' || activity.status === 'confirmed')
+          "
+          class="activity-detail-options"
+        >
+          <div class="activity-detail-label">你已選擇的候選時段</div>
+          <div v-if="selectedScenarioDSlotLabels.length" class="activity-detail-date-list">
+            <span v-for="label in selectedScenarioDSlotLabels" :key="label">{{ label }}</span>
+          </div>
+          <div v-else class="activity-detail-muted">尚未選擇候選時段</div>
+        </div>
+
+        <div
+          v-if="
             activity.requires_voting &&
             ((activity.status === 'recruiting' && activity.is_creator) ||
               activity.status === 'voting')
           "
           class="activity-detail-options"
         >
-          <template v-if="!isRangeMode">
+          <template v-if="!isRangeMode && isScenarioDMode">
+            <div class="activity-detail-label">{{ decisionSectionLabel }}</div>
+            <template v-for="group in scenarioDCandidateGroups" :key="group.candidateSlotId">
+              <div class="activity-detail-label">{{ group.label }}</div>
+
+              <div class="activity-detail-label">完全重疊</div>
+              <label
+                v-for="seg in group.perfect"
+                :key="seg.radioId"
+                class="activity-detail-option activity-detail-option--spread"
+                :class="{ 'activity-detail-option--selected': selectedDecisionSlotId === seg.radioId }"
+              >
+                <span>
+                  <input
+                    v-if="activity.is_creator"
+                    type="radio"
+                    name="decision-slot"
+                    :value="seg.radioId"
+                    v-model="selectedDecisionSlotId"
+                  />
+                  {{ slotText(seg) }}
+                </span>
+                <span>{{ seg.count }} 票</span>
+              </label>
+
+              <div class="activity-detail-label">部分重疊</div>
+              <label
+                v-for="seg in group.partial"
+                :key="seg.radioId"
+                class="activity-detail-option activity-detail-option--spread"
+                :class="{ 'activity-detail-option--selected': selectedDecisionSlotId === seg.radioId }"
+              >
+                <span>
+                  <input
+                    v-if="activity.is_creator"
+                    type="radio"
+                    name="decision-slot"
+                    :value="seg.radioId"
+                    v-model="selectedDecisionSlotId"
+                  />
+                  {{ slotText(seg) }}
+                </span>
+                <span>{{ seg.count }} 票</span>
+              </label>
+            </template>
+          </template>
+
+          <template v-else-if="!isRangeMode">
             <div class="activity-detail-label">{{ decisionSectionLabel }}</div>
             <label
               v-for="slot in activity.decision_candidates"
@@ -320,6 +393,7 @@
               (activity.requires_voting &&
                 !isRangeMode &&
                 !isScenarioCMode &&
+                !isScenarioDMode &&
                 selectedJoinSlotIds.length === 0)
             "
             @click="handleJoin"
@@ -333,6 +407,14 @@
             @click="openScenarioCPicker"
           >
             {{ actionLoading ? '處理中...' : '修改日期' }}
+          </PixelButton>
+          <PixelButton
+            v-else-if="activity.status === 'recruiting' && activity.has_joined && isScenarioDMode"
+            type="button"
+            :disabled="actionLoading"
+            @click="openScenarioDPicker"
+          >
+            {{ actionLoading ? '處理中...' : '修改報名時段' }}
           </PixelButton>
           <PixelButton
             v-else-if="activity.status === 'recruiting' && activity.has_joined && isRangeMode"
@@ -363,18 +445,19 @@
   </article>
 
   <AvailabilityPickerModal
-    v-if="(isRangeMode || isScenarioCMode) && activity"
+    v-if="(isRangeMode || isScenarioCMode || isScenarioDMode) && activity"
     v-model="showAvailabilityPicker"
     :range-start="availabilityPickerRangeStart"
     :range-end="availabilityPickerRangeEnd"
     :fixed-date="activity.fixed_date"
     :time-window-start="activity.time_window_start"
     :time-window-end="activity.time_window_end"
-    :allowed-dates="scenarioCAvailableCandidateDates"
+    :allowed-dates="isScenarioDMode ? scenarioDAvailableCandidateDates : scenarioCAvailableCandidateDates"
     :date-only="isScenarioCMode"
+    :date-windows="isScenarioDMode ? scenarioDDateWindows : {}"
     :fixed-time-label="scenarioCFixedTimeLabel"
-    :initial-dates="scenarioCInitialDates"
-    :initial-ranges="isRangeMode ? myRangesInitial : []"
+    :initial-dates="isScenarioCMode ? scenarioCInitialDates : []"
+    :initial-ranges="isRangeMode ? myRangesInitial : isScenarioDMode ? scenarioDInitialRanges : []"
     @confirm="handlePickerConfirm"
   />
 </template>
@@ -406,6 +489,7 @@ const showAvailabilityPicker = ref(false)
 
 const isRangeMode = computed(() => activity.value?.availability_mode === 'range')
 const isScenarioCMode = computed(() => activity.value?.schedule_variant === 'find_date')
+const isScenarioDMode = computed(() => activity.value?.schedule_variant === 'find_date_time')
 
 function toLocalDateKey(value) {
   const date = new Date(value)
@@ -489,9 +573,55 @@ const scenarioCFixedTimeLabel = computed(() => {
   return `${formatTime(start)} – ${formatTime(end)}`
 })
 
+// 情境四：把 candidate_slots 依日期整理成 AvailabilityPickerModal 的 dateWindows 形狀，
+// 一個候選日期只對應一個窗口（建立時已經擋掉同一天多筆候選時段）
+const scenarioDDateWindows = computed(() => {
+  const map = {}
+  for (const slot of activity.value?.candidate_slots ?? []) {
+    const date = toLocalDateKey(slot.slot_start)
+    map[date] = {
+      start: toHHMM(new Date(slot.slot_start)),
+      end: toHHMM(new Date(slot.slot_end)),
+      slotId: slot.id,
+    }
+  }
+  return map
+})
+
+const scenarioDCandidateDates = computed(() => Object.keys(scenarioDDateWindows.value).sort())
+
+// 已經過去的候選日期不該再讓報名者選，比照情境三的邏輯
+const scenarioDAvailableCandidateDates = computed(() => {
+  const now = new Date()
+  const slots = activity.value?.candidate_slots ?? []
+  return scenarioDCandidateDates.value.filter((date) =>
+    slots.some((slot) => toLocalDateKey(slot.slot_start) === date && new Date(slot.slot_start) > now),
+  )
+})
+
+// 「修改報名時段」重開 picker 時，把每個候選時段自己的 my_range 轉成 initialRanges 形狀，
+// 讓 picker 能還原參與者先前選取的實際子區間——情境四的預填資料在 candidate_slots[].my_range，
+// 不是只有 range 模式在用的頂層 my_ranges（那個欄位對情境四永遠是空陣列）
+const scenarioDInitialRanges = computed(() =>
+  (activity.value?.candidate_slots ?? [])
+    .filter((slot) => slot.my_range)
+    .map((slot) => ({
+      date: toLocalDateKey(slot.slot_start),
+      from: toHHMM(new Date(slot.my_range.start)),
+      to: toHHMM(new Date(slot.my_range.end)),
+    })),
+)
+
+const selectedScenarioDSlotLabels = computed(() =>
+  (activity.value?.candidate_slots ?? []).filter((slot) => slot.is_selected).map((slot) => slotText(slot)),
+)
+
 const availabilityPickerRangeStart = computed(() => {
   if (isScenarioCMode.value && scenarioCCandidateDates.value.length) {
     return scenarioCCandidateDates.value[0]
+  }
+  if (isScenarioDMode.value && scenarioDCandidateDates.value.length) {
+    return scenarioDCandidateDates.value[0]
   }
   return activity.value?.range_start ?? '2026-07-10'
 })
@@ -499,6 +629,9 @@ const availabilityPickerRangeStart = computed(() => {
 const availabilityPickerRangeEnd = computed(() => {
   if (isScenarioCMode.value && scenarioCCandidateDates.value.length) {
     return scenarioCCandidateDates.value[scenarioCCandidateDates.value.length - 1]
+  }
+  if (isScenarioDMode.value && scenarioDCandidateDates.value.length) {
+    return scenarioDCandidateDates.value[scenarioDCandidateDates.value.length - 1]
   }
   return activity.value?.range_end ?? '2026-07-16'
 })
@@ -513,6 +646,18 @@ const partialOverlapCandidates = computed(() =>
   (activity.value?.decision_candidates?.partial_overlap ?? []).map((c, i) => ({
     ...c,
     id: `temp-partial-${i}`,
+  })),
+)
+
+// 情境四：decision_candidates 是扁平陣列，每筆候選時段自己還有一組 perfect_overlap/partial_overlap，
+// 巢狀顯示在對應候選時段底下。radioId 用候選時段 id 當前綴組出來，保證跨候選時段不會撞號
+// （單一候選時段內的 segment id 已經是各自唯一的 slot_start ISO 字串）
+const scenarioDCandidateGroups = computed(() =>
+  (activity.value?.decision_candidates ?? []).map((slot) => ({
+    candidateSlotId: slot.id,
+    label: slotText(slot),
+    perfect: (slot.perfect_overlap ?? []).map((seg) => ({ ...seg, radioId: `${slot.id}::${seg.id}` })),
+    partial: (slot.partial_overlap ?? []).map((seg) => ({ ...seg, radioId: `${slot.id}::${seg.id}` })),
   })),
 )
 
@@ -592,6 +737,15 @@ function slotText(slot) {
   return `${formatDateTime(start)} - ${formatTime(end)}`
 }
 
+// 票數並列最高或全部都是 0 票時回傳 null，不自動幫建立者做決定；只有唯一一個候選時段票數最高時才回傳它的 id
+function soleLeaderId(candidates) {
+  if (!candidates.length) return null
+  const maxCount = Math.max(...candidates.map((c) => c.count))
+  if (maxCount === 0) return null
+  const leaders = candidates.filter((c) => c.count === maxCount)
+  return leaders.length === 1 ? leaders[0].id : null
+}
+
 const statusText = computed(() => {
   const map = {
     recruiting: '揪團中',
@@ -603,9 +757,10 @@ const statusText = computed(() => {
 })
 
 const decisionSectionLabel = computed(() => {
+  // 建立者現在可以從完整清單自由選，不再限制只能選並列最高票，voting 狀態的文案不能再暗示「只能選最高票」
   const map = {
     recruiting: '候選時段（目前票數，可提前手動成團）',
-    voting: '候選時段（並列最高票，由建立者裁決）',
+    voting: '候選時段（依票數排序，由建立者自由選擇）',
   }
   return map[activity.value?.status] ?? '候選時段'
 })
@@ -651,12 +806,14 @@ async function fetchActivity(id) {
     selectedJoinSlotIds.value = (data.activity.candidate_slots ?? [])
       .filter((slot) => slot.is_selected)
       .map((slot) => slot.id)
-    // 只有一個候選時段最高票時不用強迫建立者多點一次圈圈，直接預選好讓她能馬上按下成團
-    // range 模式的 decision_candidates 是 {perfect_overlap, partial_overlap} 物件，不適用這個「只有一個就自動選」的簡化邏輯
+    // 只有唯一一個候選時段票數最高時不用強迫建立者多點一次圈圈，直接預選好讓她能馬上按下成團——
+    // decision_candidates 現在回傳完整排名清單，不能再用「陣列長度是不是 1」判斷，要實際比較票數；
+    // range 模式的 decision_candidates 是 {perfect_overlap, partial_overlap} 物件，不適用；
+    // 情境四是巢狀結構（每個候選時段底下還有自己的窄窗口），自動預選的窄窗口意義不明確，不自動選
     const decisionCandidates = data.activity.decision_candidates
     selectedDecisionSlotId.value =
-      Array.isArray(decisionCandidates) && decisionCandidates.length === 1
-        ? decisionCandidates[0].id
+      Array.isArray(decisionCandidates) && !isScenarioDMode.value
+        ? soleLeaderId(decisionCandidates)
         : null
   } catch (err) {
     if (err.name === 'AbortError') return
@@ -715,6 +872,10 @@ async function handleJoin() {
     openScenarioCPicker()
     return
   }
+  if (isScenarioDMode.value) {
+    openScenarioDPicker()
+    return
+  }
   if (activity.value?.requires_voting) {
     if (selectedJoinSlotIds.value.length === 0) {
       actionError.value = '請選擇至少一個候選時段'
@@ -729,6 +890,10 @@ async function handleJoin() {
 }
 
 function openScenarioCPicker() {
+  showAvailabilityPicker.value = true
+}
+
+function openScenarioDPicker() {
   showAvailabilityPicker.value = true
 }
 
@@ -754,6 +919,10 @@ async function handlePickerConfirm(entries) {
     await handleScenarioCDateConfirm(entries)
     return
   }
+  if (isScenarioDMode.value) {
+    await handleScenarioDConfirm(entries)
+    return
+  }
   await handleAvailabilityConfirm(entries)
 }
 
@@ -766,6 +935,33 @@ async function handleScenarioCDateConfirm(entries) {
     return
   }
   await callAction('join', 'POST', '✅ 報名成功！', { candidateSlotIds })
+}
+
+// 情境四：把 picker 回傳的每筆 range 對照 scenarioDDateWindows 反查回它落在哪個候選時段窗口，
+// 組成 candidateSlotIds（既有欄位）連同 candidateSlotRanges（子區間細節）一起送出。
+// 欄位名稱要跟後端 join API 的 contract 一致：candidateSlotId/rangeStart/rangeEnd（不是 slotId/start/end）
+async function handleScenarioDConfirm(entries) {
+  const candidateSlotIds = []
+  const candidateSlotRanges = []
+  for (const entry of entries) {
+    const window = scenarioDDateWindows.value[entry.date]
+    // 理論上不會發生：picker 的可選時間本來就被 hourOptions 限制在窗口內
+    if (!window) continue
+    for (const range of entry.timeRanges) {
+      if (!(range.from >= window.start && range.to <= window.end)) continue
+      candidateSlotIds.push(window.slotId)
+      candidateSlotRanges.push({
+        candidateSlotId: window.slotId,
+        rangeStart: `${entry.date}T${range.from}:00`,
+        rangeEnd: `${entry.date}T${range.to}:00`,
+      })
+    }
+  }
+  if (candidateSlotIds.length === 0) {
+    actionError.value = '請選擇至少一個候選時段'
+    return
+  }
+  await callAction('join', 'POST', '✅ 報名成功！', { candidateSlotIds, candidateSlotRanges })
 }
 
 async function handleCancelJoin() {
@@ -785,6 +981,23 @@ async function handleConfirmFormation() {
     await callAction('confirm-formation', 'POST', '✅ 成團成功！', {
       slotStart: candidate.slot_start,
       slotEnd: candidate.slot_end,
+    })
+    return
+  }
+  if (isScenarioDMode.value) {
+    if (!selectedDecisionSlotId.value) {
+      actionError.value = '請選擇要確認的候選時段'
+      return
+    }
+    const group = scenarioDCandidateGroups.value.find((g) =>
+      [...g.perfect, ...g.partial].some((seg) => seg.radioId === selectedDecisionSlotId.value),
+    )
+    const segment = group && [...group.perfect, ...group.partial].find((seg) => seg.radioId === selectedDecisionSlotId.value)
+    if (!group || !segment) return
+    await callAction('confirm-formation', 'POST', '✅ 成團成功！', {
+      candidateSlotId: group.candidateSlotId,
+      slotStart: segment.slot_start,
+      slotEnd: segment.slot_end,
     })
     return
   }

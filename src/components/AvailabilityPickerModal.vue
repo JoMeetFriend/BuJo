@@ -246,11 +246,14 @@
               :key="item.chip"
               @click="activeDate = item.date"
               class="text-[10px] md:text-[12px] font-bold px-2 py-0.5 border transition-colors duration-150"
-              :class="
+              :class="[
+                problemDates.has(item.date) ? 'ring-1 ring-[#dc2626] ring-inset' : '',
                 !dateOnly && activeDate === item.date
                   ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)] border-[var(--bujo-ink)]'
-                  : 'bg-[var(--bujo-surface)] text-[var(--bujo-ink)] border-[var(--bujo-line)] hover:border-[var(--bujo-ink)]'
-              "
+                  : problemDates.has(item.date)
+                    ? 'bg-[var(--bujo-surface)] text-[#dc2626] border-[#dc2626] hover:border-[#dc2626]'
+                    : 'bg-[var(--bujo-surface)] text-[var(--bujo-ink)] border-[var(--bujo-line)] hover:border-[var(--bujo-ink)]',
+              ]"
             >
               {{ item.chip }} {{ item.label }}
             </button>
@@ -290,6 +293,9 @@ const props = defineProps({
   timeWindowStart: { type: String, default: null },
   timeWindowEnd: { type: String, default: null },
   allowedDates: { type: Array, default: () => [] },
+  // 情境四：每個候選日期各自的候選時段窗口，形狀 {date: {start, end, slotId}}（一天一個窗口）。
+  // 有值的日期會把可選時間限制在該窗口內，取代全域 timeWindowStart/timeWindowEnd。
+  dateWindows: { type: Object, default: () => ({}) },
   dateOnly: { type: Boolean, default: false },
   fixedTimeLabel: { type: String, default: '' },
   initialDates: { type: Array, default: () => [] },
@@ -306,9 +312,15 @@ const compact = computed(() => !!props.fixedDate || props.dateOnly)
 const hasTimeWindow = computed(() => !!(props.timeWindowStart && props.timeWindowEnd))
 
 // 有設時段範圍（timeWindowStart/timeWindowEnd）時，「預設」代表整個時段範圍都有空，
-// 不是無邊界的「整天有空」——創建者已經限制過參與者能回報的時間，兩者意義不同
-function defaultDayValue() {
+// 不是無邊界的「整天有空」——創建者已經限制過參與者能回報的時間，兩者意義不同。
+// 情境四（dateWindows 該日期有值）時，「整天有空」沒有意義——候選時段是離散窗口，
+// 預設改成帶入該日期唯一窗口的完整範圍，讓使用者從「整個窗口都投」開始再自行縮小。
+function defaultDayValue(dateKey) {
   if (props.dateOnly) return null
+  const window = dateKey ? props.dateWindows[dateKey] : null
+  if (window) {
+    return [{ from: window.start, to: window.end, endTimeUserSet: false }]
+  }
   if (hasTimeWindow.value) {
     return [{ from: props.timeWindowStart, to: props.timeWindowEnd, endTimeUserSet: false }]
   }
@@ -326,9 +338,9 @@ function initialSelectedDates() {
     return grouped
   }
   if (props.initialDates.length) {
-    return Object.fromEntries(props.initialDates.map((date) => [date, defaultDayValue()]))
+    return Object.fromEntries(props.initialDates.map((date) => [date, defaultDayValue(date)]))
   }
-  return props.fixedDate ? { [props.fixedDate]: defaultDayValue() } : {}
+  return props.fixedDate ? { [props.fixedDate]: defaultDayValue(props.fixedDate) } : {}
 }
 
 function initialActiveDate() {
@@ -431,7 +443,7 @@ function onDayMousedown(day) {
       delete selectedDates.value[key]
       if (activeDate.value === key) activeDate.value = null
     } else {
-      selectedDates.value[key] = defaultDayValue()
+      selectedDates.value[key] = defaultDayValue(key)
       activeDate.value = key
     }
     confirmError.value = ''
@@ -471,7 +483,7 @@ function onMouseup() {
   dragState.hovering.forEach((day) => {
     const key = toDateKey(day)
     if (canSelectDateKey(key) && !(key in selectedDates.value)) {
-      selectedDates.value[key] = null
+      selectedDates.value[key] = defaultDayValue(key)
     }
   })
 
@@ -498,6 +510,8 @@ onUnmounted(() => {
 
 // ── 時段操作 ──
 function isAllDay(dateKey) {
+  // 情境四：該日期有候選時段窗口時，「整天有空」這個概念不存在，永遠跳過整天 UI
+  if (props.dateWindows[dateKey]) return false
   const val = selectedDates.value[dateKey]
   return val === null || (Array.isArray(val) && val.length === 0)
 }
@@ -512,9 +526,8 @@ function addRange() {
   }
   confirmError.value = ''
   const existing = selectedDates.value[activeDate.value]
-  const fallback = hasTimeWindow.value
-    ? { from: props.timeWindowStart, to: props.timeWindowEnd }
-    : { from: '09:00', to: '17:00' }
+  const bounds = windowBoundsFor(activeDate.value)
+  const fallback = bounds ? { from: bounds.start ?? '09:00', to: bounds.end ?? '17:00' } : { from: '09:00', to: '17:00' }
   // 預設值不直接沿用固定的 fallback——如果已經有時段，接在最後一筆的結束時間之後，
   // 避免使用者連續點兩次「+ 新增時段」時，兩筆時段預設值完全相同（一開始就重疊）
   let from = fallback.from
@@ -533,12 +546,12 @@ function removeRange(i) {
   confirmError.value = ''
   selectedDates.value[activeDate.value].splice(i, 1)
   if (selectedDates.value[activeDate.value].length === 0) {
-    selectedDates.value[activeDate.value] = defaultDayValue()
+    selectedDates.value[activeDate.value] = defaultDayValue(activeDate.value)
   }
 }
 
 function resetAllDay() {
-  selectedDates.value[activeDate.value] = defaultDayValue()
+  selectedDates.value[activeDate.value] = defaultDayValue(activeDate.value)
 }
 
 const allHourOptions = Array.from({ length: 24 }, (_, hour) => {
@@ -548,12 +561,26 @@ const allHourOptions = Array.from({ length: 24 }, (_, hour) => {
   return { label: `${period} ${display}:00`, value }
 })
 
+// 情境無關的窗口邊界查詢：優先看 dateWindows（情境四單一窗口），否則看全域
+// timeWindowStart/timeWindowEnd（情境二/三），兩者都沒設定就回傳 null（無邊界限制）。
+// hourOptions/startHourOptions 的邊界過濾、以及 selectRangeStart/addRange 的自動帶入
+// 都要疊加在同一份邊界查詢上，不能各自各寫一套，否則邊界感知的修正只會補到一半
+function windowBoundsFor(dateKey) {
+  const window = props.dateWindows[dateKey]
+  if (window) return { start: window.start, end: window.end }
+  if (props.timeWindowStart || props.timeWindowEnd) {
+    return { start: props.timeWindowStart, end: props.timeWindowEnd }
+  }
+  return null
+}
+
+const activeWindowBounds = computed(() => windowBoundsFor(activeDate.value))
+
 const hourOptions = computed(() => {
-  if (!props.timeWindowStart && !props.timeWindowEnd) return allHourOptions
+  const bounds = activeWindowBounds.value
+  if (!bounds) return allHourOptions
   return allHourOptions.filter(
-    (opt) =>
-      (!props.timeWindowStart || opt.value >= props.timeWindowStart) &&
-      (!props.timeWindowEnd || opt.value <= props.timeWindowEnd),
+    (opt) => (!bounds.start || opt.value >= bounds.start) && (!bounds.end || opt.value <= bounds.end),
   )
 })
 
@@ -562,11 +589,20 @@ function todayKey() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 }
 
-// 開始時間選單：疊加在 hourOptions（timeWindow 限制）之上，正在編輯的日期是今天時，排除已經過去的小時
+// 開始時間選單：疊加在 hourOptions（timeWindow 限制）之上。排除等於窗口終點的選項——
+// 選了終點當開始時間會沒有任何合法的結束時間可搭配，乾脆一開始就不給選；
+// 正在編輯的日期是今天時，額外排除已經過去的小時
 const startHourOptions = computed(() => {
-  if (activeDate.value !== todayKey()) return hourOptions.value
-  const currentHour = new Date().getHours()
-  return hourOptions.value.filter((opt) => parseInt(opt.value) > currentHour)
+  let options = hourOptions.value
+  const bounds = activeWindowBounds.value
+  if (bounds?.end) {
+    options = options.filter((opt) => opt.value < bounds.end)
+  }
+  if (activeDate.value === todayKey()) {
+    const currentHour = new Date().getHours()
+    options = options.filter((opt) => parseInt(opt.value) > currentHour)
+  }
+  return options
 })
 
 // 結束時間選單：疊加在 hourOptions 之上，排除等於或早於該筆 range 已選開始時間的選項
@@ -680,9 +716,13 @@ function selectRangeStart(range, value) {
     }
   } else {
     // 還沒手動選過結束時間：自動帶入開始時間 +1 小時，一小時是常見的活動時長，省一次選取動作；
-    // 開始時間選在 23:00 時同一天內沒有合理的 +1 小時，留白讓使用者自己選
+    // 開始時間選在 23:00 時同一天內沒有合理的 +1 小時，留白讓使用者自己選。
+    // 有窗口邊界時（dateWindows 或全域 timeWindowEnd）要 clamp，不然會帶出超出候選時段範圍的結束時間
+    // ——startHourOptions 已經排除窗口終點本身，這裡不會撞到 clamp 後 from===to 的情況
     const hour = parseInt(value.split(':')[0])
-    range.to = hour === 23 ? null : `${String(hour + 1).padStart(2, '0')}:00`
+    const naiveEnd = hour === 23 ? null : `${String(hour + 1).padStart(2, '0')}:00`
+    const bounds = activeWindowBounds.value
+    range.to = bounds?.end && (!naiveEnd || naiveEnd > bounds.end) ? bounds.end : naiveEnd
   }
   closeTimePicker()
 }
@@ -733,17 +773,44 @@ function rangesOverlap(a, b) {
   return a.from < b.to && b.from < a.to
 }
 
-function findOverlapConflictDate() {
+// 回傳「同一天底下有兩筆以上時段互相重疊」的所有日期（不只找第一個），
+// 這樣選了很多天時，已選清單的 chip 才能一次標出全部有問題的日期
+function findOverlapConflictDates() {
+  const dates = new Set()
   for (const [date, ranges] of Object.entries(selectedDates.value)) {
     if (!Array.isArray(ranges)) continue
     for (let i = 0; i < ranges.length; i++) {
       for (let j = i + 1; j < ranges.length; j++) {
-        if (rangesOverlap(ranges[i], ranges[j])) return date
+        if (rangesOverlap(ranges[i], ranges[j])) dates.add(date)
       }
     }
   }
-  return null
+  return dates
 }
+
+// range 必須完整落在該日期的窗口內（開始跟結束都不超出窗口）——情境四用 dateWindows（單一窗口），
+// 情境二/三用全域 timeWindowStart/timeWindowEnd，兩者共用 windowBoundsFor 判斷同一套邊界；
+// 沒有任何窗口設定的日期不受此限制。回傳所有有問題的日期，不只找第一個
+function findOutOfWindowDates() {
+  const dates = new Set()
+  for (const [date, ranges] of Object.entries(selectedDates.value)) {
+    const bounds = windowBoundsFor(date)
+    if (!bounds || !Array.isArray(ranges)) continue
+    for (const range of ranges) {
+      const fits = (!bounds.start || range.from >= bounds.start) && (!bounds.end || range.to <= bounds.end)
+      if (!fits) dates.add(date)
+    }
+  }
+  return dates
+}
+
+// 已選清單的 chip 錯誤標記依這個 computed 判斷，跟送出前的驗證共用同一套判斷邏輯，
+// 使用者不用等按下確認才知道哪天有問題，選取當下就能看到
+const problemDates = computed(() => {
+  const dates = new Set(findOverlapConflictDates())
+  for (const d of findOutOfWindowDates()) dates.add(d)
+  return dates
+})
 
 function handleConfirm() {
   if (props.dateOnly && Object.keys(selectedDates.value).length === 0) {
@@ -751,12 +818,24 @@ function handleConfirm() {
     return
   }
 
-  const conflictDate = findOverlapConflictDate()
-  if (conflictDate) {
-    confirmError.value = `${formatChip(conflictDate)} 有重疊或重複的時段，請修改後再送出`
-    activeDate.value = conflictDate
+  const overlapDates = findOverlapConflictDates()
+  const outOfWindowDates = findOutOfWindowDates()
+  const allProblemDates = [...new Set([...overlapDates, ...outOfWindowDates])].sort()
+
+  if (allProblemDates.length > 0) {
+    confirmError.value = allProblemDates
+      .map((date) => {
+        const reasons = []
+        if (overlapDates.has(date)) reasons.push('重疊或重複的時段')
+        if (outOfWindowDates.has(date)) reasons.push('時段超出候選時段範圍')
+        return `${formatChip(date)} 有${reasons.join('、')}`
+      })
+      .join('；')
+    confirmError.value += '，請修改後再送出'
+    activeDate.value = allProblemDates[0]
     return
   }
+
   confirmError.value = ''
   const result = Object.entries(selectedDates.value).map(([date, ranges]) => ({
     date,
