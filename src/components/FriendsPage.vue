@@ -50,7 +50,11 @@
               />
               <span v-else class="friend-stamp-face" aria-hidden="true"></span>
             </div>
-            <span class="friend-stamp-name">{{ friend.display_name }}</span>
+            <span
+              class="friend-stamp-name"
+              :class="{ 'is-expanded': activeFriendId === friend.id }"
+              >{{ friend.display_name }}</span
+            >
             <div
               class="friend-bio-container"
               :class="{ 'is-expanded': activeFriendId === friend.id }"
@@ -284,6 +288,16 @@ onMounted(() => {
   color: var(--bujo-ink);
   text-align: center;
   line-height: 1.2;
+
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.friend-stamp-name.is-expanded {
+  white-space: normal;
+  word-break: break-all;
 }
 
 .friend-stamp-label {
