@@ -27,8 +27,10 @@
           <div
             v-for="(friend, index) in friends"
             :key="friend.id"
-            class="friend-stamp"
+            class="friend-stamp cursor-pointer"
             :style="{ background: stampColor(index) }"
+            v-click-outside="() => closeCard(friend.id)"
+            @click="toggleCard(friend.id)"
           >
             <button
               class="friend-stamp-delete-btn"
@@ -49,7 +51,14 @@
               <span v-else class="friend-stamp-face" aria-hidden="true"></span>
             </div>
             <span class="friend-stamp-name">{{ friend.display_name }}</span>
-            <span class="friend-stamp-label">好友</span>
+            <div
+              class="friend-bio-container"
+              :class="{ 'is-expanded': activeFriendId === friend.id }"
+            >
+              <p class="friend-bio-text">
+                {{ friend.bio || '這個人很神祕，還沒有寫簡介...' }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -72,6 +81,8 @@ const { friends, isLoading, error } = storeToRefs(friendStore)
 const isModalOpen = ref(false)
 
 const brokenImages = ref(new Set())
+
+const activeFriendId = ref(null)
 
 const stampColors = [
   'var(--bujo-card-pink)',
@@ -98,6 +109,33 @@ const handleDelete = async (friend) => {
   if (!result.success) {
     alert(result.message)
   }
+}
+
+const toggleCard = (id) => {
+  activeFriendId.value = activeFriendId.value === id ? null : id
+}
+
+const closeCard = (id) => {
+  if (activeFriendId.value === id) {
+    activeFriendId.value = null
+  }
+}
+
+const vClickOutside = {
+  mounted(el, binding) {
+    el.clickOutsideEvent = (event) => {
+      if (!(el == event.target || el.contains(event.target))) {
+        binding.value(event)
+      }
+    }
+
+    setTimeout(() => {
+      document.addEventListener('click', el.clickOutsideEvent)
+    }, 0)
+  },
+  unmounted(el) {
+    document.removeEventListener('click', el.clickOutsideEvent)
+  },
 }
 
 onMounted(() => {
@@ -158,6 +196,9 @@ onMounted(() => {
   transition:
     transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  min-height: 130px;
+  justify-content: flex-start;
+  align-self: start;
 }
 
 .friend-stamp:hover {
@@ -250,5 +291,41 @@ onMounted(() => {
   font-size: 10px;
   letter-spacing: 0.04em;
   color: rgb(var(--bujo-ink-rgb) / 0.6);
+}
+
+.friend-bio-container {
+  width: 100%;
+  margin-top: 4px;
+  max-height: 20px;
+  overflow: hidden;
+  transition: max-height 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.friend-bio-container.is-expanded {
+  max-height: 400px;
+}
+
+.friend-bio-text {
+  font-family: 'Space Mono', var(--bujo-font-body);
+  font-size: 11px;
+  color: rgb(var(--bujo-ink-rgb) / 0.7);
+  line-height: 1.5;
+  text-align: center;
+  display: -webkit-box;
+
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  transition: color 200ms ease;
+}
+
+.is-expanded .friend-bio-text {
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  text-align: left;
+  color: var(--bujo-ink);
 }
 </style>
