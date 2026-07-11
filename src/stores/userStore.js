@@ -54,7 +54,13 @@ export const useUserStore = defineStore('userAction', () => {
       successMsg.value = '名稱更新成功'
       return true
     } catch (err) {
-      errorMsg.value = err.message
+      let errorMessage = err.message
+
+      if (errorMessage === 'Failed to fetch' || errorMessage === 'Network request failed') {
+        errorMessage = '網路連線異常，請檢查您的網路或稍後再試。'
+      }
+
+      errorMsg.value = errorMessage
       return false
     } finally {
       isLoading.value = false
@@ -65,5 +71,44 @@ export const useUserStore = defineStore('userAction', () => {
     }
   }
 
-  return { isLoading, errorMsg, successMsg, updateName }
+  const updateBio = async (newBio) => {
+    const trimmedBio = newBio ? newBio.trim() : ''
+
+    if (trimmedBio.length > 150) {
+      return { success: false, error: '簡介不可超過 150 個字元' }
+    }
+
+    if (trimmedBio === (authStore.user?.bio || '')) {
+      return { success: true }
+    }
+
+    try {
+      const res = await fetch(`${API}/api/users/me/bio`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ bio: trimmedBio }),
+      })
+
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.message || '簡介更新失敗')
+
+      authStore.setUser({
+        ...authStore.user,
+        ...data.user,
+      })
+
+      return { success: true }
+    } catch (err) {
+      let errorMessage = err.message
+
+      if (errorMessage === 'Failed to fetch' || errorMessage === 'Network request failed') {
+        errorMessage = '網路連線異常，請檢查您的網路或稍後再試。'
+      }
+
+      return { success: false, error: errorMessage }
+    }
+  }
+
+  return { isLoading, errorMsg, successMsg, updateName, updateBio }
 })

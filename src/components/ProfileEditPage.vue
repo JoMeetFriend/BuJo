@@ -63,6 +63,74 @@
               {{ avatarLoading ? '更換中' : '更換頭像' }}
             </label>
           </div>
+
+          <div
+            class="flex-1 w-full min-w-0 flex flex-col mt-4 md:mt-0 border-t md:border-t-0 md:border-l border-[var(--bujo-line-soft)] pt-4 md:pt-0 md:pl-8"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-3">
+                <span class="text-xs font-semibold text-[var(--bujo-ink)]">個人簡介</span>
+                <span
+                  v-if="bioSuccessMsg"
+                  class="text-xs text-[var(--bujo-ink)] transition-opacity"
+                  aria-live="polite"
+                >
+                  {{ bioSuccessMsg }}
+                </span>
+              </div>
+
+              <span
+                v-if="isEditingBio"
+                class="font-[space-mono] text-[11px] text-[var(--bujo-muted-strong)]"
+              >
+                {{ editBio.length }} / 150
+              </span>
+              <button
+                v-else
+                type="button"
+                class="text-xs text-[var(--bujo-muted-strong)] underline hover:text-[var(--bujo-ink)]"
+                @click="startEditBio"
+              >
+                編輯
+              </button>
+            </div>
+
+            <div v-if="isEditingBio" class="flex flex-col h-full gap-2">
+              <textarea
+                v-model="editBio"
+                maxlength="150"
+                :disabled="isBioLoading"
+                class="profile-textarea flex-1 min-h-[80px] w-full p-3 text-sm resize-none"
+                placeholder="寫點什麼讓大家更認識你..."
+                @input="bioErrorMsg = ''"
+              ></textarea>
+
+              <p v-if="bioErrorMsg" class="text-xs text-[#dc2626]" aria-live="polite">
+                {{ bioErrorMsg }}
+              </p>
+
+              <div class="flex justify-end gap-2">
+                <PixelButton
+                  variant="white"
+                  type="button"
+                  @click="cancelEditBio"
+                  :disabled="isBioLoading"
+                  >取消</PixelButton
+                >
+                <PixelButton type="button" @click="handleBioSubmit" :disabled="isBioLoading">
+                  {{ isBioLoading ? '儲存中' : '儲存' }}
+                </PixelButton>
+              </div>
+            </div>
+
+            <div
+              v-else
+              class="flex-1 text-sm text-[var(--bujo-text-body)] leading-relaxed whitespace-pre-wrap break-words"
+            >
+              <span v-if="authStore.user?.bio">{{ authStore.user.bio }}</span>
+              <span v-else class="text-[var(--bujo-muted)] italic">尚未填寫簡介...</span>
+            </div>
+          </div>
         </div>
         <p
           v-if="avatarMsg"
@@ -276,6 +344,11 @@ const linkMsg = ref('')
 const linkMsgType = ref('success')
 const copyStatus = ref('idle')
 const editName = ref(authStore.user?.display_name || '')
+const isEditingBio = ref(false)
+const editBio = ref('')
+const bioSuccessMsg = ref('')
+const isBioLoading = ref(false)
+const bioErrorMsg = ref('')
 
 const identities = computed(() => authStore.user?.identities ?? [])
 const identityCount = computed(() => identities.value.length)
@@ -460,6 +533,39 @@ onMounted(async () => {
 const handleNameSubmit = async () => {
   await userStore.updateName(editName.value)
   editName.value = authStore.user?.display_name || ''
+}
+
+const startEditBio = () => {
+  editBio.value = authStore.user?.bio || ''
+  isEditingBio.value = true
+}
+
+const cancelEditBio = () => {
+  isEditingBio.value = false
+  editBio.value = ''
+  bioErrorMsg.value = ''
+}
+
+const handleBioSubmit = async () => {
+  isBioLoading.value = true
+  bioErrorMsg.value = ''
+
+  const result = await userStore.updateBio(editBio.value)
+
+  isBioLoading.value = false
+
+  if (result.success) {
+    isEditingBio.value = false
+    bioSuccessMsg.value = '簡介更新成功'
+    setTimeout(() => {
+      bioSuccessMsg.value = ''
+    }, 4000)
+  } else {
+    bioErrorMsg.value = result.error
+    setTimeout(() => {
+      bioErrorMsg.value = ''
+    }, 4000)
+  }
 }
 </script>
 
