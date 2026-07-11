@@ -94,10 +94,10 @@ describe('AppSidebar', () => {
     const wrapper = await mountAppSidebar()
     await flushPromises()
 
-    expect(wrapper.find('.bujo-nav-badge').exists()).toBe(false)
+    expect(wrapper.findAll('.bujo-nav-badge')).toHaveLength(0)
   })
 
-  test('有未讀通知時 ALERTS 圖示會顯示未讀數徽章', async () => {
+  test('有未讀通知時桌機與手機 ALERTS 圖示會顯示相同未讀數', async () => {
     notificationApiClient.get.mockResolvedValueOnce({
       data: {
         notifications: [
@@ -110,11 +110,12 @@ describe('AppSidebar', () => {
     const wrapper = await mountAppSidebar()
     await flushPromises()
 
-    const badge = wrapper.get('.bujo-nav-badge')
-    expect(badge.text()).toBe('2')
+    const badges = wrapper.findAll('.bujo-nav-badge')
+    expect(badges).toHaveLength(2)
+    expect(badges.map((badge) => badge.text())).toEqual(['2', '2'])
   })
 
-  test('未讀通知數超過 9 則時徽章顯示 9+', async () => {
+  test('未讀通知數超過 9 則時桌機與手機徽章都顯示 9+', async () => {
     notificationApiClient.get.mockResolvedValueOnce({
       data: {
         notifications: Array.from({ length: 12 }, (_, index) => ({
@@ -127,7 +128,8 @@ describe('AppSidebar', () => {
     const wrapper = await mountAppSidebar()
     await flushPromises()
 
-    const badge = wrapper.get('.bujo-nav-badge')
-    expect(badge.text()).toBe('9+')
+    const badges = wrapper.findAll('.bujo-nav-badge')
+    expect(badges).toHaveLength(2)
+    expect(badges.map((badge) => badge.text())).toEqual(['9+', '9+'])
   })
 })

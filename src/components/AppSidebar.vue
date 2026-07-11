@@ -308,23 +308,25 @@ async function handleLogout() {
 
 .bujo-nav-badge {
   position: absolute;
-  top: -6px;
-  right: -8px;
+  top: -7px;
+  right: -9px;
   z-index: 2;
   display: inline-flex;
-  min-width: 16px;
-  height: 16px;
+  min-width: 18px;
+  height: 18px;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   border: 1px solid var(--bujo-surface);
-  background: var(--bujo-accent);
+  background: var(--bujo-notification);
+  box-shadow: 2px 2px 0 rgb(var(--bujo-ink-rgb) / 0.14);
   padding: 0 4px;
   color: var(--bujo-white);
-  font-family: 'Space Mono', monospace;
+  font-family: var(--bujo-font-meta);
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .bujo-nav-object::before,
