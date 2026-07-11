@@ -9,7 +9,7 @@
     </header>
 
     <main class="px-5 pt-2 md:px-14 md:py-4">
-      <div class="mb-4 flex max-w-3xl items-center justify-between gap-3">
+      <div class="mb-4 flex items-center justify-between gap-3">
         <p v-if="isLoading" class="alerts-status-text">通知讀取中...</p>
         <p v-else-if="error" class="alerts-status-text alerts-status-text--error">{{ error }}</p>
         <p v-else class="alerts-status-text">{{ summaryText }}</p>
@@ -19,11 +19,11 @@
         </PixelButton>
       </div>
 
-      <div v-if="!isLoading && notifications.length === 0" class="alerts-empty max-w-3xl">
+      <div v-if="!isLoading && notifications.length === 0" class="alerts-empty">
         目前沒有通知
       </div>
 
-      <ul v-else class="flex max-w-3xl flex-col gap-3">
+      <ul v-else class="flex flex-col gap-3">
         <li
           v-for="notification in notifications"
           :key="notification.id"
@@ -267,7 +267,6 @@ function setActionBusy(notificationId, isBusy) {
 
 .alerts-item {
   display: flex;
-  min-height: 68px;
   cursor: pointer;
   align-items: flex-start;
   gap: 12px;
@@ -277,6 +276,10 @@ function setActionBusy(notificationId, isBusy) {
   transition:
     border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
     background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.alerts-item:has(.alerts-inline-btn) {
+  min-height: 68px;
 }
 
 .alerts-item:hover {
