@@ -153,7 +153,7 @@
                         class="block w-full px-2 py-1.5 text-left text-[12px] font-bold border-b border-[var(--bujo-line-soft)] last:border-b-0 transition-colors duration-150 hover:bg-[var(--bujo-surface-muted)]"
                         :class="
                           range.from === opt.value
-                            ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                            ? 'bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
                             : 'text-[var(--bujo-muted-strong)] bg-[var(--bujo-surface)]'
                         "
                         type="button"
@@ -187,7 +187,7 @@
                         class="block w-full px-2 py-1.5 text-left text-[12px] font-bold border-b border-[var(--bujo-line-soft)] last:border-b-0 transition-colors duration-150 hover:bg-[var(--bujo-surface-muted)]"
                         :class="
                           range.to === opt.value
-                            ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                            ? 'bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
                             : 'text-[var(--bujo-muted-strong)] bg-[var(--bujo-surface)]'
                         "
                         type="button"
@@ -423,7 +423,7 @@ function dayClass(day) {
       : '',
     isDragHov && !sel ? 'bg-[var(--bujo-surface-muted)] border-[var(--bujo-accent)]' : '',
     sel && !isActive
-      ? 'bg-[var(--bujo-accent)] text-[var(--bujo-ink)] border-[var(--bujo-ink)]'
+      ? 'bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)] border-[var(--bujo-ink)]'
       : '',
     sel && isActive ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)] border-[var(--bujo-ink)]' : '',
   ]

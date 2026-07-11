@@ -296,6 +296,44 @@ describe('EventPage - 月曆格子與結束時間過濾（重構前安全網）'
     wrapper.unmount()
   })
 
+  test('情境三 candidateDateButtonClass：已選候選日期跟情境一/四共用同一個「已選」顏色', async () => {
+    const wrapper = await mountEventPage()
+    wrapper.vm.dateMode = 'range'
+    wrapper.vm.timeMode = 'fixed'
+    wrapper.vm.candidateDates = ['2026/07/20']
+    await flushPromises()
+
+    const selectedCell = wrapper.vm.candidateDateCells.find((c) => c.key === '2026/07/20')
+    const notSelectedCell = wrapper.vm.candidateDateCells.find((c) => c.key === '2026/07/16')
+
+    const selectedClasses = wrapper.vm.candidateDateButtonClass(selectedCell).join(' ')
+    const notSelectedClasses = wrapper.vm.candidateDateButtonClass(notSelectedCell).join(' ')
+
+    expect(selectedClasses).toContain('bujo-day-selected')
+    expect(selectedClasses).not.toContain('bg-[var(--bujo-ink)]')
+    expect(notSelectedClasses).not.toContain('bujo-day-selected')
+
+    wrapper.unmount()
+  })
+
+  test('情境一：單一固定日期選取跟情境三/四共用同一個「已選」顏色', async () => {
+    const wrapper = await mountEventPage()
+    await flushPromises()
+
+    queryBody('#event-start-date').click()
+    await flushPromises()
+    queryBody('[data-date="2026/07/20"]').click()
+    await flushPromises()
+
+    const cell = wrapper.vm.dateCells.find((c) => c.key === '2026/07/20')
+    const classes = wrapper.vm.dateButtonClass(cell).join(' ')
+
+    expect(classes).toContain('bujo-day-selected')
+    expect(classes).not.toContain('bg-[var(--bujo-ink)]')
+
+    wrapper.unmount()
+  })
+
   test('情境四 scenario4DateCells：候選時段日期 isCandidate/isConfigured 為 true，編輯中日期 isEditing 為 true', async () => {
     const wrapper = await mountEventPage()
     wrapper.vm.candidateSlots = [
@@ -319,6 +357,50 @@ describe('EventPage - 月曆格子與結束時間過濾（重構前安全網）'
     expect(unconfiguredCell.isConfigured).toBe(false)
     expect(unconfiguredCell.isEditing).toBe(false)
     expect(notCandidateCell.isCandidate).toBe(false)
+
+    wrapper.unmount()
+  })
+
+  test('情境四 scenario4DateButtonClass：已點選但時段還沒填完整的候選日期不會是已選色，填完才是已選色', async () => {
+    const wrapper = await mountEventPage()
+    wrapper.vm.candidateSlots = [
+      {
+        date: '2026/07/17',
+        timeSlots: [{ id: 1, startTime: '上午 10:00', endTime: '上午 11:00' }],
+      },
+      { date: '2026/07/23', timeSlots: [{ id: 2, startTime: null, endTime: null }] },
+    ]
+    // 兩個候選日期都不是目前正在編輯的日期，才能單純看 isCandidate/isConfigured 的呈現差異
+    wrapper.vm.editingSlotDate = null
+    await flushPromises()
+
+    const configuredCell = wrapper.vm.scenario4DateCells.find((c) => c.key === '2026/07/17')
+    const unconfiguredCell = wrapper.vm.scenario4DateCells.find((c) => c.key === '2026/07/23')
+
+    const configuredClasses = wrapper.vm.scenario4DateButtonClass(configuredCell).join(' ')
+    const unconfiguredClasses = wrapper.vm.scenario4DateButtonClass(unconfiguredCell).join(' ')
+
+    expect(configuredClasses).toContain('bujo-day-selected')
+    expect(unconfiguredClasses).not.toContain('bujo-day-selected')
+
+    wrapper.unmount()
+  })
+
+  test('情境四：點擊尚未選取的候選日期，一次點擊就新增候選日期並打開編輯面板，不用點第二次', async () => {
+    const wrapper = await mountEventPage()
+    wrapper.vm.dateMode = 'range'
+    wrapper.vm.timeMode = 'vote'
+    await flushPromises()
+
+    expect(wrapper.vm.editingSlotDate).toBeNull()
+
+    queryBody('[data-date="2026/07/20"]').click()
+    await flushPromises()
+
+    expect(wrapper.vm.candidateSlots.some((s) => s.date === '2026/07/20')).toBe(true)
+    // 重點：不用再點第二次，editingSlotDate 第一次點擊後就直接等於這個日期
+    expect(wrapper.vm.editingSlotDate).toBe('2026/07/20')
+    expect(queryBody('[data-scenario4-editing-panel]')).not.toBeNull()
 
     wrapper.unmount()
   })

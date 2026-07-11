@@ -61,3 +61,19 @@
 ## Open Questions
 
 （無）
+
+## Addendum：跨情境 UI 配色一致性修復
+
+情境四手動流程驗證過程中額外發現的問題，見 proposal.md 的同名 Addendum 段落。這裡只記錄跟既有設計相關的技術決策。
+
+### 「已選日期」統一成一個共用 CSS 變數，不沿用 `--bujo-accent`
+
+`--bujo-accent` 在全站十幾個檔案裡用於 focus outline、hover 邊框、圖示顏色等不相關用途，不能直接把它改成新顏色。改成新增專屬的 `--bujo-day-selected: #daebeb`，`AvailabilityPickerModal.vue`/`EventPage.vue` 四個各自獨立維護「已選」顏色的函式全部改指向這一個變數。「目前編輯中／作用中」的黑色狀態（`isEditing`、`AvailabilityPickerModal` 的作用中 chip）語意上是另一個獨立概念，不受影響、維持黑色。
+
+### 時間下拉選單選中文字不可見，根因是同一元素上兩個文字顏色 class 互相覆蓋
+
+`EventPage.vue` 的時間按鈕原本 base class 固定寫 `text-[var(--bujo-ink)]`，選中狀態的條件 class 又疊加 `text-[var(--bujo-white)]`。Tailwind 對同一元素上兩個作用相同屬性（文字顏色）的 utility class，最終生效的是**樣式表裡宣告順序在後**的那個，不是 DOM 上 class 出現的順序，所以無法用調整 template 裡 class 順序來修——只能讓兩個 class 的意圖從根本上不衝突。修法是選中狀態改成跟 base class 一致的 `text-[var(--bujo-ink)]`（背景換成淺色的 `--bujo-day-selected` 而不是深色的 `--bujo-ink`），從此不會有兩個互斥的文字顏色 class 同時存在。
+
+### 卡片狀態色計算搬進 `ActivityDetailModal.vue` 內部，不再要求呼叫端外部綁定
+
+原本 `activity-focus-card--*` 狀態 class 是由呼叫端（`ActivityView.vue`）用 `focusCardClass(activity)` 算好後外部 `:class` 綁定在 `<ActivityDetailModal>` 元件上——這個設計要求每個呼叫端都要記得自己算、自己綁，`DateEventsModal.vue` 這個呼叫路徑就漏掉了，卡片永遠只會顯示 CSS 裡寫死的預設藍色，狀態色機制形同虛設。`ActivityDetailModal.vue` 本身已經有 fetch 到的完整 `activity` 物件（`is_creator`/`has_joined`/`status`），把同一套判斷邏輯搬進元件內部算成 `computed`、綁在元件自己的根元素上，不管誰呼叫這個元件都會自動套用正確狀態色，結構性地不會再出現「忘記綁定」的情況。`ActivityView.vue` 原本的外部綁定跟著移除，避免兩處邏輯重複、以後各自漂移。

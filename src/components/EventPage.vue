@@ -395,7 +395,7 @@
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                       :class="
                         timeWindow.startTime === time
-                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
                           : ''
                       "
                       type="button"
@@ -436,7 +436,7 @@
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                       :class="
                         timeWindow.endTime === time
-                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
                           : ''
                       "
                       type="button"
@@ -496,7 +496,7 @@
               <button
                 v-for="cell in candidateDateCells"
                 :key="cell.key"
-                :class="dateButtonClass(cell)"
+                :class="candidateDateButtonClass(cell)"
                 type="button"
                 :aria-label="cell.key"
                 :aria-pressed="cell.isSelected"
@@ -549,7 +549,7 @@
                         class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                         :class="
                           uniformTime.startTime === time
-                            ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                            ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
                             : ''
                         "
                         type="button"
@@ -589,7 +589,7 @@
                         class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                         :class="
                           uniformTime.endTime === time
-                            ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                            ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
                             : ''
                         "
                         type="button"
@@ -670,6 +670,7 @@
           <!-- 正在編輯中的候選日時段 -->
           <div
             v-if="editingSlot"
+            data-scenario4-editing-panel
             class="grid gap-2 border-t border-dashed border-[var(--bujo-line-soft)] pt-2"
           >
             <div class="flex items-center justify-between gap-2">
@@ -694,6 +695,7 @@
                 <button
                   :class="[pickerButtonClass, 'w-full']"
                   type="button"
+                  data-scenario4-start-time-button
                   @click.stop="toggleSlotPicker(`${slot.id}:startTime`)"
                 >
                   <span :class="slot.startTime ? '' : 'text-[var(--bujo-muted)]'">{{
@@ -714,7 +716,7 @@
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                       :class="
                         slot.startTime === time
-                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
                           : ''
                       "
                       type="button"
@@ -754,7 +756,7 @@
                       class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                       :class="
                         slot.endTime === time
-                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
                           : ''
                       "
                       type="button"
@@ -1093,10 +1095,18 @@ function scenario4DateButtonClass(cell) {
   if (cell.isEditing) {
     return [base, 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]']
   }
+  // 已點選成候選日期但時段還沒填完整時，不要用跟「已設定完成」一樣的黃底——
+  // 黃底看起來像是已經完成，容易誤導。用邊框標示「還在候選中」就好，填完時段才給黃底
+  if (cell.isCandidate && cell.isConfigured) {
+    return [
+      base,
+      'border-[var(--bujo-line)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)] hover:border-[var(--bujo-accent)]',
+    ]
+  }
   if (cell.isCandidate) {
     return [
       base,
-      'border-[var(--bujo-line)] bg-[var(--bujo-card-yellow)] text-[var(--bujo-ink)] hover:border-[var(--bujo-accent)]',
+      'border-[var(--bujo-accent)] bg-[var(--bujo-surface)] text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]',
     ]
   }
   return [
@@ -1108,6 +1118,8 @@ function scenario4DateButtonClass(cell) {
   ]
 }
 
+// 點還沒選過的日期時，新增候選日期跟打開編輯面板要一次完成，不能只新增候選日期就
+// return——不然使用者要點兩次才看得到時段輸入框，像是壞掉
 function toggleScenario4Date(cell) {
   if (cell.isDisabled) return
   if (!cell.isCandidate) {
@@ -1120,9 +1132,23 @@ function toggleScenario4Date(cell) {
         ],
       },
     ].sort((a, b) => a.date.localeCompare(b.date))
+    editingSlotDate.value = cell.key
+    nextTick(() => focusNewSlotEditor())
     return
   }
   editingSlotDate.value = editingSlotDate.value === cell.key ? null : cell.key
+}
+
+// 新增候選日期後編輯面板可能在可視範圍外（尤其手機版），捲動過去並把焦點移到開始時間按鈕，
+// 讓使用者清楚知道接下來要做什麼，不用自己往下滑找
+function focusNewSlotEditor() {
+  const panel = document.querySelector('[data-scenario4-editing-panel]')
+  // jsdom（測試環境）沒有實作 scrollIntoView，真實瀏覽器才有，呼叫前先確認存在
+  if (typeof panel?.scrollIntoView === 'function') {
+    panel.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }
+  const startButton = document.querySelector('[data-scenario4-start-time-button]')
+  startButton?.focus()
 }
 
 function removeCandidateSlot(date) {
@@ -1809,7 +1835,31 @@ function dateButtonClass(cell) {
     base,
     'transition-colors',
     cell.isSelected
-      ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+      ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
+      : 'border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] text-[var(--bujo-ink)] hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]',
+    !cell.isCurrentMonth && 'text-[var(--bujo-muted)]',
+    cell.isToday &&
+      !cell.isSelected &&
+      'border-[var(--bujo-line)] bg-[var(--bujo-today)] shadow-[inset_0_0_0_1px_var(--bujo-accent)]',
+  ]
+}
+
+// 情境三候選日期跟情境一/二的單一固定日期語意不同——A/B 選的是「這就是最終日期」，黑底代表已經
+// 定案；情境三選的是「這是候選日期之一，還在投票階段」，跟情境四「已設定完成」的黃底語意更接近，
+// 所以另外複製一份 dateButtonClass，不直接改共用的 dateButtonClass（會連帶影響 A/B 的單一日期選取）
+function candidateDateButtonClass(cell) {
+  const base = 'h-8 max-sm:h-7 border text-xs leading-none'
+  if (cell.isDisabled) {
+    return [
+      base,
+      'border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] text-[var(--bujo-muted)] cursor-not-allowed opacity-40',
+    ]
+  }
+  return [
+    base,
+    'transition-colors',
+    cell.isSelected
+      ? 'border-[var(--bujo-line)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
       : 'border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] text-[var(--bujo-ink)] hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]',
     !cell.isCurrentMonth && 'text-[var(--bujo-muted)]',
     cell.isToday &&
@@ -1820,7 +1870,8 @@ function dateButtonClass(cell) {
 
 function timeButtonClass(time, field) {
   return {
-    'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]': form[field] === time,
+    'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]':
+      form[field] === time,
   }
 }
 
@@ -1828,7 +1879,7 @@ function scenarioButtonClass(active) {
   return [
     'flex min-h-[44px] max-sm:min-h-[38px] items-center justify-center border px-4 py-2 text-sm leading-[1.2] transition-colors',
     active
-      ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
+      ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
       : 'border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-[var(--bujo-ink)] hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]',
   ]
 }

@@ -1,5 +1,5 @@
 <template>
-  <article v-if="isOpen" class="activity-detail-panel">
+  <article v-if="isOpen" class="activity-detail-panel" :class="focusCardClass">
     <header class="activity-detail-header">
       <div>
         <div class="activity-detail-kicker">ACTIVITY ROOM</div>
@@ -38,14 +38,65 @@
           <span>{{ activity.creator.display_name }} 發起</span>
         </div>
 
+        <div v-if="showCandidateChips && isScenarioDMode" class="activity-detail-info">
+          <div class="activity-detail-label">日期、時段投票中（{{ candidateChipsForCard.length }}）</div>
+          <div class="activity-detail-date-list">
+            <button
+              v-for="chip in visibleCandidateChips"
+              :key="chip.key"
+              type="button"
+              class="activity-detail-chip"
+              :class="{
+                'activity-detail-chip--mine': chip.isMine,
+                'activity-detail-chip--active': openChipDate === chip.key,
+              }"
+              @click="toggleChipDate(chip.key)"
+              @mouseenter="openChipDate = chip.key"
+              @mouseleave="openChipDate === chip.key && (openChipDate = null)"
+            >
+              {{ chip.chip }}
+              <span v-if="openChipDate === chip.key" class="activity-detail-chip-popover">{{
+                chip.timeLabel
+              }}</span>
+            </button>
+            <button
+              v-if="hiddenCandidateChipsCount > 0"
+              type="button"
+              class="activity-detail-chip activity-detail-chip--more"
+              @click="candidateChipsExpanded = !candidateChipsExpanded"
+            >
+              {{ candidateChipsExpanded ? '−' : `+${hiddenCandidateChipsCount}` }}
+            </button>
+          </div>
+        </div>
+
         <div class="activity-detail-info">
-          <div v-if="dateText">
+          <div v-if="showCandidateChips && isScenarioCMode">
+            <div class="activity-detail-label">日期投票中</div>
+            <div class="activity-detail-date-list">
+              <span
+                v-for="chip in visibleCandidateChips"
+                :key="chip.key"
+                :class="{ 'activity-detail-chip--mine': chip.isMine }"
+                >{{ chip.chip }}</span
+              >
+              <button
+                v-if="hiddenCandidateChipsCount > 0"
+                type="button"
+                class="activity-detail-chip activity-detail-chip--more"
+                @click="candidateChipsExpanded = !candidateChipsExpanded"
+              >
+                {{ candidateChipsExpanded ? '−' : `+${hiddenCandidateChipsCount}` }}
+              </button>
+            </div>
+          </div>
+          <div v-else-if="dateText && !(showCandidateChips && isScenarioDMode)">
             <div class="activity-detail-label">日期</div>
             <div>{{ dateText }}</div>
           </div>
-          <div>
-            <div class="activity-detail-label">時間</div>
-            <div>{{ timeText }}</div>
+          <div v-if="!(showCandidateChips && isScenarioDMode)">
+            <div class="activity-detail-label">{{ rangeTimeWindowText ? '時間投票中' : '時間' }}</div>
+            <div>{{ rangeTimeWindowText || timeText }}</div>
           </div>
           <div v-if="activity.location">
             <div class="activity-detail-label">地點</div>
@@ -116,35 +167,35 @@
           class="activity-detail-options"
         >
           <template v-if="isScenarioCMode">
-            <div class="activity-detail-label">
-              {{ activity.has_joined ? '你已選擇的日期' : '選擇你方便的日期' }}
-            </div>
-            <div v-if="selectedScenarioCDateLabels.length" class="activity-detail-date-list">
-              <span v-for="date in selectedScenarioCDateLabels" :key="date">{{ date }}</span>
-            </div>
-            <div v-else class="activity-detail-muted">尚未選擇日期</div>
+            <template v-if="activity.has_joined">
+              <div class="activity-detail-label">你已選擇的日期</div>
+              <div v-if="selectedScenarioCDateLabels.length" class="activity-detail-date-list">
+                <span v-for="date in selectedScenarioCDateLabels" :key="date">{{ date }}</span>
+              </div>
+              <div v-else class="activity-detail-muted">尚未選擇日期</div>
+            </template>
+            <!-- 未報名時，標籤跟說明文字作用重疊（都在講「要選日期」），合併成一行淺色提示就好 -->
+            <div v-else class="activity-detail-muted">點擊「報名參加」選取你方便的日期</div>
           </template>
           <template v-else-if="isScenarioDMode">
-            <div class="activity-detail-label">
-              {{ activity.has_joined ? '你已選擇的候選時段' : '選擇你方便的候選時段' }}
-            </div>
-            <div v-if="selectedScenarioDSlotLabels.length" class="activity-detail-date-list">
-              <span v-for="label in selectedScenarioDSlotLabels" :key="label">{{ label }}</span>
-            </div>
-            <div v-else class="activity-detail-muted">
-              {{ activity.has_joined ? '尚未選擇候選時段' : '點擊下方報名參加，選擇你方便的候選時段' }}
-            </div>
+            <template v-if="activity.has_joined">
+              <div class="activity-detail-label">你已選擇的候選時段</div>
+              <div v-if="selectedScenarioDSlotLabels.length" class="activity-detail-date-list">
+                <span v-for="label in selectedScenarioDSlotLabels" :key="label">{{ label }}</span>
+              </div>
+              <div v-else class="activity-detail-muted">尚未選擇候選時段</div>
+            </template>
+            <div v-else class="activity-detail-muted">點擊「報名參加」選取你方便的時段</div>
           </template>
           <template v-else-if="isRangeMode">
-            <div class="activity-detail-label">
-              {{ activity.has_joined ? '你已回報的時間' : '選擇你方便的時間' }}
-            </div>
-            <div v-if="myRangesSummaryLabels.length" class="activity-detail-date-list">
-              <span v-for="label in myRangesSummaryLabels" :key="label">{{ label }}</span>
-            </div>
-            <div v-else class="activity-detail-muted">
-              {{ activity.has_joined ? '尚未回報時間' : '點擊下方報名參加，回報你方便的時間' }}
-            </div>
+            <template v-if="activity.has_joined">
+              <div class="activity-detail-label">你已回報的時間</div>
+              <div v-if="myRangesSummaryLabels.length" class="activity-detail-date-list">
+                <span v-for="label in myRangesSummaryLabels" :key="label">{{ label }}</span>
+              </div>
+              <div v-else class="activity-detail-muted">尚未回報時間</div>
+            </template>
+            <div v-else class="activity-detail-muted">點擊「報名參加」選取你方便的時間</div>
           </template>
           <template v-else>
             <div class="activity-detail-label">
@@ -214,7 +265,9 @@
                 v-for="seg in group.perfect"
                 :key="seg.radioId"
                 class="activity-detail-option activity-detail-option--spread"
-                :class="{ 'activity-detail-option--selected': selectedDecisionSlotId === seg.radioId }"
+                :class="{
+                  'activity-detail-option--selected': selectedDecisionSlotId === seg.radioId,
+                }"
               >
                 <span>
                   <input
@@ -234,7 +287,9 @@
                 v-for="seg in group.partial"
                 :key="seg.radioId"
                 class="activity-detail-option activity-detail-option--spread"
-                :class="{ 'activity-detail-option--selected': selectedDecisionSlotId === seg.radioId }"
+                :class="{
+                  'activity-detail-option--selected': selectedDecisionSlotId === seg.radioId,
+                }"
               >
                 <span>
                   <input
@@ -452,7 +507,9 @@
     :fixed-date="activity.fixed_date"
     :time-window-start="activity.time_window_start"
     :time-window-end="activity.time_window_end"
-    :allowed-dates="isScenarioDMode ? scenarioDAvailableCandidateDates : scenarioCAvailableCandidateDates"
+    :allowed-dates="
+      isScenarioDMode ? scenarioDAvailableCandidateDates : scenarioCAvailableCandidateDates
+    "
     :date-only="isScenarioCMode"
     :date-windows="isScenarioDMode ? scenarioDDateWindows : {}"
     :fixed-time-label="scenarioCFixedTimeLabel"
@@ -490,6 +547,20 @@ const showAvailabilityPicker = ref(false)
 const isRangeMode = computed(() => activity.value?.availability_mode === 'range')
 const isScenarioCMode = computed(() => activity.value?.schedule_variant === 'find_date')
 const isScenarioDMode = computed(() => activity.value?.schedule_variant === 'find_date_time')
+
+// 卡片背景色依活動狀態決定——算在元件內部（而不是要求呼叫端自己算好傳 class 進來），
+// 這樣不管從哪裡開啟這個元件都會套用到正確的狀態色，不會有呼叫端忘記綁定而永遠落回預設色的情況
+const focusCardClass = computed(() => {
+  const a = activity.value
+  if (!a) return ''
+  if (a.is_creator && a.status === 'recruiting') return 'activity-focus-card--mine-recruiting'
+  if (a.is_creator && a.status === 'confirmed') return 'activity-focus-card--mine-confirmed'
+  if (a.has_joined && !a.is_creator && a.status === 'recruiting')
+    return 'activity-focus-card--joined'
+  if (a.status === 'confirmed') return 'activity-focus-card--confirmed'
+  if (a.status === 'recruiting') return 'activity-focus-card--recruiting'
+  return 'activity-focus-card--neutral'
+})
 
 function toLocalDateKey(value) {
   const date = new Date(value)
@@ -588,6 +659,58 @@ const scenarioDDateWindows = computed(() => {
   return map
 })
 
+// 卡片上「有哪些候選日期」的預覽清單，情境三／四共用同一套資料形狀跟展開/收合邏輯，
+// 差別只在情境三不需要點擊看時段（時間本來就統一固定，已經在時間欄位顯示），情境四才需要
+// 一旦活動已經成團（confirmed_slot 有值），就不用再顯示候選清單，直接回到 dateText/timeText
+// 的確定日期時間顯示即可，候選清單只在還沒定案時才有意義
+const showCandidateChips = computed(
+  () => (isScenarioCMode.value || isScenarioDMode.value) && !activity.value?.confirmed_slot,
+)
+
+const candidateChipsForCard = computed(() => {
+  if (isScenarioDMode.value) {
+    return Object.entries(scenarioDDateWindows.value)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, window]) => ({
+        key: date,
+        chip: formatDateKey(date),
+        timeLabel: `${window.start}–${window.end}`,
+        isMine: (activity.value?.candidate_slots ?? []).some(
+          (s) => s.id === window.slotId && s.is_selected,
+        ),
+      }))
+  }
+  if (isScenarioCMode.value) {
+    return scenarioCCandidateDates.value.map((date) => ({
+      key: date,
+      chip: formatDateKey(date),
+      timeLabel: null,
+      isMine: scenarioCSelectedDates.value.includes(date),
+    }))
+  }
+  return []
+})
+
+// 只先顯示前 3 個候選日期，避免候選一多整張卡片被一大排 chip 塞爆，超過的收在「+N 更多」後面展開
+const CANDIDATE_CHIPS_VISIBLE_COUNT = 3
+const candidateChipsExpanded = ref(false)
+const visibleCandidateChips = computed(() =>
+  candidateChipsExpanded.value
+    ? candidateChipsForCard.value
+    : candidateChipsForCard.value.slice(0, CANDIDATE_CHIPS_VISIBLE_COUNT),
+)
+const hiddenCandidateChipsCount = computed(() =>
+  Math.max(0, candidateChipsForCard.value.length - CANDIDATE_CHIPS_VISIBLE_COUNT),
+)
+
+// 情境四點擊日期 chip 顯示當天時段——用點擊/輕觸切換，不是 CSS :hover，桌機點擊跟手機輕觸行為一致；
+// 同一時間只會有一個提示框開著，跟 EventPage.vue 的 toggleSlotPicker 同一種「單一展開狀態」模式
+const openChipDate = ref(null)
+function toggleChipDate(key) {
+  if (!isScenarioDMode.value) return
+  openChipDate.value = openChipDate.value === key ? null : key
+}
+
 const scenarioDCandidateDates = computed(() => Object.keys(scenarioDDateWindows.value).sort())
 
 // 已經過去的候選日期不該再讓報名者選，比照情境三的邏輯
@@ -595,7 +718,9 @@ const scenarioDAvailableCandidateDates = computed(() => {
   const now = new Date()
   const slots = activity.value?.candidate_slots ?? []
   return scenarioDCandidateDates.value.filter((date) =>
-    slots.some((slot) => toLocalDateKey(slot.slot_start) === date && new Date(slot.slot_start) > now),
+    slots.some(
+      (slot) => toLocalDateKey(slot.slot_start) === date && new Date(slot.slot_start) > now,
+    ),
   )
 })
 
@@ -613,7 +738,9 @@ const scenarioDInitialRanges = computed(() =>
 )
 
 const selectedScenarioDSlotLabels = computed(() =>
-  (activity.value?.candidate_slots ?? []).filter((slot) => slot.is_selected).map((slot) => slotText(slot)),
+  (activity.value?.candidate_slots ?? [])
+    .filter((slot) => slot.is_selected)
+    .map((slot) => slotText(slot)),
 )
 
 const availabilityPickerRangeStart = computed(() => {
@@ -656,8 +783,14 @@ const scenarioDCandidateGroups = computed(() =>
   (activity.value?.decision_candidates ?? []).map((slot) => ({
     candidateSlotId: slot.id,
     label: slotText(slot),
-    perfect: (slot.perfect_overlap ?? []).map((seg) => ({ ...seg, radioId: `${slot.id}::${seg.id}` })),
-    partial: (slot.partial_overlap ?? []).map((seg) => ({ ...seg, radioId: `${slot.id}::${seg.id}` })),
+    perfect: (slot.perfect_overlap ?? []).map((seg) => ({
+      ...seg,
+      radioId: `${slot.id}::${seg.id}`,
+    })),
+    partial: (slot.partial_overlap ?? []).map((seg) => ({
+      ...seg,
+      radioId: `${slot.id}::${seg.id}`,
+    })),
   })),
 )
 
@@ -722,11 +855,26 @@ const timeText = computed(() => {
   // 那句話的意思是時間還沒定，跟 Mode C 的實際狀況相反，而且會藏掉使用者最需要的固定時間資訊
   if (isScenarioCMode.value) return scenarioCFixedTimeLabel.value || '時間未設定'
   // range 模式（情境二）是回報一段連續可用時間，沒有離散的候選清單可以「投票」，
-  // 「候選時段投票中」的語氣會讓人誤以為有清單可以勾選
-  if (isRangeMode.value) return '時段回報中'
+  // 「候選時段投票中」的語氣會讓人誤以為有清單可以勾選；改成顯示建立者實際設定的可回報時間窗，
+  // 不然參與者不知道能回報的時間範圍是幾點到幾點，要點進 picker 才看得到
+  if (isRangeMode.value) {
+    if (a.time_window_start && a.time_window_end) {
+      return `${a.time_window_start}–${a.time_window_end}區間 時間投票中`
+    }
+    return '整天皆可回報'
+  }
   if (a.requires_voting) return '候選時段投票中'
   if (a.candidate_slots?.[0]) return timeOnlyText(a.candidate_slots[0])
   return '時間未設定'
+})
+
+// 情境二有設定時間窗時，時間欄位要拆成「時間窗文字」+「時間投票中」淺色提示兩部分渲染，
+// 樣式才能跟情境三「候選日期 chip + 日期投票中」、情境四「候選時段 chip + 時段投票中」一致
+const rangeTimeWindowText = computed(() => {
+  const a = activity.value
+  if (!a || a.confirmed_slot || !isRangeMode.value) return ''
+  if (!a.time_window_start || !a.time_window_end) return ''
+  return `${a.time_window_start}–${a.time_window_end}區間`
 })
 
 function slotText(slot) {
@@ -791,6 +939,12 @@ async function fetchActivity(id) {
 
   loading.value = true
   fetchError.value = ''
+  // 候選時段 chip 清單的展開/提示框狀態是這個元件實例自己的 UI 狀態，不是活動資料的一部分——
+  // resetPanel() 只在 modal 關閉時觸發，但同一個元件實例可能在還開著的情況下換一個 activityId
+  // 顯示（例如 DateEventsModal 一個列表點不同活動），這裡沒重置的話上一個活動展開過的狀態會
+  // 誤帶到下一個活動的卡片上
+  candidateChipsExpanded.value = false
+  openChipDate.value = null
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities/${id}`, {
       credentials: 'include',
@@ -992,7 +1146,11 @@ async function handleConfirmFormation() {
     const group = scenarioDCandidateGroups.value.find((g) =>
       [...g.perfect, ...g.partial].some((seg) => seg.radioId === selectedDecisionSlotId.value),
     )
-    const segment = group && [...group.perfect, ...group.partial].find((seg) => seg.radioId === selectedDecisionSlotId.value)
+    const segment =
+      group &&
+      [...group.perfect, ...group.partial].find(
+        (seg) => seg.radioId === selectedDecisionSlotId.value,
+      )
     if (!group || !segment) return
     await callAction('confirm-formation', 'POST', '✅ 成團成功！', {
       candidateSlotId: group.candidateSlotId,
@@ -1026,6 +1184,8 @@ function resetPanel() {
   selectedJoinSlotIds.value = []
   selectedDecisionSlotId.value = null
   showAvailabilityPicker.value = false
+  candidateChipsExpanded.value = false
+  openChipDate.value = null
 }
 
 function formatDateTime(date) {
@@ -1222,14 +1382,20 @@ function formatTime(date) {
 .activity-detail-info,
 .activity-detail-options {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   font-size: 13px;
   line-height: 1.42;
   font-weight: 600;
 }
 
+/* 情境四會有兩個 .activity-detail-info 疊在一起（候選時段 chip 清單＋地點/備註），
+   兩個 div 之間本來沒有間距，緊貼著看起來很擠，補上跟區塊內部一致的間距 */
+.activity-detail-info + .activity-detail-info {
+  margin-top: 12px;
+}
+
 .activity-detail-label {
-  margin-bottom: 3px;
+  margin-bottom: 5px;
   color: rgba(var(--bujo-ink-rgb), 0.62);
   font-family: 'Space Mono', monospace;
   font-size: 10px;
@@ -1315,8 +1481,9 @@ function formatTime(date) {
   gap: 6px;
 }
 
-.activity-detail-date-list span {
-  border: 1.5px solid var(--bujo-ink);
+.activity-detail-date-list span,
+.activity-detail-date-list .activity-detail-chip {
+  border: none;
   background: var(--bujo-white);
   color: var(--bujo-ink);
   padding: 5px 10px;
@@ -1324,10 +1491,49 @@ function formatTime(date) {
   font-weight: 800;
 }
 
-.activity-detail-muted {
-  color: rgba(var(--bujo-ink-rgb), 0.58);
-  font-size: 12px;
+.activity-detail-date-list .activity-detail-chip {
+  position: relative;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* 「這是我自己選的」用底部一條 accent 色線標示，不用滿版黃底、也不加外框 */
+.activity-detail-date-list .activity-detail-chip--mine {
+  box-shadow: inset 0 -2px 0 var(--bujo-accent);
+}
+
+.activity-detail-date-list .activity-detail-chip--active {
+  box-shadow: 0 1px 4px rgb(var(--bujo-ink-rgb) / 0.25);
+}
+
+.activity-detail-date-list .activity-detail-chip--more {
+  align-self: flex-end;
+  padding: 2px 5px;
+  font-size: 11px;
+  color: rgba(var(--bujo-ink-rgb), 0.72);
+  cursor: pointer;
+}
+
+.activity-detail-chip-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 1;
+  border: none;
+  border-radius: 2px;
+  background: var(--bujo-white);
+  color: var(--bujo-ink);
+  padding: 4px 8px;
+  font-size: 11px;
   font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 3px 8px rgb(var(--bujo-ink-rgb) / 0.28);
+}
+
+.activity-detail-muted {
+  color: var(--bujo-muted);
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .activity-detail-option,

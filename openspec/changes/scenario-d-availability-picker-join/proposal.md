@@ -39,3 +39,30 @@
 - `src/components/ActivityDetailModal.vue`：新增 `isScenarioDMode`、`scenarioDDateWindows`、`scenarioDAvailableCandidateDates`、`scenarioDInitialRanges`、`openScenarioDPicker`、`handleScenarioDConfirm`，以及對應的模板分支（加入前/加入後摘要、單一修改按鈕、情境四巢狀決策畫面、`confirmFormation` 送出邏輯）
 - `src/components/EventPage.vue`：移除 `addCandidateTimeSlot`/`removeCandidateTimeSlot`、「＋新增候選時段」按鈕，`candidateSlots` 資料結構簡化
 - `src/__tests__/ActivityDetailModal.test.js`、`AvailabilityPickerModal.test.js`、`EventPage.test.js`（若存在）：新增/更新對應測試
+
+## Addendum：跨情境 UI 配色一致性修復（與情境四主題無直接關聯，經使用者確認併入本 change）
+
+### Why
+
+在情境四參與者/建立者 UI 完成、走完整流程手動測試時，額外發現一系列跨情境共用的視覺一致性問題與既有 bug：
+1. 「已選日期」在不同情境的日曆上顯示三種不同顏色（`AvailabilityPickerModal.vue` 綠色、`EventPage.vue` 情境一黑色、情境三/四黃色），根因是四個各自獨立維護顏色的函式，沒有共用同一份定義
+2. `EventPage.vue` 六個時間選取下拉選單，選中的時間文字完全看不見——base class 固定套用深色文字，選中狀態疊加另一個文字顏色 class，兩者同時存在時被 Tailwind 產生的樣式表順序覆蓋，變成深色文字疊深色背景
+3. `DateEventsModal.vue`（月曆點日期彈窗）空狀態的新增行程只有純文字提示「點右上角 ＋ 新增」，沒有對應的可點擊元件在該位置
+4. `DateEventsModal.vue` 開啟 `ActivityDetailModal.vue` 時，卡片背景色永遠是寫死的預設藍色——依活動狀態（`mine-recruiting`/`mine-confirmed`/`joined`/`recruiting`/`confirmed`/`neutral`）顯示不同顏色的機制只有 `ActivityView.vue` 呼叫時才會生效，因為狀態 class 原本是由呼叫端算好外部綁定的，`DateEventsModal.vue` 這個呼叫路徑完全沒有綁定
+
+### What Changes
+
+- 新增 `--bujo-day-selected: #daebeb` CSS 變數（`src/assets/main.css`），`AvailabilityPickerModal.vue` 的 `dayClass()`、`EventPage.vue` 的 `dateButtonClass()`/`candidateDateButtonClass()`/`scenario4DateButtonClass()`/`scenarioButtonClass()`（日期/時間確定了嗎切換鈕）的「已選」狀態全部改用這個共用變數
+- 修復 `EventPage.vue` 六個時間下拉選單與 `AvailabilityPickerModal.vue` 報名時間下拉選單的選中文字不可見問題，統一改成 `bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]`
+- `DateEventsModal.vue`：空狀態新增可點擊的 + 圖示按鈕（置於內文、無邊框、hover 放大），當天已有行程時 + 按鈕維持在標題列原位置
+- 把 `ActivityDetailModal.vue` 的卡片狀態色計算搬進元件內部（改用元件自己 fetch 到的 `activity` 物件計算），讓任何呼叫端都會自動套用正確狀態色；同步移除 `ActivityView.vue` 裡外部重複的 `focusCardClass()` function 與綁定
+
+### Impact
+
+- `src/assets/main.css`：新增 `--bujo-day-selected` 變數
+- `src/components/AvailabilityPickerModal.vue`：`dayClass()` 已選色、報名時間下拉選單選中色
+- `src/components/EventPage.vue`：`dateButtonClass()`/`candidateDateButtonClass()`/`scenario4DateButtonClass()`/`scenarioButtonClass()`/`timeButtonClass()` 及六個時間下拉選單的選中色
+- `src/components/DateEventsModal.vue`：空狀態 + 按鈕
+- `src/components/ActivityDetailModal.vue`：新增內部 `focusCardClass` computed，根元素套用
+- `src/components/ActivityView.vue`：移除重複的 `focusCardClass()` function 與外部綁定
+- `src/__tests__/EventPage.test.js`：既有斷言舊顏色 class（`bujo-ink`/`bujo-card-yellow`）字串的測試改成斷言 `bujo-day-selected`

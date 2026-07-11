@@ -58,3 +58,13 @@
 - [x] 7.1 跑 `npx vitest run` 全套前端測試，確認無回歸
 - [x] 7.2 `npx vite build` 確認無語法/樣板錯誤
 - [ ] 7.3 手動流程驗證：建立一個至少兩個候選日期的情境四活動，走一次加入→查看摘要→修改→（建立者）查看巢狀決策清單→確認成團的完整流程
+
+## 8. 跨情境 UI 配色一致性修復（情境四手動驗證過程中額外發現，見 proposal.md/design.md 的 Addendum）
+
+- [x] 8.1 新增 `--bujo-day-selected: #daebeb`（`src/assets/main.css`），`AvailabilityPickerModal.vue` 的 `dayClass()`、`EventPage.vue` 的 `dateButtonClass()`（情境一/二單一日期）、`candidateDateButtonClass()`（情境三候選日期）、`scenario4DateButtonClass()`（情境四候選日期，僅 `isConfigured` 分支）四個函式的「已選」狀態改用同一個變數，取代原本各自獨立的綠/黑/黃三種顏色；「目前編輯中／作用中」的黑色狀態（`isEditing`、作用中 chip）不受影響（design: 「已選日期」統一成一個共用 CSS 變數，不沿用 `--bujo-accent`）
+- [x] 8.2 `EventPage.vue` 的 `scenarioButtonClass()`（日期確定了嗎/時間確定了嗎，已確定/大概範圍/讓大家選 切換鈕）active 狀態改用 `--bujo-day-selected`，取代原本的黑底白字
+- [x] 8.3 修復 `EventPage.vue` 六個時間下拉選單（情境一/二單一時間、情境三統一開始/結束時間、情境四候選時段開始/結束時間）選中時間文字不可見的問題，改成 `bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]`，跟 base class 一致不再互相覆蓋；`AvailabilityPickerModal.vue` 報名時間下拉選單（`from`/`to` 小時清單）比照同步改色（design: 時間下拉選單選中文字不可見，根因是同一元素上兩個文字顏色 class 互相覆蓋）
+- [x] 8.4 更新 `src/__tests__/EventPage.test.js` 既有斷言舊顏色 class（`bujo-ink`/`bujo-card-yellow`）字串的三個測試，改成斷言 `bujo-day-selected`（Selected date/time cells across scenarios share the same day-selected color token）
+- [x] 8.5 `DateEventsModal.vue`：當天沒有行程時，把純文字提示「點右上角 ＋ 新增」改成可點擊的 + 圖示按鈕，直接放在提示文字下方、無邊框、hover 時觸發放大效果（`hover:scale-125`）；當天已有行程時，+ 按鈕維持在標題列原本的位置（只在 `events.length > 0` 時顯示），新增行程的能力兩種情況下都要保留（Empty-state add button is a borderless icon that scales on hover; populated-list add button stays in the header）
+- [x] 8.6 把 `ActivityDetailModal.vue` 卡片狀態色（`mine-recruiting`/`mine-confirmed`/`joined`/`recruiting`/`confirmed`/`neutral` 六種）的計算從呼叫端外部綁定，改成元件內部用自己 fetch 到的 `activity` 物件算成 `computed`、綁在元件根元素上；移除 `ActivityView.vue` 裡重複的 `focusCardClass()` function 與外部綁定；`DateEventsModal.vue` 開啟 `ActivityDetailModal.vue` 時卡片現在會正確依活動狀態顯示對應顏色，不再永遠落回寫死的預設藍色（design: 卡片狀態色計算搬進 `ActivityDetailModal.vue` 內部，不再要求呼叫端外部綁定）
+- [x] 8.7 跑 `npx vitest run` 全套前端測試（201 個，含更新後的 8.4）與 `npx vite build`，每個子項改動後都各自重新驗證一次，確認無回歸
