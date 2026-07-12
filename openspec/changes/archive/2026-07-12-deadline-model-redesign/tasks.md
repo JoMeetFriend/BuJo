@@ -21,4 +21,4 @@
 ## 4. 收尾：既有測試更新與驗證
 
 - [x] 4.1 更新 `EventPage.test.js`／`ActivityDetailModal.test.js`／`AvailabilityPickerModal.test.js` 裡所有假設舊行為（例如預設清單會依有效性隱藏選項、`isUrgent` 依活動距今判斷、單一「調整列 vs 黃色框」互斥顯示）的既有測試，改成符合上述新行為的斷言，執行 `npx vitest run` 確認全數通過、無回歸（design: Scope 邊界——僅涵蓋 `EventPage.vue`／`ActivityDetailModal.vue`／`AvailabilityPickerModal.vue`，不含通知功能與後端 API 契約異動）
-- [ ] 4.2 執行 `npx vite build` 確認無語法錯誤；並在瀏覽器手動驗證：(a) 建立表單在遠期/近期/極端緊迫三種活動時間下，兩行常駐文字與警示樣式的實際顯示效果；(b) 偏移量數字的可點擊熱區在手機尺寸（375px 寬）下是否符合最小觸控熱區；(c) `AvailabilityPickerModal` 過期日期格子的非顏色標示在小螢幕上是否清楚可辨識
+- [x] 4.2 執行 `npx vite build` 確認無語法錯誤；並在瀏覽器手動驗證：(a) 建立表單在遠期/近期/極端緊迫三種活動時間下，兩行常駐文字與警示樣式的實際顯示效果；(b) 偏移量數字的可點擊熱區在手機尺寸（375px 寬）下是否符合最小觸控熱區；(c) `AvailabilityPickerModal` 過期日期格子的非顏色標示在小螢幕上是否清楚可辨識

@@ -6,40 +6,6 @@ TBD - created by archiving change 'scenario-b-availability-redesign'. Update Pur
 
 ## Requirements
 
-### Requirement: Optional time window in scenario B creation form
-
-The activity creation form SHALL allow the creator, when date is fixed and time is open ("讓大家選"), to optionally set a start and end time constraining when participants can report availability, without requiring a list of candidate time slots.
-
-#### Scenario: Creator leaves the time window unset
-
-- **WHEN** the creator submits the form without setting a start or end time for the time window
-- **THEN** the system SHALL submit the activity without `timeWindowStart`/`timeWindowEnd`, and SHALL NOT submit any candidate slot list
-
-#### Scenario: Creator sets a partial time window
-
-- **WHEN** the creator sets only one of start/end time for the time window
-- **THEN** the form SHALL show a validation error and SHALL NOT submit the form
-
-#### Scenario: Creator sets an invalid time window
-
-- **WHEN** the creator sets an end time that is not later than the start time
-- **THEN** the form SHALL show a validation error and SHALL NOT submit the form
-
-
-<!-- @trace
-source: scenario-b-availability-redesign
-updated: 2026-07-10
-code:
-  - src/components/EventPage.vue
-  - src/components/AvailabilityPickerModal.vue
-  - src/components/ActivityDetailModal.vue
-tests:
-  - src/__tests__/EventPage.test.js
-  - src/__tests__/AvailabilityPickerModal.test.js
-  - src/__tests__/ActivityDetailModal.test.js
--->
-
----
 ### Requirement: Fixed-date availability picker hides the calendar
 
 The availability picker modal SHALL hide its calendar panel and show only the time-range selection panel when a `fixedDate` is provided, while preserving the calendar's multi-date selection behavior for callers that do not provide `fixedDate`.
@@ -243,4 +209,43 @@ code:
   - src/components/AvailabilityPickerModal.vue
 tests:
   - src/__tests__/AvailabilityPickerModal.test.js
+-->
+
+---
+### Requirement: Time window is required in scenario B creation form
+
+The activity creation form SHALL require the creator, when date is fixed and time is open ("讓大家選"), to set both a start and end time for the time window before the form can be submitted, using the same immediate inline-validation pattern as scenario A's required start-time field (`timeError`-style: inline error shown immediately, submission blocked, and the view scrolled to the relevant field). The form SHALL NOT allow submission with the time window left entirely unset.
+
+#### Scenario: Creator leaves the time window entirely unset
+
+- **WHEN** the creator attempts to submit the form in scenario B without setting either a start or end time for the time window
+- **THEN** the form SHALL show an inline validation error on the time window field and SHALL NOT submit the request
+
+#### Scenario: Creator sets a partial time window
+
+- **WHEN** the creator sets only one of start/end time for the time window
+- **THEN** the form SHALL show a validation error and SHALL NOT submit the form
+
+#### Scenario: Creator sets an invalid time window
+
+- **WHEN** the creator sets an end time that is not later than the start time
+- **THEN** the form SHALL show a validation error and SHALL NOT submit the form
+
+#### Scenario: Creator sets a complete, valid time window
+
+- **WHEN** the creator sets both a start and end time, with end strictly after start
+- **THEN** the form SHALL accept the time window and proceed with submission (subject to the other deadline validations described in the `activity-deadline-validation` capability)
+
+<!-- @trace
+source: deadline-model-redesign
+updated: 2026-07-12
+code:
+  - src/components/ActivityDetailModal.vue
+  - src/components/AvailabilityPickerModal.vue
+  - src/components/EventPage.vue
+  - src/components/UrgentStartWarning.vue
+tests:
+  - src/__tests__/AvailabilityPickerModal.test.js
+  - src/__tests__/EventPage.test.js
+  - src/__tests__/ActivityDetailModal.test.js
 -->
