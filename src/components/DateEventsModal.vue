@@ -1,6 +1,6 @@
 <template>
   <BaseModal :isOpen="!isModalOpen" :title="formattedDate" @close="emit('close')">
-    <template #header-actions>
+    <template v-if="events.length" #header-actions>
       <button
         type="button"
         class="grid h-7 w-7 place-items-center text-lg leading-none text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:text-[var(--bujo-ink)] active:translate-x-px active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bujo-accent)]"
@@ -54,10 +54,17 @@
 
         <div
           v-else
-          class="flex min-h-[82px] flex-col items-center justify-center text-center text-[var(--bujo-muted-strong)]"
+          class="flex min-h-[82px] flex-col items-center justify-center gap-2 text-center text-[var(--bujo-muted-strong)]"
         >
           <p class="font-[plex-sans-tc] text-[15px]">這天還沒有行程</p>
-          <p class="mt-1 font-[space-mono] text-[11px]">點右上角 ＋ 新增</p>
+          <button
+            type="button"
+            class="grid h-8 w-8 place-items-center text-lg leading-none text-[var(--bujo-muted-strong)] transition-transform duration-150 hover:scale-125 hover:text-[var(--bujo-ink)] active:translate-x-px active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bujo-accent)]"
+            aria-label="新增行程"
+            @click="emit('add', props.date)"
+          >
+            +
+          </button>
         </div>
       </div>
     </template>

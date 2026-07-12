@@ -1,5 +1,7 @@
 <template>
-  <main class="min-h-screen shrink-0 bg-[var(--bujo-page)] px-5 pt-8 pb-4 md:px-14 text-[var(--bujo-ink)]">
+  <main
+    class="min-h-screen shrink-0 bg-[var(--bujo-page)] px-5 pt-8 pb-4 md:px-14 text-[var(--bujo-ink)]"
+  >
     <!-- 頁首 -->
     <header class="mb-5">
       <p class="profile-eyebrow">ACCOUNT SETTINGS</p>

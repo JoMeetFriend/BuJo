@@ -10,7 +10,11 @@
     <SidebarToggleButton
       v-if="showSidebar"
       class="hidden md:flex"
-      :class="sidebarOpen ? 'app-sidebar-toggle app-sidebar-toggle--open' : 'app-sidebar-toggle app-sidebar-toggle--closed'"
+      :class="
+        sidebarOpen
+          ? 'app-sidebar-toggle app-sidebar-toggle--open'
+          : 'app-sidebar-toggle app-sidebar-toggle--closed'
+      "
       @click="sidebarOpen = !sidebarOpen"
     />
 

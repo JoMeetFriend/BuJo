@@ -23,7 +23,12 @@ function mountRegisterViews() {
 
 async function fillForm(
   wrapper,
-  { name = '小明', email = 'user@example.com', password = 'password123', confirmPassword = 'password123' } = {},
+  {
+    name = '小明',
+    email = 'user@example.com',
+    password = 'password123',
+    confirmPassword = 'password123',
+  } = {},
 ) {
   await wrapper.find('input[type="text"]').setValue(name)
   await wrapper.find('input[type="email"]').setValue(email)
@@ -83,7 +88,11 @@ describe('RegisterViews - 送出註冊', () => {
       expect.objectContaining({
         method: 'POST',
         credentials: 'include',
-        body: JSON.stringify({ display_name: '小明', email: 'user@example.com', password: 'password123' }),
+        body: JSON.stringify({
+          display_name: '小明',
+          email: 'user@example.com',
+          password: 'password123',
+        }),
       }),
     )
     expect(wrapper.text()).toContain('註冊成功')
