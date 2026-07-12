@@ -240,7 +240,7 @@ describe('CalendarMain', () => {
     expect(todayNumber.text()).toBe('11')
     expect(todayNumber.classes()).toContain('calendar-day-number')
     expect(calendarMainSource).toMatch(/\.calendar-day-number\s*\{\s*display: inline-block;/)
-    expect(calendarMainSource).toContain('class="w-full p-1 md:p-1.5"')
+    expect(calendarMainSource).toContain('class="w-full p-1 leading-none md:p-1.5"')
     expect(calendarMainSource).toMatch(
       /\.calendar-day-number--today::before\s*\{[\s\S]*?width: 20px;[\s\S]*?height: 20px;/,
     )
