@@ -19,7 +19,10 @@
         <p class="m-0 text-xs leading-none text-[var(--bujo-muted-strong)]">
           <span v-if="isSearching">搜尋中...</span>
           <span v-else-if="error" class="text-[#dc2626]">{{ error }}</span>
-          <span v-else>搜尋結果</span>
+          <span v-else-if="hasSearched && searchResults.length === 0"
+            >查無此人，請確認 ID 是否正確</span
+          >
+          <span v-else-if="searchResults.length > 0">搜尋結果</span>
         </p>
 
         <article
@@ -75,7 +78,7 @@ import { useFriendStore } from '@/stores/friendStore'
 defineProps({ isOpen: Boolean })
 const emit = defineEmits(['close'])
 
-const { searchResults, isSearching, error, searchUsers, clearSearch } = useUserSearch()
+const { searchResults, isSearching, error, hasSearched, searchUsers, clearSearch } = useUserSearch()
 const friendStore = useFriendStore()
 
 const searchQuery = ref('')

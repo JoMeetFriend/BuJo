@@ -11,6 +11,7 @@ export function useUserSearch() {
   const searchResults = ref([])
   const isSearching = ref(false)
   const error = ref(null)
+  const hasSearched = ref(false)
 
   let abortController = null
 
@@ -19,6 +20,7 @@ export function useUserSearch() {
     if (sanitizedKeyword.length !== 5 || !/^[a-f0-9]{5}$/.test(sanitizedKeyword)) {
       if (abortController) abortController.abort()
       searchResults.value = []
+      hasSearched.value = false
       return
     }
 
@@ -31,6 +33,7 @@ export function useUserSearch() {
 
     isSearching.value = true
     error.value = null
+    hasSearched.value = false
 
     try {
       const response = await apiClient.get('/api/users/search', {
@@ -43,6 +46,8 @@ export function useUserSearch() {
         display_name: String(user.display_name || '未命名'),
         avatar_url: /^https?:\/\//.test(user.avatar_url) ? user.avatar_url : null,
       }))
+
+      hasSearched.value = true
     } catch (err) {
       if (axios.isCancel(err)) {
         return
@@ -54,6 +59,7 @@ export function useUserSearch() {
         error.value = '搜尋發生錯誤'
       }
       searchResults.value = []
+      hasSearched.value = true
     } finally {
       if (thisController === abortController) {
         isSearching.value = false
@@ -66,7 +72,8 @@ export function useUserSearch() {
     searchResults.value = []
     isSearching.value = false
     error.value = null
+    hasSearched.value = false
   }
 
-  return { searchResults, isSearching, error, searchUsers, clearSearch }
+  return { searchResults, isSearching, error, hasSearched, searchUsers, clearSearch }
 }

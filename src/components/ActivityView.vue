@@ -39,7 +39,6 @@
         <ActivityDetailModal
           :is-open="true"
           :activity-id="featuredActivity.id"
-          :class="focusCardClass(featuredActivity)"
           @status-changed="fetchActivities"
         />
       </section>
@@ -141,10 +140,6 @@ function cardStatus(activity) {
   if (activity.status === 'confirmed') return 'confirmed'
   if (activity.status === 'recruiting') return 'recruiting'
   return 'neutral'
-}
-
-function focusCardClass(activity) {
-  return `activity-focus-card--${cardStatus(activity)}`
 }
 
 function miniCardClass(activity) {
