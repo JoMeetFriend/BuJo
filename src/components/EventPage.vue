@@ -292,8 +292,6 @@
               </span>
             </div>
           </div>
-
-          <UrgentStartWarning v-if="isUrgent" :minutes="minutesUntilStart" />
         </div>
 
         <div
@@ -451,7 +449,12 @@
               </span>
             </div>
 
-            <UrgentStartWarning v-if="isUrgent" :minutes="minutesUntilStart" />
+            <p
+              v-if="timeError"
+              class="flex items-center gap-1 text-xs text-[#dc2626]"
+            >
+              <span>⚠</span> {{ timeError }}
+            </p>
           </div>
         </div>
 
@@ -604,8 +607,6 @@
                 </span>
               </div>
             </template>
-
-            <UrgentStartWarning v-if="isUrgent" :text="scenarioCUrgentText" />
           </div>
         </div>
 
@@ -786,8 +787,6 @@
               </span>
             </div>
           </div>
-
-          <UrgentStartWarning v-if="isUrgent" :minutes="minutesUntilStart" />
         </div>
 
         <label :class="[fieldClass, 'col-span-full']" for="event-note">
@@ -800,23 +799,44 @@
             placeholder="補充說明，例如裝備、費用..."
           ></textarea>
 
-          <!-- 流團設定附注（非緊急情況） -->
-          <template v-if="!isUrgent">
-            <div
-              class="flex items-start gap-2 border-t border-dashed border-[var(--bujo-line-soft)] pt-2"
+          <!-- 截止時間常駐顯示：兩行永遠都在，各自獨立判斷是否套用警示樣式，不再跟緊急狀態互斥 -->
+          <div
+            class="flex flex-col gap-1.5 border-t border-dashed border-[var(--bujo-line-soft)] pt-2"
+          >
+            <p
+              class="text-xs leading-5"
+              :class="isReportCutoffWarning ? 'font-semibold text-[#dc2626]' : 'text-[var(--bujo-muted)]'"
             >
-              <span class="flex-1 text-xs leading-5 text-[var(--bujo-muted)]">
-                <strong class="text-[var(--bujo-muted-strong)]">{{ deadlineDisplayText }}</strong
-                >，人數若不足活動將自動取消
-              </span>
-              <button
-                type="button"
-                class="flex-shrink-0 bg-white border border-[var(--bujo-line-soft)] px-2 py-0.5 text-[10px] leading-5 text-[var(--bujo-muted)] transition-colors hover:border-[var(--bujo-ink)] hover:text-[var(--bujo-ink)]"
-                @click="toggleDeadlineEditor"
+              <template v-if="isReportCutoffWarning">{{ reportCutoffWarningText }}</template>
+              <template v-else
+                >報名開放到
+                <strong class="text-[var(--bujo-muted-strong)]">{{ reportCutoffTimeLabel }}</strong>
+                （<button
+                  type="button"
+                  class="-mx-1 -my-1 px-1 py-1"
+                  @click="toggleDeadlineEditor"
+                >
+                  <span
+                    class="text-[var(--bujo-accent)] underline decoration-dotted underline-offset-2"
+                    >{{ reportCutoffOffsetParts.number }}</span
+                  >{{ reportCutoffOffsetParts.unit }}</button
+                >截止）</template
               >
-                調整
-              </button>
-            </div>
+            </p>
+
+            <p
+              class="text-[11px] leading-5"
+              :class="isScheduleCeilingWarning ? 'font-semibold text-[#dc2626]' : 'text-[var(--bujo-muted)]'"
+            >
+              {{ scheduleCeilingLineText }}
+            </p>
+
+            <p
+              v-if="candidateDateReminderText"
+              class="text-[11px] leading-5 text-[var(--bujo-accent)]"
+            >
+              {{ candidateDateReminderText }}
+            </p>
 
             <!-- 流團編輯器 -->
             <div
@@ -824,7 +844,7 @@
               class="flex flex-wrap items-center gap-2 border border-dashed border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-3 py-2"
             >
               <button
-                v-for="preset in deadlineValidPresets"
+                v-for="preset in DEADLINE_PRESETS"
                 :key="preset.key"
                 type="button"
                 class="h-8 rounded-none border px-2 text-xs transition-colors"
@@ -837,13 +857,8 @@
               >
                 {{ preset.label }}
               </button>
-              <span
-                v-if="deadlineValidPresets.length === 0"
-                class="text-xs text-[var(--bujo-muted)]"
-                >目前沒有可選的流團時間</span
-              >
             </div>
-          </template>
+          </div>
         </label>
         <div
           v-if="submitError"
@@ -867,9 +882,7 @@
     <template #default>
       <div class="grid gap-3 py-2 text-center">
         <p class="text-sm leading-6 text-[var(--bujo-ink)]">
-          這個活動將在 <strong>{{ minutesUntilStart }}</strong> 分鐘後開始<br />
-          建立後請記得到活動頁面<br />
-          <strong>手動確認成團</strong>，才會通知參與者
+          活動即將開始，這次建立將不會有任何報名緩衝時間，送出後請立即到活動頁面手動確認成團
         </p>
       </div>
     </template>
@@ -898,7 +911,6 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { useRoute, useRouter } from 'vue-router'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
-import UrgentStartWarning from './UrgentStartWarning.vue'
 import partyDanceUrl from '@/assets/party-dance.png'
 
 const props = defineProps({
@@ -1161,7 +1173,8 @@ function shortDate(dateStr) {
   return `${Number(month)}/${Number(day)}`
 }
 
-// 流團設定固定預設清單，由大到小排序（提前量最大排最前面）
+// 流團設定固定預設清單，由大到小排序（提前量最大排最前面）——五個選項永遠全部顯示、永遠可點選，
+// 不再依「算出來是否還沒過去」隱藏選項；智慧預設演算法只影響「自動選中哪一個」，不影響「顯示哪些」
 const DEADLINE_PRESETS = [
   { key: '1d', label: '1 天前', offsetMs: 24 * 3600000 },
   { key: '12h', label: '12 小時前', offsetMs: 12 * 3600000 },
@@ -1170,7 +1183,16 @@ const DEADLINE_PRESETS = [
   { key: '30m', label: '30 分鐘前', offsetMs: 30 * 60000 },
 ]
 
-// 流團設定：選中的預設 key（'1d' | '12h' | '3h' | '1h' | '30m'），null 代表尚未選（或目前沒有有效選項）
+// 智慧預設演算法固定嘗試的偏移量順序（由大到小）；「12 小時前」「1 天前」這兩個較大的偏移量
+// 只保留給使用者手動選擇，演算法不會自動選到，避免一般情況下預設就砍掉一整天的報名時間
+const AUTO_DEGRADE_OFFSET_KEYS = ['3h', '1h', '30m']
+
+// 安全緩衝門檻：智慧預設演算法降級判斷、兩行常駐文字的警示樣式、二次確認 modal 觸發，
+// 三處共用同一個常數，避免各自硬編碼，之後要調整緩衝門檻只需要改這裡
+const SAFETY_BUFFER_MS = 30 * 60000
+
+// 流團設定：選中的預設 key（'1d' | '12h' | '3h' | '1h' | '30m'）；null 代表智慧演算法已經降級到
+// 「無報名緩衝」（報名截止時間直接等於決策硬截止時間本身），是一個有意義的合法狀態，不是錯誤
 const selectedDeadlinePresetKey = ref(null)
 const showDeadlineEditor = ref(false)
 const showUrgentConfirm = ref(false)
@@ -1296,15 +1318,18 @@ const dateCells = computed(() => {
   }))
 })
 
-// 流團時間／緊急判斷的錨點日期時間：情境二用「已確定的日期」+「時段範圍的開始時間」，
-// 情境三用「最早的候選日期」+「統一開始時間」，情境四用「最早已設定完成的候選日期時段」，
-// 情境一沿用原本的 form.startDate/startTime
+// 決策硬截止時間（deadline_at）的天花板錨點日期時間：情境二用「已確定的日期」+「時段範圍的
+// 開始時間」，情境三用「最晚的候選日期」+「統一開始時間」，情境四用「最晚已設定完成的候選
+// 日期時段」，情境一沿用原本的 form.startDate/startTime。情境三/四刻意選「最晚」而非「最早」
+// ——這個天花板的工作是「建立者完全沒動作時的安全網」，選最晚候選日能讓投票有最大彈性等所有
+// 候選日都出結果再收斂，不會因為最早候選日先到就被迫提早截止（避免其他候選日的報名被誤擋）
 const scheduleAnchor = computed(() => {
   if (dateMode.value === 'fixed' && timeMode.value === 'vote') {
     return { date: form.singleDate, time: timeWindow.startTime ?? null }
   }
   if (dateMode.value === 'range' && timeMode.value === 'fixed') {
-    return { date: candidateDates.value[0] ?? null, time: uniformTime.startTime }
+    const latestDate = candidateDates.value[candidateDates.value.length - 1] ?? null
+    return { date: latestDate, time: uniformTime.startTime }
   }
   if (dateMode.value === 'range' && timeMode.value === 'vote') {
     const sorted = [...configuredSlots.value].sort((a, b) =>
@@ -1312,64 +1337,125 @@ const scheduleAnchor = computed(() => {
         ? parseHourFromTimeStr(a.startTime) - parseHourFromTimeStr(b.startTime)
         : a.date.localeCompare(b.date),
     )
-    return { date: sorted[0]?.date ?? null, time: sorted[0]?.startTime ?? null }
+    const latest = sorted[sorted.length - 1] ?? null
+    return { date: latest?.date ?? null, time: latest?.startTime ?? null }
   }
   return { date: form.startDate, time: form.startTime }
 })
 
-// 是否距今 ≤ 1 小時（緊急活動）
-const isUrgent = computed(() => {
-  if (form.allDay) return false
-  const start = parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time)
-  if (!start) return false
-  const diffMs = start.getTime() - Date.now()
-  return diffMs > 0 && diffMs <= 60 * 60 * 1000
-})
-
-// 距今幾分鐘（緊急顯示用）
-const minutesUntilStart = computed(() => {
-  const start = parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time)
-  if (!start) return 0
-  return Math.max(1, Math.ceil((start.getTime() - Date.now()) / 60000))
-})
-
-// 情境三候選日期不連續，「N 分鐘後開始」的通用文案不準確——逼近的只是候選日裡最早的
-// 那天，不代表活動真的快開始了（投票會開放到最晚候選日，其他候選日不受影響）
-const scenarioCUrgentText = computed(() => {
-  const date = scheduleAnchor.value.date
-  const label = date ? shortDate(date) : ''
-  return `${label} 快到了，選這天的話記得手動確認成團呦～其他候選日不受影響，照常開放投票！`
-})
-
-// 目前錨點日期時間下，仍然會落在未來的流團設定預設選項（由大到小排序）
-const deadlineValidPresets = computed(() =>
-  getValidDeadlinePresets(scheduleAnchor.value.date, scheduleAnchor.value.time),
+// 決策硬截止時間本身（天花板解析成實際 Date；沒有設定時間時退回當天 23:59:59，見 resolveDeadlineAnchor）
+const scheduleCeilingDate = computed(() =>
+  resolveDeadlineAnchor(scheduleAnchor.value.date, scheduleAnchor.value.time),
 )
 
-const deadlineOffsetMs = computed(
-  () => DEADLINE_PRESETS.find((p) => p.key === selectedDeadlinePresetKey.value)?.offsetMs ?? null,
-)
-
-// 目前選中的預設如果不再是有效清單裡的選項（或尚未選過），改選清單中最大（最早）的有效選項
-// scheduleAnchor 改變時一律重新選最大的有效預設（deadlineValidPresets 只在 anchor 改變時才會重新計算，
-// 手動點選預設按鈕本身不會影響 anchor，所以不會被這裡蓋掉）
-function syncDeadlinePresetSelection() {
-  selectedDeadlinePresetKey.value = deadlineValidPresets.value[0]?.key ?? null
+// 智慧預設演算法：固定先試「3 小時前」，算出的報名截止時間距今 <30 分鐘安全緩衝才依序降級
+// 「1 小時前」→「30 分鐘前」，都不安全則回傳 null（無報名緩衝，報名截止時間＝天花板本身）。
+// 不分「當天/非當天」兩套邏輯，只直接比較算出來的時間距今是否有足夠緩衝
+function computeSmartDefaultPresetKey(ceiling) {
+  if (!ceiling) return null
+  const now = Date.now()
+  for (const key of AUTO_DEGRADE_OFFSET_KEYS) {
+    const preset = DEADLINE_PRESETS.find((p) => p.key === key)
+    if (ceiling.getTime() - preset.offsetMs - now >= SAFETY_BUFFER_MS) return key
+  }
+  return null
 }
 
-watch(deadlineValidPresets, syncDeadlinePresetSelection, { immediate: true })
+// 天花板改變時重新跑一次智慧預設演算法；手動點選預設按鈕直接改 selectedDeadlinePresetKey，
+// 不會被這裡蓋掉（watch 只在 scheduleCeilingDate 改變時觸發，不是每次重新渲染都跑）
+function syncDeadlinePresetSelection() {
+  selectedDeadlinePresetKey.value = computeSmartDefaultPresetKey(scheduleCeilingDate.value)
+}
 
-// 流團時間顯示文字
-const deadlineDisplayText = computed(() => {
+watch(scheduleCeilingDate, syncDeadlinePresetSelection, { immediate: true })
+
+// 報名截止時間（vote_deadline_at）：選中的偏移量套用在天花板上；選中 null（無報名緩衝）時
+// 直接等於天花板本身——這跟使用者手動選好一個偏移量、只是剛好貼近現在，是兩種不同的狀態
+const voteDeadlineDate = computed(() => {
+  if (!scheduleCeilingDate.value) return null
   const preset = DEADLINE_PRESETS.find((p) => p.key === selectedDeadlinePresetKey.value)
-  if (!preset) return ''
-  const anchor = resolveDeadlineAnchor(scheduleAnchor.value.date, scheduleAnchor.value.time)
-  if (!anchor) return ''
-  const d = new Date(anchor.getTime() - preset.offsetMs)
-  const period = d.getHours() < 12 ? '上午' : '下午'
-  const hour = d.getHours() % 12 || 12
-  const minute = String(d.getMinutes()).padStart(2, '0')
-  return `${formatDateValue(d)} ${period} ${hour}:${minute}（${preset.label}）`
+  if (!preset) return scheduleCeilingDate.value
+  return new Date(scheduleCeilingDate.value.getTime() - preset.offsetMs)
+})
+
+function withinSafetyBuffer(date) {
+  if (!date) return false
+  return date.getTime() - Date.now() <= SAFETY_BUFFER_MS
+}
+
+// 第一行（報名截止時間）的警示判斷：本身貼近現在，或演算法已經降級到無報名緩衝——無報名緩衝
+// 時報名截止時間雖然等於天花板，但天花板本身可能還有 30~59 分鐘、不會被距今檢查直接抓到，
+// 所以額外用 selectedDeadlinePresetKey === null 撐住，跟設計文件「無報名緩衝一律警示」一致
+const isReportCutoffWarning = computed(
+  () => selectedDeadlinePresetKey.value === null || withinSafetyBuffer(voteDeadlineDate.value),
+)
+
+// 第二行（決策硬截止時間）的警示判斷，跟報名截止時間各自獨立
+const isScheduleCeilingWarning = computed(() => withinSafetyBuffer(scheduleCeilingDate.value))
+
+// 緊急狀態：報名截止時間或決策硬截止時間任一貼近現在就算，不再看活動本身（scheduleAnchor）
+// 距今多久——活動距今很近時兩個算出來的時間通常會同步貼近現在，但活動距今稍遠時兩者會脫鉤
+// （例如自動選中的偏移量剛好讓算出來的報名截止時間貼近現在），這種情況舊邏輯完全偵測不到
+const isUrgent = computed(() => isReportCutoffWarning.value || isScheduleCeilingWarning.value)
+
+// 距天花板還有幾分鐘（第二行警示文案、二次確認 modal 都要用）
+const minutesUntilCeiling = computed(() => {
+  if (!scheduleCeilingDate.value) return 0
+  return Math.max(1, Math.ceil((scheduleCeilingDate.value.getTime() - Date.now()) / 60000))
+})
+
+function formatDateTimeDisplay(date) {
+  const period = date.getHours() < 12 ? '上午' : '下午'
+  const hour = date.getHours() % 12 || 12
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  return `${formatDateValue(date)} ${period} ${hour}:${minute}`
+}
+
+const reportCutoffTimeLabel = computed(() =>
+  voteDeadlineDate.value ? formatDateTimeDisplay(voteDeadlineDate.value) : '',
+)
+
+// 第一行正常狀態下，偏移量文字拆成「數字」跟「單位」兩段——數字本身是可點擊觸發預設編輯器的
+// 目標，單位延伸可點擊熱區，兩段合起來的文字跟現有 preset.label 完全一致
+const reportCutoffOffsetParts = computed(() => {
+  const preset = DEADLINE_PRESETS.find((p) => p.key === selectedDeadlinePresetKey.value)
+  if (!preset) return { number: '', unit: '' }
+  const match = preset.label.match(/^(\d+)\s*(.+)$/)
+  return match ? { number: match[1], unit: match[2] } : { number: '', unit: preset.label }
+})
+
+// 第一行警示狀態文字（無報名緩衝或報名截止時間貼近現在時使用，不顯示偏移量）
+const reportCutoffWarningText = computed(() => {
+  if (!voteDeadlineDate.value) return ''
+  return `報名開放到 ${formatDateTimeDisplay(voteDeadlineDate.value)}——活動快開始了，已經沒有緩衝時間`
+})
+
+// 第二行文字：決策硬截止時間，固定值，正常/警示狀態各自的文案
+const scheduleCeilingLineText = computed(() => {
+  if (!scheduleCeilingDate.value) return ''
+  if (isScheduleCeilingWarning.value) {
+    return `只剩 ${minutesUntilCeiling.value} 分鐘了，記得手動確認成團，不然活動會被自動取消喔`
+  }
+  return `最晚 ${formatDateTimeDisplay(scheduleCeilingDate.value)} 要手動確認成團，不然活動會自動取消`
+})
+
+// 第三行：情境三／四專屬的候選日提醒，任一已選候選日期距今 ≤1 小時就顯示，純資訊提示，
+// 跟報名截止/決策硬截止的計算完全無關——新模型下天花板已經改錨定最晚候選日，其他候選日
+// 投票確實不受影響，是做得到的事實，不需要再靠這行文字硬撐一個做不到的承諾
+const candidateDateReminderText = computed(() => {
+  const isScenarioC = dateMode.value === 'range' && timeMode.value === 'fixed'
+  const isScenarioD = dateMode.value === 'range' && timeMode.value === 'vote'
+  if (!isScenarioC && !isScenarioD) return ''
+  const entries = isScenarioC
+    ? candidateDates.value.map((date) => ({ date, time: uniformTime.startTime }))
+    : configuredSlots.value.map((slot) => ({ date: slot.date, time: slot.startTime }))
+  const now = Date.now()
+  const nearTerm = entries
+    .map(({ date, time }) => ({ date, start: parseDateTimeValue(date, time) }))
+    .filter((e) => e.start && e.start.getTime() - now > 0 && e.start.getTime() - now <= 60 * 60000)
+    .sort((a, b) => a.start - b.start)
+  if (nearTerm.length === 0) return ''
+  return `${shortDate(nearTerm[0].date)} 快到了，選這天的話記得手動確認成團呦～其他候選日不受影響，照常開放投票！`
 })
 
 watch(
@@ -1386,6 +1472,14 @@ watch(
 )
 
 // 統一開始時間變動時「結束時間不合理就清掉」的邏輯已經內建在 selectSlotTime() 裡，這裡不用重複判斷
+
+// 情境二時間窗必填驗證：任一時間被設定後清掉行內錯誤，比照 form.startTime 的清除時機
+watch(
+  () => [timeWindow.startTime, timeWindow.endTime],
+  ([start, end]) => {
+    if (start && end) timeError.value = ''
+  },
+)
 
 watch(
   () => form.startDate,
@@ -1450,7 +1544,6 @@ function resetForm() {
   scenario4SlotIdSeq = 1
   candidateSlots.value = []
   editingSlotDate.value = null
-  selectedDeadlinePresetKey.value = null
   syncDeadlinePresetSelection()
   showDeadlineEditor.value = false
   endTimeUserSet.value = false
@@ -1475,7 +1568,10 @@ function dismissSuccessModal() {
 
 async function submitForm() {
   closePicker()
-  if (isUrgent.value) {
+  // 二次確認 modal 只在「連無報名緩衝的 fallback 都救不了」的極端情況才跳出（決策硬截止時間
+  // 本身距今 ≤30 分鐘），不是看報名截止時間是否貼近現在——報名截止時間貼近現在時就算警示樣式，
+  // 只要決策硬截止時間還夠遠，送出還是直接正常送出，不攔截
+  if (isScheduleCeilingWarning.value) {
     showUrgentConfirm.value = true
     return
   }
@@ -1497,6 +1593,16 @@ async function doSubmit() {
   }
 }
 
+// jsdom（測試環境）沒有實作 scrollIntoView，真實瀏覽器才有，呼叫前先確認存在，
+// 三處行內驗證錯誤（情境一開始時間、情境二時段範圍起訖）共用同一個安全呼叫方式
+async function scrollToFieldIfPossible(elementId) {
+  await nextTick()
+  const el = document.getElementById(elementId)
+  if (typeof el?.scrollIntoView === 'function') {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+}
+
 async function doSubmitInternal() {
   submitError.value = ''
   const isScenario2 = dateMode.value === 'fixed' && timeMode.value === 'vote'
@@ -1504,13 +1610,19 @@ async function doSubmitInternal() {
   const isScenario4 = dateMode.value === 'range' && timeMode.value === 'vote'
 
   if (isScenario2) {
-    const hasStart = !!timeWindow.startTime
-    const hasEnd = !!timeWindow.endTime
-    if (hasStart !== hasEnd) {
-      submitError.value = '時段範圍要嘛都填，要嘛都不填'
+    // 時段範圍從選填改為必填（新截止時間模型下，情境二的決策硬截止天花板錨定在時間窗開始時間，
+    // 留空就沒有明確依據可以算），比照情境一 timeError 的即時驗證模式：行內錯誤＋捲動到該欄位
+    if (!timeWindow.startTime) {
+      timeError.value = '請選擇時段範圍的開始時間'
+      await scrollToFieldIfPossible('event-time-window-start')
       return
     }
-    if (hasStart && hasEnd && !isEndAfterStart(timeWindow.startTime, timeWindow.endTime)) {
+    if (!timeWindow.endTime) {
+      timeError.value = '請選擇時段範圍的結束時間'
+      await scrollToFieldIfPossible('event-time-window-end')
+      return
+    }
+    if (!isEndAfterStart(timeWindow.startTime, timeWindow.endTime)) {
       submitError.value = '時段範圍的結束時間要晚於開始時間'
       return
     }
@@ -1538,10 +1650,7 @@ async function doSubmitInternal() {
     }
   } else if (!form.allDay && !form.startTime) {
     timeError.value = '請選擇開始時間'
-    await nextTick()
-    document
-      .getElementById('event-start-time')
-      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    await scrollToFieldIfPossible('event-start-time')
     return
   } else if (
     !form.allDay &&
@@ -1554,14 +1663,7 @@ async function doSubmitInternal() {
   }
   timeError.value = ''
   const limitValue = !form.limit || isNaN(form.limit) ? null : form.limit
-  const deadlineISO = isUrgent.value
-    ? (parseDateTimeValue(scheduleAnchor.value.date, scheduleAnchor.value.time)?.toISOString() ??
-      null)
-    : computeDeadlineISO(
-        scheduleAnchor.value.date,
-        scheduleAnchor.value.time,
-        deadlineOffsetMs.value,
-      )
+  const deadlineISO = voteDeadlineDate.value ? voteDeadlineDate.value.toISOString() : null
 
   // 最後一道防線：即使流團設定改用預設選項（選的當下一定還在未來），送出前還是要重新驗證一次，
   // 避免選好之後過了一段時間才送出，計算出的流團時間其實已經不晚於現在
@@ -1766,21 +1868,6 @@ function resolveDeadlineAnchor(dateStr, timeStr) {
   if (!dateOnly) return null
   dateOnly.setHours(23, 59, 59, 999)
   return dateOnly
-}
-
-// 只回傳套用在 anchorDate/anchorTime 上仍然晚於現在的預設
-function getValidDeadlinePresets(anchorDate, anchorTime) {
-  const anchor = resolveDeadlineAnchor(anchorDate, anchorTime)
-  if (!anchor) return []
-  const now = Date.now()
-  return DEADLINE_PRESETS.filter((preset) => anchor.getTime() - preset.offsetMs > now)
-}
-
-function computeDeadlineISO(startDateStr, startTimeStr, offsetMs) {
-  if (offsetMs == null) return null
-  const start = resolveDeadlineAnchor(startDateStr, startTimeStr)
-  if (!start) return null
-  return new Date(start.getTime() - offsetMs).toISOString()
 }
 
 function isSameDate(firstDate, secondDate) {

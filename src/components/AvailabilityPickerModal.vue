@@ -407,6 +407,32 @@ function canSelectDateKey(key) {
   return isInDateRange(key)
 }
 
+// 該日期候選窗口的結束邊界，依優先順序：情境四逐日窗口（dateWindows[key].end）
+// →全域 timeWindowStart/timeWindowEnd 中較晚者（情境二/三）→ 都沒有時交給 isExpired 用 23:59 當預設
+function windowEndBoundaryTime(key) {
+  const perDateWindow = props.dateWindows[key]
+  if (perDateWindow?.end) return perDateWindow.end
+  if (props.timeWindowStart || props.timeWindowEnd) {
+    return [props.timeWindowStart, props.timeWindowEnd].filter(Boolean).sort().at(-1)
+  }
+  return null
+}
+
+// 該日期的候選窗口是否已經完全過去（不是只看鐘點，是看整個窗口的結束邊界）
+function isExpired(key) {
+  const boundaryTime = windowEndBoundaryTime(key)
+  const boundary = boundaryTime
+    ? new Date(`${key}T${boundaryTime}:00`)
+    : new Date(`${key}T23:59:59`)
+  return boundary.getTime() < Date.now()
+}
+
+// 候選範圍內、且候選窗口還沒完全過去的日期，才能真的被點選/拖曳選取——已過期的日期
+// 維持顯示（見 dayClass），但不接受任何選取互動
+function isDateCellSelectable(key) {
+  return canSelectDateKey(key) && !isExpired(key)
+}
+
 function goPrevMonth() {
   if (canGoPrevMonth.value) visibleMonth.value = monthKeys.value[currentMonthIndex.value - 1]
 }
@@ -429,6 +455,12 @@ function dayClass(day) {
   if (!inRange)
     return 'text-[13px] md:text-[14px] font-bold text-center border border-transparent text-[var(--bujo-muted)] cursor-default h-full min-h-[36px] flex items-center justify-center'
 
+  // 已過期：維持顯示在候選範圍內的正常位置，但套用停用樣式（降低透明度＋不可點選游標），
+  // 保留候選日期原本的 border 當非顏色標示——border 的有無本身就能區分「曾經是候選日、現在過期」
+  // 跟「從來不是候選日」（後者是 border-transparent），不需要再疊加刪除線
+  if (isExpired(key))
+    return 'text-[13px] md:text-[14px] font-bold text-center border border-[var(--bujo-line-soft)] text-[var(--bujo-muted)] opacity-50 cursor-not-allowed select-none h-full min-h-[36px] flex items-center justify-center'
+
   return [
     'text-[13px] md:text-[14px] font-bold text-center border cursor-pointer transition-colors select-none h-full min-h-[36px] flex items-center justify-center',
     !sel && !isDragHov
@@ -447,7 +479,7 @@ function dayClass(day) {
 // ── 拖曳選取 ──
 function onDayMousedown(day) {
   const key = toDateKey(day)
-  if (!canSelectDateKey(key)) return
+  if (!isDateCellSelectable(key)) return
 
   // dateOnly 模式：單純點選/再點一次取消，不需要「先切成 active 再點一次才刪除」這種
   // 兩段式行為——那是給右側時段面板用的「目前正在編輯哪天」機制，dateOnly 沒有這個面板
@@ -480,13 +512,13 @@ function onDayMousedown(day) {
 
 function onDayMouseover(day) {
   if (!dragState.active) return
-  if (!canSelectDateKey(toDateKey(day))) return
+  if (!isDateCellSelectable(toDateKey(day))) return
 
   const lo = Math.min(dragState.startDate, day)
   const hi = Math.max(dragState.startDate, day)
   dragState.hovering = new Set()
   for (let d = lo; d <= hi; d++) {
-    if (canSelectDateKey(toDateKey(d))) dragState.hovering.add(d)
+    if (isDateCellSelectable(toDateKey(d))) dragState.hovering.add(d)
   }
 }
 
@@ -495,7 +527,7 @@ function onMouseup() {
 
   dragState.hovering.forEach((day) => {
     const key = toDateKey(day)
-    if (canSelectDateKey(key) && !(key in selectedDates.value)) {
+    if (isDateCellSelectable(key) && !(key in selectedDates.value)) {
       selectedDates.value[key] = defaultDayValue(key)
     }
   })

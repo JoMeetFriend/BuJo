@@ -128,7 +128,14 @@
             人
           </div>
           <div class="activity-detail-participants">
-            <div class="activity-detail-avatars">
+            <div
+              class="activity-detail-avatars"
+              @mouseenter="openSupporters('participants')"
+              @mouseleave="closeSupporters('participants')"
+              @touchstart="handleAvatarTouchStart('participants')"
+              @touchend="handleAvatarTouchEnd"
+              @touchmove="handleAvatarTouchEnd"
+            >
               <template v-for="p in activity.participants.slice(0, 5)" :key="p.id">
                 <img
                   v-if="p.avatar_url"
@@ -145,6 +152,12 @@
                 class="activity-detail-avatar activity-detail-avatar--text"
               >
                 +{{ activity.current_count - 5 }}
+              </span>
+              <span
+                v-if="openSupportersKey === 'participants' && activity.participants.length"
+                class="activity-detail-chip-popover"
+              >
+                {{ activity.participants.map((p) => p.display_name).join('、') }}
               </span>
             </div>
             <span
@@ -169,8 +182,38 @@
           <template v-if="isScenarioCMode">
             <template v-if="activity.has_joined">
               <div class="activity-detail-label">你已選擇的日期</div>
-              <div v-if="selectedScenarioCDateLabels.length" class="activity-detail-date-list">
-                <span v-for="date in selectedScenarioCDateLabels" :key="date">{{ date }}</span>
+              <div v-if="selectedScenarioCSlots.length" class="activity-detail-date-list">
+                <span
+                  v-for="slot in selectedScenarioCSlots"
+                  :key="slot.id"
+                  class="activity-detail-selection-entry"
+                >
+                  {{ formatDateKey(toLocalDateKey(slot.slot_start)) }}
+                  <span
+                    v-if="slot.co_participants && slot.co_participants.length"
+                    class="activity-detail-supporters"
+                    @mouseenter="openSupporters(`c-${slot.id}`)"
+                    @mouseleave="closeSupporters(`c-${slot.id}`)"
+                    @touchstart="handleAvatarTouchStart(`c-${slot.id}`)"
+                    @touchend="handleAvatarTouchEnd"
+                    @touchmove="handleAvatarTouchEnd"
+                  >
+                    <span
+                      v-for="p in slot.co_participants"
+                      :key="p.user_id"
+                      class="activity-detail-avatar"
+                    >
+                      <img v-if="p.avatar_url" :src="toAvatarSrc(p.avatar_url)" alt="" />
+                      <span v-else>{{ p.display_name?.slice(0, 1) ?? '?' }}</span>
+                    </span>
+                    <span
+                      v-if="openSupportersKey === `c-${slot.id}`"
+                      class="activity-detail-chip-popover"
+                    >
+                      {{ slot.co_participants.map((p) => p.display_name).join('、') }}
+                    </span>
+                  </span>
+                </span>
               </div>
               <div v-else class="activity-detail-muted">尚未選擇日期</div>
             </template>
@@ -180,8 +223,38 @@
           <template v-else-if="isScenarioDMode">
             <template v-if="activity.has_joined">
               <div class="activity-detail-label">你已選擇的候選時段</div>
-              <div v-if="selectedScenarioDSlotLabels.length" class="activity-detail-date-list">
-                <span v-for="label in selectedScenarioDSlotLabels" :key="label">{{ label }}</span>
+              <div v-if="selectedScenarioDSlots.length" class="activity-detail-date-list">
+                <span
+                  v-for="slot in selectedScenarioDSlots"
+                  :key="slot.id"
+                  class="activity-detail-selection-entry"
+                >
+                  {{ slotText(slot, slot.my_range) }}
+                  <span
+                    v-if="slot.co_participants && slot.co_participants.length"
+                    class="activity-detail-supporters"
+                    @mouseenter="openSupporters(`d-${slot.id}`)"
+                    @mouseleave="closeSupporters(`d-${slot.id}`)"
+                    @touchstart="handleAvatarTouchStart(`d-${slot.id}`)"
+                    @touchend="handleAvatarTouchEnd"
+                    @touchmove="handleAvatarTouchEnd"
+                  >
+                    <span
+                      v-for="p in slot.co_participants"
+                      :key="p.user_id"
+                      class="activity-detail-avatar"
+                    >
+                      <img v-if="p.avatar_url" :src="toAvatarSrc(p.avatar_url)" alt="" />
+                      <span v-else>{{ p.display_name?.slice(0, 1) ?? '?' }}</span>
+                    </span>
+                    <span
+                      v-if="openSupportersKey === `d-${slot.id}`"
+                      class="activity-detail-chip-popover"
+                    >
+                      {{ slot.co_participants.map((p) => p.display_name).join('、') }}
+                    </span>
+                  </span>
+                </span>
               </div>
               <div v-else class="activity-detail-muted">尚未選擇候選時段</div>
             </template>
@@ -190,8 +263,38 @@
           <template v-else-if="isRangeMode">
             <template v-if="activity.has_joined">
               <div class="activity-detail-label">你已回報的時間</div>
-              <div v-if="myRangesSummaryLabels.length" class="activity-detail-date-list">
-                <span v-for="label in myRangesSummaryLabels" :key="label">{{ label }}</span>
+              <div v-if="myRangesEntries.length" class="activity-detail-date-list">
+                <span
+                  v-for="entry in myRangesEntries"
+                  :key="entry.start"
+                  class="activity-detail-selection-entry"
+                >
+                  {{ myRangeLabel(entry) }}
+                  <span
+                    v-if="entry.co_participants && entry.co_participants.length"
+                    class="activity-detail-supporters"
+                    @mouseenter="openSupporters(`r-${entry.start}`)"
+                    @mouseleave="closeSupporters(`r-${entry.start}`)"
+                    @touchstart="handleAvatarTouchStart(`r-${entry.start}`)"
+                    @touchend="handleAvatarTouchEnd"
+                    @touchmove="handleAvatarTouchEnd"
+                  >
+                    <span
+                      v-for="p in entry.co_participants"
+                      :key="p.user_id"
+                      class="activity-detail-avatar"
+                    >
+                      <img v-if="p.avatar_url" :src="toAvatarSrc(p.avatar_url)" alt="" />
+                      <span v-else>{{ p.display_name?.slice(0, 1) ?? '?' }}</span>
+                    </span>
+                    <span
+                      v-if="openSupportersKey === `r-${entry.start}`"
+                      class="activity-detail-chip-popover"
+                    >
+                      {{ entry.co_participants.map((p) => p.display_name).join('、') }}
+                    </span>
+                  </span>
+                </span>
               </div>
               <div v-else class="activity-detail-muted">尚未回報時間</div>
             </template>
@@ -226,8 +329,38 @@
           class="activity-detail-options"
         >
           <div class="activity-detail-label">你已選擇的日期</div>
-          <div v-if="selectedScenarioCDateLabels.length" class="activity-detail-date-list">
-            <span v-for="date in selectedScenarioCDateLabels" :key="date">{{ date }}</span>
+          <div v-if="selectedScenarioCSlots.length" class="activity-detail-date-list">
+            <span
+              v-for="slot in selectedScenarioCSlots"
+              :key="slot.id"
+              class="activity-detail-selection-entry"
+            >
+              {{ formatDateKey(toLocalDateKey(slot.slot_start)) }}
+              <span
+                v-if="slot.co_participants && slot.co_participants.length"
+                class="activity-detail-supporters"
+                @mouseenter="openSupporters(`c2-${slot.id}`)"
+                @mouseleave="closeSupporters(`c2-${slot.id}`)"
+                @touchstart="handleAvatarTouchStart(`c2-${slot.id}`)"
+                @touchend="handleAvatarTouchEnd"
+                @touchmove="handleAvatarTouchEnd"
+              >
+                <span
+                  v-for="p in slot.co_participants"
+                  :key="p.user_id"
+                  class="activity-detail-avatar"
+                >
+                  <img v-if="p.avatar_url" :src="toAvatarSrc(p.avatar_url)" alt="" />
+                  <span v-else>{{ p.display_name?.slice(0, 1) ?? '?' }}</span>
+                </span>
+                <span
+                  v-if="openSupportersKey === `c2-${slot.id}`"
+                  class="activity-detail-chip-popover"
+                >
+                  {{ slot.co_participants.map((p) => p.display_name).join('、') }}
+                </span>
+              </span>
+            </span>
           </div>
           <div v-else class="activity-detail-muted">尚未選擇日期</div>
         </div>
@@ -241,133 +374,189 @@
           class="activity-detail-options"
         >
           <div class="activity-detail-label">你已選擇的候選時段</div>
-          <div v-if="selectedScenarioDSlotLabels.length" class="activity-detail-date-list">
-            <span v-for="label in selectedScenarioDSlotLabels" :key="label">{{ label }}</span>
+          <div v-if="selectedScenarioDSlots.length" class="activity-detail-date-list">
+            <span
+              v-for="slot in selectedScenarioDSlots"
+              :key="slot.id"
+              class="activity-detail-selection-entry"
+            >
+              {{ slotText(slot, slot.my_range) }}
+              <span
+                v-if="slot.co_participants && slot.co_participants.length"
+                class="activity-detail-supporters"
+                @mouseenter="openSupporters(`d2-${slot.id}`)"
+                @mouseleave="closeSupporters(`d2-${slot.id}`)"
+                @touchstart="handleAvatarTouchStart(`d2-${slot.id}`)"
+                @touchend="handleAvatarTouchEnd"
+                @touchmove="handleAvatarTouchEnd"
+              >
+                <span
+                  v-for="p in slot.co_participants"
+                  :key="p.user_id"
+                  class="activity-detail-avatar"
+                >
+                  <img v-if="p.avatar_url" :src="toAvatarSrc(p.avatar_url)" alt="" />
+                  <span v-else>{{ p.display_name?.slice(0, 1) ?? '?' }}</span>
+                </span>
+                <span
+                  v-if="openSupportersKey === `d2-${slot.id}`"
+                  class="activity-detail-chip-popover"
+                >
+                  {{ slot.co_participants.map((p) => p.display_name).join('、') }}
+                </span>
+              </span>
+            </span>
           </div>
           <div v-else class="activity-detail-muted">尚未選擇候選時段</div>
         </div>
 
         <div
           v-if="
+            activity.is_creator &&
             activity.requires_voting &&
-            ((activity.status === 'recruiting' && activity.is_creator) ||
-              activity.status === 'voting')
+            (activity.status === 'recruiting' || activity.status === 'voting')
           "
           class="activity-detail-options"
         >
           <template v-if="!isRangeMode && isScenarioDMode">
             <div class="activity-detail-label">{{ decisionSectionLabel }}</div>
             <template v-for="group in scenarioDCandidateGroups" :key="group.candidateSlotId">
-              <div class="activity-detail-label">{{ group.label }}</div>
+              <div
+                class="activity-detail-label activity-detail-group-label"
+                @mouseenter="openGroupLabelPopover(group.candidateSlotId)"
+                @mouseleave="closeGroupLabelPopover(group.candidateSlotId)"
+                @touchstart="handleGroupLabelTouchStart(group.candidateSlotId)"
+                @touchend="handleGroupLabelTouchEnd"
+                @touchmove="handleGroupLabelTouchEnd"
+              >
+                {{ group.shortLabel }}
+                <span
+                  v-if="openGroupLabelKey === group.candidateSlotId"
+                  class="activity-detail-chip-popover"
+                >
+                  {{ group.fullLabel }}
+                </span>
+              </div>
 
-              <div class="activity-detail-label">完全重疊</div>
               <label
-                v-for="seg in group.perfect"
+                v-for="seg in visibleEntries(group.candidateSlotId, group.segments)"
                 :key="seg.radioId"
                 class="activity-detail-option activity-detail-option--spread"
                 :class="{
                   'activity-detail-option--selected': selectedDecisionSlotId === seg.radioId,
+                  'activity-detail-option--expired': isExpired(seg),
                 }"
               >
-                <span>
+                <span class="activity-detail-option-time">
                   <input
                     v-if="activity.is_creator"
                     type="radio"
                     name="decision-slot"
                     :value="seg.radioId"
+                    :disabled="isExpired(seg)"
                     v-model="selectedDecisionSlotId"
                   />
-                  {{ slotText(seg) }}
+                  <span>{{ slotText(seg) }}</span>
+                  <span v-if="isExpired(seg)" class="activity-detail-expired-label">已過期</span>
                 </span>
-                <span>{{ seg.count }} 票</span>
+                <span class="activity-detail-option-right">
+                  <span
+                    v-if="seg.supporters.length"
+                    class="activity-detail-supporters"
+                    @mouseenter="openSupporters(seg.radioId)"
+                    @mouseleave="closeSupporters(seg.radioId)"
+                    @touchstart="handleAvatarTouchStart(seg.radioId)"
+                    @touchend="handleAvatarTouchEnd"
+                    @touchmove="handleAvatarTouchEnd"
+                  >
+                    <span
+                      v-for="s in seg.supporters"
+                      :key="s.user_id"
+                      class="activity-detail-avatar"
+                    >
+                      <img v-if="s.avatar_url" :src="toAvatarSrc(s.avatar_url)" alt="" />
+                      <span v-else>{{ s.display_name?.slice(0, 1) ?? '?' }}</span>
+                    </span>
+                    <span
+                      v-if="openSupportersKey === seg.radioId"
+                      class="activity-detail-chip-popover"
+                    >
+                      {{ seg.supporters.map((s) => s.display_name).join('、') }}
+                    </span>
+                  </span>
+                  <span class="activity-detail-ratio">{{ ratioText(seg.count) }}</span>
+                </span>
               </label>
-
-              <div class="activity-detail-label">部分重疊</div>
-              <label
-                v-for="seg in group.partial"
-                :key="seg.radioId"
-                class="activity-detail-option activity-detail-option--spread"
-                :class="{
-                  'activity-detail-option--selected': selectedDecisionSlotId === seg.radioId,
-                }"
+              <button
+                v-if="hasMoreToReveal(group.candidateSlotId, group.segments.length)"
+                type="button"
+                class="activity-detail-chip activity-detail-chip--more"
+                @click="revealMore(group.candidateSlotId, group.segments.length)"
               >
-                <span>
-                  <input
-                    v-if="activity.is_creator"
-                    type="radio"
-                    name="decision-slot"
-                    :value="seg.radioId"
-                    v-model="selectedDecisionSlotId"
-                  />
-                  {{ slotText(seg) }}
-                </span>
-                <span>{{ seg.count }} 票</span>
-              </label>
+                顯示更多
+              </button>
             </template>
           </template>
 
-          <template v-else-if="!isRangeMode">
+          <template v-else>
             <div class="activity-detail-label">{{ decisionSectionLabel }}</div>
             <label
-              v-for="slot in activity.decision_candidates"
-              :key="slot.id"
+              v-for="entry in visibleEntries('flat', normalizedDecisionEntries)"
+              :key="entry.id"
               class="activity-detail-option activity-detail-option--spread"
-              :class="{ 'activity-detail-option--selected': selectedDecisionSlotId === slot.id }"
+              :class="{
+                'activity-detail-option--selected': selectedDecisionSlotId === entry.radioId,
+                'activity-detail-option--expired': isExpired(entry),
+              }"
             >
-              <span>
+              <span class="activity-detail-option-time">
                 <input
                   v-if="activity.is_creator"
                   type="radio"
                   name="decision-slot"
-                  :value="slot.id"
+                  :value="entry.radioId"
+                  :disabled="isExpired(entry)"
                   v-model="selectedDecisionSlotId"
                 />
-                {{ slotText(slot) }}
+                <span>{{ slotText(entry) }}</span>
+                <span v-if="isExpired(entry)" class="activity-detail-expired-label">已過期</span>
               </span>
-              <span>{{ slot.count }} 票</span>
+              <span class="activity-detail-option-right">
+                <span
+                  v-if="entry.supporters.length"
+                  class="activity-detail-supporters"
+                  @mouseenter="openSupporters(entry.radioId)"
+                  @mouseleave="closeSupporters(entry.radioId)"
+                  @touchstart="handleAvatarTouchStart(entry.radioId)"
+                  @touchend="handleAvatarTouchEnd"
+                  @touchmove="handleAvatarTouchEnd"
+                >
+                  <span
+                    v-for="s in entry.supporters"
+                    :key="s.user_id"
+                    class="activity-detail-avatar"
+                  >
+                    <img v-if="s.avatar_url" :src="toAvatarSrc(s.avatar_url)" alt="" />
+                    <span v-else>{{ s.display_name?.slice(0, 1) ?? '?' }}</span>
+                  </span>
+                  <span
+                    v-if="openSupportersKey === entry.radioId"
+                    class="activity-detail-chip-popover"
+                  >
+                    {{ entry.supporters.map((s) => s.display_name).join('、') }}
+                  </span>
+                </span>
+                <span class="activity-detail-ratio">{{ ratioText(entry.count) }}</span>
+              </span>
             </label>
-          </template>
-
-          <template v-else>
-            <div class="activity-detail-label">完全重疊</div>
-            <label
-              v-for="slot in perfectOverlapCandidates"
-              :key="slot.id"
-              class="activity-detail-option activity-detail-option--spread"
-              :class="{ 'activity-detail-option--selected': selectedDecisionSlotId === slot.id }"
+            <button
+              v-if="hasMoreToReveal('flat', normalizedDecisionEntries.length)"
+              type="button"
+              class="activity-detail-chip activity-detail-chip--more"
+              @click="revealMore('flat', normalizedDecisionEntries.length)"
             >
-              <span>
-                <input
-                  v-if="activity.is_creator"
-                  type="radio"
-                  name="decision-slot"
-                  :value="slot.id"
-                  v-model="selectedDecisionSlotId"
-                />
-                {{ slotText(slot) }}
-              </span>
-              <span>{{ slot.count }} 票</span>
-            </label>
-
-            <div class="activity-detail-label">部分重疊</div>
-            <label
-              v-for="slot in partialOverlapCandidates"
-              :key="slot.id"
-              class="activity-detail-option activity-detail-option--spread"
-              :class="{ 'activity-detail-option--selected': selectedDecisionSlotId === slot.id }"
-            >
-              <span>
-                <input
-                  v-if="activity.is_creator"
-                  type="radio"
-                  name="decision-slot"
-                  :value="slot.id"
-                  v-model="selectedDecisionSlotId"
-                />
-                {{ slotText(slot) }}
-              </span>
-              <span>{{ slot.count }} 票</span>
-            </label>
+              顯示更多
+            </button>
           </template>
         </div>
 
@@ -511,7 +700,9 @@
       isScenarioDMode ? scenarioDAvailableCandidateDates : scenarioCAvailableCandidateDates
     "
     :date-only="isScenarioCMode"
-    :date-windows="isScenarioDMode ? scenarioDDateWindows : {}"
+    :date-windows="
+      isScenarioDMode ? scenarioDDateWindows : isScenarioCMode ? scenarioCDateWindows : {}
+    "
     :fixed-time-label="scenarioCFixedTimeLabel"
     :initial-dates="isScenarioCMode ? scenarioCInitialDates : []"
     :initial-ranges="isRangeMode ? myRangesInitial : isScenarioDMode ? scenarioDInitialRanges : []"
@@ -520,7 +711,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import PixelButton from './ui/PixelButton.vue'
 import AvailabilityPickerModal from './AvailabilityPickerModal.vue'
 import { toAvatarSrc } from '@/utils/avatar'
@@ -577,19 +768,30 @@ const scenarioCSlotByDate = computed(() => {
   return map
 })
 
+// 情境三：跟情境四同樣形狀的 dateWindows，傳給 AvailabilityPickerModal 讓它的 isExpired
+// 能算出每個候選日「真正的」窗口結束時間（統一時間的結束鐘點），不是整天的 23:59——
+// 情境三沒有這個資訊的話，isExpired 會誤用「當天 23:59」當過期邊界，
+// 導致候選時段其實已經過去了一整天，日曆格子卻要等到隔天才會被判定成過期
+const scenarioCDateWindows = computed(() => {
+  const map = {}
+  for (const slot of activity.value?.candidate_slots ?? []) {
+    const date = toLocalDateKey(slot.slot_start)
+    map[date] = {
+      start: toHHMM(new Date(slot.slot_start)),
+      end: toHHMM(new Date(slot.slot_end)),
+      slotId: slot.id,
+    }
+  }
+  return map
+})
+
 const scenarioCCandidateDates = computed(() => [...scenarioCSlotByDate.value.keys()].sort())
 
-// 已經過去的候選日期不該再讓報名者選——那天已經開始/結束了，選了也沒有意義，
-// 投票理應開放到最晚候選日（後端 vote_deadline_at 的判定基準），過期的候選日提早濾掉
-const scenarioCAvailableCandidateDates = computed(() => {
-  const now = new Date()
-  const slots = activity.value?.candidate_slots ?? []
-  return scenarioCCandidateDates.value.filter((date) => {
-    const slotId = scenarioCSlotByDate.value.get(date)
-    const slot = slots.find((s) => s.id === slotId)
-    return slot && new Date(slot.slot_start) > now
-  })
-})
+// 已經過去的候選日期不能再從這裡整個濾掉——濾掉會讓 AvailabilityPickerModal 收到的
+// allowedDates 裡完全不存在這個日期，它自己的 isExpired 停用樣式（灰階＋刪除線）永遠輪不到套用，
+// 使用者會看到過期候選日跟從來不是候選日的格子長得一模一樣，分不出差別。維持顯示但停用的
+// 職責交給 AvailabilityPickerModal 的 isExpired/dayClass 處理，這裡只需要回傳完整候選日清單
+const scenarioCAvailableCandidateDates = computed(() => scenarioCCandidateDates.value)
 
 const scenarioCSelectedDates = computed(() =>
   (activity.value?.candidate_slots ?? [])
@@ -622,17 +824,18 @@ const myRangesInitial = computed(() =>
 )
 
 // range 模式（情境二）已報名者自己回報的時間摘要，格式跟情境三的日期 chip 呼應，
-// 例如「7/12 下午 6:00–下午 9:00」
-const myRangesSummaryLabels = computed(() =>
-  (activity.value?.my_ranges ?? []).map((r) => {
-    const start = new Date(r.start)
-    const end = new Date(r.end)
-    return `${formatDateKey(toLocalDateKey(r.start))} ${formatTime(start)}–${formatTime(end)}`
-  }),
-)
+// 例如「7/12 下午 6:00–下午 9:00」。保留完整物件（不只是文字）是因為每一筆現在還要
+// 顯示 co_participants 頭像，不能只留下轉換過的文字標籤
+function myRangeLabel(r) {
+  const start = new Date(r.start)
+  const end = new Date(r.end)
+  return `${formatDateKey(toLocalDateKey(r.start))} ${formatTime(start)}–${formatTime(end)}`
+}
+const myRangesEntries = computed(() => activity.value?.my_ranges ?? [])
 
-const selectedScenarioCDateLabels = computed(() =>
-  scenarioCSelectedDates.value.map((date) => formatDateKey(date)),
+// 情境三已選的候選時段，保留完整物件（含 co_participants），不只是文字標籤
+const selectedScenarioCSlots = computed(() =>
+  (activity.value?.candidate_slots ?? []).filter((slot) => slot.is_selected),
 )
 
 const scenarioCFixedTimeLabel = computed(() => {
@@ -713,16 +916,9 @@ function toggleChipDate(key) {
 
 const scenarioDCandidateDates = computed(() => Object.keys(scenarioDDateWindows.value).sort())
 
-// 已經過去的候選日期不該再讓報名者選，比照情境三的邏輯
-const scenarioDAvailableCandidateDates = computed(() => {
-  const now = new Date()
-  const slots = activity.value?.candidate_slots ?? []
-  return scenarioDCandidateDates.value.filter((date) =>
-    slots.some(
-      (slot) => toLocalDateKey(slot.slot_start) === date && new Date(slot.slot_start) > now,
-    ),
-  )
-})
+// 不能整個濾掉過期候選日，理由同情境三——維持顯示但停用的職責交給
+// AvailabilityPickerModal 的 isExpired/dayClass 處理
+const scenarioDAvailableCandidateDates = computed(() => scenarioDCandidateDates.value)
 
 // 「修改報名時段」重開 picker 時，把每個候選時段自己的 my_range 轉成 initialRanges 形狀，
 // 讓 picker 能還原參與者先前選取的實際子區間——情境四的預填資料在 candidate_slots[].my_range，
@@ -737,10 +933,9 @@ const scenarioDInitialRanges = computed(() =>
     })),
 )
 
-const selectedScenarioDSlotLabels = computed(() =>
-  (activity.value?.candidate_slots ?? [])
-    .filter((slot) => slot.is_selected)
-    .map((slot) => slotText(slot, slot.my_range)),
+// 情境四已選的候選時段，保留完整物件（含 co_participants），不只是文字標籤
+const selectedScenarioDSlots = computed(() =>
+  (activity.value?.candidate_slots ?? []).filter((slot) => slot.is_selected),
 )
 
 const availabilityPickerRangeStart = computed(() => {
@@ -763,36 +958,131 @@ const availabilityPickerRangeEnd = computed(() => {
   return activity.value?.range_end ?? '2026-07-16'
 })
 
-const perfectOverlapCandidates = computed(() =>
-  (activity.value?.decision_candidates?.perfect_overlap ?? []).map((c, i) => ({
-    ...c,
-    id: `temp-perfect-${i}`,
-  })),
-)
-const partialOverlapCandidates = computed(() =>
-  (activity.value?.decision_candidates?.partial_overlap ?? []).map((c, i) => ({
-    ...c,
-    id: `temp-partial-${i}`,
-  })),
-)
+// 把後端回傳的 segment 正規化成畫面統一消費的形狀，情境二／三／四內層共用同一套呈現邏輯
+// （比例文字、支持者頭像、前 3 名 + 顯示更多），不再區分「完全重疊」「部分重疊」
+// 已過期的候選項目維持顯示（不整個移除），但不能再被點選——情境二/三/四的候選資料都已經
+// 透過 normalizeSegment 正規化成同一種形狀，一律用 slot_start 判斷，不需要依情境分支欄位名稱
+function isExpired(entry) {
+  return !!entry.slot_start && new Date(entry.slot_start).getTime() < Date.now()
+}
 
-// 情境四：decision_candidates 是扁平陣列，每筆候選時段自己還有一組 perfect_overlap/partial_overlap，
+function normalizeSegment(seg) {
+  return {
+    id: seg.id,
+    radioId: seg.id,
+    slot_start: seg.slot_start,
+    slot_end: seg.slot_end,
+    count: seg.count,
+    is_unanimous: seg.is_unanimous,
+    supporters: seg.supporters ?? [],
+  }
+}
+
+// 情境二（range 模式）／情境三（find_date）：decision_candidates 都是單一排序陣列，直接正規化
+const normalizedDecisionEntries = computed(() => {
+  const candidates = activity.value?.decision_candidates
+  if (!Array.isArray(candidates) || isScenarioDMode.value) return []
+  return candidates.map(normalizeSegment)
+})
+
+// 情境四：decision_candidates 是候選時段外層陣列，每筆自己還有一個內層 segments 單一陣列，
 // 巢狀顯示在對應候選時段底下。radioId 用候選時段 id 當前綴組出來，保證跨候選時段不會撞號
 // （單一候選時段內的 segment id 已經是各自唯一的 slot_start ISO 字串）
 const scenarioDCandidateGroups = computed(() =>
   (activity.value?.decision_candidates ?? []).map((slot) => ({
     candidateSlotId: slot.id,
-    label: slotText(slot),
-    perfect: (slot.perfect_overlap ?? []).map((seg) => ({
-      ...seg,
-      radioId: `${slot.id}::${seg.id}`,
-    })),
-    partial: (slot.partial_overlap ?? []).map((seg) => ({
-      ...seg,
+    shortLabel: shortDateText(slot),
+    fullLabel: slotText(slot),
+    segments: (slot.segments ?? []).map((seg) => ({
+      ...normalizeSegment(seg),
       radioId: `${slot.id}::${seg.id}`,
     })),
   })),
 )
+
+// 投票分母：後端只回傳 is_unanimous 布林值，比例文字的分母由前端推導——情境二/三/四報名時都
+// 必須帶非空的 ranges/candidateSlotIds 才能成功，所以每個已報名的非建立者參與者都對應到後端
+// 分母裡的一個真人投票者，扣掉建立者後跟後端 is_unanimous 的分母算出來的數字會一致
+const votingDenominator = computed(() =>
+  Math.max(0, (activity.value?.participants?.length ?? 0) - 1),
+)
+function ratioText(count) {
+  return votingDenominator.value > 0 ? `${count}/${votingDenominator.value}人` : `${count}人`
+}
+
+// 每個清單（情境二/三固定用 'flat'；情境四每個候選時段各自用自己的 candidateSlotId）
+// 各自獨立追蹤目前展開到第幾筆，預設 3 筆，「顯示更多」每次只多展開 3 筆——使用者體驗理念是
+// 不需要一次接受過多資訊，不能一次全部展開
+const DEFAULT_VISIBLE_COUNT = 3
+const REVEAL_STEP = 3
+const visibleCounts = reactive({})
+function visibleCountFor(key, total) {
+  return Math.min(visibleCounts[key] ?? DEFAULT_VISIBLE_COUNT, total)
+}
+function visibleEntries(key, entries) {
+  return entries.slice(0, visibleCountFor(key, entries.length))
+}
+function hasMoreToReveal(key, total) {
+  return visibleCountFor(key, total) < total
+}
+function revealMore(key, total) {
+  visibleCounts[key] = Math.min((visibleCounts[key] ?? DEFAULT_VISIBLE_COUNT) + REVEAL_STEP, total)
+}
+function resetVisibleCounts() {
+  Object.keys(visibleCounts).forEach((key) => delete visibleCounts[key])
+}
+
+// 支持者頭像 hover(桌面)/長按(行動裝置) 顯示名單彈出框，同一時間只會有一筆開著，
+// 比照既有 openChipDate 的單一展開狀態模式。長按閾值 500ms：放開/移動發生在閾值前視為一般
+// 點擊，不開啟名單，避免跟選取候選時段的點擊行為互相干擾
+const openSupportersKey = ref(null)
+const LONG_PRESS_MS = 500
+let supportersLongPressTimer = null
+function openSupporters(key) {
+  openSupportersKey.value = key
+}
+function closeSupporters(key) {
+  if (openSupportersKey.value === key) openSupportersKey.value = null
+}
+function handleAvatarTouchStart(key) {
+  clearTimeout(supportersLongPressTimer)
+  supportersLongPressTimer = setTimeout(() => {
+    openSupportersKey.value = key
+  }, LONG_PRESS_MS)
+}
+function handleAvatarTouchEnd() {
+  clearTimeout(supportersLongPressTimer)
+}
+
+// 情境四候選時段外層群組標題（例如「7/31 上午5:00 - 下午9:00」）只顯示日期，完整時間改成跟
+// 支持者頭像同一套 hover(桌面)/長按(行動裝置) 互動顯示——這個標題本身不能投票，只是分組用的
+// 窗口說明，資訊量比底下每一列實際可投票的時段選項低優先，才適合收起來。個別投票列的時間是
+// 使用者要比對、要勾選的重點資訊，維持一律直接顯示，不套用這套 hover 收合
+function shortDateText(slot) {
+  const start = new Date(slot.slot_start)
+  const end = new Date(slot.slot_end)
+  const startText = `${start.getMonth() + 1}/${start.getDate()}`
+  const endText = `${end.getMonth() + 1}/${end.getDate()}`
+  return startText === endText ? startText : `${startText}~${endText}`
+}
+
+const openGroupLabelKey = ref(null)
+let groupLabelLongPressTimer = null
+function openGroupLabelPopover(key) {
+  openGroupLabelKey.value = key
+}
+function closeGroupLabelPopover(key) {
+  if (openGroupLabelKey.value === key) openGroupLabelKey.value = null
+}
+function handleGroupLabelTouchStart(key) {
+  clearTimeout(groupLabelLongPressTimer)
+  groupLabelLongPressTimer = setTimeout(() => {
+    openGroupLabelKey.value = key
+  }, LONG_PRESS_MS)
+}
+function handleGroupLabelTouchEnd() {
+  clearTimeout(groupLabelLongPressTimer)
+}
 
 let activeFetchController = null
 
@@ -902,13 +1192,17 @@ function soleLeaderId(candidates) {
 }
 
 const statusText = computed(() => {
-  const map = {
-    recruiting: '揪團中',
-    voting: '建立者決選中',
-    confirmed: '已成團',
-    cancelled: '已取消',
+  const a = activity.value
+  if (!a) return ''
+  // 已報名的非建立者在活動還沒有結果之前（揪團中/建立者決選中），看到的是自己的報名狀態，
+  // 不是活動整體的生命週期敘述——「建立者決選中」這種語氣是描述建立者在做什麼，跟報名者無關；
+  // 已成團/已取消是最終結果，不分角色都要看到同一句話
+  const inProgress = a.status === 'recruiting' || a.status === 'voting'
+  if (!a.is_creator && a.has_joined && inProgress) {
+    return '已報名'
   }
-  return map[activity.value?.status] ?? activity.value?.status
+  const map = { recruiting: '揪團中', voting: '建立者決選中', confirmed: '已成團', cancelled: '已取消' }
+  return map[a.status] ?? a.status
 })
 
 const decisionSectionLabel = computed(() => {
@@ -946,12 +1240,16 @@ async function fetchActivity(id) {
 
   loading.value = true
   fetchError.value = ''
-  // 候選時段 chip 清單的展開/提示框狀態是這個元件實例自己的 UI 狀態，不是活動資料的一部分——
-  // resetPanel() 只在 modal 關閉時觸發，但同一個元件實例可能在還開著的情況下換一個 activityId
-  // 顯示（例如 DateEventsModal 一個列表點不同活動），這裡沒重置的話上一個活動展開過的狀態會
-  // 誤帶到下一個活動的卡片上
+  // 候選時段 chip 清單的展開/提示框狀態、上一個活動殘留的報名錯誤訊息，都是這個元件實例
+  // 自己的 UI 狀態，不是活動資料的一部分——resetPanel() 只在 modal 關閉時觸發，但同一個元件
+  // 實例可能在還開著的情況下換一個 activityId 顯示（例如 DateEventsModal 一個列表點不同活動），
+  // 這裡沒重置的話上一個活動的錯誤文字/展開狀態會誤帶到下一個活動的卡片上
+  actionError.value = ''
   candidateChipsExpanded.value = false
   openChipDate.value = null
+  resetVisibleCounts()
+  openSupportersKey.value = null
+  openGroupLabelKey.value = null
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities/${id}`, {
       credentials: 'include',
@@ -969,7 +1267,7 @@ async function fetchActivity(id) {
       .map((slot) => slot.id)
     // 只有唯一一個候選時段票數最高時不用強迫建立者多點一次圈圈，直接預選好讓她能馬上按下成團——
     // decision_candidates 現在回傳完整排名清單，不能再用「陣列長度是不是 1」判斷，要實際比較票數；
-    // range 模式的 decision_candidates 是 {perfect_overlap, partial_overlap} 物件，不適用；
+    // 情境二/三都是單一排序陣列，Array.isArray 為 true，套用同一套自動預選邏輯；
     // 情境四是巢狀結構（每個候選時段底下還有自己的窄窗口），自動預選的窄窗口意義不明確，不自動選
     const decisionCandidates = data.activity.decision_candidates
     selectedDecisionSlotId.value =
@@ -1135,8 +1433,8 @@ async function handleConfirmFormation() {
       actionError.value = '請選擇要確認的候選時段'
       return
     }
-    const candidate = [...perfectOverlapCandidates.value, ...partialOverlapCandidates.value].find(
-      (c) => c.id === selectedDecisionSlotId.value,
+    const candidate = normalizedDecisionEntries.value.find(
+      (c) => c.radioId === selectedDecisionSlotId.value,
     )
     if (!candidate) return
     await callAction('confirm-formation', 'POST', '✅ 成團成功！', {
@@ -1151,13 +1449,9 @@ async function handleConfirmFormation() {
       return
     }
     const group = scenarioDCandidateGroups.value.find((g) =>
-      [...g.perfect, ...g.partial].some((seg) => seg.radioId === selectedDecisionSlotId.value),
+      g.segments.some((seg) => seg.radioId === selectedDecisionSlotId.value),
     )
-    const segment =
-      group &&
-      [...group.perfect, ...group.partial].find(
-        (seg) => seg.radioId === selectedDecisionSlotId.value,
-      )
+    const segment = group?.segments.find((seg) => seg.radioId === selectedDecisionSlotId.value)
     if (!group || !segment) return
     await callAction('confirm-formation', 'POST', '✅ 成團成功！', {
       candidateSlotId: group.candidateSlotId,
@@ -1193,6 +1487,9 @@ function resetPanel() {
   showAvailabilityPicker.value = false
   candidateChipsExpanded.value = false
   openChipDate.value = null
+  resetVisibleCounts()
+  openSupportersKey.value = null
+  openGroupLabelKey.value = null
 }
 
 function formatDateTime(date) {
@@ -1470,8 +1767,10 @@ function formatTime(date) {
 }
 
 .activity-detail-avatars {
+  position: relative;
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 
 .activity-detail-avatar + .activity-detail-avatar {
@@ -1488,7 +1787,8 @@ function formatTime(date) {
   gap: 6px;
 }
 
-.activity-detail-date-list span,
+/* 用 > 限定直接子層，避免這條規則吃到巢狀在裡面的支持者頭像 span（例如 co_participants 頭像列） */
+.activity-detail-date-list > span,
 .activity-detail-date-list .activity-detail-chip {
   border: none;
   background: var(--bujo-white);
@@ -1543,6 +1843,12 @@ function formatTime(date) {
   font-weight: 500;
 }
 
+.activity-detail-selection-entry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .activity-detail-option,
 .activity-detail-option-read {
   border: 1px solid rgba(var(--bujo-ink-rgb), 0.32);
@@ -1552,8 +1858,9 @@ function formatTime(date) {
 
 .activity-detail-option {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
   cursor: pointer;
 }
 
@@ -1561,9 +1868,56 @@ function formatTime(date) {
   justify-content: space-between;
 }
 
+.activity-detail-option-time {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.activity-detail-option-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.activity-detail-ratio {
+  white-space: nowrap;
+}
+
+.activity-detail-group-label {
+  position: relative;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.activity-detail-supporters {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
 .activity-detail-option--selected {
   border-color: var(--bujo-ink);
   background: rgba(var(--bujo-white-rgb), 0.62);
+}
+
+/* 已過期的候選項目維持顯示在原位置（不整個移除），但停用互動——降低透明度＋游標改為
+   不可點選，額外的「已過期」文字標籤（見 template）確保不只靠顏色/透明度傳達語意 */
+.activity-detail-option--expired {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.activity-detail-expired-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(var(--bujo-ink-rgb), 0.6);
 }
 
 .activity-detail-error {
