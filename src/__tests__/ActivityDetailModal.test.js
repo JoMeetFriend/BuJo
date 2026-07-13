@@ -1790,6 +1790,33 @@ describe('ActivityDetailModal - 情境二只有唯一最高票時自動預選', 
 })
 
 describe('ActivityDetailModal - 情境一（fixed，免投票）已報名人數/頭像可見性', () => {
+  test('fixed 情境進入 voting 狀態時建立者可直接立即成團', async () => {
+    const activity = makeActivity({
+      is_creator: true,
+      status: 'voting',
+      requires_voting: false,
+      schedule_variant: 'fixed',
+      current_count: 2,
+      participant_target: 2,
+      decision_candidates: null,
+    })
+    const calls = stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, { props: { isOpen: true, activityId: 'act-1' } })
+    await flushPromises()
+
+    const confirmButton = wrapper.findAll('button').find((b) => b.text().includes('立即成團'))
+    expect(confirmButton).toBeTruthy()
+    expect(confirmButton.attributes('disabled')).toBeUndefined()
+
+    await confirmButton.trigger('click')
+    await flushPromises()
+
+    const confirmCall = calls.find((c) => c.url.includes('/confirm-formation'))
+    expect(confirmCall).toBeTruthy()
+    expect(confirmCall.options.body).toBeUndefined()
+  })
+
   test('fixed 情境的活動詳情正確顯示已報名人數與參與者頭像', async () => {
     const activity = makeActivity({
       requires_voting: false,

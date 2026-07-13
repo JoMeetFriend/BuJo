@@ -531,10 +531,16 @@
         <template v-else-if="activity?.is_creator && activity.status === 'voting'">
           <PixelButton
             type="button"
-            :disabled="actionLoading || !selectedDecisionSlotId"
+            :disabled="actionLoading || (activity.requires_voting && !selectedDecisionSlotId)"
             @click="handleConfirmFormation"
           >
-            {{ actionLoading ? '處理中...' : '確認此時段成團' }}
+            {{
+              actionLoading
+                ? '處理中...'
+                : activity.requires_voting
+                  ? '確認此時段成團'
+                  : '立即成團'
+            }}
           </PixelButton>
           <PixelButton
             variant="danger"
