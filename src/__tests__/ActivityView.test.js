@@ -187,12 +187,28 @@ describe('ActivityView - focus query 聚焦指定活動', () => {
     expect(wrapper.findComponent(ActivityDetailModal).props('activityId')).toBe('act-2')
   })
 
-  test('focus 不存在於列表時 fallback 顯示第一筆活動', async () => {
+  // 通知 deep link 指向的活動可能已取消（列表 API 不回傳 cancelled 活動）——
+  // fallback 顯示第一筆會讓使用者以為看到的是通知講的那個活動，必須顯示明確提示
+  test('focus 不存在於列表時顯示提示訊息，不 fallback 顯示別的活動', async () => {
     const activities = [makeActivity({ id: 'act-1' }), makeActivity({ id: 'act-2' })]
     stubFetch(activities)
     const wrapper = await mountActivityView('/activity?focus=act-999')
     await flushPromises()
 
-    expect(wrapper.findComponent(ActivityDetailModal).props('activityId')).toBe('act-1')
+    expect(wrapper.findComponent(ActivityDetailModal).exists()).toBe(false)
+    expect(wrapper.text()).toContain('此活動已結束或不存在')
+    expect(wrapper.findAll('.activity-mini-card')).toHaveLength(2)
+  })
+
+  test('focus 不存在時點擊活動卡可恢復正常瀏覽', async () => {
+    const activities = [makeActivity({ id: 'act-1' }), makeActivity({ id: 'act-2' })]
+    stubFetch(activities)
+    const wrapper = await mountActivityView('/activity?focus=act-999')
+    await flushPromises()
+
+    await wrapper.findAll('.activity-mini-card')[1].trigger('click')
+
+    expect(wrapper.findComponent(ActivityDetailModal).props('activityId')).toBe('act-2')
+    expect(wrapper.text()).not.toContain('此活動已結束或不存在')
   })
 })

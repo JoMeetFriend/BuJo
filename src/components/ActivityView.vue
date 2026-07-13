@@ -32,11 +32,13 @@
       {{ fetchError }}
     </section>
 
-    <template v-else-if="featuredActivity">
+    <template v-else-if="featuredActivity || focusMissing">
       <section class="activity-stage">
         <span class="activity-stage-sheet activity-stage-sheet--back" aria-hidden="true"></span>
         <span class="activity-stage-sheet activity-stage-sheet--middle" aria-hidden="true"></span>
+        <div v-if="focusMissing" class="activity-state-message">此活動已結束或不存在</div>
         <ActivityDetailModal
+          v-else
           :is-open="true"
           :activity-id="featuredActivity.id"
           @status-changed="fetchActivities"
@@ -51,7 +53,7 @@
             class="activity-mini-card"
             :class="[
               miniCardClass(activity),
-              activity.id === featuredActivity.id ? 'activity-mini-card--active' : '',
+              !focusMissing && activity.id === featuredActivity?.id ? 'activity-mini-card--active' : '',
             ]"
             @click="selectActivity(activity.id)"
           >
@@ -97,6 +99,7 @@ const loading = ref(false)
 const fetchError = ref('')
 const currentFilter = ref('all')
 const selectedFeaturedActivityId = ref(null)
+const focusRequested = ref(false)
 const showCreateModal = ref(false)
 
 // 四個 tab 是各自獨立的狀態/角色 facet，不是互斥分類，同一筆活動可以同時符合多個 tab：
@@ -124,6 +127,17 @@ const featuredActivity = computed(() => {
     filteredActivities.value.find((activity) => activity.id === selectedFeaturedActivityId.value) ??
     filteredActivities.value[0] ??
     null
+  )
+})
+
+// 通知 deep link 指向的活動可能不在列表裡（例如已取消的活動,列表 API 不回傳）——
+// 這時不能 fallback 顯示別的活動讓使用者誤以為是通知講的那個,要顯示明確提示
+const focusMissing = computed(() => {
+  return (
+    focusRequested.value &&
+    !loading.value &&
+    !fetchError.value &&
+    !activities.value.some((activity) => activity.id === selectedFeaturedActivityId.value)
   )
 })
 
@@ -171,6 +185,7 @@ async function fetchActivities() {
 
 function selectActivity(id) {
   selectedFeaturedActivityId.value = id
+  focusRequested.value = false
 }
 
 onMounted(() => {
@@ -178,6 +193,7 @@ onMounted(() => {
   const focus = route.query.focus
   if (focus != null && focus !== '') {
     selectedFeaturedActivityId.value = String(focus)
+    focusRequested.value = true
   }
   fetchActivities()
 })
