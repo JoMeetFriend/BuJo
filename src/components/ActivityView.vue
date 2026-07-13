@@ -77,9 +77,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import ActivityDetailModal from './ActivityDetailModal.vue'
 import EventPage from './EventPage.vue'
 import PixelButton from './ui/PixelButton.vue'
+
+const route = useRoute()
 
 const filters = [
   { key: 'recruiting', text: 'RECRUITING' },
@@ -170,7 +173,14 @@ function selectActivity(id) {
   selectedFeaturedActivityId.value = id
 }
 
-onMounted(fetchActivities)
+onMounted(() => {
+  // 通知 deep link：/activity?focus=<activityId>，reference.id 可能為整數，一律字串化再比對
+  const focus = route.query.focus
+  if (focus != null && focus !== '') {
+    selectedFeaturedActivityId.value = String(focus)
+  }
+  fetchActivities()
+})
 </script>
 
 <style scoped>

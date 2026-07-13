@@ -1,6 +1,8 @@
 import { mount, flushPromises } from '@vue/test-utils'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import { describe, expect, test, vi, afterEach } from 'vitest'
 import ActivityView from '@/components/ActivityView.vue'
+import ActivityDetailModal from '@/components/ActivityDetailModal.vue'
 
 function makeActivity(overrides = {}) {
   return {
@@ -28,9 +30,16 @@ afterEach(() => {
   delete global.fetch
 })
 
-function mountActivityView() {
+async function mountActivityView(path = '/activity') {
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [{ path: '/activity', component: ActivityView }],
+  })
+  router.push(path)
+  await router.isReady()
   return mount(ActivityView, {
     global: {
+      plugins: [router],
       stubs: { ActivityDetailModal: true, EventPage: true },
     },
   })
@@ -64,7 +73,7 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
       }),
     ]
     stubFetch(activities)
-    const wrapper = mountActivityView()
+    const wrapper = await mountActivityView()
     await flushPromises()
 
     await clickFilter(wrapper, 'RECRUITING')
@@ -97,7 +106,7 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
       }),
     ]
     stubFetch(activities)
-    const wrapper = mountActivityView()
+    const wrapper = await mountActivityView()
     await flushPromises()
 
     await clickFilter(wrapper, 'JOINED')
@@ -127,7 +136,7 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
       }),
     ]
     stubFetch(activities)
-    const wrapper = mountActivityView()
+    const wrapper = await mountActivityView()
     await flushPromises()
 
     await clickFilter(wrapper, 'CONFIRMED')
@@ -156,10 +165,34 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
       }),
     ]
     stubFetch(activities)
-    const wrapper = mountActivityView()
+    const wrapper = await mountActivityView()
     await flushPromises()
 
     await clickFilter(wrapper, 'HOSTING')
     expect(wrapper.findAll('.activity-mini-card')).toHaveLength(2)
+  })
+})
+
+describe('ActivityView - focus query 聚焦指定活動', () => {
+  test('掛載於 /activity?focus=<id> 時 featured 為該活動且 modal 收到正確 activity-id', async () => {
+    const activities = [
+      makeActivity({ id: 'act-1' }),
+      makeActivity({ id: 'act-2' }),
+      makeActivity({ id: 'act-3' }),
+    ]
+    stubFetch(activities)
+    const wrapper = await mountActivityView('/activity?focus=act-2')
+    await flushPromises()
+
+    expect(wrapper.findComponent(ActivityDetailModal).props('activityId')).toBe('act-2')
+  })
+
+  test('focus 不存在於列表時 fallback 顯示第一筆活動', async () => {
+    const activities = [makeActivity({ id: 'act-1' }), makeActivity({ id: 'act-2' })]
+    stubFetch(activities)
+    const wrapper = await mountActivityView('/activity?focus=act-999')
+    await flushPromises()
+
+    expect(wrapper.findComponent(ActivityDetailModal).props('activityId')).toBe('act-1')
   })
 })
