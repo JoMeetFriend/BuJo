@@ -22,8 +22,21 @@
           }"
         >
           <span class="bujo-sidebar-active-line" aria-hidden="true"></span>
-          <span class="bujo-nav-object" :class="`bujo-nav-object--${item.icon}`" aria-hidden="true">
-            <span></span>
+          <span class="bujo-nav-object-wrap">
+            <span
+              class="bujo-nav-object"
+              :class="`bujo-nav-object--${item.icon}`"
+              aria-hidden="true"
+            >
+              <span></span>
+            </span>
+            <span
+              v-if="item.icon === 'alerts' && notificationStore.unreadCount > 0"
+              class="bujo-nav-badge"
+              aria-label="未讀通知數"
+            >
+              {{ alertBadgeText }}
+            </span>
           </span>
           <span class="bujo-sidebar-label">{{ item.label }}</span>
         </RouterLink>
@@ -117,8 +130,17 @@
         @click="drawerOpen = false"
         :aria-label="item.label"
       >
-        <span class="bujo-nav-object" :class="`bujo-nav-object--${item.icon}`" aria-hidden="true">
-          <span></span>
+        <span class="bujo-nav-object-wrap">
+          <span class="bujo-nav-object" :class="`bujo-nav-object--${item.icon}`" aria-hidden="true">
+            <span></span>
+          </span>
+          <span
+            v-if="item.icon === 'alerts' && notificationStore.unreadCount > 0"
+            class="bujo-nav-badge"
+            aria-label="未讀通知數"
+          >
+            {{ alertBadgeText }}
+          </span>
         </span>
       </RouterLink>
       <!-- 個人帳號按鈕 -->
@@ -149,9 +171,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useNotificationStore } from '@/stores/notificationStore'
 import bujoLogoUrl from '@/assets/bujo-logo.svg'
 import { toAvatarSrc } from '@/utils/avatar'
 import ProfileAccountModal from './ProfileAccountModal.vue'
@@ -162,8 +185,17 @@ const emit = defineEmits(['toggle-filter'])
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
 const isCalendarPage = computed(() => route.path === '/')
 const userAvatarSrc = computed(() => toAvatarSrc(authStore.user?.avatar_url))
+
+onMounted(() => {
+  notificationStore.fetchUnreadCount()
+})
+
+const alertBadgeText = computed(() =>
+  notificationStore.unreadCount > 9 ? '9+' : String(notificationStore.unreadCount),
+)
 
 const drawerOpen = ref(false)
 const profileBtnBouncing = ref(false)
@@ -259,12 +291,42 @@ async function handleLogout() {
   width: 2px;
 }
 
+.bujo-nav-object-wrap {
+  position: relative;
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+
 .bujo-nav-object {
   position: relative;
   display: block;
   width: 26px;
   height: 26px;
   color: currentColor;
+}
+
+.bujo-nav-badge {
+  position: absolute;
+  top: -7px;
+  right: -9px;
+  z-index: 2;
+  display: inline-flex;
+  min-width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--bujo-surface);
+  background: var(--bujo-notification);
+  box-shadow: 2px 2px 0 rgb(var(--bujo-ink-rgb) / 0.14);
+  padding: 0 4px;
+  color: var(--bujo-white);
+  font-family: var(--bujo-font-meta);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .bujo-nav-object::before,
