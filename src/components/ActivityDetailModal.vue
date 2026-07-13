@@ -469,12 +469,12 @@
             </span>
           </label>
           <button
-            v-if="hasMoreToReveal('flat', normalizedDecisionEntries.length)"
+            v-if="hasRevealControl(normalizedDecisionEntries.length)"
             type="button"
             class="activity-detail-chip activity-detail-chip--more"
-            @click="revealMore('flat', normalizedDecisionEntries.length)"
+            @click="toggleReveal('flat', normalizedDecisionEntries.length)"
           >
-            顯示更多
+            {{ revealControlText('flat', normalizedDecisionEntries.length) }}
           </button>
         </div>
 
@@ -954,9 +954,8 @@ function ratioText(count) {
   return votingDenominator.value > 0 ? `${count}/${votingDenominator.value}人` : `${count}人`
 }
 
-// 每個清單（情境二/三固定用 'flat'；情境四每個候選時段各自用自己的 candidateSlotId）
-// 各自獨立追蹤目前展開到第幾筆，預設 3 筆，「顯示更多」每次只多展開 3 筆——使用者體驗理念是
-// 不需要一次接受過多資訊，不能一次全部展開
+// 決選清單獨立追蹤目前展開到第幾筆，預設 3 筆。「顯示更多」每次多展開 3 筆；
+// 全部展開後控制鈕改成「收合」，讓使用者能回到精簡清單
 const DEFAULT_VISIBLE_COUNT = 3
 const REVEAL_STEP = 3
 const visibleCounts = reactive({})
@@ -966,10 +965,20 @@ function visibleCountFor(key, total) {
 function visibleEntries(key, entries) {
   return entries.slice(0, visibleCountFor(key, entries.length))
 }
-function hasMoreToReveal(key, total) {
-  return visibleCountFor(key, total) < total
+function hasRevealControl(total) {
+  return total > DEFAULT_VISIBLE_COUNT
 }
-function revealMore(key, total) {
+function isFullyRevealed(key, total) {
+  return visibleCountFor(key, total) >= total
+}
+function revealControlText(key, total) {
+  return isFullyRevealed(key, total) ? '收合' : '顯示更多'
+}
+function toggleReveal(key, total) {
+  if (isFullyRevealed(key, total)) {
+    visibleCounts[key] = DEFAULT_VISIBLE_COUNT
+    return
+  }
   visibleCounts[key] = Math.min((visibleCounts[key] ?? DEFAULT_VISIBLE_COUNT) + REVEAL_STEP, total)
 }
 function resetVisibleCounts() {

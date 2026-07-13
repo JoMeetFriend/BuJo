@@ -1601,7 +1601,7 @@ describe('ActivityDetailModal - 決策清單預設前 3 名 + 顯示更多每次
     expect(moreButton).toBeTruthy()
   })
 
-  test('點擊「顯示更多」只多展開 3 筆，不會一次全部展開', async () => {
+  test('點擊「顯示更多」只多展開 3 筆，全部展開後可收合回前 3 筆', async () => {
     const activity = makeSevenEntryActivity()
     stubFetch(activity)
 
@@ -1609,6 +1609,7 @@ describe('ActivityDetailModal - 決策清單預設前 3 名 + 顯示更多每次
     await flushPromises()
 
     const moreButton = () => wrapper.findAll('button').find((b) => b.text().includes('顯示更多'))
+    const collapseButton = () => wrapper.findAll('button').find((b) => b.text().includes('收合'))
     await moreButton().trigger('click')
     expect(wrapper.findAll('.activity-detail-option')).toHaveLength(6)
     expect(moreButton()).toBeTruthy()
@@ -1616,6 +1617,11 @@ describe('ActivityDetailModal - 決策清單預設前 3 名 + 顯示更多每次
     await moreButton().trigger('click')
     expect(wrapper.findAll('.activity-detail-option')).toHaveLength(7)
     expect(moreButton()).toBeFalsy()
+    expect(collapseButton()).toBeTruthy()
+
+    await collapseButton().trigger('click')
+    expect(wrapper.findAll('.activity-detail-option')).toHaveLength(3)
+    expect(moreButton()).toBeTruthy()
   })
 
   test('清單 3 筆以下時不顯示「顯示更多」按鈕', async () => {
