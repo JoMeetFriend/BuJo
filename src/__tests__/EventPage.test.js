@@ -128,7 +128,7 @@ describe('EventPage - 日期與時間模式 switch UI', () => {
     '日期、時間都還沒，選幾個日期＋時段讓大家投票',
   ]
 
-  test('預設兩個 switch 都在右側，對應 fixed/fixed，並顯示 fixed + fixed 文案', async () => {
+  test('預設兩個 switch 都在右側，對應 fixed/fixed，並隱藏整體說明', async () => {
     const wrapper = await mountEventPage()
 
     expect(modeSwitch('日期確定了嗎？').checked).toBe(true)
@@ -139,7 +139,7 @@ describe('EventPage - 日期與時間模式 switch UI', () => {
     expect(wrapper.vm.timeMode).toBe('fixed')
     expect(document.body.textContent).toContain('日期確定了！')
     expect(document.body.textContent).toContain('時間確定了！')
-    expect(document.body.textContent).toContain('日期、時間都確定了！大家可以直接報名參加')
+    expect(document.body.textContent).not.toContain('日期、時間都確定了！大家可以直接報名參加')
 
     wrapper.unmount()
   })
@@ -167,7 +167,7 @@ describe('EventPage - 日期與時間模式 switch UI', () => {
     await toggleModeSwitch('時間確定了嗎？')
     expect(modeSwitch('時間確定了嗎？').checked).toBe(true)
     expect(wrapper.vm.timeMode).toBe('fixed')
-    expect(document.body.textContent).toContain('日期、時間都確定了！大家可以直接報名參加')
+    expect(document.body.textContent).not.toContain('日期、時間都確定了！大家可以直接報名參加')
 
     wrapper.unmount()
   })
