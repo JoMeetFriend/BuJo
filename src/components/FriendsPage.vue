@@ -79,6 +79,11 @@ import { useFriendStore } from '@/stores/friendStore'
 import FriendAddModal from './FriendAddModal.vue'
 import PixelButton from './ui/PixelButton.vue'
 
+defineProps({
+  sidebarOpen: Boolean,
+  filters: Object,
+})
+
 const friendStore = useFriendStore()
 const { friends, isLoading, error } = storeToRefs(friendStore)
 
@@ -133,11 +138,12 @@ const vClickOutside = {
       }
     }
 
-    setTimeout(() => {
+    el.clickOutsideTimeout = setTimeout(() => {
       document.addEventListener('click', el.clickOutsideEvent)
     }, 0)
   },
   unmounted(el) {
+    clearTimeout(el.clickOutsideTimeout)
     document.removeEventListener('click', el.clickOutsideEvent)
   },
 }
