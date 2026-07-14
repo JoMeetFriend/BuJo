@@ -22,16 +22,12 @@
           }"
         >
           <span class="bujo-sidebar-active-line" aria-hidden="true"></span>
-          <span class="bujo-nav-object-wrap">
-            <span
-              class="bujo-nav-object"
-              :class="`bujo-nav-object--${item.icon}`"
-              aria-hidden="true"
-            >
-              <span></span>
+          <span class="bujo-nav-icon-wrap">
+            <span class="bujo-nav-icon" :style="{ backgroundColor: item.color }" aria-hidden="true">
+              <component :is="item.icon" class="bujo-nav-icon-svg" />
             </span>
             <span
-              v-if="item.icon === 'alerts' && notificationStore.unreadCount > 0"
+              v-if="item.key === 'alerts' && notificationStore.unreadCount > 0"
               class="bujo-nav-badge"
               aria-label="未讀通知數"
             >
@@ -130,12 +126,12 @@
         @click="drawerOpen = false"
         :aria-label="item.label"
       >
-        <span class="bujo-nav-object-wrap">
-          <span class="bujo-nav-object" :class="`bujo-nav-object--${item.icon}`" aria-hidden="true">
-            <span></span>
+        <span class="bujo-nav-icon-wrap">
+          <span class="bujo-nav-icon" :style="{ backgroundColor: item.color }" aria-hidden="true">
+            <component :is="item.icon" class="bujo-nav-icon-svg" />
           </span>
           <span
-            v-if="item.icon === 'alerts' && notificationStore.unreadCount > 0"
+            v-if="item.key === 'alerts' && notificationStore.unreadCount > 0"
             class="bujo-nav-badge"
             aria-label="未讀通知數"
           >
@@ -173,6 +169,12 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import {
+  CalendarDaysIcon,
+  PencilSquareIcon,
+  UserGroupIcon,
+  BellAlertIcon,
+} from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationStore } from '@/stores/notificationStore'
 import bujoLogoUrl from '@/assets/bujo-logo.svg'
@@ -221,10 +223,34 @@ const profileBtnBouncing = ref(false)
 const showProfileModal = ref(false)
 
 const navItems = [
-  { label: 'CALENDAR', to: '/calendar', icon: 'calendar' },
-  { label: 'ACTIVITY', to: '/activity', icon: 'activity' },
-  { label: 'FRIENDS', to: '/friends-page', icon: 'friends' },
-  { label: 'ALERTS', to: '/alerts', icon: 'alerts' },
+  {
+    key: 'calendar',
+    label: 'CALENDAR',
+    to: '/calendar',
+    icon: CalendarDaysIcon,
+    color: 'var(--bujo-card-pink)',
+  },
+  {
+    key: 'activity',
+    label: 'ACTIVITY',
+    to: '/activity',
+    icon: PencilSquareIcon,
+    color: 'var(--bujo-card-blue)',
+  },
+  {
+    key: 'friends',
+    label: 'FRIENDS',
+    to: '/friends-page',
+    icon: UserGroupIcon,
+    color: '#c9b8e8',
+  },
+  {
+    key: 'alerts',
+    label: 'ALERTS',
+    to: '/alerts',
+    icon: BellAlertIcon,
+    color: 'var(--bujo-accent)',
+  },
 ]
 
 const filterItems = [
@@ -310,19 +336,33 @@ async function handleLogout() {
   width: 2px;
 }
 
-.bujo-nav-object-wrap {
+.bujo-nav-icon-wrap {
   position: relative;
   display: block;
   width: 26px;
   height: 26px;
 }
 
-.bujo-nav-object {
-  position: relative;
-  display: block;
+.bujo-nav-icon {
+  display: grid;
   width: 26px;
   height: 26px;
-  color: currentColor;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--bujo-ink);
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.bujo-nav-icon-svg {
+  width: 16px;
+  height: 16px;
+}
+
+.bujo-sidebar-link:hover .bujo-nav-icon,
+.bujo-sidebar-link.is-active .bujo-nav-icon,
+.bujo-mobile-nav-link:hover .bujo-nav-icon,
+.bujo-mobile-nav-link.is-active .bujo-nav-icon {
+  transform: scale(1.08);
 }
 
 .bujo-nav-badge {
@@ -346,159 +386,6 @@ async function handleLogout() {
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
-}
-
-.bujo-nav-object::before,
-.bujo-nav-object::after,
-.bujo-nav-object span::before,
-.bujo-nav-object span::after {
-  position: absolute;
-  content: '';
-  box-sizing: border-box;
-  transition:
-    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.bujo-nav-object--calendar::before {
-  left: 4px;
-  top: 5px;
-  width: 17px;
-  height: 18px;
-  border: 1.5px solid currentColor;
-  background: var(--bujo-surface);
-}
-
-.bujo-nav-object--calendar::after {
-  left: 7px;
-  top: 9px;
-  width: 11px;
-  height: 1.5px;
-  background: currentColor;
-  box-shadow:
-    0 5px 0 currentColor,
-    0 10px 0 currentColor;
-  opacity: 0.72;
-}
-
-.bujo-nav-object--calendar span::before {
-  right: 2px;
-  top: 2px;
-  width: 7px;
-  height: 7px;
-  background: var(--bujo-accent);
-  border: 1px solid var(--bujo-ink);
-}
-
-.bujo-nav-object--activity::before {
-  left: 3px;
-  top: 8px;
-  width: 20px;
-  height: 13px;
-  border: 1.5px solid currentColor;
-  background: var(--bujo-surface);
-  transform: rotate(-3deg);
-}
-
-.bujo-nav-object--activity::after {
-  left: 7px;
-  top: 4px;
-  width: 17px;
-  height: 13px;
-  border: 1.5px solid currentColor;
-  background: var(--bujo-card-yellow);
-  transform: rotate(4deg);
-}
-
-.bujo-nav-object--activity span::before {
-  left: 11px;
-  top: 12px;
-  z-index: 1;
-  width: 7px;
-  height: 1.5px;
-  background: currentColor;
-  box-shadow: 0 4px 0 currentColor;
-}
-
-.bujo-nav-object--friends::before {
-  left: 6px;
-  top: 4px;
-  width: 15px;
-  height: 18px;
-  border: 1.5px solid currentColor;
-  background: var(--bujo-card-pink);
-}
-
-.bujo-nav-object--friends::after {
-  left: 3px;
-  top: 8px;
-  width: 20px;
-  height: 14px;
-  background: radial-gradient(circle at 2px 2px, transparent 0 2px, var(--bujo-surface) 2px 4px) 0
-    0 / 6px 6px;
-  z-index: -1;
-}
-
-.bujo-nav-object--friends span::before {
-  left: 10px;
-  top: 9px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  border: 1.5px solid currentColor;
-}
-
-.bujo-nav-object--friends span::after {
-  left: 8px;
-  top: 17px;
-  width: 11px;
-  height: 5px;
-  border: 1.5px solid currentColor;
-  border-top: 0;
-  border-radius: 0 0 8px 8px;
-}
-
-.bujo-nav-object--alerts::before {
-  left: 5px;
-  top: 7px;
-  width: 18px;
-  height: 14px;
-  border: 1.5px solid currentColor;
-  background: var(--bujo-surface);
-}
-
-.bujo-nav-object--alerts::after {
-  left: 8px;
-  top: 3px;
-  width: 14px;
-  height: 11px;
-  border: 1.5px solid currentColor;
-  background: var(--bujo-card-blue);
-  transform: rotate(5deg);
-}
-
-.bujo-nav-object--alerts span::before {
-  left: 9px;
-  top: 13px;
-  width: 10px;
-  height: 1.5px;
-  background: currentColor;
-  z-index: 1;
-}
-
-.bujo-sidebar-link:hover .bujo-nav-object--activity::after,
-.bujo-sidebar-link.is-active .bujo-nav-object--activity::after,
-.bujo-mobile-nav-link:hover .bujo-nav-object--activity::after,
-.bujo-mobile-nav-link.is-active .bujo-nav-object--activity::after {
-  transform: rotate(0deg) translateY(-1px);
-}
-
-.bujo-sidebar-link:hover .bujo-nav-object--alerts::after,
-.bujo-sidebar-link.is-active .bujo-nav-object--alerts::after,
-.bujo-mobile-nav-link:hover .bujo-nav-object--alerts::after,
-.bujo-mobile-nav-link.is-active .bujo-nav-object--alerts::after {
-  transform: rotate(0deg) translateY(-1px);
 }
 
 .bujo-sidebar-filter {

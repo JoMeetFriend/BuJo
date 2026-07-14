@@ -41,7 +41,7 @@
           <h1 class="landing-title">BuJo</h1>
           <p class="landing-tagline">
             把在乎的人留在身邊，<br />
-            輕輕推一把，讓今天動起來。<span aria-hidden="true">▶</span>
+            輕輕推一把，讓今天動起來 <span aria-hidden="true">▶</span>
           </p>
           <div class="landing-hero-actions">
             <RouterLink to="/register" class="landing-btn landing-btn--primary">
@@ -266,25 +266,25 @@ const createInSeconds = ['選時間', '選地點', '邀朋友', '完成！']
 const features = [
   {
     title: 'CALENDAR',
-    desc: '一眼看清所有人的計畫，通通匯在同一個地方。',
+    desc: '行事曆一眼看清所有的揪團活動。',
     icon: CalendarDaysIcon,
     color: 'var(--bujo-card-pink)',
   },
   {
     title: 'ACTIVITY',
-    desc: '幾秒鐘建立計畫，一鍵邀請所有人加入。',
+    desc: '花幾分鐘揪團，邀請好友加入。',
     icon: PencilSquareIcon,
     color: 'var(--bujo-card-blue)',
   },
   {
     title: 'FRIENDS',
-    desc: '跟在乎的人保持連結，一起把日子過得更好。',
+    desc: '跟在乎的人一起把日子過得更好。',
     icon: UserGroupIcon,
     color: 'var(--landing-purple)',
   },
   {
     title: 'ALERTS',
-    desc: '溫柔的提醒，讓你不再錯過那些小小的計畫。',
+    desc: '溫馨提醒，準時參與心儀的活動。',
     icon: BellAlertIcon,
     color: 'var(--bujo-accent)',
   },
