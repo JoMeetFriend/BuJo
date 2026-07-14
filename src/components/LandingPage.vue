@@ -1,5 +1,24 @@
 <template>
   <div class="landing-page">
+    <!-- 背景裝飾：星星、圓點、方塊 -->
+    <div class="landing-confetti" aria-hidden="true">
+      <span
+        v-for="(c, i) in confetti"
+        :key="i"
+        class="landing-confetti-item"
+        :class="[`landing-confetti-item--${c.type}`, `landing-confetti-item--${c.color}`]"
+        :style="{
+          top: c.top,
+          left: c.left,
+          fontSize: c.type === 'star' ? c.size + 'px' : undefined,
+          width: c.type !== 'star' ? c.size + 'px' : undefined,
+          height: c.type !== 'star' ? c.size + 'px' : undefined,
+          transform: c.rotate ? `rotate(${c.rotate}deg)` : undefined,
+        }"
+        >{{ c.type === 'star' ? '★' : '' }}</span
+      >
+    </div>
+
     <!-- 頂部導覽 -->
     <header class="landing-topbar">
       <div class="landing-topbar-inner">
@@ -176,9 +195,7 @@
       <!-- Quote banner -->
       <section class="landing-quote">
         <span class="landing-quote-mark" aria-hidden="true">&ldquo;</span>
-        <p class="landing-quote-text">
-          不揪喔～說完，你就揪到了。<span aria-hidden="true">♥</span>
-        </p>
+        <p class="landing-quote-text">不揪喔～說完，你就揪到了 <span aria-hidden="true">♥</span></p>
       </section>
     </main>
 
@@ -186,7 +203,7 @@
       <div class="landing-footer-brand">
         <img :src="bujoMarkUrl" alt="" class="landing-brand-mark landing-brand-mark--small" />
         <img :src="bujoLogoUrl" alt="BuJo" class="landing-footer-logo" />
-        <p class="landing-footer-copy">&copy; {{ currentYear }} BuJo. 不揪喔～說完，你就揪到了。</p>
+        <p class="landing-footer-copy">&copy; {{ currentYear }} BuJo.揪團啦~。</p>
       </div>
 
       <a
@@ -219,6 +236,27 @@ import bujoMarkUrl from '@/assets/bujo-mark.png'
 import lineQrUrl from '@/assets/line-qrcode.svg'
 
 const lineOfficialUrl = 'https://line.me/R/ti/p/@626mzgfu?ts=07131855&oat_content=url'
+
+const confetti = [
+  { type: 'star', top: '4%', left: '8%', size: 14, color: 'pink', rotate: -8 },
+  { type: 'dot', top: '3%', left: '46%', size: 8, color: 'blue' },
+  { type: 'square', top: '9%', left: '92%', size: 9, color: 'pink', rotate: 12 },
+  { type: 'star', top: '14%', left: '63%', size: 11, color: 'blue', rotate: 10 },
+  { type: 'dot', top: '20%', left: '3%', size: 7, color: 'green' },
+  { type: 'star', top: '24%', left: '97%', size: 16, color: 'green', rotate: -14 },
+  { type: 'dot', top: '33%', left: '40%', size: 6, color: 'pink' },
+  { type: 'square', top: '38%', left: '8%', size: 7, color: 'blue', rotate: -6 },
+  { type: 'star', top: '46%', left: '90%', size: 13, color: 'pink', rotate: 6 },
+  { type: 'dot', top: '52%', left: '55%', size: 9, color: 'green' },
+  { type: 'square', top: '58%', left: '20%', size: 8, color: 'green', rotate: 20 },
+  { type: 'star', top: '64%', left: '5%', size: 12, color: 'blue', rotate: -10 },
+  { type: 'dot', top: '68%', left: '95%', size: 8, color: 'pink' },
+  { type: 'star', top: '74%', left: '48%', size: 10, color: 'green', rotate: 8 },
+  { type: 'square', top: '80%', left: '85%', size: 8, color: 'pink', rotate: -15 },
+  { type: 'dot', top: '87%', left: '15%', size: 7, color: 'blue' },
+  { type: 'star', top: '92%', left: '70%', size: 14, color: 'pink', rotate: -6 },
+  { type: 'dot', top: '96%', left: '40%', size: 6, color: 'green' },
+]
 
 const weekdayLabelsZh = ['一', '二', '三', '四', '五', '六', '日']
 
@@ -290,6 +328,8 @@ const sampleEvents = computed(() => {
   --landing-surface: #fdfbf5;
   --landing-purple: #c9b8e8;
 
+  position: relative;
+  flex-shrink: 0;
   min-height: 100%;
   background-color: var(--landing-bg);
   color: var(--landing-ink);
@@ -298,6 +338,44 @@ const sampleEvents = computed(() => {
 
 .landing-page * {
   box-sizing: border-box;
+}
+
+/* 背景裝飾：星星、圓點、方塊 */
+.landing-confetti {
+  position: absolute;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  inset: 0;
+}
+
+.landing-confetti-item {
+  position: absolute;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.landing-confetti-item--dot {
+  border-radius: 50%;
+}
+
+.landing-confetti-item--star {
+  font-family: Georgia, serif;
+}
+
+.landing-confetti-item--pink {
+  color: var(--bujo-deco-pink);
+  background-color: var(--bujo-deco-pink);
+}
+
+.landing-confetti-item--blue {
+  color: var(--bujo-deco-blue);
+  background-color: var(--bujo-deco-blue);
+}
+
+.landing-confetti-item--green {
+  color: var(--bujo-accent);
+  background-color: var(--bujo-accent);
 }
 
 /* 頂部導覽 */
@@ -820,6 +898,7 @@ const sampleEvents = computed(() => {
   position: relative;
   z-index: 0;
   display: inline-block;
+  align-self: flex-start;
   color: var(--landing-muted);
   font-family: var(--bujo-font-meta);
   font-size: 10px;
