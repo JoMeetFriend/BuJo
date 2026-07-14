@@ -1,5 +1,5 @@
 import { mount, flushPromises } from '@vue/test-utils'
-import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
+import { describe, expect, test, it, vi, beforeEach, afterEach } from 'vitest'
 import ActivityDetailModal from '@/components/ActivityDetailModal.vue'
 import AvailabilityPickerModal from '@/components/AvailabilityPickerModal.vue'
 
