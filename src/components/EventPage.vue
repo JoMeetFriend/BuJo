@@ -46,7 +46,12 @@
           </label>
 
           <div :class="fieldClass">
-            <span :class="fieldLabelClass">人數上限</span>
+            <span class="flex items-baseline gap-1.5">
+              <span :class="fieldLabelClass">人數上限</span>
+              <span class="text-[11px] font-normal leading-none text-[var(--bujo-muted)]">
+                含自己
+              </span>
+            </span>
             <span class="relative block">
               <input
                 id="event-limit"
@@ -54,13 +59,10 @@
                 :class="[inputClass, 'pr-9']"
                 type="number"
                 inputmode="numeric"
+                min="2"
+                step="1"
                 placeholder="不限"
-                @input="
-                  form.limit =
-                    $event.target.value === '' || Number($event.target.value) <= 0
-                      ? null
-                      : Number($event.target.value)
-                "
+                @input="updateLimit($event.target.value)"
               />
               <button
                 type="button"
@@ -85,117 +87,241 @@
           />
         </label>
 
-        <!-- Q1: 日期確定了嗎？ -->
-        <div :class="[fieldClass, 'col-span-full']">
-          <span :class="fieldLabelClass">日期確定了嗎？</span>
-          <div class="grid grid-cols-2 gap-2 max-sm:gap-1.5">
-            <button
-              type="button"
-              :class="scenarioButtonClass(dateMode === 'fixed')"
-              @click="dateMode = 'fixed'"
-            >
-              已確定
-            </button>
-            <button
-              type="button"
-              :class="scenarioButtonClass(dateMode === 'range')"
-              @click="dateMode = 'range'"
-            >
-              大概範圍
-            </button>
-          </div>
-          <p class="text-xs leading-5 text-[var(--bujo-muted)]">
-            {{
-              dateMode === 'fixed'
-                ? '日期已經定了，不用開放投票。'
-                : '會列出這段期間內的候選日期，讓成員投票選出最終日期。'
-            }}
-          </p>
-        </div>
-
-        <!-- Q2: 時間確定了嗎？ -->
-        <div :class="[fieldClass, 'col-span-full']">
-          <span :class="fieldLabelClass">時間確定了嗎？</span>
-          <div class="grid grid-cols-2 gap-2 max-sm:gap-1.5">
-            <button
-              type="button"
-              :class="scenarioButtonClass(timeMode === 'fixed')"
-              @click="timeMode = 'fixed'"
-            >
-              已確定
-            </button>
-            <button
-              type="button"
-              :class="scenarioButtonClass(timeMode === 'vote')"
-              @click="timeMode = 'vote'"
-            >
-              讓大家選
-            </button>
-          </div>
-          <p class="text-xs leading-5 text-[var(--bujo-muted)]">
-            {{
-              timeMode === 'fixed'
-                ? '時間點固定，成員只需確認是否參加。'
-                : '會列出候選時段，讓成員投票選出最終時間。'
-            }}
-          </p>
-        </div>
-
-        <!-- 情境說明 -->
         <div
-          class="col-span-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface-muted)] px-3 py-2 text-xs leading-5 text-[var(--bujo-ink)]"
+          class="col-span-full grid gap-2 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 py-3"
         >
-          {{ scenarioDescription }}
-        </div>
-
-        <div
-          v-if="dateMode === 'fixed' && timeMode === 'fixed'"
-          ref="schedulePickerRef"
-          class="col-span-full grid gap-1.5 max-sm:gap-1 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
-          @click="closePicker"
-        >
-          <div
-            v-if="!isStartDateToday"
-            class="grid grid-cols-[72px_1fr] max-sm:grid-cols-[56px_1fr] items-center gap-3 max-sm:gap-2"
-          >
-            <span :class="[fieldLabelClass, 'text-right']">整日：</span>
-            <label class="inline-flex w-fit items-center">
-              <input
-                v-model="form.allDay"
-                class="h-7 w-7 max-sm:h-6 max-sm:w-6 cursor-pointer appearance-none rounded-none border border-[var(--bujo-line)] bg-[var(--bujo-surface)] checked:border-[var(--bujo-ink)] checked:bg-[var(--bujo-ink)] focus:outline-none focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
-                type="checkbox"
-                aria-label="整日"
-                @change="closePicker"
-              />
-            </label>
-          </div>
-
-          <div
-            v-for="row in scheduleRows"
-            :key="row.dateField"
-            class="grid grid-cols-[72px_1fr] max-sm:grid-cols-[56px_1fr] items-start gap-3 max-sm:gap-2"
-          >
-            <span :class="[fieldLabelClass, 'pt-2 text-right']">{{ row.label }}</span>
+          <!-- Q1: 日期確定了嗎？ -->
+          <div class="px-0.5">
             <div
-              class="grid gap-2"
-              :class="form.allDay ? 'grid-cols-1' : 'grid-cols-[1fr_150px] max-sm:grid-cols-1'"
+              class="grid min-h-[34px] grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-[rgb(var(--bujo-ink-rgb)/0.08)] pb-2 max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2 max-sm:gap-y-1"
             >
+              <span class="text-[13px] font-semibold leading-5 text-[var(--bujo-ink)]"
+                >日期確定了嗎？</span
+              >
+              <span
+                class="min-w-0 text-xs leading-5 text-[var(--bujo-muted)] max-sm:col-span-2 max-sm:row-start-2"
+              >
+                {{ dateModeHint }}
+              </span>
+              <label class="gui-switch justify-self-end">
+                <input
+                  v-model="isDateFixed"
+                  class="gui-switch__input"
+                  type="checkbox"
+                  role="switch"
+                  aria-label="日期確定了嗎？"
+                />
+                <span class="gui-switch__track" aria-hidden="true">
+                  <span class="gui-switch__thumb"></span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Q2: 時間確定了嗎？ -->
+          <div class="px-0.5">
+            <div
+              class="grid min-h-[34px] grid-cols-[auto_1fr_auto] items-center gap-3 py-0.5 max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2 max-sm:gap-y-1"
+            >
+              <span class="text-[13px] font-semibold leading-5 text-[var(--bujo-ink)]"
+                >時間確定了嗎？</span
+              >
+              <span
+                class="min-w-0 text-xs leading-5 text-[var(--bujo-muted)] max-sm:col-span-2 max-sm:row-start-2"
+              >
+                {{ timeModeHint }}
+              </span>
+              <label class="gui-switch justify-self-end">
+                <input
+                  v-model="isTimeFixed"
+                  class="gui-switch__input"
+                  type="checkbox"
+                  role="switch"
+                  aria-label="時間確定了嗎？"
+                />
+                <span class="gui-switch__track" aria-hidden="true">
+                  <span class="gui-switch__thumb"></span>
+                </span>
+              </label>
+            </div>
+          </div>
+          <!-- 情境說明 -->
+          <div
+            v-if="dateMode !== 'fixed' || timeMode !== 'fixed'"
+            class="border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 py-2 text-xs leading-5 text-[var(--bujo-muted-strong)]"
+          >
+            {{ scenarioDescription }}
+          </div>
+
+          <div
+            v-if="dateMode === 'fixed' && timeMode === 'fixed'"
+            ref="schedulePickerRef"
+            class="grid gap-1.5 max-sm:gap-1 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
+            @click="closePicker"
+          >
+            <div
+              v-if="!isStartDateToday"
+              class="grid grid-cols-[72px_1fr] max-sm:grid-cols-[56px_1fr] items-center gap-3 max-sm:gap-2"
+            >
+              <span :class="[fieldLabelClass, 'text-right']">整日：</span>
+              <label class="inline-flex w-fit items-center">
+                <input
+                  v-model="form.allDay"
+                  class="h-7 w-7 max-sm:h-6 max-sm:w-6 cursor-pointer appearance-none rounded-none border border-[var(--bujo-line)] bg-[var(--bujo-surface)] checked:border-[var(--bujo-ink)] checked:bg-[var(--bujo-ink)] focus:outline-none focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
+                  type="checkbox"
+                  aria-label="整日"
+                  @change="closePicker"
+                />
+              </label>
+            </div>
+
+            <div
+              v-for="row in scheduleRows"
+              :key="row.dateField"
+              class="grid grid-cols-[72px_1fr] max-sm:grid-cols-[56px_1fr] items-start gap-3 max-sm:gap-2"
+            >
+              <span :class="[fieldLabelClass, 'pt-2 text-right']">{{ row.label }}</span>
+              <div
+                class="grid gap-2"
+                :class="form.allDay ? 'grid-cols-1' : 'grid-cols-[1fr_150px] max-sm:grid-cols-1'"
+              >
+                <span class="relative block">
+                  <button
+                    :id="row.dateButtonId"
+                    :class="[pickerButtonClass, 'w-full']"
+                    type="button"
+                    :data-date-field="row.dateField"
+                    @click.stop="openPicker(row.dateField)"
+                  >
+                    {{ form[row.dateField] }}
+                  </button>
+
+                  <div
+                    v-if="activePicker === row.dateField"
+                    :class="[pickerPanelClass, 'left-0 w-[280px] max-sm:w-full']"
+                    role="dialog"
+                    :aria-label="row.dateMenuLabel"
+                    @click.stop
+                  >
+                    <div class="mb-2 flex items-center justify-between gap-2">
+                      <button
+                        class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
+                        type="button"
+                        aria-label="上一個月"
+                        @click="moveMonth(-1)"
+                      >
+                        ‹
+                      </button>
+                      <p class="m-0 text-center text-sm leading-none text-[var(--bujo-ink)]">
+                        {{ monthTitle }}
+                      </p>
+                      <button
+                        class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
+                        type="button"
+                        aria-label="下一個月"
+                        @click="moveMonth(1)"
+                      >
+                        ›
+                      </button>
+                    </div>
+
+                    <div
+                      class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]"
+                    >
+                      <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-1">
+                      <button
+                        v-for="cell in dateCells"
+                        :key="cell.key"
+                        :class="dateButtonClass(cell)"
+                        type="button"
+                        :aria-label="cell.key"
+                        :data-date="cell.key"
+                        @click="selectDate(cell.date)"
+                      >
+                        {{ cell.label }}
+                      </button>
+                    </div>
+                  </div>
+                </span>
+
+                <span v-if="!form.allDay" class="relative block">
+                  <button
+                    :id="row.timeButtonId"
+                    :class="[
+                      pickerButtonClass,
+                      'w-full',
+                      row.timeField === 'startTime' && timeError ? 'border-[#dc2626]' : '',
+                    ]"
+                    type="button"
+                    :data-time-field="row.timeField"
+                    @click.stop="openPicker(row.timeField)"
+                  >
+                    <span :class="form[row.timeField] ? '' : 'text-[var(--bujo-muted)]'">
+                      {{ form[row.timeField] ?? '-- : --' }}
+                    </span>
+                  </button>
+                  <p
+                    v-if="row.timeField === 'startTime' && timeError"
+                    class="mt-1 flex items-center gap-1 text-xs text-[#dc2626]"
+                  >
+                    <span>⚠</span> {{ timeError }}
+                  </p>
+
+                  <div
+                    v-if="activePicker === row.timeField"
+                    :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
+                    role="listbox"
+                    :aria-label="row.timeMenuLabel"
+                    @click.stop
+                  >
+                    <div class="max-h-[208px] overflow-y-auto pr-1">
+                      <button
+                        v-for="time in currentPickerTimeOptions"
+                        :key="time"
+                        class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                        :class="timeButtonClass(time, row.timeField)"
+                        type="button"
+                        role="option"
+                        :aria-selected="form[row.timeField] === time"
+                        :aria-label="time"
+                        :data-time="time"
+                        @click="selectTime(time)"
+                      >
+                        {{ time }}
+                      </button>
+                    </div>
+                  </div>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            v-else-if="dateMode === 'fixed' && timeMode === 'vote'"
+            ref="schedulePickerRef"
+            class="grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
+            @click="closePicker"
+          >
+            <div class="grid grid-cols-[52px_1fr] max-sm:grid-cols-[40px_1fr] items-start gap-2">
+              <span :class="[fieldLabelClass, 'pt-2 whitespace-nowrap']">日期：</span>
               <span class="relative block">
                 <button
-                  :id="row.dateButtonId"
+                  id="event-single-date"
                   :class="[pickerButtonClass, 'w-full']"
                   type="button"
-                  :data-date-field="row.dateField"
-                  @click.stop="openPicker(row.dateField)"
+                  @click.stop="openPicker('singleDate')"
                 >
-                  {{ form[row.dateField] }}
+                  {{ form.singleDate }}
                 </button>
 
                 <div
-                  v-if="activePicker === row.dateField"
+                  v-if="activePicker === 'singleDate'"
                   :class="[pickerPanelClass, 'left-0 w-[280px] max-sm:w-full']"
                   role="dialog"
-                  :aria-label="row.dateMenuLabel"
+                  aria-label="活動日期選單"
                   @click.stop
                 >
                   <div class="mb-2 flex items-center justify-between gap-2">
@@ -241,324 +367,365 @@
                   </div>
                 </div>
               </span>
-
-              <span v-if="!form.allDay" class="relative block">
-                <button
-                  :id="row.timeButtonId"
-                  :class="[
-                    pickerButtonClass,
-                    'w-full',
-                    row.timeField === 'startTime' && timeError ? 'border-[#dc2626]' : '',
-                  ]"
-                  type="button"
-                  :data-time-field="row.timeField"
-                  @click.stop="openPicker(row.timeField)"
-                >
-                  <span :class="form[row.timeField] ? '' : 'text-[var(--bujo-muted)]'">
-                    {{ form[row.timeField] ?? '-- : --' }}
-                  </span>
-                </button>
-                <p
-                  v-if="row.timeField === 'startTime' && timeError"
-                  class="mt-1 flex items-center gap-1 text-xs text-[#dc2626]"
-                >
-                  <span>⚠</span> {{ timeError }}
-                </p>
-
-                <div
-                  v-if="activePicker === row.timeField"
-                  :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
-                  role="listbox"
-                  :aria-label="row.timeMenuLabel"
-                  @click.stop
-                >
-                  <div class="max-h-[208px] overflow-y-auto pr-1">
-                    <button
-                      v-for="time in currentPickerTimeOptions"
-                      :key="time"
-                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                      :class="timeButtonClass(time, row.timeField)"
-                      type="button"
-                      role="option"
-                      :aria-selected="form[row.timeField] === time"
-                      :aria-label="time"
-                      :data-time="time"
-                      @click="selectTime(time)"
-                    >
-                      {{ time }}
-                    </button>
-                  </div>
-                </div>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div
-          v-else-if="dateMode === 'fixed' && timeMode === 'vote'"
-          ref="schedulePickerRef"
-          class="col-span-full grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
-          @click="closePicker"
-        >
-          <div class="grid grid-cols-[52px_1fr] max-sm:grid-cols-[40px_1fr] items-start gap-2">
-            <span :class="[fieldLabelClass, 'pt-2 whitespace-nowrap']">日期：</span>
-            <span class="relative block">
-              <button
-                id="event-single-date"
-                :class="[pickerButtonClass, 'w-full']"
-                type="button"
-                @click.stop="openPicker('singleDate')"
-              >
-                {{ form.singleDate }}
-              </button>
-
-              <div
-                v-if="activePicker === 'singleDate'"
-                :class="[pickerPanelClass, 'left-0 w-[280px] max-sm:w-full']"
-                role="dialog"
-                aria-label="活動日期選單"
-                @click.stop
-              >
-                <div class="mb-2 flex items-center justify-between gap-2">
-                  <button
-                    class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
-                    type="button"
-                    aria-label="上一個月"
-                    @click="moveMonth(-1)"
-                  >
-                    ‹
-                  </button>
-                  <p class="m-0 text-center text-sm leading-none text-[var(--bujo-ink)]">
-                    {{ monthTitle }}
-                  </p>
-                  <button
-                    class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
-                    type="button"
-                    aria-label="下一個月"
-                    @click="moveMonth(1)"
-                  >
-                    ›
-                  </button>
-                </div>
-
-                <div
-                  class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]"
-                >
-                  <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
-                </div>
-
-                <div class="grid grid-cols-7 gap-1">
-                  <button
-                    v-for="cell in dateCells"
-                    :key="cell.key"
-                    :class="dateButtonClass(cell)"
-                    type="button"
-                    :aria-label="cell.key"
-                    :data-date="cell.key"
-                    @click="selectDate(cell.date)"
-                  >
-                    {{ cell.label }}
-                  </button>
-                </div>
-              </div>
-            </span>
-          </div>
-
-          <div class="grid gap-2">
-            <span :class="fieldLabelClass">時段範圍（選填，限制參與者可回報的時間）</span>
-
-            <div class="grid max-w-[280px] grid-cols-[1fr_12px_1fr] items-center gap-2">
-              <span class="relative block">
-                <button
-                  id="event-time-window-start"
-                  :class="[pickerButtonClass, 'w-full']"
-                  type="button"
-                  @click.stop="toggleSlotPicker('timeWindow:startTime')"
-                >
-                  <span :class="timeWindow.startTime ? '' : 'text-[var(--bujo-muted)]'">{{
-                    timeWindow.startTime ?? '-- : --'
-                  }}</span>
-                </button>
-                <div
-                  v-if="openSlotPicker === 'timeWindow:startTime'"
-                  :class="[pickerPanelClass, 'left-0 w-full min-w-[160px]']"
-                  role="listbox"
-                  aria-label="時段範圍開始時間選單"
-                  @click.stop
-                >
-                  <div class="max-h-[208px] overflow-y-auto pr-1">
-                    <button
-                      v-for="time in timeWindowStartOptions"
-                      :key="time"
-                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                      :class="
-                        timeWindow.startTime === time
-                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
-                          : ''
-                      "
-                      type="button"
-                      role="option"
-                      :aria-selected="timeWindow.startTime === time"
-                      @click="selectSlotTime(timeWindow, 'startTime', time)"
-                    >
-                      {{ time }}
-                    </button>
-                  </div>
-                </div>
-              </span>
-
-              <span class="text-center text-sm text-[var(--bujo-ink)]">–</span>
-
-              <span class="relative block">
-                <button
-                  id="event-time-window-end"
-                  :class="[pickerButtonClass, 'w-full']"
-                  type="button"
-                  @click.stop="toggleSlotPicker('timeWindow:endTime')"
-                >
-                  <span :class="timeWindow.endTime ? '' : 'text-[var(--bujo-muted)]'">{{
-                    timeWindow.endTime ?? '-- : --'
-                  }}</span>
-                </button>
-                <div
-                  v-if="openSlotPicker === 'timeWindow:endTime'"
-                  :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
-                  role="listbox"
-                  aria-label="時段範圍結束時間選單"
-                  @click.stop
-                >
-                  <div class="max-h-[208px] overflow-y-auto pr-1">
-                    <button
-                      v-for="time in timeWindowEndTimeOptions"
-                      :key="time"
-                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                      :class="
-                        timeWindow.endTime === time
-                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
-                          : ''
-                      "
-                      type="button"
-                      role="option"
-                      :aria-selected="timeWindow.endTime === time"
-                      @click="selectSlotTime(timeWindow, 'endTime', time)"
-                    >
-                      {{ time }}
-                    </button>
-                  </div>
-                </div>
-              </span>
             </div>
 
-            <p
-              v-if="timeError"
-              class="flex items-center gap-1 text-xs text-[#dc2626]"
-            >
-              <span>⚠</span> {{ timeError }}
-            </p>
-          </div>
-        </div>
+            <div class="grid gap-2">
+              <span :class="fieldLabelClass">可投票時段</span>
 
-        <div
-          v-else-if="dateMode === 'range' && timeMode === 'fixed'"
-          ref="schedulePickerRef"
-          class="col-span-full grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
-          @click="closePicker"
-        >
-          <div class="grid gap-2">
-            <span :class="fieldLabelClass">選擇候選日期（可多選）</span>
-
-            <div class="mb-1 flex items-center justify-between gap-2">
-              <button
-                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
-                type="button"
-                aria-label="上一個月"
-                @click="moveMonth(-1)"
-              >
-                ‹
-              </button>
-              <p class="m-0 text-center text-sm leading-none text-[var(--bujo-ink)]">
-                {{ monthTitle }}
-              </p>
-              <button
-                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
-                type="button"
-                aria-label="下一個月"
-                @click="moveMonth(1)"
-              >
-                ›
-              </button>
-            </div>
-
-            <div
-              class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]"
-            >
-              <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
-            </div>
-
-            <div class="grid grid-cols-7 gap-1">
-              <button
-                v-for="cell in candidateDateCells"
-                :key="cell.key"
-                :class="candidateDateButtonClass(cell)"
-                type="button"
-                :aria-label="cell.key"
-                :aria-pressed="cell.isSelected"
-                :data-date="cell.key"
-                @click="toggleCandidateDate(cell)"
-              >
-                {{ cell.label }}
-              </button>
-            </div>
-          </div>
-
-          <div class="grid gap-2 border-t border-dashed border-[var(--bujo-line-soft)] pt-2">
-            <div class="grid grid-cols-[52px_1fr] max-sm:grid-cols-[40px_1fr] items-center gap-2">
-              <span :class="[fieldLabelClass, 'whitespace-nowrap']">整日：</span>
-              <label class="inline-flex w-fit items-center">
-                <input
-                  v-model="uniformTime.allDay"
-                  class="h-7 w-7 max-sm:h-6 max-sm:w-6 cursor-pointer appearance-none rounded-none border border-[var(--bujo-line)] bg-[var(--bujo-surface)] checked:border-[var(--bujo-ink)] checked:bg-[var(--bujo-ink)] focus:outline-none focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
-                  type="checkbox"
-                  aria-label="整日"
-                  @change="closePicker"
-                />
-              </label>
-            </div>
-
-            <template v-if="!uniformTime.allDay">
-              <span :class="fieldLabelClass">統一時間（套用到所有已選日期）</span>
               <div class="grid max-w-[280px] grid-cols-[1fr_12px_1fr] items-center gap-2">
                 <span class="relative block">
                   <button
+                    id="event-time-window-start"
                     :class="[pickerButtonClass, 'w-full']"
                     type="button"
-                    @click.stop="toggleSlotPicker('uniform:startTime')"
+                    @click.stop="toggleSlotPicker('timeWindow:startTime')"
                   >
-                    <span :class="uniformTime.startTime ? '' : 'text-[var(--bujo-muted)]'">{{
-                      uniformTime.startTime ?? '-- : --'
+                    <span :class="timeWindow.startTime ? '' : 'text-[var(--bujo-muted)]'">{{
+                      timeWindow.startTime ?? '-- : --'
                     }}</span>
                   </button>
                   <div
-                    v-if="openSlotPicker === 'uniform:startTime'"
+                    v-if="openSlotPicker === 'timeWindow:startTime'"
                     :class="[pickerPanelClass, 'left-0 w-full min-w-[160px]']"
                     role="listbox"
-                    aria-label="統一開始時間選單"
+                    aria-label="時段範圍開始時間選單"
                     @click.stop
                   >
                     <div class="max-h-[208px] overflow-y-auto pr-1">
                       <button
-                        v-for="time in uniformStartTimeOptions"
+                        v-for="time in timeWindowStartOptions"
                         :key="time"
                         class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                         :class="
-                          uniformTime.startTime === time
+                          timeWindow.startTime === time
                             ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
                             : ''
                         "
                         type="button"
                         role="option"
-                        :aria-selected="uniformTime.startTime === time"
-                        @click="selectSlotTime(uniformTime, 'startTime', time)"
+                        :aria-selected="timeWindow.startTime === time"
+                        @click="selectSlotTime(timeWindow, 'startTime', time)"
+                      >
+                        {{ time }}
+                      </button>
+                    </div>
+                  </div>
+                </span>
+
+                <span class="text-center text-sm text-[var(--bujo-ink)]">–</span>
+
+                <span class="relative block">
+                  <button
+                    id="event-time-window-end"
+                    :class="[pickerButtonClass, 'w-full']"
+                    type="button"
+                    @click.stop="toggleSlotPicker('timeWindow:endTime')"
+                  >
+                    <span :class="timeWindow.endTime ? '' : 'text-[var(--bujo-muted)]'">{{
+                      timeWindow.endTime ?? '-- : --'
+                    }}</span>
+                  </button>
+                  <div
+                    v-if="openSlotPicker === 'timeWindow:endTime'"
+                    :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
+                    role="listbox"
+                    aria-label="時段範圍結束時間選單"
+                    @click.stop
+                  >
+                    <div class="max-h-[208px] overflow-y-auto pr-1">
+                      <button
+                        v-for="time in timeWindowEndTimeOptions"
+                        :key="time"
+                        class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                        :class="
+                          timeWindow.endTime === time
+                            ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
+                            : ''
+                        "
+                        type="button"
+                        role="option"
+                        :aria-selected="timeWindow.endTime === time"
+                        @click="selectSlotTime(timeWindow, 'endTime', time)"
+                      >
+                        {{ time }}
+                      </button>
+                    </div>
+                  </div>
+                </span>
+              </div>
+
+              <p v-if="timeError" class="flex items-center gap-1 text-xs text-[#dc2626]">
+                <span>⚠</span> {{ timeError }}
+              </p>
+            </div>
+          </div>
+
+          <div
+            v-else-if="dateMode === 'range' && timeMode === 'fixed'"
+            ref="schedulePickerRef"
+            class="grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
+            @click="closePicker"
+          >
+            <div class="grid gap-2">
+              <span :class="fieldLabelClass">候選日期</span>
+
+              <div class="mb-1 flex items-center justify-between gap-2">
+                <button
+                  class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
+                  type="button"
+                  aria-label="上一個月"
+                  @click="moveMonth(-1)"
+                >
+                  ‹
+                </button>
+                <p class="m-0 text-center text-sm leading-none text-[var(--bujo-ink)]">
+                  {{ monthTitle }}
+                </p>
+                <button
+                  class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
+                  type="button"
+                  aria-label="下一個月"
+                  @click="moveMonth(1)"
+                >
+                  ›
+                </button>
+              </div>
+
+              <div
+                class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]"
+              >
+                <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
+              </div>
+
+              <div class="grid grid-cols-7 gap-1">
+                <button
+                  v-for="cell in candidateDateCells"
+                  :key="cell.key"
+                  :class="candidateDateButtonClass(cell)"
+                  type="button"
+                  :aria-label="cell.key"
+                  :aria-pressed="cell.isSelected"
+                  :data-date="cell.key"
+                  @click="toggleCandidateDate(cell)"
+                >
+                  {{ cell.label }}
+                </button>
+              </div>
+            </div>
+
+            <div class="grid gap-2 border-t border-dashed border-[var(--bujo-line-soft)] pt-2">
+              <div class="grid grid-cols-[52px_1fr] max-sm:grid-cols-[40px_1fr] items-center gap-2">
+                <span :class="[fieldLabelClass, 'whitespace-nowrap']">整日：</span>
+                <label class="inline-flex w-fit items-center">
+                  <input
+                    v-model="uniformTime.allDay"
+                    class="h-7 w-7 max-sm:h-6 max-sm:w-6 cursor-pointer appearance-none rounded-none border border-[var(--bujo-line)] bg-[var(--bujo-surface)] checked:border-[var(--bujo-ink)] checked:bg-[var(--bujo-ink)] focus:outline-none focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
+                    type="checkbox"
+                    aria-label="整日"
+                    @change="closePicker"
+                  />
+                </label>
+              </div>
+
+              <template v-if="!uniformTime.allDay">
+                <span :class="fieldLabelClass">統一時間（套用到所有已選日期）</span>
+                <div class="grid max-w-[280px] grid-cols-[1fr_12px_1fr] items-center gap-2">
+                  <span class="relative block">
+                    <button
+                      :class="[pickerButtonClass, 'w-full']"
+                      type="button"
+                      @click.stop="toggleSlotPicker('uniform:startTime')"
+                    >
+                      <span :class="uniformTime.startTime ? '' : 'text-[var(--bujo-muted)]'">{{
+                        uniformTime.startTime ?? '-- : --'
+                      }}</span>
+                    </button>
+                    <div
+                      v-if="openSlotPicker === 'uniform:startTime'"
+                      :class="[pickerPanelClass, 'left-0 w-full min-w-[160px]']"
+                      role="listbox"
+                      aria-label="統一開始時間選單"
+                      @click.stop
+                    >
+                      <div class="max-h-[208px] overflow-y-auto pr-1">
+                        <button
+                          v-for="time in uniformStartTimeOptions"
+                          :key="time"
+                          class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                          :class="
+                            uniformTime.startTime === time
+                              ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
+                              : ''
+                          "
+                          type="button"
+                          role="option"
+                          :aria-selected="uniformTime.startTime === time"
+                          @click="selectSlotTime(uniformTime, 'startTime', time)"
+                        >
+                          {{ time }}
+                        </button>
+                      </div>
+                    </div>
+                  </span>
+
+                  <span class="text-center text-sm text-[var(--bujo-ink)]">–</span>
+
+                  <span class="relative block">
+                    <button
+                      :class="[pickerButtonClass, 'w-full']"
+                      type="button"
+                      @click.stop="toggleSlotPicker('uniform:endTime')"
+                    >
+                      <span :class="uniformTime.endTime ? '' : 'text-[var(--bujo-muted)]'">{{
+                        uniformTime.endTime ?? '-- : --'
+                      }}</span>
+                    </button>
+                    <div
+                      v-if="openSlotPicker === 'uniform:endTime'"
+                      :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
+                      role="listbox"
+                      aria-label="統一結束時間選單"
+                      @click.stop
+                    >
+                      <div class="max-h-[208px] overflow-y-auto pr-1">
+                        <button
+                          v-for="time in uniformEndTimeOptions"
+                          :key="time"
+                          class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                          :class="
+                            uniformTime.endTime === time
+                              ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
+                              : ''
+                          "
+                          type="button"
+                          role="option"
+                          :aria-selected="uniformTime.endTime === time"
+                          @click="selectSlotTime(uniformTime, 'endTime', time)"
+                        >
+                          {{ time }}
+                        </button>
+                      </div>
+                    </div>
+                  </span>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <div
+            v-else
+            ref="schedulePickerRef"
+            class="grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
+            @click="closePicker"
+          >
+            <div class="grid gap-2">
+              <span :class="fieldLabelClass">候選日期與時段</span>
+
+              <div class="mb-1 flex items-center justify-between gap-2">
+                <button
+                  class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
+                  type="button"
+                  aria-label="上一個月"
+                  @click="moveMonth(-1)"
+                >
+                  ‹
+                </button>
+                <p class="m-0 text-center text-sm leading-none text-[var(--bujo-ink)]">
+                  {{ monthTitle }}
+                </p>
+                <button
+                  class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
+                  type="button"
+                  aria-label="下一個月"
+                  @click="moveMonth(1)"
+                >
+                  ›
+                </button>
+              </div>
+
+              <div
+                class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]"
+              >
+                <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
+              </div>
+
+              <div class="grid grid-cols-7 gap-1">
+                <button
+                  v-for="cell in scenario4DateCells"
+                  :key="cell.key"
+                  :class="scenario4DateButtonClass(cell)"
+                  type="button"
+                  :disabled="cell.isDisabled"
+                  :aria-label="cell.key"
+                  :aria-pressed="cell.isCandidate"
+                  :data-date="cell.key"
+                  @click="toggleScenario4Date(cell)"
+                >
+                  {{ cell.label }}
+                  <span
+                    v-if="cell.isConfigured"
+                    class="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[var(--bujo-ink)]"
+                  />
+                </button>
+              </div>
+            </div>
+
+            <!-- 正在編輯中的候選日時段 -->
+            <div
+              v-if="editingSlot"
+              data-scenario4-editing-panel
+              class="grid gap-2 border-t border-dashed border-[var(--bujo-line-soft)] pt-2"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <span :class="fieldLabelClass">{{ shortDate(editingSlot.date) }} 的候選時段</span>
+                <button
+                  type="button"
+                  class="text-xs text-[var(--bujo-muted-strong)] hover:text-[#dc2626]"
+                  @click.stop="removeCandidateSlot(editingSlot.date)"
+                >
+                  移除此候選日期
+                </button>
+              </div>
+
+              <div
+                v-for="slot in editingSlot.timeSlots"
+                :key="slot.id"
+                class="grid grid-cols-[52px_1fr_12px_1fr] max-sm:grid-cols-[40px_1fr_10px_1fr] items-center gap-2"
+              >
+                <span :class="fieldLabelClass">時段</span>
+
+                <span class="relative block">
+                  <button
+                    :class="[pickerButtonClass, 'w-full']"
+                    type="button"
+                    data-scenario4-start-time-button
+                    @click.stop="toggleSlotPicker(`${slot.id}:startTime`)"
+                  >
+                    <span :class="slot.startTime ? '' : 'text-[var(--bujo-muted)]'">{{
+                      slot.startTime ?? '-- : --'
+                    }}</span>
+                  </button>
+                  <div
+                    v-if="openSlotPicker === `${slot.id}:startTime`"
+                    :class="[pickerPanelClass, 'left-0 w-full min-w-[160px]']"
+                    role="listbox"
+                    aria-label="候選開始時間選單"
+                    @click.stop
+                  >
+                    <div class="max-h-[208px] overflow-y-auto pr-1">
+                      <button
+                        v-for="time in slotStartTimeOptions(editingSlot.date)"
+                        :key="time"
+                        class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                        :class="
+                          slot.startTime === time
+                            ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
+                            : ''
+                        "
+                        type="button"
+                        role="option"
+                        :aria-selected="slot.startTime === time"
+                        @click="selectSlotTime(slot, 'startTime', time)"
                       >
                         {{ time }}
                       </button>
@@ -572,33 +739,33 @@
                   <button
                     :class="[pickerButtonClass, 'w-full']"
                     type="button"
-                    @click.stop="toggleSlotPicker('uniform:endTime')"
+                    @click.stop="toggleSlotPicker(`${slot.id}:endTime`)"
                   >
-                    <span :class="uniformTime.endTime ? '' : 'text-[var(--bujo-muted)]'">{{
-                      uniformTime.endTime ?? '-- : --'
+                    <span :class="slot.endTime ? '' : 'text-[var(--bujo-muted)]'">{{
+                      slot.endTime ?? '-- : --'
                     }}</span>
                   </button>
                   <div
-                    v-if="openSlotPicker === 'uniform:endTime'"
+                    v-if="openSlotPicker === `${slot.id}:endTime`"
                     :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
                     role="listbox"
-                    aria-label="統一結束時間選單"
+                    aria-label="候選結束時間選單"
                     @click.stop
                   >
                     <div class="max-h-[208px] overflow-y-auto pr-1">
                       <button
-                        v-for="time in uniformEndTimeOptions"
+                        v-for="time in slotEndTimeOptions(slot)"
                         :key="time"
                         class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
                         :class="
-                          uniformTime.endTime === time
+                          slot.endTime === time
                             ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
                             : ''
                         "
                         type="button"
                         role="option"
-                        :aria-selected="uniformTime.endTime === time"
-                        @click="selectSlotTime(uniformTime, 'endTime', time)"
+                        :aria-selected="slot.endTime === time"
+                        @click="selectSlotTime(slot, 'endTime', time)"
                       >
                         {{ time }}
                       </button>
@@ -606,185 +773,23 @@
                   </div>
                 </span>
               </div>
-            </template>
-          </div>
-        </div>
+            </div>
 
-        <div
-          v-else
-          ref="schedulePickerRef"
-          class="col-span-full grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
-          @click="closePicker"
-        >
-          <div class="grid gap-2">
-            <span :class="fieldLabelClass">選擇候選日期，再逐日設定時段</span>
-
-            <div class="mb-1 flex items-center justify-between gap-2">
-              <button
-                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
-                type="button"
-                aria-label="上一個月"
-                @click="moveMonth(-1)"
-              >
-                ‹
-              </button>
-              <p class="m-0 text-center text-sm leading-none text-[var(--bujo-ink)]">
-                {{ monthTitle }}
+            <!-- 已選候選組合 -->
+            <div class="grid gap-2 border-t border-dashed border-[var(--bujo-line-soft)] pt-2">
+              <span :class="fieldLabelClass">已選候選組合</span>
+              <p v-if="configuredSlots.length === 0" class="text-xs text-[var(--bujo-muted)]">
+                尚無
               </p>
-              <button
-                class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
-                type="button"
-                aria-label="下一個月"
-                @click="moveMonth(1)"
-              >
-                ›
-              </button>
-            </div>
-
-            <div
-              class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]"
-            >
-              <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
-            </div>
-
-            <div class="grid grid-cols-7 gap-1">
-              <button
-                v-for="cell in scenario4DateCells"
-                :key="cell.key"
-                :class="scenario4DateButtonClass(cell)"
-                type="button"
-                :disabled="cell.isDisabled"
-                :aria-label="cell.key"
-                :aria-pressed="cell.isCandidate"
-                :data-date="cell.key"
-                @click="toggleScenario4Date(cell)"
-              >
-                {{ cell.label }}
+              <div v-else class="flex flex-wrap gap-2">
                 <span
-                  v-if="cell.isConfigured"
-                  class="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[var(--bujo-ink)]"
-                />
-              </button>
-            </div>
-          </div>
-
-          <!-- 正在編輯中的候選日時段 -->
-          <div
-            v-if="editingSlot"
-            data-scenario4-editing-panel
-            class="grid gap-2 border-t border-dashed border-[var(--bujo-line-soft)] pt-2"
-          >
-            <div class="flex items-center justify-between gap-2">
-              <span :class="fieldLabelClass">{{ shortDate(editingSlot.date) }} 的候選時段</span>
-              <button
-                type="button"
-                class="text-xs text-[var(--bujo-muted-strong)] hover:text-[#dc2626]"
-                @click.stop="removeCandidateSlot(editingSlot.date)"
-              >
-                移除此候選日期
-              </button>
-            </div>
-
-            <div
-              v-for="slot in editingSlot.timeSlots"
-              :key="slot.id"
-              class="grid grid-cols-[52px_1fr_12px_1fr] max-sm:grid-cols-[40px_1fr_10px_1fr] items-center gap-2"
-            >
-              <span :class="fieldLabelClass">時段</span>
-
-              <span class="relative block">
-                <button
-                  :class="[pickerButtonClass, 'w-full']"
-                  type="button"
-                  data-scenario4-start-time-button
-                  @click.stop="toggleSlotPicker(`${slot.id}:startTime`)"
+                  v-for="slot in configuredSlots"
+                  :key="slot.id"
+                  class="border border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-2 py-1 text-xs text-[var(--bujo-ink)]"
                 >
-                  <span :class="slot.startTime ? '' : 'text-[var(--bujo-muted)]'">{{
-                    slot.startTime ?? '-- : --'
-                  }}</span>
-                </button>
-                <div
-                  v-if="openSlotPicker === `${slot.id}:startTime`"
-                  :class="[pickerPanelClass, 'left-0 w-full min-w-[160px]']"
-                  role="listbox"
-                  aria-label="候選開始時間選單"
-                  @click.stop
-                >
-                  <div class="max-h-[208px] overflow-y-auto pr-1">
-                    <button
-                      v-for="time in slotStartTimeOptions(editingSlot.date)"
-                      :key="time"
-                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                      :class="
-                        slot.startTime === time
-                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
-                          : ''
-                      "
-                      type="button"
-                      role="option"
-                      :aria-selected="slot.startTime === time"
-                      @click="selectSlotTime(slot, 'startTime', time)"
-                    >
-                      {{ time }}
-                    </button>
-                  </div>
-                </div>
-              </span>
-
-              <span class="text-center text-sm text-[var(--bujo-ink)]">–</span>
-
-              <span class="relative block">
-                <button
-                  :class="[pickerButtonClass, 'w-full']"
-                  type="button"
-                  @click.stop="toggleSlotPicker(`${slot.id}:endTime`)"
-                >
-                  <span :class="slot.endTime ? '' : 'text-[var(--bujo-muted)]'">{{
-                    slot.endTime ?? '-- : --'
-                  }}</span>
-                </button>
-                <div
-                  v-if="openSlotPicker === `${slot.id}:endTime`"
-                  :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
-                  role="listbox"
-                  aria-label="候選結束時間選單"
-                  @click.stop
-                >
-                  <div class="max-h-[208px] overflow-y-auto pr-1">
-                    <button
-                      v-for="time in slotEndTimeOptions(slot)"
-                      :key="time"
-                      class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                      :class="
-                        slot.endTime === time
-                          ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
-                          : ''
-                      "
-                      type="button"
-                      role="option"
-                      :aria-selected="slot.endTime === time"
-                      @click="selectSlotTime(slot, 'endTime', time)"
-                    >
-                      {{ time }}
-                    </button>
-                  </div>
-                </div>
-              </span>
-            </div>
-          </div>
-
-          <!-- 已選候選組合 -->
-          <div class="grid gap-2 border-t border-dashed border-[var(--bujo-line-soft)] pt-2">
-            <span :class="fieldLabelClass">已選候選組合</span>
-            <p v-if="configuredSlots.length === 0" class="text-xs text-[var(--bujo-muted)]">尚無</p>
-            <div v-else class="flex flex-wrap gap-2">
-              <span
-                v-for="slot in configuredSlots"
-                :key="slot.id"
-                class="border border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-2 py-1 text-xs text-[var(--bujo-ink)]"
-              >
-                {{ shortDate(slot.date) }} {{ slot.startTime }}–{{ slot.endTime }}
-              </span>
+                  {{ shortDate(slot.date) }} {{ slot.startTime }}–{{ slot.endTime }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -805,17 +810,15 @@
           >
             <p
               class="text-xs leading-5"
-              :class="isReportCutoffWarning ? 'font-semibold text-[#dc2626]' : 'text-[var(--bujo-muted)]'"
+              :class="
+                isReportCutoffWarning ? 'font-semibold text-[#dc2626]' : 'text-[var(--bujo-muted)]'
+              "
             >
               <template v-if="isReportCutoffWarning">{{ reportCutoffWarningText }}</template>
               <template v-else
                 >報名開放到
                 <strong class="text-[var(--bujo-muted-strong)]">{{ reportCutoffTimeLabel }}</strong>
-                （<button
-                  type="button"
-                  class="-mx-1 -my-1 px-1 py-1"
-                  @click="toggleDeadlineEditor"
-                >
+                （<button type="button" class="-mx-1 -my-1 px-1 py-1" @click="toggleDeadlineEditor">
                   <span
                     class="text-[var(--bujo-accent)] underline decoration-dotted underline-offset-2"
                     >{{ reportCutoffOffsetParts.number }}</span
@@ -826,7 +829,11 @@
 
             <p
               class="text-[11px] leading-5"
-              :class="isScheduleCeilingWarning ? 'font-semibold text-[#dc2626]' : 'text-[var(--bujo-muted)]'"
+              :class="
+                isScheduleCeilingWarning
+                  ? 'font-semibold text-[#dc2626]'
+                  : 'text-[var(--bujo-muted)]'
+              "
             >
               {{ scheduleCeilingLineText }}
             </p>
@@ -965,6 +972,21 @@ const form = reactive({
   note: '',
 })
 
+function updateLimit(value) {
+  if (value === '') {
+    form.limit = null
+    return
+  }
+
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) {
+    form.limit = null
+    return
+  }
+
+  form.limit = Math.max(2, Math.floor(numericValue))
+}
+
 // 情境一（日期X時間皆已確定）：開始日期是今天時，只能約當天某個時段，不能整日，
 // 所以把「整日」選項藏起來，並清掉可能殘留的勾選
 const isStartDateToday = computed(() => form.startDate === today)
@@ -975,6 +997,24 @@ watch(isStartDateToday, (isToday) => {
 // 日期／時間確定情境
 const dateMode = ref('fixed') // 'fixed' | 'range'
 const timeMode = ref('fixed') // 'fixed' | 'vote'
+const isDateFixed = computed({
+  get: () => dateMode.value === 'fixed',
+  set: (checked) => {
+    dateMode.value = checked ? 'fixed' : 'range'
+  },
+})
+const isTimeFixed = computed({
+  get: () => timeMode.value === 'fixed',
+  set: (checked) => {
+    timeMode.value = checked ? 'fixed' : 'vote'
+  },
+})
+const dateModeHint = computed(() =>
+  dateMode.value === 'fixed' ? '日期確定了！' : '還沒～選幾天讓大家投票',
+)
+const timeModeHint = computed(() =>
+  timeMode.value === 'fixed' ? '時間確定了！' : '還沒～選時段讓大家投票',
+)
 
 // 從行事曆日期格點進來：預設情境一（日期固定X時間固定），並把點選的日期帶入
 // 情境一的開始／結束日期，以及情境二（日期固定X時間讓大家選）的日期
@@ -993,15 +1033,15 @@ watch(
 
 const scenarioDescription = computed(() => {
   if (dateMode.value === 'fixed' && timeMode.value === 'fixed') {
-    return '這是一個已確定日期與時間的活動——不需要投票，成員只要回覆「參加/不參加」。'
+    return '日期、時間都確定了！大家可以直接報名參加'
   }
   if (dateMode.value === 'fixed' && timeMode.value === 'vote') {
-    return '日期已經固定，但時間開放投票——會針對這一天，列出幾個候選時段讓成員選。'
+    return '日期確定了，還沒決定時間，選幾個時段讓大家投票'
   }
   if (dateMode.value === 'range' && timeMode.value === 'fixed') {
-    return '日期開放投票，但每個候選日的時間點都固定不變——成員只需選出哪一天適合。'
+    return '日期還沒決定，選幾天讓大家投票，時間維持固定'
   }
-  return '日期與時間都開放投票——成員需先選日期，再針對該日期選時段。'
+  return '日期、時間都還沒，選幾個日期＋時段讓大家投票'
 })
 
 // 情境二：選填的時段範圍，限制參與者可回報的時間
@@ -1396,6 +1436,7 @@ const isScheduleCeilingWarning = computed(() => withinSafetyBuffer(scheduleCeili
 // 緊急狀態：報名截止時間或決策硬截止時間任一貼近現在就算，不再看活動本身（scheduleAnchor）
 // 距今多久——活動距今很近時兩個算出來的時間通常會同步貼近現在，但活動距今稍遠時兩者會脫鉤
 // （例如自動選中的偏移量剛好讓算出來的報名截止時間貼近現在），這種情況舊邏輯完全偵測不到
+// eslint-disable-next-line no-unused-vars -- EventPage tests assert this setup state through wrapper.vm.
 // 不在 template 內使用，僅供測試透過 wrapper.vm 讀取內部狀態
 // eslint-disable-next-line no-unused-vars
 const isUrgent = computed(() => isReportCutoffWarning.value || isScheduleCeilingWarning.value)
@@ -1964,15 +2005,6 @@ function timeButtonClass(time, field) {
   }
 }
 
-function scenarioButtonClass(active) {
-  return [
-    'flex min-h-[44px] max-sm:min-h-[38px] items-center justify-center border px-4 py-2 text-sm leading-[1.2] transition-colors',
-    active
-      ? 'border-[var(--bujo-ink)] bg-[var(--bujo-day-selected)] text-[var(--bujo-ink)]'
-      : 'border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-[var(--bujo-ink)] hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]',
-  ]
-}
-
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick)
   document.addEventListener('keydown', handleEscape)
@@ -1983,3 +2015,72 @@ onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleEscape)
 })
 </script>
+
+<style scoped>
+.gui-switch {
+  display: inline-flex;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gui-switch__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.gui-switch__track {
+  position: relative;
+  display: inline-flex;
+  width: 54px;
+  height: 30px;
+  align-items: center;
+  border-radius: 9999px;
+  background: #edf1ed;
+  transition:
+    background-color 150ms ease,
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.gui-switch__thumb {
+  position: absolute;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow:
+    0 1px 3px rgb(var(--bujo-ink-rgb) / 0.14),
+    0 0 0 1px rgb(var(--bujo-white-rgb) / 0.72);
+  transition:
+    transform 150ms ease,
+    width 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.gui-switch:hover .gui-switch__track {
+  box-shadow: 0 0 0 3px rgb(var(--bujo-ink-rgb) / 0.04);
+}
+
+.gui-switch__input:checked + .gui-switch__track {
+  background: #a8d0d1;
+}
+
+.gui-switch__input:checked + .gui-switch__track .gui-switch__thumb {
+  transform: translateX(24px);
+}
+
+.gui-switch:active .gui-switch__thumb {
+  width: 27px;
+}
+
+.gui-switch__input:focus-visible + .gui-switch__track {
+  box-shadow: 0 0 0 3px #d7f0dc;
+}
+</style>

@@ -1,9 +1,98 @@
 # BuJo Visual Specification v1
 
-Status: 85% complete  
+Status: Active source of truth
 Purpose: This document defines BuJo's visual direction, page-level design rules, typography, color, card system, interaction principles, and implementation priorities.
 
 This is a working visual specification. It is strong enough to guide implementation, but should still be validated through real CalendarMain, AppSidebar, ActivityView, Login, Friends, and Alerts implementation.
+
+---
+
+## 0. 2026 Visual Direction Correction: Modern Paper, Not Flat Wireframe
+
+BuJo should sit between the original paper/editorial direction and mature modern product craft.
+
+The goal is **Modern Paper Interface**:
+
+- keep BuJo's paper form, activity sheet, editorial index, printed object, and social calendar personality
+- avoid flat PPT wireframe UI where every element has the same white fill, rectangular border, font weight, and ink color
+- avoid generic AI/SaaS UI made from pale cards, excessive rounded corners, muted helper strips, pill controls, and soft shadows
+- borrow modern SaaS spacing, padding, and typography scale only as craft tools, not as the visual style
+
+Modern BuJo hierarchy should come from:
+
+- paper depth
+- line weight contrast
+- spacing rhythm
+- type scale
+- ink color scale
+- paper / ink / accent color families with different saturation and lightness
+- small caption, metadata, stamp, label, or index marks
+- clear selected states and primary decision areas
+
+Do not solve hierarchy by making every section a soft rounded card. Do not solve paper character by making every section a flat black-outlined rectangle.
+
+### Layout / Spacing / Typography Hierarchy Rules
+
+Use a consistent spacing scale so screens feel designed, not manually stacked.
+
+Recommended spacing scale:
+
+```text
+4px    tight inline spacing, icon + text, tiny internal relationships
+8px    label / input / hint inside one field
+12px   rows inside one small group
+16px   normal form fields and repeated controls
+20-24px different task sections or major form groups
+32px+  page-level content, hero to content, major editorial breaks
+```
+
+Recommended padding:
+
+```text
+Small control:      8-12px horizontal
+Normal input:       12-16px horizontal
+Compact group:      12-16px
+Modal body:         20-24px
+Primary content:    24-32px
+Dense calendar UI:  compact but rhythmic; grid scanability is more important than spaciousness
+```
+
+Recommended product typography:
+
+```text
+Modal title:        18px / 700
+Section heading:    15-16px / 700
+Field label:        13-14px / 600-700
+Input/body text:    14-15px / 400-500
+Helper text:        12-13px / 400-500
+Metadata/caption:   11-12px / 400-500
+Warning text:       12-13px; use placement and color, not large red paragraphs
+```
+
+Chinese UI text needs visible role differences. Do not make labels, hints, metadata, warnings, and values all the same size, weight, and ink darkness.
+
+### Paper Depth Rules
+
+Use fewer equal-weight borders, not fewer all borders.
+
+Allowed hierarchy tools:
+
+- strong boundary for primary inputs, pickers, calendar grids, and decision blocks
+- softer dividers for rows inside the same thought
+- light paper-layer backgrounds for secondary areas
+- small offset paper shadow when an object should feel printed or lifted
+- slight radius only where it improves product polish; avoid large soft app cards
+- selected state with stronger ink, accent mark, frame, or stamp-like treatment
+
+Avoid:
+
+- every row as a separate rectangle
+- every helper note as a pale rounded card
+- every mode control as a quiet settings row
+- black or near-black text everywhere
+- large soft shadows, blur, glow, or generic dashboard card treatment
+
+Forms should feel like activity sheets or printed paper forms. A form's primary task must be visually clearer than helper text and secondary settings.
 
 ---
 

@@ -35,6 +35,12 @@ Changes can be parked（暫存）— temporarily moved out of `openspec/changes/
 
 BuJo 前端，Vue 3 + Vite + Pinia + Vue Router + Tailwind。需搭配後端 [BuJoBackend](https://github.com/JoMeetFriend/BuJoBackend)（Node/Express/Prisma/PostgreSQL）運作，詳見 README.md。
 
+## 視覺設計規範
+
+- UI / visual implementation follows `BuJo_Visual_Specification_v1.md`.
+- Follow its 2026 Modern Paper correction: preserve BuJo's paper/editorial/printed-object character while using mature spacing, padding, typography hierarchy, and ink/color scale.
+- Avoid both flat equal-weight wireframes and generic AI/SaaS soft-card UI.
+
 ## 目錄結構重點
 
 - `src/components/` — 頁面與 UI 元件
