@@ -74,26 +74,53 @@
         </article>
 
         <article class="landing-card landing-card--calendar">
-          <span class="landing-pushpin"></span>
-          <p class="landing-card-title">{{ monthLabel }}</p>
-          <div class="landing-calendar-grid">
-            <span v-for="wd in weekdayLabels" :key="wd" class="landing-calendar-weekday">{{
-              wd
-            }}</span>
-            <template v-for="(week, wi) in calendarWeeks" :key="wi">
-              <span
-                v-for="(day, di) in week"
-                :key="`${wi}-${di}`"
-                class="landing-calendar-day"
-                :class="{
-                  'is-today': day === todayDate,
-                  'is-marked': highlightDates.includes(day),
-                  'is-empty': !day,
-                }"
-              >
-                {{ day || '' }}
-              </span>
-            </template>
+          <span class="landing-cal-sheet landing-cal-sheet--back" aria-hidden="true"></span>
+          <span class="landing-cal-sheet landing-cal-sheet--middle" aria-hidden="true"></span>
+
+          <div class="landing-cal-paper">
+            <div class="landing-cal-header">
+              <div class="landing-cal-heading">
+                <p class="landing-cal-eyebrow">SOCIAL INBOX CALENDAR</p>
+                <div class="landing-cal-title-line">
+                  <h3>{{ monthNameUpper }}</h3>
+                  <span class="landing-cal-year">{{ currentYear }}</span>
+                </div>
+                <p class="landing-cal-caption">( social index / small plans )</p>
+              </div>
+              <div class="landing-cal-actions" aria-hidden="true">
+                <span class="landing-cal-arrow">&lt;</span>
+                <span class="landing-cal-arrow">&gt;</span>
+                <span class="landing-cal-create">＋ CREATE</span>
+              </div>
+            </div>
+
+            <div class="landing-cal-weekrow">
+              <span v-for="wd in weekdayLabelsZh" :key="wd">{{ wd }}</span>
+            </div>
+
+            <div class="landing-cal-grid">
+              <template v-for="(week, wi) in calendarWeeks" :key="wi">
+                <span
+                  v-for="(day, di) in week"
+                  :key="`${wi}-${di}`"
+                  class="landing-cal-cell"
+                  :class="{ 'is-empty': !day }"
+                >
+                  <span
+                    v-if="day"
+                    class="landing-cal-daynum"
+                    :class="{ 'is-today': day === todayDate }"
+                  >
+                    {{ day }}
+                  </span>
+                  <span v-if="sampleEvents[day]" class="landing-cal-chip">
+                    <span class="landing-cal-chip-dot"></span>
+                    <span class="landing-cal-chip-title">{{ sampleEvents[day] }}</span>
+                    <span class="landing-cal-chip-live">LIVE</span>
+                  </span>
+                </span>
+              </template>
+            </div>
           </div>
         </article>
 
@@ -147,7 +174,9 @@
       <!-- Quote banner -->
       <section class="landing-quote">
         <span class="landing-quote-mark" aria-hidden="true">&ldquo;</span>
-        <p class="landing-quote-text">小小的計畫，正在被看見。<span aria-hidden="true">♥</span></p>
+        <p class="landing-quote-text">
+          不揪喔～說完，你就揪到了。<span aria-hidden="true">♥</span>
+        </p>
       </section>
     </main>
 
@@ -173,7 +202,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import bujoLogoUrl from '@/assets/bujo-logo.svg'
 
-const weekdayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+const weekdayLabelsZh = ['一', '二', '三', '四', '五', '六', '日']
 
 const bujoIsFor = ['small plans', 'social calendar', 'reminders', 'close friends', 'easy creation']
 const createInSeconds = ['選時間', '選地點', '邀朋友', '完成！']
@@ -211,9 +240,7 @@ const monthIndex = today.getMonth()
 const todayDate = today.getDate()
 const daysInMonth = new Date(currentYear, monthIndex + 1, 0).getDate()
 
-const monthLabel = computed(
-  () => today.toLocaleString('en-US', { month: 'long' }).toUpperCase() + ' ' + currentYear,
-)
+const monthNameUpper = today.toLocaleString('en-US', { month: 'long' }).toUpperCase()
 
 const calendarWeeks = computed(() => {
   const firstWeekday = (new Date(currentYear, monthIndex, 1).getDay() + 6) % 7
@@ -228,9 +255,12 @@ const calendarWeeks = computed(() => {
   return weeks
 })
 
-const highlightDates = computed(() =>
-  [todayDate + 2, todayDate + 4].filter((d) => d <= daysInMonth),
-)
+const sampleEvents = computed(() => {
+  const events = {}
+  if (todayDate + 2 <= daysInMonth) events[todayDate + 2] = '吃晚餐'
+  if (todayDate + 4 <= daysInMonth) events[todayDate + 4] = 'Bob 的看電影'
+  return events
+})
 </script>
 
 <style scoped>
@@ -582,62 +612,237 @@ const highlightDates = computed(() =>
   transform: translateX(-50%) rotate(-3deg);
 }
 
-.landing-pushpin {
-  position: absolute;
-  top: -7px;
-  left: 50%;
-  width: 12px;
-  height: 12px;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: var(--bujo-deco-green);
-  box-shadow: 0 2px 3px rgb(0 0 0 / 0.25);
-}
-
 /* Calendar card */
 .landing-card--calendar {
   grid-column: span 2;
-  background: var(--landing-surface);
-  border: 1px solid var(--landing-border);
+  position: relative;
+  isolation: isolate;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
-.landing-calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  font-family: var(--bujo-font-meta);
+.landing-cal-sheet {
+  position: absolute;
+  z-index: -1;
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.16);
+  background: rgb(255 255 255 / 0.5);
+  pointer-events: none;
 }
 
-.landing-calendar-weekday {
-  padding-bottom: 4px;
+.landing-cal-sheet--back {
+  inset: 10px -8px -10px 10px;
+  transform: rotate(0.7deg);
+}
+
+.landing-cal-sheet--middle {
+  inset: 5px -4px -5px 5px;
+  transform: rotate(-0.32deg);
+}
+
+.landing-cal-paper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.52);
+  background: #fffefa;
+  box-shadow: 0 10px 22px rgb(0 0 0 / 0.07);
+  padding-left: 26px;
+}
+
+.landing-cal-paper::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 2;
+  width: 22px;
+  border-right: 1px solid rgb(var(--bujo-line-rgb) / 0.16);
+  background:
+    radial-gradient(circle at 50% 14px, rgb(var(--bujo-line-rgb) / 0.16) 0 4px, transparent 4.5px) 0
+      10px / 22px 42px repeat-y,
+    #fffefa;
+  content: '';
+}
+
+.landing-cal-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px 12px;
+}
+
+.landing-cal-eyebrow {
+  margin: 0 0 2px;
   color: var(--landing-muted);
-  font-size: 11px;
+  font-family: var(--bujo-font-meta);
+  font-size: 10px;
   font-weight: 700;
-  text-align: center;
+  letter-spacing: 0.06em;
 }
 
-.landing-calendar-day {
+.landing-cal-title-line {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.landing-cal-title-line h3 {
+  margin: 0;
+  color: var(--landing-ink);
+  font-family: var(--bujo-font-heading);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+}
+
+.landing-cal-year {
+  color: var(--landing-muted);
+  font-family: var(--bujo-font-meta);
+  font-size: 11px;
+  transform: translateY(-2px);
+}
+
+.landing-cal-caption {
+  margin: 6px 0 0;
+  color: var(--landing-muted);
+  font-family: var(--bujo-font-meta);
+  font-size: 10px;
+  opacity: 0.75;
+}
+
+.landing-cal-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.landing-cal-arrow {
   display: grid;
   place-items: center;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  font-size: 12px;
-}
-
-.landing-calendar-day.is-today {
-  background: var(--bujo-notification);
-  color: #fff;
-  font-weight: 700;
-}
-
-.landing-calendar-day.is-marked {
-  background: var(--bujo-accent);
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--landing-border);
   color: var(--landing-ink);
+  font-family: var(--bujo-font-meta);
+  font-size: 11px;
+}
+
+.landing-cal-create {
+  display: inline-flex;
+  align-items: center;
+  border: 1.5px solid var(--landing-ink);
+  padding: 4px 8px;
+  color: var(--landing-ink);
+  font-family: var(--bujo-font-meta);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.landing-cal-weekrow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-top: 1px solid var(--landing-border);
+  border-bottom: 1px solid var(--landing-border);
+  background: #f0f1eb;
+}
+
+.landing-cal-weekrow span {
+  padding: 5px 0;
+  color: var(--landing-muted);
+  text-align: center;
+  font-family: var(--bujo-font-meta);
+  font-size: 10px;
   font-weight: 700;
 }
 
-.landing-calendar-day.is-empty {
-  visibility: hidden;
+.landing-cal-grid {
+  display: grid;
+  flex: 1;
+  grid-auto-rows: minmax(40px, 1fr);
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.landing-cal-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow: hidden;
+  border-right: 1px solid rgb(var(--bujo-line-rgb) / 0.24);
+  border-bottom: 1px solid rgb(var(--bujo-line-rgb) / 0.24);
+  padding: 4px 4px 3px 5px;
+}
+
+.landing-cal-cell.is-empty {
+  background: rgb(var(--bujo-page-rgb) / 0.4);
+}
+
+.landing-cal-daynum {
+  position: relative;
+  z-index: 0;
+  display: inline-block;
+  color: var(--landing-muted);
+  font-family: var(--bujo-font-meta);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.landing-cal-daynum.is-today {
+  color: var(--landing-ink);
+}
+
+.landing-cal-daynum.is-today::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bujo-notification) 40%, white);
+  transform: translate(-50%, -50%);
+  content: '';
+}
+
+.landing-cal-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 2px 4px;
+  background: var(--bujo-accent);
+  font-family: var(--bujo-font-body);
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--landing-ink);
+}
+
+.landing-cal-chip-dot {
+  flex: 0 0 auto;
+  width: 4px;
+  height: 4px;
+  background: var(--landing-ink);
+}
+
+.landing-cal-chip-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.landing-cal-chip-live {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: rgb(var(--bujo-ink-rgb) / 0.56);
+  font-family: var(--bujo-font-meta);
+  font-size: 7px;
+  font-weight: 700;
 }
 
 /* Photo cards */
@@ -821,6 +1026,9 @@ const highlightDates = computed(() =>
   }
   .landing-features {
     grid-template-columns: 1fr 1fr;
+  }
+  .landing-cal-chip-live {
+    display: none;
   }
 }
 </style>
