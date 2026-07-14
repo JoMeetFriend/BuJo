@@ -17,27 +17,20 @@ beforeEach(() => {
 
 describe('useNotificationStore', () => {
   describe('fetchUnreadCount', () => {
-    it('抓取成功時計算未讀通知數', async () => {
-      apiClient.get.mockResolvedValue({
-        data: {
-          notifications: [
-            { id: '1', isRead: false },
-            { id: '2', isRead: true },
-            { id: '3', isRead: false },
-          ],
-        },
-      })
+    it('抓取成功時以專用端點的 unreadCount 更新未讀數', async () => {
+      apiClient.get.mockResolvedValue({ data: { unreadCount: 2 } })
       const store = useNotificationStore()
 
       await store.fetchUnreadCount()
 
-      expect(apiClient.get).toHaveBeenCalledWith('/api/notifications')
+      expect(apiClient.get).toHaveBeenCalledWith('/api/notifications/unread-count')
       expect(store.unreadCount).toBe(2)
     })
 
-    it('後端回傳非陣列時未讀數為 0', async () => {
+    it('後端回應格式異常時未讀數為 0', async () => {
       apiClient.get.mockResolvedValue({ data: null })
       const store = useNotificationStore()
+      store.setUnreadCount(3)
 
       await store.fetchUnreadCount()
 

@@ -171,7 +171,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationStore } from '@/stores/notificationStore'
@@ -189,9 +189,28 @@ const notificationStore = useNotificationStore()
 const isCalendarPage = computed(() => route.path === '/')
 const userAvatarSrc = computed(() => toAvatarSrc(authStore.user?.avatar_url))
 
+// 未讀數更新時機：掛載、瀏覽器分頁回到可見（如從 LINE 推播返回）、App 內換頁
+function refetchUnreadCountWhenVisible() {
+  if (document.visibilityState === 'visible') {
+    notificationStore.fetchUnreadCount()
+  }
+}
+
 onMounted(() => {
   notificationStore.fetchUnreadCount()
+  document.addEventListener('visibilitychange', refetchUnreadCountWhenVisible)
 })
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', refetchUnreadCountWhenVisible)
+})
+
+watch(
+  () => route.fullPath,
+  () => {
+    notificationStore.fetchUnreadCount()
+  },
+)
 
 const alertBadgeText = computed(() =>
   notificationStore.unreadCount > 9 ? '9+' : String(notificationStore.unreadCount),
