@@ -10,10 +10,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -21,8 +21,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Debug env (temporary)
+        run: |
+          echo "--- .env.test on disk ---"
+          cat .env.test || echo "(.env.test not found)"
+          echo "--- shell-level VITE_API_URL ---"
+          echo "VITE_API_URL=$VITE_API_URL"
+          echo "--- vite loadEnv('test') resolution ---"
+          node -e "import('vite').then(({ loadEnv }) => console.log(loadEnv('test', process.cwd(), 'VITE_')))"
+
       - name: Lint
         run: npm run lint
 
       - name: Run Vitest
         run: npm run test:run
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_API_URL: http://localhost:3000
