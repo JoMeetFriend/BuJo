@@ -6,7 +6,11 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     environment: 'jsdom',
-    globals: true
+    globals: true,
+    env: {
+      // 測試斷言假設台灣時區；CI runner 預設 UTC，須固定時區才能跨環境一致
+      TZ: 'Asia/Taipei'
+    }
   },
   resolve: {
     alias: {
