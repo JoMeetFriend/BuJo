@@ -61,14 +61,14 @@ Each mode switch SHALL use native checkbox semantics or equivalent switch semant
 
 ### Requirement: Mode hints and summary copy match selected modes
 
-The activity creation form SHALL display short hint text next to each switch and a combined schedule-mode summary. These copy strings SHALL update immediately when `dateMode` or `timeMode` changes. These copy strings SHALL NOT end with a full stop punctuation mark.
+The activity creation form SHALL display short hint text next to each switch. The form SHALL display a combined schedule-mode summary only when at least one schedule mode is undecided. These copy strings SHALL update immediately when `dateMode` or `timeMode` changes. These copy strings SHALL NOT end with a full stop punctuation mark.
 
 #### Scenario: Fixed date and fixed time copy
 
 - **WHEN** `dateMode = fixed` and `timeMode = fixed`
 - **THEN** the date hint SHALL be `日期確定了！`
 - **THEN** the time hint SHALL be `時間確定了！`
-- **THEN** the summary SHALL be `日期、時間都確定了！大家可以直接報名參加`
+- **THEN** the combined schedule-mode summary SHALL NOT be displayed
 
 #### Scenario: Fixed date and voting time copy
 
@@ -90,6 +90,17 @@ The activity creation form SHALL display short hint text next to each switch and
 - **THEN** the date hint SHALL be `還沒～選幾天讓大家投票`
 - **THEN** the time hint SHALL be `還沒～選時段讓大家投票`
 - **THEN** the summary SHALL be `日期、時間都還沒，選幾個日期＋時段讓大家投票`
+
+### Requirement: Schedule mode area follows Modern Paper visual hierarchy
+
+The schedule mode area SHALL preserve BuJo's paper-form visual language while reducing equal-weight boxes. It SHALL NOT rely on generic soft-card treatment, pale rounded helper strips, or soft shadows as the default schedule grouping style.
+
+#### Scenario: Schedule area visual language
+
+- **WHEN** the activity creation form renders the schedule mode area
+- **THEN** the schedule controls, optional summary, and picker SHALL read as a paper-form section
+- **THEN** the picker SHALL remain visually clearer than helper or summary text
+- **THEN** the section SHALL NOT use a large rounded soft-card container as its primary visual treatment
 
 ### Requirement: Mode switch UI remains a frontend-only replacement
 
