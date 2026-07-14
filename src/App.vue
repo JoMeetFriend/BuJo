@@ -22,7 +22,9 @@
       class="flex-1 min-w-0 flex flex-col"
       :class="[
         isCalendarPage || isAuthPage ? 'overflow-hidden' : 'overflow-auto',
-        { 'pb-20': route.path !== '/activity' && !isCalendarPage && !isAuthPage },
+        {
+          'pb-20': route.path !== '/activity' && !isCalendarPage && !isAuthPage && !isLandingPage,
+        },
       ]"
     >
       <RouterView v-slot="{ Component }">
@@ -42,8 +44,9 @@ const route = useRoute()
 const sidebarOpen = ref(true)
 const filters = ref({ joined: true, formed: true, personal: true })
 
-const showSidebar = computed(() => !['/login', '/register'].includes(route.path))
+const showSidebar = computed(() => !['/login', '/register', '/'].includes(route.path))
 const isAuthPage = computed(() => ['/login', '/register'].includes(route.path))
+const isLandingPage = computed(() => route.path === '/')
 const isCalendarPage = computed(() => route.name === 'calendar-page')
 
 function toggleFilter(key) {
