@@ -3,7 +3,10 @@
     <!-- 頂部導覽 -->
     <header class="landing-topbar">
       <div class="landing-topbar-inner">
-        <img :src="bujoLogoUrl" alt="BuJo" class="landing-topbar-logo" />
+        <div class="landing-brand">
+          <img :src="bujoMarkUrl" alt="" class="landing-brand-mark" />
+          <img :src="bujoLogoUrl" alt="BuJo" class="landing-topbar-logo" />
+        </div>
         <nav class="landing-topbar-actions">
           <RouterLink to="/login" class="landing-link">登入</RouterLink>
           <RouterLink to="/register" class="landing-cta-pill">免費註冊</RouterLink>
@@ -18,7 +21,6 @@
           <p class="landing-eyebrow">WELCOME TO BUJO</p>
           <h1 class="landing-title">BuJo</h1>
           <p class="landing-tagline">
-            接住那些微小的計畫，<br />
             把在乎的人留在身邊，<br />
             輕輕推一把，讓今天動起來。<span aria-hidden="true">▶</span>
           </p>
@@ -181,12 +183,24 @@
     </main>
 
     <footer class="landing-footer">
-      <img :src="bujoLogoUrl" alt="BuJo" class="landing-footer-logo" />
-      <p class="landing-footer-copy">&copy; {{ currentYear }} BuJo. 不揪喔～說完，你就揪到了。</p>
-      <div class="landing-footer-links">
-        <RouterLink to="/login" class="landing-link">登入</RouterLink>
-        <RouterLink to="/register" class="landing-link">註冊</RouterLink>
+      <div class="landing-footer-brand">
+        <img :src="bujoMarkUrl" alt="" class="landing-brand-mark landing-brand-mark--small" />
+        <img :src="bujoLogoUrl" alt="BuJo" class="landing-footer-logo" />
+        <p class="landing-footer-copy">&copy; {{ currentYear }} BuJo. 不揪喔～說完，你就揪到了。</p>
       </div>
+
+      <a
+        :href="lineOfficialUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="landing-footer-line"
+      >
+        <img :src="lineQrUrl" alt="掃描加入 BuJo LINE 官方帳號" class="landing-footer-qr" />
+        <span class="landing-footer-line-text">
+          <strong>加入官方 LINE</strong>
+          <span>@626mzgfu</span>
+        </span>
+      </a>
     </footer>
   </div>
 </template>
@@ -201,6 +215,10 @@ import {
   PencilSquareIcon,
 } from '@heroicons/vue/24/outline'
 import bujoLogoUrl from '@/assets/bujo-logo.svg'
+import bujoMarkUrl from '@/assets/bujo-mark.png'
+import lineQrUrl from '@/assets/line-qrcode.svg'
+
+const lineOfficialUrl = 'https://line.me/R/ti/p/@626mzgfu?ts=07131855&oat_content=url'
 
 const weekdayLabelsZh = ['一', '二', '三', '四', '五', '六', '日']
 
@@ -209,28 +227,28 @@ const createInSeconds = ['選時間', '選地點', '邀朋友', '完成！']
 
 const features = [
   {
-    title: 'SOCIAL CALENDAR',
+    title: 'CALENDAR',
     desc: '一眼看清所有人的計畫，通通匯在同一個地方。',
     icon: CalendarDaysIcon,
     color: 'var(--bujo-card-pink)',
   },
   {
-    title: 'SMART REMINDERS',
-    desc: '溫柔的提醒，讓你不再錯過那些小小的計畫。',
-    icon: BellAlertIcon,
-    color: 'var(--bujo-accent)',
+    title: 'ACTIVITY',
+    desc: '幾秒鐘建立計畫，一鍵邀請所有人加入。',
+    icon: PencilSquareIcon,
+    color: 'var(--bujo-card-blue)',
   },
   {
-    title: 'CLOSE FRIENDS',
+    title: 'FRIENDS',
     desc: '跟在乎的人保持連結，一起把日子過得更好。',
     icon: UserGroupIcon,
     color: 'var(--landing-purple)',
   },
   {
-    title: 'EASY CREATION',
-    desc: '幾秒鐘建立計畫，一鍵邀請所有人加入。',
-    icon: PencilSquareIcon,
-    color: 'var(--bujo-card-blue)',
+    title: 'ALERTS',
+    desc: '溫柔的提醒，讓你不再錯過那些小小的計畫。',
+    icon: BellAlertIcon,
+    color: 'var(--bujo-accent)',
   },
 ]
 
@@ -299,6 +317,21 @@ const sampleEvents = computed(() => {
   max-width: 1180px;
   margin: 0 auto;
   padding: 14px 20px;
+}
+
+.landing-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.landing-brand-mark {
+  height: 32px;
+  width: auto;
+}
+
+.landing-brand-mark--small {
+  height: 24px;
 }
 
 .landing-topbar-logo {
@@ -974,6 +1007,13 @@ const sampleEvents = computed(() => {
   color: var(--landing-muted);
 }
 
+.landing-footer-brand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
 .landing-footer-logo {
   height: 22px;
   width: auto;
@@ -984,9 +1024,34 @@ const sampleEvents = computed(() => {
   font-size: 12px;
 }
 
-.landing-footer-links {
+.landing-footer-line {
   display: flex;
-  gap: 16px;
+  align-items: center;
+  gap: 10px;
+  color: var(--landing-ink);
+  text-decoration: none;
+}
+
+.landing-footer-qr {
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--landing-border);
+  background: #fff;
+  padding: 4px;
+}
+
+.landing-footer-line-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--bujo-font-meta);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.landing-footer-line-text strong {
+  color: var(--landing-ink);
+  font-weight: 700;
 }
 
 /* RWD */
