@@ -217,7 +217,7 @@ const handleLogin = async () => {
     }
 
     authStore.setUser(data.user)
-    router.push('/')
+    router.push('/calendar')
   } catch {
     errorMsg.value = '網路錯誤，請確認連線後再試'
   } finally {
@@ -236,7 +236,7 @@ const handleCredentialResponse = async (response) => {
     const data = await res.json()
     if (!res.ok) throw new Error(data.error || 'Google 登入失敗')
     authStore.setUser(data.user)
-    router.push('/')
+    router.push('/calendar')
   } catch (err) {
     errorMsg.value = err.message || 'Google 登入失敗，請稍後再試'
   }
