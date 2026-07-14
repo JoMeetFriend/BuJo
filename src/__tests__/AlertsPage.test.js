@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import AlertsPage from '@/components/AlertsPage.vue'
 import alertsPageSource from '@/components/AlertsPage.vue?raw'
@@ -37,12 +38,23 @@ const secondNotification = {
   isRead: true,
 }
 
-function mountAlerts() {
+let router
+
+async function mountAlerts() {
   const pinia = createPinia()
   setActivePinia(pinia)
+  router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/alerts', component: AlertsPage },
+      { path: '/activity', component: { template: '<div>Activity</div>' } },
+    ],
+  })
+  router.push('/alerts')
+  await router.isReady()
   return mount(AlertsPage, {
     global: {
-      plugins: [pinia],
+      plugins: [pinia, router],
       stubs: {
         PixelButton: {
           props: ['disabled'],
@@ -94,7 +106,7 @@ beforeEach(() => {
 
 describe('AlertsPage notification swipe dismissal', () => {
   test('載入通知並提供固定列寬與 Pointer Events 測試基礎', async () => {
-    const wrapper = mountAlerts()
+    const wrapper = await mountAlerts()
     await flushPromises()
 
     const row = wrapper.get('.alerts-item')
@@ -107,7 +119,7 @@ describe('AlertsPage notification swipe dismissal', () => {
   })
 
   test('亮紅背景與垃圾桶圓環依 65% 刪除距離同步完成', async () => {
-    const wrapper = mountAlerts()
+    const wrapper = await mountAlerts()
     await flushPromises()
     const row = wrapper.get('.alerts-item')
     setRowWidth(row)
@@ -134,7 +146,7 @@ describe('AlertsPage notification swipe dismissal', () => {
   })
 
   test('垂直、向右與不足 10px 的手勢不移動通知', async () => {
-    const wrapper = mountAlerts()
+    const wrapper = await mountAlerts()
     await flushPromises()
     const row = wrapper.get('.alerts-item')
     setRowWidth(row)
@@ -156,7 +168,7 @@ describe('AlertsPage notification swipe dismissal', () => {
   })
 
   test('64% 左滑會彈回，65% 左滑才送出一次 dismissal', async () => {
-    const wrapper = mountAlerts()
+    const wrapper = await mountAlerts()
     await flushPromises()
     const row = wrapper.get('.alerts-item')
     setRowWidth(row)
@@ -176,7 +188,7 @@ describe('AlertsPage notification swipe dismissal', () => {
   })
 
   test('快速短滑不會略過 65% 位移門檻', async () => {
-    const wrapper = mountAlerts()
+    const wrapper = await mountAlerts()
     await flushPromises()
     const row = wrapper.get('.alerts-item')
     setRowWidth(row)
@@ -203,7 +215,7 @@ describe('AlertsPage notification swipe dismissal', () => {
       .mockResolvedValueOnce({
         data: { notifications: [{ ...friendRequest, isRead: true, actions: [] }] },
       })
-    const wrapper = mountAlerts()
+    const wrapper = await mountAlerts()
     await flushPromises()
     const row = wrapper.get('.alerts-item')
     setRowWidth(row)
@@ -229,7 +241,7 @@ describe('AlertsPage notification swipe dismissal', () => {
   test('dismissal 成功後才移除通知、重算摘要且不寫入 Web Storage', async () => {
     const storageSpy = vi.spyOn(Storage.prototype, 'setItem')
     api.get.mockResolvedValue({ data: { notifications: [notifications[0], secondNotification] } })
-    const wrapper = mountAlerts()
+    const wrapper = await mountAlerts()
     await flushPromises()
     const notificationStore = useNotificationStore()
 
@@ -265,7 +277,7 @@ describe('AlertsPage notification swipe dismissal', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     api.get.mockResolvedValue({ data: { notifications: [notifications[0], secondNotification] } })
     api.patch.mockRejectedValueOnce(failure)
-    const wrapper = mountAlerts()
+    const wrapper = await mountAlerts()
     await flushPromises()
 
     await dragLeft(wrapper.get('[data-notification-id="notification-1"] .alerts-item'), {
@@ -295,7 +307,7 @@ describe('AlertsPage notification swipe dismissal', () => {
         }),
     )
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    const wrapper = mountAlerts()
+    const wrapper = await mountAlerts()
     await flushPromises()
     const row = wrapper.get('.alerts-item')
 
@@ -310,7 +322,7 @@ describe('AlertsPage notification swipe dismissal', () => {
   })
 
   test('未拖曳時保留 click、Enter、Space 與全部已讀操作', async () => {
-    const wrapper = mountAlerts()
+    const wrapper = await mountAlerts()
     await flushPromises()
     const row = wrapper.get('.alerts-item')
 
@@ -319,14 +331,14 @@ describe('AlertsPage notification swipe dismissal', () => {
     expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-1/read')
 
     api.get.mockResolvedValue({ data: { notifications } })
-    const keyboardWrapper = mountAlerts()
+    const keyboardWrapper = await mountAlerts()
     await flushPromises()
     await keyboardWrapper.get('.alerts-item').trigger('keydown', { key: 'Enter' })
     await flushPromises()
     expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-1/read')
 
     api.get.mockResolvedValue({ data: { notifications } })
-    const allReadWrapper = mountAlerts()
+    const allReadWrapper = await mountAlerts()
     await flushPromises()
     await allReadWrapper
       .findAll('button')
@@ -337,7 +349,7 @@ describe('AlertsPage notification swipe dismissal', () => {
   })
 
   test('水平拖曳後產生的 click 不會額外標記已讀', async () => {
-    const wrapper = mountAlerts()
+    const wrapper = await mountAlerts()
     await flushPromises()
     const row = wrapper.get('.alerts-item')
     setRowWidth(row)
@@ -351,11 +363,109 @@ describe('AlertsPage notification swipe dismissal', () => {
   })
 
   test('垃圾桶提供可存取名稱且元件包含 reduced-motion 規則', async () => {
-    const wrapper = mountAlerts()
+    const wrapper = await mountAlerts()
     await flushPromises()
 
     expect(wrapper.get('[role="img"]').attributes('aria-label')).toBe('移除通知')
     expect(alertsPageSource).toContain('@media (prefers-reduced-motion: reduce)')
     expect(alertsPageSource).toContain('transition-duration: 1ms')
+  })
+})
+
+describe('AlertsPage activity notification deep link', () => {
+  const activityNotification = {
+    id: 'notification-act',
+    type: 'formation_ready',
+    category: 'activity',
+    message: '「週五羽球」人數已滿，請確認成團',
+    timeText: '剛剛',
+    isRead: false,
+    actions: [],
+    reference: { type: 'activity', id: 42, status: 'voting' },
+  }
+
+  test('點擊活動通知後標記已讀並導向 /activity?focus=<id>', async () => {
+    api.get.mockResolvedValue({ data: { notifications: [activityNotification] } })
+    const wrapper = await mountAlerts()
+    await flushPromises()
+
+    await wrapper.get('.alerts-item').trigger('click')
+    await flushPromises()
+
+    expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-act/read')
+    expect(router.currentRoute.value.path).toBe('/activity')
+    expect(router.currentRoute.value.query.focus).toBe('42')
+  })
+
+  test('markAsRead 失敗時仍導向活動頁', async () => {
+    api.get.mockResolvedValue({ data: { notifications: [activityNotification] } })
+    api.patch.mockRejectedValue(new Error('mark read failed'))
+    const wrapper = await mountAlerts()
+    await flushPromises()
+
+    await wrapper.get('.alerts-item').trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.path).toBe('/activity')
+    expect(router.currentRoute.value.query.focus).toBe('42')
+  })
+
+  test('四種活動生命週期通知渲染後端文案與 activity icon 且無接受/拒絕按鈕', async () => {
+    const lifecycleNotifications = [
+      { type: 'formation_ready', message: '「週五羽球」人數已滿，請確認成團' },
+      { type: 'time_to_pick', message: '「週五羽球」候選時段票數不相上下，請選擇最終時段' },
+      { type: 'activity_confirmed', message: '「週五羽球」已確認成團' },
+      { type: 'activity_cancelled', message: '「週五羽球」已取消' },
+    ].map((partial, index) => ({
+      ...activityNotification,
+      ...partial,
+      id: `notification-lifecycle-${index}`,
+    }))
+    api.get.mockResolvedValue({ data: { notifications: lifecycleNotifications } })
+    const wrapper = await mountAlerts()
+    await flushPromises()
+
+    for (const notification of lifecycleNotifications) {
+      expect(wrapper.text()).toContain(notification.message)
+    }
+    expect(wrapper.findAll('.notification-icon--activity')).toHaveLength(4)
+    expect(wrapper.findAll('button').filter((b) => ['接受', '拒絕'].includes(b.text()))).toHaveLength(
+      0,
+    )
+  })
+
+  test('活動生命週期通知可完成滑動 dismiss', async () => {
+    api.get.mockResolvedValue({ data: { notifications: [activityNotification] } })
+    const wrapper = await mountAlerts()
+    await flushPromises()
+    const row = wrapper.get('.alerts-item')
+
+    await dragLeft(row, { to: 100 })
+    await flushPromises()
+
+    expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-act/dismiss')
+  })
+
+  test('非活動 reference 的通知點擊後只標記已讀不導頁', async () => {
+    api.get.mockResolvedValue({
+      data: {
+        notifications: [
+          {
+            ...activityNotification,
+            id: 'notification-friend',
+            category: 'friend',
+            reference: { type: 'friendship', id: 'friendship-1' },
+          },
+        ],
+      },
+    })
+    const wrapper = await mountAlerts()
+    await flushPromises()
+
+    await wrapper.get('.alerts-item').trigger('click')
+    await flushPromises()
+
+    expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-friend/read')
+    expect(router.currentRoute.value.path).toBe('/alerts')
   })
 })

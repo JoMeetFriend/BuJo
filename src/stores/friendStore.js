@@ -29,6 +29,20 @@ export const useFriendStore = defineStore('friend', () => {
     }
   }
 
+  const removeFriend = async (friendshipId) => {
+    try {
+      await apiClient.delete(`/api/friendships/${friendshipId}`)
+      friends.value = friends.value.filter((f) => f.friendship_id !== friendshipId)
+      return { success: true }
+    } catch (err) {
+      console.error('刪除好友失敗:', err)
+      return {
+        success: false,
+        message: err.response?.data?.message || '刪除失敗',
+      }
+    }
+  }
+
   const addFriend = async (targetId) => {
     if (!targetId) return { success: false, message: '無效的使用者' }
     try {
@@ -48,5 +62,6 @@ export const useFriendStore = defineStore('friend', () => {
     error,
     fetchFriends,
     addFriend,
+    removeFriend,
   }
 })

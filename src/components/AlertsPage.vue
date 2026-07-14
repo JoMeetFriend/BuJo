@@ -68,8 +68,8 @@
               role="button"
               tabindex="0"
               @click="handleNotificationClick(notification)"
-              @keydown.enter.prevent="markAsRead(notification)"
-              @keydown.space.prevent="markAsRead(notification)"
+              @keydown.enter.prevent="handleNotificationClick(notification)"
+              @keydown.space.prevent="handleNotificationClick(notification)"
               @pointerdown="startSwipe(notification, $event)"
               @pointermove="moveSwipe(notification, $event)"
               @pointerup="finishSwipe(notification, $event)"
@@ -133,6 +133,7 @@
 import axios from 'axios'
 import { TrashIcon } from '@heroicons/vue/24/outline'
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import PixelButton from './ui/PixelButton.vue'
 import { useNotificationStore } from '@/stores/notificationStore'
 
@@ -143,6 +144,7 @@ const apiClient = axios.create({
 })
 
 const notificationStore = useNotificationStore()
+const router = useRouter()
 
 const notifications = ref([])
 const isLoading = ref(false)
@@ -201,10 +203,15 @@ async function markAsRead(notification) {
   }
 }
 
-function handleNotificationClick(notification) {
+async function handleNotificationClick(notification) {
   const state = swipeState(notification.id)
   if (state?.dismissing || (state?.suppressClickUntil || 0) >= performance.now()) return
-  markAsRead(notification)
+  // markAsRead 自行吞錯（只設 error.value），失敗不阻擋導頁
+  await markAsRead(notification)
+  const reference = notification.reference
+  if (reference?.type === 'activity' && reference.id != null) {
+    router.push({ path: '/activity', query: { focus: String(reference.id) } })
+  }
 }
 
 function canDismiss(notification) {

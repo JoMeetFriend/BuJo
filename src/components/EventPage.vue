@@ -1420,6 +1420,8 @@ const isScheduleCeilingWarning = computed(() => withinSafetyBuffer(scheduleCeili
 // 距今多久——活動距今很近時兩個算出來的時間通常會同步貼近現在，但活動距今稍遠時兩者會脫鉤
 // （例如自動選中的偏移量剛好讓算出來的報名截止時間貼近現在），這種情況舊邏輯完全偵測不到
 // eslint-disable-next-line no-unused-vars -- EventPage tests assert this setup state through wrapper.vm.
+// 不在 template 內使用，僅供測試透過 wrapper.vm 讀取內部狀態
+// eslint-disable-next-line no-unused-vars
 const isUrgent = computed(() => isReportCutoffWarning.value || isScheduleCeilingWarning.value)
 
 // 距天花板還有幾分鐘（第二行警示文案、二次確認 modal 都要用）

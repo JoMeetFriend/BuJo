@@ -13,11 +13,9 @@ export const useNotificationStore = defineStore('notification', () => {
 
   const fetchUnreadCount = async () => {
     try {
-      const response = await apiClient.get('/api/notifications')
-      const notifications = Array.isArray(response.data?.notifications)
-        ? response.data.notifications
-        : []
-      unreadCount.value = notifications.filter((notification) => !notification.isRead).length
+      const response = await apiClient.get('/api/notifications/unread-count')
+      const count = Number(response.data?.unreadCount)
+      setUnreadCount(Number.isFinite(count) ? count : 0)
     } catch (err) {
       console.error('取得未讀通知數失敗:', err)
     }
