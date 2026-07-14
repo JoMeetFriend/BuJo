@@ -198,7 +198,7 @@ const handleRegister = async () => {
 
     authStore.setUser(data.user)
     successMsg.value = '註冊成功！即將跳轉...'
-    setTimeout(() => router.push('/'), 1200)
+    setTimeout(() => router.push('/calendar'), 1200)
   } catch {
     errorMsg.value = '網路錯誤，請確認連線後再試'
   } finally {

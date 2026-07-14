@@ -139,13 +139,18 @@
               :class="[cell.date && isToday(cell.date) ? 'is-today' : cell.faded ? 'is-faded' : '']"
               :role="cell.date ? 'button' : undefined"
               :tabindex="cell.date ? 0 : undefined"
+              :aria-current="cell.date && isToday(cell.date) ? 'date' : undefined"
               @click="openDateModal(cell.date)"
               @keydown.enter.prevent="openDateModal(cell.date)"
               @keydown.space.prevent="openDateModal(cell.date)"
             >
               <!-- 日期數字（只有當月才顯示） -->
-              <div class="w-full p-1 md:p-2">
-                <span v-if="cell.day" class="calendar-day-number">
+              <div class="w-full p-1 leading-none md:p-1.5">
+                <span
+                  v-if="cell.day"
+                  class="calendar-day-number"
+                  :class="{ 'calendar-day-number--today': cell.date && isToday(cell.date) }"
+                >
                   {{ cell.day }}
                 </span>
               </div>
@@ -640,8 +645,7 @@ function isToday(date) {
   height: 100%;
   overflow: hidden;
   background-color: #f5f3ec;
-  background-image:
-    radial-gradient(circle, rgb(var(--bujo-line-rgb) / 0.11) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgb(var(--bujo-line-rgb) / 0.11) 1px, transparent 1px);
   background-position: 0 0;
   background-size: 24px 24px;
   color: var(--bujo-text-body);
@@ -991,6 +995,14 @@ function isToday(date) {
   flex: 0 0 auto;
 }
 
+/* 桌面版：日曆往下延伸進紙張底部內距，負 margin 抵銷高度差，紙張不會被撐高 */
+@media (min-width: 768px) {
+  .calendar-board {
+    height: calc(clamp(390px, 53vh, 440px) + 24px);
+    margin-bottom: -24px;
+  }
+}
+
 .calendar-week-row {
   position: relative;
   z-index: 3;
@@ -1041,18 +1053,39 @@ function isToday(date) {
   background: rgb(var(--bujo-page-rgb) / 0.36);
 }
 
-.calendar-cell.is-today {
-  background: var(--bujo-today);
-  box-shadow: inset 0 0 0 1px var(--bujo-accent);
-}
-
 .calendar-day-number {
-  display: block;
+  display: inline-block;
   color: var(--bujo-text-muted);
   font-family: var(--bujo-font-meta);
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
+}
+
+.calendar-day-number--today {
+  position: relative;
+  z-index: 0;
+  color: var(--bujo-ink);
+}
+
+.calendar-day-number--today::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bujo-notification) 40%, var(--bujo-white));
+  transform: translate(-50%, -50%);
+  content: '';
+}
+
+@media (min-width: 768px) {
+  .calendar-day-number--today::before {
+    width: 22px;
+    height: 22px;
+  }
 }
 
 .calendar-event-chip {

@@ -1,4 +1,4 @@
-<!-- 按鈕樣式（Outline Button，見 BuJo_Visual_Specification_v1.md 第 10 節）：
+<!-- 按鈕樣式（見 BuJo_Visual_Specification_v1.md 的 Button System 與 Modern Paper 校正）：
 動畫、hover、樣式全部封裝在內，不需要額外設定。
 用到這個樣式時：
 引入：
