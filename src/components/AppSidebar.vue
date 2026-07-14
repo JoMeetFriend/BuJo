@@ -18,7 +18,7 @@
           :to="item.to"
           class="bujo-sidebar-link group"
           :class="{
-            'is-active': route.path === item.to || (item.to === '/' && route.path === '/'),
+            'is-active': route.path === item.to,
           }"
         >
           <span class="bujo-sidebar-active-line" aria-hidden="true"></span>
@@ -126,7 +126,7 @@
         :key="item.label"
         :to="item.to"
         class="bujo-mobile-nav-link"
-        :class="{ 'is-active': route.path === item.to || (item.to === '/' && route.path === '/') }"
+        :class="{ 'is-active': route.path === item.to }"
         @click="drawerOpen = false"
         :aria-label="item.label"
       >
@@ -186,7 +186,7 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
-const isCalendarPage = computed(() => route.path === '/')
+const isCalendarPage = computed(() => route.path === '/calendar')
 const userAvatarSrc = computed(() => toAvatarSrc(authStore.user?.avatar_url))
 
 // 未讀數更新時機：掛載、瀏覽器分頁回到可見（如從 LINE 推播返回）、App 內換頁
@@ -221,7 +221,7 @@ const profileBtnBouncing = ref(false)
 const showProfileModal = ref(false)
 
 const navItems = [
-  { label: 'CALENDAR', to: '/', icon: 'calendar' },
+  { label: 'CALENDAR', to: '/calendar', icon: 'calendar' },
   { label: 'ACTIVITY', to: '/activity', icon: 'activity' },
   { label: 'FRIENDS', to: '/friends-page', icon: 'friends' },
   { label: 'ALERTS', to: '/alerts', icon: 'alerts' },

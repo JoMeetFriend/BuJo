@@ -6,6 +6,11 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      name: 'landing',
+      component: () => import('../components/LandingPage.vue'),
+    },
+    {
+      path: '/calendar',
       name: 'calendar-page',
       component: () => import('../components/CalendarMain.vue'),
       // 有meta: { requiresAuth: true }的部分需要登入才看得到頁面
@@ -78,7 +83,10 @@ router.beforeEach(async (to) => {
   }
 
   const guestOnly = to.path === '/login' || to.path === '/register'
-  if (guestOnly && authStore.user) return '/'
+  if (guestOnly && authStore.user) return '/calendar'
+
+  // 已登入使用者訪問行銷首頁時直接導向行事曆，避免看到訪客用的 landing page
+  if (to.path === '/' && authStore.user) return '/calendar'
 
   if (to.meta.requiresAuth && !authStore.user) return '/login'
 
