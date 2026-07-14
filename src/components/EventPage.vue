@@ -46,7 +46,12 @@
           </label>
 
           <div :class="fieldClass">
-            <span :class="fieldLabelClass">人數上限</span>
+            <span class="flex items-baseline gap-1.5">
+              <span :class="fieldLabelClass">人數上限</span>
+              <span class="text-[11px] font-normal leading-none text-[var(--bujo-muted)]">
+                含自己
+              </span>
+            </span>
             <span class="relative block">
               <input
                 id="event-limit"
@@ -54,13 +59,10 @@
                 :class="[inputClass, 'pr-9']"
                 type="number"
                 inputmode="numeric"
+                min="2"
+                step="1"
                 placeholder="不限"
-                @input="
-                  form.limit =
-                    $event.target.value === '' || Number($event.target.value) <= 0
-                      ? null
-                      : Number($event.target.value)
-                "
+                @input="updateLimit($event.target.value)"
               />
               <button
                 type="button"
@@ -969,6 +971,21 @@ const form = reactive({
   singleDate: today,
   note: '',
 })
+
+function updateLimit(value) {
+  if (value === '') {
+    form.limit = null
+    return
+  }
+
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) {
+    form.limit = null
+    return
+  }
+
+  form.limit = Math.max(2, Math.floor(numericValue))
+}
 
 // 情境一（日期X時間皆已確定）：開始日期是今天時，只能約當天某個時段，不能整日，
 // 所以把「整日」選項藏起來，並清掉可能殘留的勾選

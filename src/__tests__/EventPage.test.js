@@ -184,6 +184,30 @@ describe('EventPage - 日期與時間模式 switch UI', () => {
   })
 })
 
+describe('EventPage - 人數上限輸入', () => {
+  test('有填人數上限時最小值為 2，清空時維持不限', async () => {
+    const wrapper = await mountEventPage()
+    const limitInput = queryBody('#event-limit')
+
+    expect(limitInput.getAttribute('min')).toBe('2')
+    expect(limitInput.getAttribute('step')).toBe('1')
+
+    setInputValue(limitInput, '1')
+    await flushPromises()
+    expect(wrapper.vm.form.limit).toBe(2)
+
+    setInputValue(limitInput, '-1')
+    await flushPromises()
+    expect(wrapper.vm.form.limit).toBe(2)
+
+    setInputValue(limitInput, '')
+    await flushPromises()
+    expect(wrapper.vm.form.limit).toBeNull()
+
+    wrapper.unmount()
+  })
+})
+
 describe('EventPage - 情境二（日期確定、時間未確定）表單簡化', () => {
   beforeEach(() => {
     // 固定在早上，跟這些測試裡挑選的時段（上午 9:00／下午 2:00 等）都離「現在」夠遠，
