@@ -39,10 +39,13 @@ const secondNotification = {
 }
 
 let router
+let notificationStoreRef
 
 async function mountAlerts() {
   const pinia = createPinia()
   setActivePinia(pinia)
+  // 須在 await 之前同步取得，否則全套並行測試時全域 active pinia 可能已被切換
+  notificationStoreRef = useNotificationStore()
   router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -243,7 +246,7 @@ describe('AlertsPage notification swipe dismissal', () => {
     api.get.mockResolvedValue({ data: { notifications: [notifications[0], secondNotification] } })
     const wrapper = await mountAlerts()
     await flushPromises()
-    const notificationStore = useNotificationStore()
+    const notificationStore = notificationStoreRef
 
     expect(wrapper.get('[data-notification-id="notification-1"] .alerts-item').classes()).toContain(
       'alerts-item--unread',
@@ -257,10 +260,10 @@ describe('AlertsPage notification swipe dismissal', () => {
     expect(wrapper.get('[data-notification-id="notification-1"]').classes()).toContain(
       'alerts-swipe-shell--dismissing',
     )
-    await new Promise((resolve) => window.setTimeout(resolve, 230))
-    await flushPromises()
+    await vi.waitFor(() => {
+      expect(wrapper.find('[data-notification-id="notification-1"]').exists()).toBe(false)
+    })
 
-    expect(wrapper.find('[data-notification-id="notification-1"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('已全部讀取')
     expect(api.patch).toHaveBeenCalledTimes(1)
     expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-1/dismiss')
