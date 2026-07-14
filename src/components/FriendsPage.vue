@@ -209,6 +209,7 @@ onMounted(() => {
   min-height: 130px;
   justify-content: flex-start;
   align-self: start;
+  min-width: 0;
 }
 
 .friend-stamp:hover {
@@ -345,9 +346,13 @@ onMounted(() => {
 .is-expanded .friend-bio-text {
   -webkit-line-clamp: unset;
   line-clamp: unset;
-  text-align: left;
-  color: var(--bujo-ink);
 
+  display: block;
+  width: fit-content;
+  margin: 0 auto;
+  text-align: left;
+
+  color: var(--bujo-ink);
   white-space: normal;
   word-break: break-all;
 }
