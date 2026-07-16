@@ -237,6 +237,198 @@ describe('AlertsPage read state visuals', () => {
   })
 })
 
+describe('AlertsPage fine-hover dismissal', () => {
+  const readActivityNotification = {
+    id: 'notification-hover-act',
+    type: 'activity_confirmed',
+    category: 'activity',
+    message: '「週五羽球」已確認成團',
+    timeText: '1 小時前',
+    isRead: true,
+    actions: [],
+    reference: { type: 'activity', id: 42, status: 'confirmed' },
+  }
+
+  test.each([
+    ['fine-hover', false, [], 'hover', true, 'absent'],
+    ['fine-hover', true, [], 'idle', false, 'visually-hidden'],
+    ['fine-hover', true, [], 'hover', false, 'hover-visible'],
+    ['fine-hover', true, [], 'keyboard-focus', false, 'focus-visible'],
+    ['fine-hover', true, ['accept', 'reject'], 'hover', false, 'absent'],
+    ['touch-only', true, [], 'idle', false, 'touch-hidden'],
+  ])(
+    '%s / %s / %s 依 state matrix 顯示未讀點與 X',
+    async (inputCapability, isRead, actions, interaction, showUnread, dismissMode) => {
+      const notification = {
+        ...notifications[0],
+        id: `notification-matrix-${inputCapability}-${interaction}`,
+        isRead,
+        actions,
+        reference: actions.length
+          ? { type: 'friendship', id: 'friendship-matrix' }
+          : notifications[0].reference,
+      }
+      api.get.mockResolvedValueOnce({ data: { notifications: [notification] } })
+      const wrapper = await mountAlerts()
+      await flushPromises()
+
+      const row = wrapper.get('.alerts-item')
+      const dismissControl = row.find('.alerts-hover-dismiss')
+
+      expect(row.find('.alerts-unread-indicator').exists()).toBe(showUnread)
+
+      if (dismissMode === 'absent') {
+        expect(dismissControl.exists()).toBe(false)
+      } else {
+        expect(dismissControl.attributes('aria-label')).toBe('移除通知')
+      }
+
+      if (dismissMode === 'visually-hidden') {
+        expect(alertsPageSource).toContain('opacity: 0')
+        expect(alertsPageSource).toContain('pointer-events: none')
+      }
+      if (dismissMode === 'hover-visible') {
+        expect(alertsPageSource).toContain('.alerts-item:hover .alerts-hover-dismiss')
+      }
+      if (dismissMode === 'focus-visible') {
+        expect(alertsPageSource).toContain('.alerts-item:focus-within .alerts-hover-dismiss')
+      }
+      if (dismissMode === 'touch-hidden') {
+        expect(alertsPageSource).toContain('.alerts-hover-dismiss {\n  display: none;')
+        expect(alertsPageSource).toContain('@media (hover: hover) and (pointer: fine)')
+      }
+    },
+  )
+
+  test('fine-hover X 預留固定空間並套用指定 hover、focus 與 reduced-motion 視覺', () => {
+    expect(alertsPageSource).toContain('@media (hover: hover) and (pointer: fine)')
+    expect(alertsPageSource).not.toContain('@media (min-width: 768px)')
+    expect(alertsPageSource).toContain('.alerts-hover-dismiss')
+    expect(alertsPageSource).toContain('width: 32px')
+    expect(alertsPageSource).toContain('height: 32px')
+    expect(alertsPageSource).toMatch(
+      /@media \(hover: hover\) and \(pointer: fine\)[\s\S]*?\.alerts-hover-dismiss \{[^}]*align-self: center/,
+    )
+    expect(alertsPageSource).toContain('border-radius: 8px')
+    expect(alertsPageSource).toContain('color: #98968a')
+    expect(alertsPageSource).toContain('opacity 180ms ease')
+    expect(alertsPageSource).toContain('transform: translateY(10px)')
+    expect(alertsPageSource).toContain('.alerts-item:focus-within .alerts-hover-dismiss')
+    expect(alertsPageSource).toContain('background: rgba(196, 64, 52, 0.12)')
+    expect(alertsPageSource).toContain('color: #c44034')
+    expect(alertsPageSource).toContain('transition-duration: 1ms')
+    expect(alertsPageSource).toContain('.alerts-hover-dismiss {\n  display: none;')
+  })
+
+  test('點擊 X 只送出一次 dismiss，不標記已讀也不導頁', async () => {
+    api.get.mockResolvedValueOnce({ data: { notifications: [readActivityNotification] } })
+    const wrapper = await mountAlerts()
+    await flushPromises()
+    const row = wrapper.get('.alerts-item')
+    const dismissButton = wrapper.get('.alerts-hover-dismiss')
+    setRowWidth(row)
+
+    expect(dismissButton.attributes('type')).toBe('button')
+    await pointer(dismissButton, 'pointerdown', { x: 280, pointerType: 'mouse' })
+    await pointer(row, 'pointermove', { x: 200, pointerType: 'mouse' })
+    expect(row.attributes('style')).toContain('translateX(0px)')
+    await dismissButton.trigger('keydown', { key: 'Enter' })
+    expect(router.currentRoute.value.path).toBe('/alerts')
+    expect(api.patch).not.toHaveBeenCalled()
+    await dismissButton.trigger('click')
+
+    expect(api.patch).toHaveBeenCalledTimes(1)
+    expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-hover-act/dismiss')
+    expect(api.patch).not.toHaveBeenCalledWith('/api/notifications/notification-hover-act/read')
+    expect(router.currentRoute.value.path).toBe('/alerts')
+    await vi.waitFor(() => {
+      expect(wrapper.find('[data-notification-id="notification-hover-act"]').exists()).toBe(false)
+    })
+  })
+
+  test('點擊 X pending 期間只垂直收合，維持零水平位移與零滑動進度', async () => {
+    let resolveDismissal
+    api.get.mockResolvedValueOnce({ data: { notifications: [readActivityNotification] } })
+    api.patch.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveDismissal = resolve
+        }),
+    )
+    const wrapper = await mountAlerts()
+    await flushPromises()
+    const shell = wrapper.get('[data-notification-id="notification-hover-act"]')
+    const row = shell.get('.alerts-item')
+    const affordance = shell.get('.alerts-dismiss-affordance')
+    const ring = shell.get('.alerts-dismiss-progress-ring circle')
+    setRowWidth(row)
+
+    await shell.get('.alerts-hover-dismiss').trigger('click')
+    await nextTick()
+
+    expect(shell.classes()).toContain('alerts-swipe-shell--dismissing')
+    expect(row.attributes('style')).toContain('translateX(0px)')
+    expect(affordance.attributes('style')).toContain('--dismiss-progress: 0')
+    expect(ring.attributes('style')).toContain('stroke-dashoffset: 100')
+    expect(alertsPageSource).toContain('grid-template-rows: 1fr')
+    expect(alertsPageSource).toContain('grid-template-rows: 0fr')
+    expect(alertsPageSource).toContain('margin-bottom: 12px')
+    expect(alertsPageSource).not.toContain('max-height: 320px')
+    expect(alertsPageSource).not.toContain('class="flex flex-col gap-3"')
+    expect(api.patch).toHaveBeenCalledTimes(1)
+    expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-hover-act/dismiss')
+
+    resolveDismissal({ data: { message: 'ok' } })
+    await vi.waitFor(() => {
+      expect(wrapper.find('[data-notification-id="notification-hover-act"]').exists()).toBe(false)
+    })
+  })
+
+  test.each([
+    ['HTTP', { response: { status: 500 } }],
+    ['network', new Error('Network Error')],
+  ])('X dismissal %s 失敗時保留已讀通知並顯示錯誤', async (_label, failure) => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    api.get.mockResolvedValueOnce({ data: { notifications: [readActivityNotification] } })
+    api.patch.mockRejectedValueOnce(failure)
+    const wrapper = await mountAlerts()
+    await flushPromises()
+
+    await wrapper.get('.alerts-hover-dismiss').trigger('click')
+    await flushPromises()
+
+    const row = wrapper.get('[data-notification-id="notification-hover-act"] .alerts-item')
+    expect(row.classes()).not.toContain('alerts-item--unread')
+    expect(row.get('.alerts-hover-dismiss').exists()).toBe(true)
+    expect(wrapper.text()).toContain('無法移除通知')
+    expect(router.currentRoute.value.path).toBe('/alerts')
+  })
+
+  test('處理完的好友邀請重新取得 hover X 資格', async () => {
+    const friendRequest = {
+      ...notifications[0],
+      id: 'friend-request-hover-processed',
+      type: 'friend_request_created',
+      category: 'friend',
+      reference: { id: 'friendship-hover-processed' },
+      actions: ['accept', 'reject'],
+    }
+    api.get
+      .mockResolvedValueOnce({ data: { notifications: [friendRequest] } })
+      .mockResolvedValueOnce({
+        data: { notifications: [{ ...friendRequest, isRead: true, actions: [] }] },
+      })
+    const wrapper = await mountAlerts()
+    await flushPromises()
+
+    expect(wrapper.find('.alerts-hover-dismiss').exists()).toBe(false)
+    await wrapper.get('.alerts-inline-btn--accept').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.get('.alerts-hover-dismiss').attributes('aria-label')).toBe('移除通知')
+  })
+})
+
 describe('AlertsPage notification swipe dismissal', () => {
   test('載入通知並提供固定列寬與 Pointer Events 測試基礎', async () => {
     const wrapper = await mountAlerts()
@@ -316,6 +508,13 @@ describe('AlertsPage notification swipe dismissal', () => {
     await pointer(row, 'pointermove', { x: 105, pointerId: 2 })
     await pointer(row, 'pointerup', { x: 105, pointerId: 2 })
 
+    expect(row.attributes('style')).toContain('translateX(-300px)')
+    expect(wrapper.get('.alerts-dismiss-affordance').attributes('style')).toContain(
+      '--dismiss-progress: 1',
+    )
+    expect(wrapper.get('.alerts-dismiss-progress-ring circle').attributes('style')).toContain(
+      'stroke-dashoffset: 0',
+    )
     expect(api.patch).toHaveBeenCalledTimes(1)
     expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-1/dismiss')
   })
@@ -498,6 +697,30 @@ describe('AlertsPage notification swipe dismissal', () => {
     expect(api.patch).not.toHaveBeenCalled()
     expect(router.currentRoute.value.path).toBe('/alerts')
     nowSpy.mockRestore()
+  })
+
+  test.each([
+    ['mouse', 'mouse'],
+    ['pen', 'pen'],
+    ['未提供 pointer type', ''],
+  ])('%s 橫向拖曳期間維持零位移、零進度且不送 dismiss', async (_label, pointerType) => {
+    const wrapper = await mountAlerts()
+    await flushPromises()
+    const row = wrapper.get('.alerts-item')
+    const affordance = wrapper.get('.alerts-dismiss-affordance')
+    const ring = wrapper.get('.alerts-dismiss-progress-ring circle')
+    setRowWidth(row)
+
+    await pointer(row, 'pointerdown', { x: 300, pointerType })
+    await pointer(row, 'pointermove', { x: 60, pointerType })
+
+    expect(row.attributes('style')).toContain('translateX(0px)')
+    expect(affordance.attributes('style')).toContain('--dismiss-progress: 0')
+    expect(ring.attributes('style')).toContain('stroke-dashoffset: 100')
+
+    await pointer(row, 'pointerup', { x: 60, pointerType })
+
+    expect(api.patch).not.toHaveBeenCalled()
   })
 
   test('拖曳後的 click 只被阻擋一次，下一次正常 click 可標記已讀', async () => {

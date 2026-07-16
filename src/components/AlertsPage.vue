@@ -21,7 +21,7 @@
 
       <div v-if="!isLoading && notifications.length === 0" class="alerts-empty">目前沒有通知</div>
 
-      <ul v-else class="flex flex-col gap-3">
+      <ul v-else class="flex flex-col">
         <li
           v-for="(notification, index) in notifications"
           :key="notification.id"
@@ -58,7 +58,7 @@
             </div>
           </div>
 
-          <div class="flex min-w-0 flex-1 flex-col gap-2">
+          <div class="alerts-swipe-content flex min-w-0 flex-1 flex-col gap-2">
             <div
               class="alerts-item"
               :class="{
@@ -129,6 +129,25 @@
                 class="alerts-unread-indicator"
                 aria-hidden="true"
               ></span>
+
+              <button
+                v-if="canHoverDismiss(notification)"
+                type="button"
+                class="alerts-hover-dismiss"
+                aria-label="移除通知"
+                @pointerdown.stop
+                @keydown.stop
+                @click.stop="dismissNotificationFromButton(notification, $event)"
+              >
+                <svg viewBox="0 0 14 14" fill="none" aria-hidden="true" focusable="false">
+                  <path
+                    d="M3 3l8 8M11 3l-8 8"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
         </li>
@@ -166,7 +185,7 @@ const activeSwipeId = ref(null)
 const SWIPE_LOCK_DISTANCE = 10
 const SWIPE_AXIS_RATIO = 1.25
 const SWIPE_DISMISS_RATIO = 0.65
-const SWIPE_ANIMATION_MS = 220
+const SWIPE_ANIMATION_MS = 540
 const ENTRY_STAGGER_MS = 60
 const ENTRY_STAGGER_MAX_INDEX = 7
 
@@ -245,6 +264,10 @@ function canDismiss(notification) {
   return !notification.actions?.some((action) => action === 'accept' || action === 'reject')
 }
 
+function canHoverDismiss(notification) {
+  return Boolean(notification?.isRead && canDismiss(notification))
+}
+
 function swipeState(notificationId) {
   return swipeStates[notificationId]
 }
@@ -252,6 +275,7 @@ function swipeState(notificationId) {
 function createSwipeState() {
   return {
     pointerId: null,
+    pointerType: '',
     startX: 0,
     startY: 0,
     width: 0,
@@ -279,6 +303,7 @@ function startSwipe(notification, event) {
   if (!canDismiss(notification) || state.dismissing) return
 
   state.pointerId = event.pointerId
+  state.pointerType = event.pointerType || ''
   state.startX = event.clientX
   state.startY = event.clientY
   state.width = event.currentTarget.clientWidth
@@ -315,6 +340,10 @@ function moveSwipe(notification, event) {
   if (state.axis !== 'horizontal') return
 
   event.preventDefault()
+  if (state.pointerType !== 'touch') {
+    state.offset = 0
+    return
+  }
   state.offset = Math.max(-state.width, Math.min(0, deltaX))
 }
 
@@ -326,8 +355,12 @@ function finishSwipe(notification, event) {
   state.pointerId = null
   activeSwipeId.value = null
 
-  if (state.axis === 'horizontal' && Math.abs(state.offset) >= state.width * SWIPE_DISMISS_RATIO) {
-    void dismissNotification(notification, state)
+  if (
+    state.pointerType === 'touch' &&
+    state.axis === 'horizontal' &&
+    Math.abs(state.offset) >= state.width * SWIPE_DISMISS_RATIO
+  ) {
+    void dismissNotification(notification, state, 'swipe')
     return
   }
 
@@ -345,6 +378,7 @@ function cancelSwipe(notification, event) {
 
 function resetSwipeState(state) {
   state.pointerId = null
+  state.pointerType = ''
   state.offset = 0
   state.axis = 'pending'
   state.dragging = false
@@ -380,11 +414,11 @@ function dismissProgress(notificationId) {
   return dismissDistance > 0 ? Math.min(1, Math.abs(state?.offset || 0) / dismissDistance) : 0
 }
 
-async function dismissNotification(notification, state) {
+async function dismissNotification(notification, state, visualMode) {
   state.dragging = false
   state.dismissing = true
   state.collapsing = true
-  state.offset = -state.width
+  state.offset = visualMode === 'swipe' ? -state.width : 0
   error.value = null
 
   try {
@@ -402,6 +436,16 @@ async function dismissNotification(notification, state) {
     resetSwipeState(state)
     error.value = '無法移除通知'
   }
+}
+
+function dismissNotificationFromButton(notification, event) {
+  if (!canHoverDismiss(notification)) return
+
+  const state = ensureSwipeState(notification.id)
+  if (state.dismissing) return
+
+  state.width = event.currentTarget.closest('.alerts-item')?.clientWidth || 0
+  void dismissNotification(notification, state, 'collapse')
 }
 
 function waitForSwipeAnimation() {
@@ -543,13 +587,27 @@ function setActionBusy(notificationId, isBusy) {
 
 .alerts-swipe-shell {
   position: relative;
-  max-height: 320px;
+  display: grid;
+  grid-template-rows: 1fr;
+  margin-bottom: 12px;
   overflow: hidden;
-  transition: max-height 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition:
+    grid-template-rows 500ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    margin-bottom 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.alerts-swipe-shell:last-child {
+  margin-bottom: 0;
+}
+
+.alerts-swipe-content {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .alerts-swipe-shell--dismissing {
-  max-height: 0;
+  grid-template-rows: 0fr;
+  margin-bottom: 0;
 }
 
 .alerts-swipe-shell--entering {
@@ -762,6 +820,54 @@ function setActionBusy(notificationId, isBusy) {
   animation: alerts-unread-pulse 2.4s ease-in-out infinite;
 }
 
+.alerts-hover-dismiss {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .alerts-hover-dismiss {
+    display: flex;
+    width: 32px;
+    height: 32px;
+    flex: none;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #98968a;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease,
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+
+  .alerts-hover-dismiss svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .alerts-item:hover .alerts-hover-dismiss,
+  .alerts-item:focus-within .alerts-hover-dismiss,
+  .alerts-hover-dismiss:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .alerts-hover-dismiss:hover,
+  .alerts-hover-dismiss:focus-visible {
+    background: rgba(196, 64, 52, 0.12);
+    color: #c44034;
+  }
+}
+
 @keyframes alerts-unread-pulse {
   0%,
   100% {
@@ -785,6 +891,11 @@ function setActionBusy(notificationId, isBusy) {
 
   .alerts-unread-indicator {
     animation: none;
+  }
+
+  .alerts-hover-dismiss {
+    transform: none;
+    transition-duration: 1ms;
   }
 }
 </style>
