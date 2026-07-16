@@ -1421,11 +1421,9 @@ function formatDateKey(dateKey) {
 }
 
 function formatTime(date) {
-  const h = date.getHours()
-  const min = date.getMinutes()
-  const period = h < 12 ? '上午' : '下午'
-  const hour = h % 12 || 12
-  return `${period} ${hour}:${String(min).padStart(2, '0')}`
+  const hour = String(date.getHours()).padStart(2, '0')
+  const min = String(date.getMinutes()).padStart(2, '0')
+  return `${hour}:${min}`
 }
 </script>
 

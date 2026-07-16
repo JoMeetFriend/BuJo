@@ -284,6 +284,7 @@
 import { ref, reactive, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import PixelButton from './ui/PixelButton.vue'
 import BaseModal from './ui/BaseModal.vue'
+import { formatHourAsTimeString } from '@/utils/timeFormat'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -600,10 +601,8 @@ function resetAllDay() {
 }
 
 const allHourOptions = Array.from({ length: 24 }, (_, hour) => {
-  const period = hour < 12 ? '上午' : '下午'
-  const display = String(hour % 12 || 12)
-  const value = String(hour).padStart(2, '0') + ':00'
-  return { label: `${period} ${display}:00`, value }
+  const value = formatHourAsTimeString(hour)
+  return { label: value, value }
 })
 
 // 情境無關的窗口邊界查詢：優先看 dateWindows（情境四單一窗口），否則看全域
@@ -732,9 +731,7 @@ function closeTimePicker() {
 function toLabel(value) {
   if (!value) return ''
   const hour = parseInt(value.split(':')[0])
-  const period = hour < 12 ? '上午' : '下午'
-  const display = String(hour % 12 || 12)
-  return `${period} ${display}:00`
+  return formatHourAsTimeString(hour)
 }
 
 function openTimePicker(key, wrapEl) {

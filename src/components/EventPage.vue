@@ -926,6 +926,12 @@ import { useRoute, useRouter } from 'vue-router'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
 import partyDanceUrl from '@/assets/party-dance.png'
+import {
+  createTimeOptions,
+  formatHourAsTimeString,
+  parseDateTimeValue,
+  parseHourFromTimeStr,
+} from '@/utils/timeFormat'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -1293,15 +1299,6 @@ const visibleMonth = ref(startOfMonth(selectedDate.value ?? new Date()))
 const weekdays = ['日', '一', '二', '三', '四', '五', '六']
 const timeOptions = createTimeOptions()
 
-function parseHourFromTimeStr(timeStr) {
-  const match = timeStr?.match(/^(上午|下午)\s+(\d+):(\d+)$/)
-  if (!match) return -1
-  let hour = Number(match[2])
-  if (match[1] === '下午' && hour !== 12) hour += 12
-  if (match[1] === '上午' && hour === 12) hour = 0
-  return hour
-}
-
 // 同一天內比較：結束時間是否晚於開始時間（時段選項只到整點，比小時即可）
 function isEndAfterStart(startTime, endTime) {
   return parseHourFromTimeStr(endTime) > parseHourFromTimeStr(startTime)
@@ -1405,7 +1402,7 @@ const scheduleAnchor = computed(() => {
     // 整日時沒有確切時間，後端把整日候選時段的 deadline_at 算成當天 00:00（slot_start）——
     // 這裡要餵同樣的 00:00 錨點，不能留 null 退回 resolveDeadlineAnchor 的 23:59:59 預設值，
     // 不然前端算出的報名截止時間預設會晚於後端實際天花板，送出時被誤擋
-    return { date: latestDate, time: uniformTime.allDay ? '上午 12:00' : uniformTime.startTime }
+    return { date: latestDate, time: uniformTime.allDay ? '00:00' : uniformTime.startTime }
   }
   if (dateMode.value === 'range' && timeMode.value === 'vote') {
     const sorted = [...configuredSlots.value].sort((a, b) =>
@@ -1417,7 +1414,7 @@ const scheduleAnchor = computed(() => {
     return { date: latest?.date ?? null, time: latest?.startTime ?? null }
   }
   // 情境一整日同理：跟情境三整日一樣，餵 00:00 錨點對齊後端 buildFixedSlot 的 slot_start
-  return { date: form.startDate, time: form.allDay ? '上午 12:00' : form.startTime }
+  return { date: form.startDate, time: form.allDay ? '00:00' : form.startTime }
 })
 
 // 決策硬截止時間本身（天花板解析成實際 Date；沒有設定時間時退回當天 23:59:59，見 resolveDeadlineAnchor）
@@ -1485,10 +1482,9 @@ const minutesUntilCeiling = computed(() => {
 })
 
 function formatDateTimeDisplay(date) {
-  const period = date.getHours() < 12 ? '上午' : '下午'
-  const hour = date.getHours() % 12 || 12
+  const hour = String(date.getHours()).padStart(2, '0')
   const minute = String(date.getMinutes()).padStart(2, '0')
-  return `${formatDateValue(date)} ${period} ${hour}:${minute}`
+  return `${formatDateValue(date)} ${hour}:${minute}`
 }
 
 const reportCutoffTimeLabel = computed(() =>
@@ -1594,7 +1590,7 @@ watch(
     if (!start) return
     const newEnd = new Date(start.getTime() + 60 * 60 * 1000)
     form.endDate = formatDateValue(newEnd)
-    form.endTime = formatTimeValue(newEnd)
+    form.endTime = formatHourAsTimeString(newEnd.getHours())
   },
 )
 
@@ -1918,25 +1914,6 @@ function parseDateValue(value) {
   return date
 }
 
-function formatTimeValue(date) {
-  const period = date.getHours() < 12 ? '上午' : '下午'
-  const hour = date.getHours() % 12 || 12
-  return `${period} ${hour}:00`
-}
-
-function parseDateTimeValue(dateStr, timeStr) {
-  if (!timeStr) return null
-  const date = parseDateValue(dateStr)
-  if (!date) return null
-  const match = timeStr.match(/^(上午|下午)\s+(\d+):(\d+)$/)
-  if (!match) return null
-  let hour = Number(match[2])
-  const minute = Number(match[3])
-  if (match[1] === '下午' && hour !== 12) hour += 12
-  if (match[1] === '上午' && hour === 12) hour = 0
-  date.setHours(hour, minute, 0, 0)
-  return date
-}
 
 // 沒有指定時間的日期（情境二沒填時段範圍、allDay 等）視為「整天都有可能發生」，
 // 用當天最晚的時間點（23:59:59）當計算基準，而不是當天 00:00——
@@ -1981,14 +1958,6 @@ function buildMonthGridCells(month) {
   })
 }
 
-function createTimeOptions() {
-  return Array.from({ length: 24 }, (_, hour) => {
-    const period = hour < 12 ? '上午' : '下午'
-    const displayHour = String(hour % 12 || 12)
-
-    return `${period} ${displayHour}:00`
-  })
-}
 
 function dateButtonClass(cell) {
   const base = 'h-8 max-sm:h-7 border text-xs leading-none'
