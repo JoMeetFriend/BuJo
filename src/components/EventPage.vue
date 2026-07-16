@@ -519,7 +519,8 @@
                 <label class="inline-flex w-fit items-center">
                   <input
                     v-model="uniformTime.allDay"
-                    class="h-7 w-7 max-sm:h-6 max-sm:w-6 cursor-pointer appearance-none rounded-none border border-[var(--bujo-line)] bg-[var(--bujo-surface)] checked:border-[var(--bujo-ink)] checked:bg-[var(--bujo-ink)] focus:outline-none focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
+                    :disabled="isAllDayLockedByToday"
+                    class="h-7 w-7 max-sm:h-6 max-sm:w-6 cursor-pointer appearance-none rounded-none border border-[var(--bujo-line)] bg-[var(--bujo-surface)] checked:border-[var(--bujo-ink)] checked:bg-[var(--bujo-ink)] focus:outline-none focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)] disabled:cursor-not-allowed disabled:opacity-40"
                     type="checkbox"
                     aria-label="整日"
                     @change="closePicker"
@@ -529,6 +530,12 @@
 
               <template v-if="!uniformTime.allDay">
                 <span :class="fieldLabelClass">統一時間（套用到所有已選日期）</span>
+                <p
+                  v-if="candidateDates.includes(formatDateValue(new Date()))"
+                  class="m-0 text-xs text-[var(--bujo-muted-strong)]"
+                >
+                  日期選擇包含今天，時段僅顯示尚未過去的時間
+                </p>
                 <div class="grid max-w-[280px] grid-cols-[1fr_12px_1fr] items-center gap-2">
                   <span class="relative block">
                     <button
@@ -1084,12 +1091,38 @@ const uniformTime = reactive({
   endTimeUserSet: false,
 })
 
+// 情境三：整日已勾選時，「今天」不可能再是完整一天，跟情境一的 isStartDateToday 規則同理，
+// 直接鎖住「今天」這一格，不讓使用者選進一個已經不成立的整日候選日
+// 情境三：已選的統一開始時間若已經不在 uniformStartTimeOptions（對今天而言已經過去），
+// 「今天」這一格也要鎖住——避免使用者在選了未來日期的時間之後才把今天加進候選日期，
+// 讓一個對今天無效的時間留在畫面上、要等送出才被擋下來
+const isTodayLockedForCandidateDate = computed(() => {
+  if (uniformTime.allDay) return true
+  // 不能直接看 uniformStartTimeOptions：那個 computed 只在「今天已經在 candidateDates 裡」
+  // 時才會套用過去時段過濾，這裡是在判斷「今天能不能被加進去」，今天當下還不在清單裡，
+  // 要強制以「今天」為基準重新篩一次，不能依賴 candidateDates 目前的狀態
+  if (
+    uniformTime.startTime &&
+    !excludePastHoursIfToday(true, timeOptions).includes(uniformTime.startTime)
+  ) {
+    return true
+  }
+  return false
+})
+
+// 情境三：候選日期已經包含今天時，「整日」開關要鎖住——今天已經過了一部分，不可能是
+// 完整一天，跟上面 isTodayLockedForCandidateDate 是同一條規則的另一個方向
+const isAllDayLockedByToday = computed(() =>
+  candidateDates.value.includes(formatDateValue(new Date())),
+)
+
 const candidateDateCells = computed(() => {
   const todayValue = formatDateValue(new Date())
   return buildMonthGridCells(visibleMonth.value).map((cell) => ({
     ...cell,
     isSelected: candidateDates.value.includes(cell.key),
-    isDisabled: cell.key < todayValue,
+    isDisabled:
+      cell.key < todayValue || (cell.key === todayValue && isTodayLockedForCandidateDate.value),
   }))
 })
 
@@ -1369,7 +1402,10 @@ const scheduleAnchor = computed(() => {
   }
   if (dateMode.value === 'range' && timeMode.value === 'fixed') {
     const latestDate = candidateDates.value[candidateDates.value.length - 1] ?? null
-    return { date: latestDate, time: uniformTime.startTime }
+    // 整日時沒有確切時間，後端把整日候選時段的 deadline_at 算成當天 00:00（slot_start）——
+    // 這裡要餵同樣的 00:00 錨點，不能留 null 退回 resolveDeadlineAnchor 的 23:59:59 預設值，
+    // 不然前端算出的報名截止時間預設會晚於後端實際天花板，送出時被誤擋
+    return { date: latestDate, time: uniformTime.allDay ? '上午 12:00' : uniformTime.startTime }
   }
   if (dateMode.value === 'range' && timeMode.value === 'vote') {
     const sorted = [...configuredSlots.value].sort((a, b) =>
@@ -1380,7 +1416,8 @@ const scheduleAnchor = computed(() => {
     const latest = sorted[sorted.length - 1] ?? null
     return { date: latest?.date ?? null, time: latest?.startTime ?? null }
   }
-  return { date: form.startDate, time: form.startTime }
+  // 情境一整日同理：跟情境三整日一樣，餵 00:00 錨點對齊後端 buildFixedSlot 的 slot_start
+  return { date: form.startDate, time: form.allDay ? '上午 12:00' : form.startTime }
 })
 
 // 決策硬截止時間本身（天花板解析成實際 Date；沒有設定時間時退回當天 23:59:59，見 resolveDeadlineAnchor）
