@@ -23,12 +23,14 @@
 
       <ul v-else class="flex flex-col gap-3">
         <li
-          v-for="notification in notifications"
+          v-for="(notification, index) in notifications"
           :key="notification.id"
           class="alerts-swipe-shell"
           :class="{
             'alerts-swipe-shell--dismissing': swipeState(notification.id)?.collapsing,
+            'alerts-swipe-shell--entering': initialEntryNotificationIds.has(notification.id),
           }"
+          :style="notificationEntryStyle(notification.id, index)"
           :data-notification-id="notification.id"
         >
           <div
@@ -121,6 +123,12 @@
                   </button>
                 </div>
               </div>
+
+              <span
+                v-if="!notification.isRead"
+                class="alerts-unread-indicator"
+                aria-hidden="true"
+              ></span>
             </div>
           </div>
         </li>
@@ -150,6 +158,8 @@ const notifications = ref([])
 const isLoading = ref(false)
 const error = ref(null)
 const busyNotificationIds = ref(new Set())
+const initialEntryNotificationIds = ref(new Set())
+const hasLoadedInitialNotifications = ref(false)
 const swipeStates = reactive({})
 const activeSwipeId = ref(null)
 
@@ -157,6 +167,8 @@ const SWIPE_LOCK_DISTANCE = 10
 const SWIPE_AXIS_RATIO = 1.25
 const SWIPE_DISMISS_RATIO = 0.65
 const SWIPE_ANIMATION_MS = 220
+const ENTRY_STAGGER_MS = 60
+const ENTRY_STAGGER_MAX_INDEX = 7
 
 const hasUnread = computed(() => notifications.value.some((notification) => !notification.isRead))
 const summaryText = computed(() => {
@@ -175,9 +187,19 @@ async function fetchNotifications() {
 
   try {
     const response = await apiClient.get('/api/notifications')
-    notifications.value = Array.isArray(response.data?.notifications)
+    const nextNotifications = Array.isArray(response.data?.notifications)
       ? response.data.notifications.map(normalizeNotification)
       : []
+    notifications.value = nextNotifications
+
+    if (hasLoadedInitialNotifications.value) {
+      initialEntryNotificationIds.value = new Set()
+    } else {
+      initialEntryNotificationIds.value = new Set(
+        nextNotifications.map((notification) => notification.id),
+      )
+      hasLoadedInitialNotifications.value = true
+    }
   } catch (err) {
     console.error('取得通知失敗:', err)
     error.value = err.response?.data?.message || '無法取得通知'
@@ -332,6 +354,14 @@ function resetSwipeState(state) {
 function notificationSwipeStyle(notificationId) {
   const state = swipeState(notificationId)
   return { transform: `translateX(${state?.offset || 0}px)` }
+}
+
+function notificationEntryStyle(notificationId, index) {
+  if (!initialEntryNotificationIds.value.has(notificationId)) return undefined
+
+  return {
+    '--alerts-enter-delay': `${Math.min(index, ENTRY_STAGGER_MAX_INDEX) * ENTRY_STAGGER_MS}ms`,
+  }
 }
 
 function dismissAffordanceStyle(notificationId) {
@@ -498,11 +528,12 @@ function setActionBusy(notificationId, isBusy) {
   align-items: flex-start;
   gap: 12px;
   border: 1px solid var(--bujo-line);
+  border-radius: 0;
   background: var(--bujo-surface);
   padding: 12px;
   transition:
-    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    border-color 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .alerts-item:has(.alerts-inline-btn) {
@@ -518,6 +549,23 @@ function setActionBusy(notificationId, isBusy) {
 
 .alerts-swipe-shell--dismissing {
   max-height: 0;
+}
+
+.alerts-swipe-shell--entering {
+  animation: alerts-notification-enter 400ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--alerts-enter-delay, 0ms);
+}
+
+@keyframes alerts-notification-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .alerts-dismiss-affordance {
@@ -584,17 +632,32 @@ function setActionBusy(notificationId, isBusy) {
 }
 
 .alerts-item--unread {
+  border-color: color-mix(in srgb, var(--bujo-accent) 70%, var(--bujo-line));
   border-left: 3px solid var(--bujo-accent);
+  background: color-mix(in srgb, var(--bujo-accent) 18%, var(--bujo-surface));
   padding-left: 10px;
+}
+
+.alerts-item--unread:hover {
+  border-color: var(--bujo-accent);
+  background: color-mix(in srgb, var(--bujo-accent) 24%, var(--bujo-surface));
 }
 
 .alerts-message {
   margin: 0;
-  color: var(--bujo-ink);
+  color: var(--bujo-muted-strong);
   font-family: var(--bujo-font-body);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.4;
+  transition:
+    color 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    font-weight 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.alerts-item--unread .alerts-message {
+  color: var(--bujo-ink);
+  font-weight: 700;
 }
 
 .alerts-time {
@@ -647,6 +710,10 @@ function setActionBusy(notificationId, isBusy) {
   border: 1px solid var(--bujo-line);
   background: var(--bujo-surface-muted);
   color: var(--bujo-ink);
+  transition:
+    border-color 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .notification-icon::before {
@@ -677,10 +744,46 @@ function setActionBusy(notificationId, isBusy) {
   border-color: var(--bujo-line-soft);
 }
 
+.alerts-item--unread .notification-icon {
+  border-color: var(--bujo-accent);
+  background: color-mix(in srgb, var(--bujo-accent) 24%, var(--bujo-surface));
+  color: color-mix(in srgb, var(--bujo-accent), var(--bujo-ink) 45%);
+}
+
+.alerts-unread-indicator {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  align-self: center;
+  margin-right: 8px;
+  border-radius: 0;
+  background: var(--bujo-accent);
+  animation: alerts-unread-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes alerts-unread-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .alerts-swipe-shell--entering {
+    animation: none;
+  }
+
   .alerts-swipe-shell,
   .alerts-item {
     transition-duration: 1ms;
+  }
+
+  .alerts-unread-indicator {
+    animation: none;
   }
 }
 </style>

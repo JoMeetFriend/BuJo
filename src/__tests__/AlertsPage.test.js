@@ -107,6 +107,136 @@ beforeEach(() => {
   api.post.mockResolvedValue({ data: { message: 'ok' } })
 })
 
+describe('AlertsPage initial load animation', () => {
+  test('等待首次 request 完成後才替非空通知列套用進場狀態', async () => {
+    api.get.mockReset()
+    let resolveNotifications
+    api.get.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveNotifications = resolve
+        }),
+    )
+
+    const wrapper = await mountAlerts()
+
+    expect(wrapper.text()).toContain('通知讀取中...')
+    expect(wrapper.find('.alerts-swipe-shell').exists()).toBe(false)
+
+    resolveNotifications({ data: { notifications } })
+    await flushPromises()
+
+    expect(wrapper.get('.alerts-swipe-shell').classes()).toContain('alerts-swipe-shell--entering')
+  })
+
+  test('後續好友操作重新取得通知時不重播進場動畫', async () => {
+    api.get.mockReset()
+    const friendRequest = {
+      ...notifications[0],
+      id: 'friend-request-animation',
+      type: 'friend_request_created',
+      category: 'friend',
+      reference: { id: 'friendship-animation' },
+      actions: ['accept', 'reject'],
+    }
+    api.get
+      .mockResolvedValueOnce({ data: { notifications: [friendRequest] } })
+      .mockResolvedValueOnce({
+        data: { notifications: [{ ...friendRequest, isRead: true, actions: [] }] },
+      })
+
+    const wrapper = await mountAlerts()
+    await flushPromises()
+
+    expect(wrapper.get('.alerts-swipe-shell').classes()).toContain('alerts-swipe-shell--entering')
+
+    await wrapper.get('.alerts-inline-btn--accept').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.get('.alerts-swipe-shell').classes()).not.toContain(
+      'alerts-swipe-shell--entering',
+    )
+  })
+
+  test('首次成功取得空清單時維持既有空狀態且不產生進場列', async () => {
+    api.get.mockReset()
+    api.get.mockResolvedValueOnce({ data: { notifications: [] } })
+
+    const wrapper = await mountAlerts()
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('目前沒有通知')
+    expect(wrapper.find('.alerts-swipe-shell--entering').exists()).toBe(false)
+  })
+
+  test('前 8 列依序錯開，後續列維持 420ms 最大延遲', async () => {
+    api.get.mockReset()
+    const animationNotifications = Array.from({ length: 9 }, (_, index) => ({
+      ...notifications[0],
+      id: `notification-animation-${index}`,
+      message: `通知 ${index + 1}`,
+    }))
+    api.get.mockResolvedValueOnce({ data: { notifications: animationNotifications } })
+
+    const wrapper = await mountAlerts()
+    await flushPromises()
+
+    const rows = wrapper.findAll('.alerts-swipe-shell')
+    const delays = rows.map((row) => row.attributes('style'))
+
+    expect(delays[0]).toContain('--alerts-enter-delay: 0ms')
+    expect(delays[1]).toContain('--alerts-enter-delay: 60ms')
+    expect(delays[2]).toContain('--alerts-enter-delay: 120ms')
+    expect(delays[7]).toContain('--alerts-enter-delay: 420ms')
+    expect(delays[8]).toContain('--alerts-enter-delay: 420ms')
+  })
+})
+
+describe('AlertsPage read state visuals', () => {
+  test('未讀與已讀通知使用不同狀態且只有未讀列顯示方形提示點', async () => {
+    api.get.mockResolvedValueOnce({
+      data: { notifications: [notifications[0], secondNotification] },
+    })
+
+    const wrapper = await mountAlerts()
+    await flushPromises()
+
+    const unreadRow = wrapper.get('[data-notification-id="notification-1"] .alerts-item')
+    const readRow = wrapper.get('[data-notification-id="notification-2"] .alerts-item')
+
+    expect(unreadRow.classes()).toContain('alerts-item--unread')
+    expect(unreadRow.find('.notification-icon--read').exists()).toBe(false)
+    expect(unreadRow.get('.alerts-unread-indicator').attributes('aria-hidden')).toBe('true')
+    expect(readRow.classes()).not.toContain('alerts-item--unread')
+    expect(readRow.find('.notification-icon--read').exists()).toBe(true)
+    expect(readRow.find('.alerts-unread-indicator').exists()).toBe(false)
+  })
+
+  test('點擊未讀通知成功後移除未讀狀態與提示點', async () => {
+    const wrapper = await mountAlerts()
+    await flushPromises()
+    const row = wrapper.get('[data-notification-id="notification-1"] .alerts-item')
+
+    expect(row.classes()).toContain('alerts-item--unread')
+    expect(row.find('.alerts-unread-indicator').exists()).toBe(true)
+
+    await row.trigger('click')
+    await flushPromises()
+
+    expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-1/read')
+    expect(row.classes()).not.toContain('alerts-item--unread')
+    expect(row.find('.alerts-unread-indicator').exists()).toBe(false)
+    expect(row.find('.notification-icon--read').exists()).toBe(true)
+  })
+
+  test('狀態樣式維持方角且提示點在 reduced motion 下停止動畫', () => {
+    expect(alertsPageSource).toContain('border-radius: 0')
+    expect(alertsPageSource).toContain('@keyframes alerts-unread-pulse')
+    expect(alertsPageSource).toContain('animation: alerts-unread-pulse 2.4s')
+    expect(alertsPageSource).toContain('.alerts-unread-indicator')
+  })
+})
+
 describe('AlertsPage notification swipe dismissal', () => {
   test('載入通知並提供固定列寬與 Pointer Events 測試基礎', async () => {
     const wrapper = await mountAlerts()
@@ -372,6 +502,8 @@ describe('AlertsPage notification swipe dismissal', () => {
     expect(wrapper.get('[role="img"]').attributes('aria-label')).toBe('移除通知')
     expect(alertsPageSource).toContain('@media (prefers-reduced-motion: reduce)')
     expect(alertsPageSource).toContain('transition-duration: 1ms')
+    expect(alertsPageSource).toContain('.alerts-swipe-shell--entering')
+    expect(alertsPageSource).toContain('animation: none')
   })
 })
 
@@ -432,9 +564,9 @@ describe('AlertsPage activity notification deep link', () => {
       expect(wrapper.text()).toContain(notification.message)
     }
     expect(wrapper.findAll('.notification-icon--activity')).toHaveLength(4)
-    expect(wrapper.findAll('button').filter((b) => ['接受', '拒絕'].includes(b.text()))).toHaveLength(
-      0,
-    )
+    expect(
+      wrapper.findAll('button').filter((b) => ['接受', '拒絕'].includes(b.text())),
+    ).toHaveLength(0)
   })
 
   test('活動生命週期通知可完成滑動 dismiss', async () => {
