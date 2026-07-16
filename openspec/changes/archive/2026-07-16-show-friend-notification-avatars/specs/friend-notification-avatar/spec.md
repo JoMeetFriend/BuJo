@@ -14,6 +14,15 @@ The Alerts page SHALL display a 40 by 40 pixel square actor avatar in place of t
 - **WHEN** a `friend_request_accepted` notification contains actor `{ id: "receiver-1", displayName: "Bob", avatarUrl: "https://images.example.com/bob.png" }`
 - **THEN** the notification displays Bob's square avatar instead of the generic friend icon
 
+### Requirement: Activity-created notifications display the creator avatar
+
+The Alerts page SHALL display a 40 by 40 pixel square actor avatar in place of the existing activity icon for `activity_created` notifications when `actor.avatarUrl` resolves to a non-empty image source. The page MUST preserve the existing square paper visual style and MUST NOT render the avatar as a circle or display the actor name separately.
+
+#### Scenario: Created activity displays creator avatar
+
+- **WHEN** an `activity_created` notification contains actor `{ id: "creator-1", displayName: "Carol", avatarUrl: "/uploads/avatars/carol.png" }`
+- **THEN** the notification displays Carol's square avatar instead of the generic activity icon without adding Carol's name to the notification text
+
 ### Requirement: Friend notification avatar URLs use shared normalization
 
 The Alerts page SHALL resolve friend notification avatar URLs through the shared avatar URL normalization behavior. Relative `/uploads/...` paths MUST be prefixed with the configured API base URL, and absolute HTTP(S) URLs MUST remain unchanged.
@@ -27,6 +36,11 @@ The Alerts page SHALL resolve friend notification avatar URLs through the shared
 
 - **WHEN** an actor avatar URL is `https://images.example.com/bob.png`
 - **THEN** the rendered image source is `https://images.example.com/bob.png`
+
+#### Scenario: Absolute activity creator avatar URL is preserved
+
+- **WHEN** an `activity_created` actor avatar URL is `https://images.example.com/carol.png`
+- **THEN** the rendered image source is `https://images.example.com/carol.png`
 
 ### Requirement: Unavailable actor avatars fall back safely
 
@@ -47,14 +61,24 @@ The Alerts page SHALL render the existing generic friend icon and SHALL NOT rend
 - **WHEN** a friend notification actor avatar image emits an error event
 - **THEN** the failed image is removed and the existing generic friend icon is displayed
 
+#### Scenario: Activity creator is unavailable
+
+- **WHEN** an `activity_created` notification contains `actor: null` or an actor with `avatarUrl: null`
+- **THEN** the notification displays the existing activity icon and no avatar image
+
+#### Scenario: Activity creator avatar image fails to load
+
+- **WHEN** an `activity_created` actor avatar image emits an error event
+- **THEN** the failed image is removed and the existing activity icon is displayed
+
 ### Requirement: Existing notification behavior remains unchanged
 
-The Alerts page MUST preserve activity and general category icons, read and unread visuals, accept and reject actions, mark-as-read behavior, activity navigation, swipe dismissal, and hover dismissal while adding friend notification avatars.
+The Alerts page MUST preserve general category icons and the activity icons for `formation_ready`, `time_to_pick`, `activity_confirmed`, and `activity_cancelled`, even if those notifications contain actor data. It MUST also preserve read and unread visuals, accept and reject actions, mark-as-read behavior, activity navigation, swipe dismissal, and hover dismissal while adding actor avatars.
 
-#### Scenario: Activity notification keeps activity icon
+#### Scenario: Other activity lifecycle notification keeps activity icon
 
-- **WHEN** an `activity_created` notification is rendered with `category: "activity"`
-- **THEN** the notification displays the existing activity icon and no friend actor avatar
+- **WHEN** a `formation_ready`, `time_to_pick`, `activity_confirmed`, or `activity_cancelled` notification is rendered with actor data
+- **THEN** the notification displays the existing activity icon and no actor avatar
 
 #### Scenario: Friend request actions remain available
 

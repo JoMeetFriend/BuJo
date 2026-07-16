@@ -193,6 +193,105 @@ describe('AlertsPage friend notification avatars', () => {
     expect(acceptedRow.find('.notification-icon--friend').exists()).toBe(false)
   })
 
+  test('活動建立通知顯示 creator 的相對與絕對路徑方形頭像', async () => {
+    api.get.mockResolvedValueOnce({
+      data: {
+        notifications: [
+          {
+            ...notifications[0],
+            id: 'activity-created-relative-avatar',
+            actor: {
+              id: 'creator-1',
+              displayName: 'Carol',
+              avatarUrl: '/uploads/avatars/carol.png',
+            },
+          },
+          {
+            ...notifications[0],
+            id: 'activity-created-absolute-avatar',
+            actor: {
+              id: 'creator-2',
+              displayName: 'Dana',
+              avatarUrl: 'https://images.example.com/dana.png',
+            },
+          },
+        ],
+      },
+    })
+
+    const wrapper = await mountAlerts()
+    await flushPromises()
+
+    const relativeRow = wrapper.get('[data-notification-id="activity-created-relative-avatar"]')
+    const absoluteRow = wrapper.get('[data-notification-id="activity-created-absolute-avatar"]')
+    expect(relativeRow.get('.notification-avatar').attributes('src')).toBe(
+      'http://localhost:3000/uploads/avatars/carol.png',
+    )
+    expect(absoluteRow.get('.notification-avatar').attributes('src')).toBe(
+      'https://images.example.com/dana.png',
+    )
+    expect(relativeRow.find('.notification-icon--activity').exists()).toBe(false)
+    expect(absoluteRow.find('.notification-icon--activity').exists()).toBe(false)
+    expect(relativeRow.text()).not.toContain('Carol')
+    expect(absoluteRow.text()).not.toContain('Dana')
+  })
+
+  test('活動建立通知缺少 actor 或 avatarUrl 時顯示既有活動圖示', async () => {
+    api.get.mockResolvedValueOnce({
+      data: {
+        notifications: [
+          {
+            ...notifications[0],
+            id: 'activity-created-without-actor',
+            actor: null,
+          },
+          {
+            ...notifications[0],
+            id: 'activity-created-without-avatar',
+            actor: { id: 'creator-3', displayName: 'Eve', avatarUrl: null },
+          },
+        ],
+      },
+    })
+
+    const wrapper = await mountAlerts()
+    await flushPromises()
+
+    for (const id of ['activity-created-without-actor', 'activity-created-without-avatar']) {
+      const row = wrapper.get(`[data-notification-id="${id}"]`)
+      expect(row.find('.notification-avatar').exists()).toBe(false)
+      expect(row.get('.notification-icon--activity').exists()).toBe(true)
+    }
+  })
+
+  test('活動建立者頭像載入失敗後移除 broken image 並顯示既有活動圖示', async () => {
+    api.get.mockResolvedValueOnce({
+      data: {
+        notifications: [
+          {
+            ...notifications[0],
+            id: 'activity-created-avatar-error',
+            actor: {
+              id: 'creator-4',
+              displayName: 'Frank',
+              avatarUrl: 'https://images.example.com/missing-creator.png',
+            },
+          },
+        ],
+      },
+    })
+
+    const wrapper = await mountAlerts()
+    await flushPromises()
+    const row = wrapper.get('[data-notification-id="activity-created-avatar-error"]')
+
+    expect(row.find('.notification-icon--activity').exists()).toBe(false)
+    await row.get('.notification-avatar').trigger('error')
+
+    expect(row.find('.notification-avatar').exists()).toBe(false)
+    expect(row.get('.notification-icon--activity').exists()).toBe(true)
+  })
+
   test('actor 缺少或 avatarUrl 為 null 時顯示既有好友圖示', async () => {
     api.get.mockResolvedValueOnce({
       data: {
@@ -255,7 +354,7 @@ describe('AlertsPage friend notification avatars', () => {
     expect(row.get('.notification-icon--friend').exists()).toBe(true)
   })
 
-  test('活動與一般通知即使帶有 actor 仍保留既有 category icon', async () => {
+  test('一般通知即使帶有 actor 仍保留既有 category icon', async () => {
     const actor = {
       id: 'actor-not-used',
       displayName: 'Eve',
@@ -264,7 +363,6 @@ describe('AlertsPage friend notification avatars', () => {
     api.get.mockResolvedValueOnce({
       data: {
         notifications: [
-          { ...notifications[0], id: 'activity-with-actor', actor },
           {
             ...notifications[0],
             id: 'general-with-actor',
@@ -279,12 +377,42 @@ describe('AlertsPage friend notification avatars', () => {
     const wrapper = await mountAlerts()
     await flushPromises()
 
-    const activityRow = wrapper.get('[data-notification-id="activity-with-actor"]')
     const generalRow = wrapper.get('[data-notification-id="general-with-actor"]')
-    expect(activityRow.find('.notification-avatar').exists()).toBe(false)
-    expect(activityRow.get('.notification-icon--activity').exists()).toBe(true)
     expect(generalRow.find('.notification-avatar').exists()).toBe(false)
     expect(generalRow.get('.notification-icon--general').exists()).toBe(true)
+  })
+
+  test('其他活動生命週期通知即使帶有 actor 仍保留既有活動圖示', async () => {
+    const actor = {
+      id: 'activity-actor-not-used',
+      displayName: 'Grace',
+      avatarUrl: 'https://images.example.com/grace.png',
+    }
+    const lifecycleTypes = [
+      'formation_ready',
+      'time_to_pick',
+      'activity_confirmed',
+      'activity_cancelled',
+    ]
+    api.get.mockResolvedValueOnce({
+      data: {
+        notifications: lifecycleTypes.map((type) => ({
+          ...notifications[0],
+          id: `activity-lifecycle-${type}`,
+          type,
+          actor,
+        })),
+      },
+    })
+
+    const wrapper = await mountAlerts()
+    await flushPromises()
+
+    for (const type of lifecycleTypes) {
+      const row = wrapper.get(`[data-notification-id="activity-lifecycle-${type}"]`)
+      expect(row.find('.notification-avatar').exists()).toBe(false)
+      expect(row.get('.notification-icon--activity').exists()).toBe(true)
+    }
   })
 })
 

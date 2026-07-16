@@ -78,9 +78,9 @@
               @pointercancel="cancelSwipe(notification, $event)"
             >
               <img
-                v-if="friendNotificationAvatarSrc(notification)"
+                v-if="notificationAvatarSrc(notification)"
                 class="notification-avatar mt-1"
-                :src="friendNotificationAvatarSrc(notification)"
+                :src="notificationAvatarSrc(notification)"
                 alt=""
                 aria-hidden="true"
                 @error="handleNotificationAvatarError(notification.id)"
@@ -199,9 +199,10 @@ const SWIPE_DISMISS_RATIO = 0.65
 const SWIPE_ANIMATION_MS = 540
 const ENTRY_STAGGER_MS = 60
 const ENTRY_STAGGER_MAX_INDEX = 7
-const FRIEND_AVATAR_NOTIFICATION_TYPES = new Set([
+const ACTOR_AVATAR_NOTIFICATION_TYPES = new Set([
   'friend_request_created',
   'friend_request_accepted',
+  'activity_created',
 ])
 
 const hasUnread = computed(() => notifications.value.some((notification) => !notification.isRead))
@@ -535,8 +536,8 @@ function normalizeNotificationActor(actor) {
   }
 }
 
-function friendNotificationAvatarSrc(notification) {
-  if (!FRIEND_AVATAR_NOTIFICATION_TYPES.has(notification.type)) return ''
+function notificationAvatarSrc(notification) {
+  if (!ACTOR_AVATAR_NOTIFICATION_TYPES.has(notification.type)) return ''
   if (failedAvatarNotificationIds.value.has(notification.id)) return ''
   return toAvatarSrc(notification.actor?.avatarUrl)
 }
