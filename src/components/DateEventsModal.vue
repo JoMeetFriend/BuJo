@@ -119,16 +119,14 @@ const formattedDate = computed(() => {
 })
 
 const statusLabel = {
-  joined: '已報名',
-  formed: '已成團',
-  personal: '個人',
+  formedByMe: '已成團',
+  formedByOthers: '已成團',
   recruiting: '招募中',
 }
 
 const statusClass = {
-  joined: 'bg-[var(--bujo-card-blue)]',
-  formed: 'bg-[var(--bujo-accent)]',
-  personal: 'bg-[var(--bujo-surface)]',
+  formedByMe: 'bg-[var(--bujo-accent)]',
+  formedByOthers: 'bg-[var(--bujo-accent)]',
   recruiting: 'bg-[var(--bujo-card-pink)]',
 }
 </script>

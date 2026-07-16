@@ -254,9 +254,8 @@ const navItems = [
 ]
 
 const filterItems = [
-  { key: 'joined', label: 'JOINING', color: 'var(--bujo-card-blue)' },
-  { key: 'formed', label: 'FORMED', color: 'var(--bujo-accent)' },
-  { key: 'personal', label: 'PERSONAL', color: 'var(--bujo-card-yellow)' },
+  { key: 'formedByMe', label: 'ORGANIZED', color: 'var(--bujo-accent)' },
+  { key: 'formedByOthers', label: 'ATTENDING', color: 'var(--bujo-card-blue)' },
 ]
 
 function onProfileAnimEnd() {

@@ -324,7 +324,7 @@ const props = defineProps({
   sidebarOpen: Boolean,
   filters: {
     type: Object,
-    default: () => ({ joined: true, formed: true, personal: true }),
+    default: () => ({ formedByMe: true, formedByOthers: true }),
   },
 })
 
@@ -468,10 +468,10 @@ const activities = ref([])
 
 // 後端保證 date_iso 只有在 status === 'confirmed' 時才非 null，行事曆只依這個欄位
 // 決定要不要畫進去，不需要另外判斷情境（免投票/單選/複選日期/各自時段）。
-// 已成團的活動一律歸類為 formed，不分建立者或參與者身分。
+// 已成團的活動會依據 is_creator，拆分為 formedByMe (建立者) 與 formedByOthers (參與者)。
 function toCalendarStatus(activity) {
   if (!activity.date_iso) return null
-  return 'formed'
+  return activity.is_creator ? 'formedByMe' : 'formedByOthers'
 }
 
 const events = computed(() =>
@@ -482,6 +482,7 @@ const events = computed(() =>
       date: activity.date_iso,
       title: activity.title,
       status: toCalendarStatus(activity),
+      is_creator: activity.is_creator,
       time: activity.time,
       location: activity.location,
       sortTime: activity.confirmed_start ?? activity.date_iso,
@@ -511,16 +512,15 @@ async function fetchActivities() {
 }
 
 const statusStyle = {
-  joined: 'calendar-event-chip--joined',
-  formed: 'calendar-event-chip--formed',
-  personal: 'calendar-event-chip--personal',
+  formedByMe: 'calendar-event-chip--formed',
+  formedByOthers: 'calendar-event-chip--joined',
   recruiting: 'calendar-event-chip--recruiting',
   none: 'calendar-event-chip--none',
 }
 
 const statusMeta = {
-  joined: 'JOIN',
-  formed: 'LIVE',
+  formedByMe: 'MINE',
+  formedByOthers: 'JOINED',
   personal: 'SOLO',
   recruiting: 'OPEN',
   none: '',
@@ -592,9 +592,8 @@ function getEvents(date) {
   if (!date) return []
   return events.value.filter((e) => {
     if (e.date !== date) return false
-    if (e.status === 'joined' && !props.filters.joined) return false
-    if (e.status === 'formed' && !props.filters.formed) return false
-    if (e.status === 'personal' && !props.filters.personal) return false
+    if (e.status === 'formedByMe' && !props.filters.formedByMe) return false
+    if (e.status === 'formedByOthers' && !props.filters.formedByOthers) return false
     return true
   })
 }

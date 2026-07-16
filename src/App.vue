@@ -42,7 +42,7 @@ import SidebarToggleButton from './components/ui/SidebarToggleButton.vue'
 
 const route = useRoute()
 const sidebarOpen = ref(true)
-const filters = ref({ joined: true, formed: true, personal: true })
+const filters = ref({ formedByMe: true, formedByOthers: true })
 
 const showSidebar = computed(() => !['/login', '/register', '/'].includes(route.path))
 const isAuthPage = computed(() => ['/login', '/register'].includes(route.path))
