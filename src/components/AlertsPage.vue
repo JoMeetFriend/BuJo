@@ -77,7 +77,16 @@
               @pointerup="finishSwipe(notification, $event)"
               @pointercancel="cancelSwipe(notification, $event)"
             >
+              <img
+                v-if="friendNotificationAvatarSrc(notification)"
+                class="notification-avatar mt-1"
+                :src="friendNotificationAvatarSrc(notification)"
+                alt=""
+                aria-hidden="true"
+                @error="handleNotificationAvatarError(notification.id)"
+              />
               <div
+                v-else
                 class="notification-icon mt-1"
                 :class="[
                   `notification-icon--${notification.category}`,
@@ -163,6 +172,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import PixelButton from './ui/PixelButton.vue'
 import { useNotificationStore } from '@/stores/notificationStore'
+import { toAvatarSrc } from '@/utils/avatar'
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -179,6 +189,7 @@ const error = ref(null)
 const busyNotificationIds = ref(new Set())
 const initialEntryNotificationIds = ref(new Set())
 const hasLoadedInitialNotifications = ref(false)
+const failedAvatarNotificationIds = ref(new Set())
 const swipeStates = reactive({})
 const activeSwipeId = ref(null)
 
@@ -188,6 +199,10 @@ const SWIPE_DISMISS_RATIO = 0.65
 const SWIPE_ANIMATION_MS = 540
 const ENTRY_STAGGER_MS = 60
 const ENTRY_STAGGER_MAX_INDEX = 7
+const FRIEND_AVATAR_NOTIFICATION_TYPES = new Set([
+  'friend_request_created',
+  'friend_request_accepted',
+])
 
 const hasUnread = computed(() => notifications.value.some((notification) => !notification.isRead))
 const summaryText = computed(() => {
@@ -498,7 +513,38 @@ function normalizeNotification(notification) {
     createdAt: notification.createdAt || null,
     reference: notification.reference || null,
     actions: Array.isArray(notification.actions) ? notification.actions : [],
+    actor: normalizeNotificationActor(notification.actor),
   }
+}
+
+function normalizeNotificationActor(actor) {
+  if (
+    !actor ||
+    typeof actor !== 'object' ||
+    Array.isArray(actor) ||
+    typeof actor.id !== 'string' ||
+    typeof actor.displayName !== 'string'
+  ) {
+    return null
+  }
+
+  return {
+    id: actor.id,
+    displayName: actor.displayName,
+    avatarUrl: typeof actor.avatarUrl === 'string' ? actor.avatarUrl : null,
+  }
+}
+
+function friendNotificationAvatarSrc(notification) {
+  if (!FRIEND_AVATAR_NOTIFICATION_TYPES.has(notification.type)) return ''
+  if (failedAvatarNotificationIds.value.has(notification.id)) return ''
+  return toAvatarSrc(notification.actor?.avatarUrl)
+}
+
+function handleNotificationAvatarError(notificationId) {
+  const next = new Set(failedAvatarNotificationIds.value)
+  next.add(notificationId)
+  failedAvatarNotificationIds.value = next
 }
 
 function isActionBusy(notificationId) {
@@ -773,6 +819,16 @@ function setActionBusy(notificationId, isBusy) {
     border-color 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
     background-color 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
     color 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.notification-avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border: 1px solid var(--bujo-line);
+  border-radius: 0;
+  background: var(--bujo-surface-muted);
+  object-fit: cover;
 }
 
 .notification-icon::before {
