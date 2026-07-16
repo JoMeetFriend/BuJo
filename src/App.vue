@@ -23,7 +23,12 @@
       :class="[
         isCalendarPage || isAuthPage ? 'overflow-hidden' : 'overflow-auto',
         {
-          'pb-20': route.path !== '/activity' && !isCalendarPage && !isAuthPage && !isLandingPage,
+          'pb-20':
+            route.path !== '/activity' &&
+            !isCalendarPage &&
+            !isAuthPage &&
+            !isLandingPage &&
+            !isNotFoundPage,
         },
       ]"
     >
@@ -44,7 +49,10 @@ const route = useRoute()
 const sidebarOpen = ref(true)
 const filters = ref({ joined: true, formed: true, personal: true })
 
-const showSidebar = computed(() => !['/login', '/register', '/'].includes(route.path))
+const isNotFoundPage = computed(() => route.name === 'not-found')
+const showSidebar = computed(
+  () => !['/login', '/register', '/'].includes(route.path) && !isNotFoundPage.value,
+)
 const isAuthPage = computed(() => ['/login', '/register'].includes(route.path))
 const isLandingPage = computed(() => route.path === '/')
 const isCalendarPage = computed(() => route.name === 'calendar-page')
