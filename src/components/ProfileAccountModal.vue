@@ -45,7 +45,15 @@
         class="flex min-h-[60px] items-center gap-4 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
         @click="emit('close')"
       >
-        <span class="profile-action-icon profile-action-icon--edit" aria-hidden="true"></span>
+        <span class="bujo-modal-icon-wrap">
+          <span
+            class="bujo-modal-icon"
+            style="background-color: var(--bujo-card-blue)"
+            aria-hidden="true"
+          >
+            <PencilIcon class="bujo-modal-icon-svg" />
+          </span>
+        </span>
         <span class="flex flex-1 flex-col items-center leading-tight">
           <span class="text-sm font-semibold">個人編輯</span>
           <span class="mt-1 text-xs text-[var(--bujo-muted-strong)]">頭貼、名稱</span>
@@ -57,7 +65,15 @@
         class="flex min-h-[60px] w-full items-center gap-4 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
         @click="emit('logout')"
       >
-        <span class="profile-action-icon profile-action-icon--logout" aria-hidden="true"></span>
+        <span class="bujo-modal-icon-wrap">
+          <span
+            class="bujo-modal-icon"
+            style="background-color: var(--bujo-surface-muted)"
+            aria-hidden="true"
+          >
+            <ArrowRightStartOnRectangleIcon class="bujo-modal-icon-svg" />
+          </span>
+        </span>
         <span class="flex flex-1 flex-col items-center leading-tight">
           <span class="text-sm font-semibold">登出</span>
           <span class="mt-1 text-xs text-[var(--bujo-muted-strong)]">離開 BuJo</span>
@@ -69,7 +85,11 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
+import {
+  ClipboardDocumentIcon,
+  PencilIcon,
+  ArrowRightStartOnRectangleIcon,
+} from '@heroicons/vue/24/outline'
 import BaseModal from './ui/BaseModal.vue'
 import { toAvatarSrc } from '@/utils/avatar'
 
@@ -144,35 +164,26 @@ async function copyShareCode() {
   right: 4px;
 }
 
-.profile-action-icon {
+.bujo-modal-icon-wrap {
   position: relative;
   display: block;
   width: 30px;
   height: 30px;
-  flex: 0 0 30px;
+  flex-shrink: 0;
 }
 
-.profile-action-icon--edit {
-  background:
-    linear-gradient(var(--bujo-ink) 0 0) 2px 2px / 4px 8px no-repeat,
-    linear-gradient(var(--bujo-ink) 0 0) 10px 2px / 4px 8px no-repeat,
-    linear-gradient(var(--bujo-ink) 0 0) 18px 2px / 4px 8px no-repeat,
-    linear-gradient(var(--bujo-ink) 0 0) 2px 14px / 4px 10px no-repeat,
-    linear-gradient(var(--bujo-ink) 0 0) 10px 18px / 4px 8px no-repeat,
-    linear-gradient(var(--bujo-ink) 0 0) 18px 14px / 4px 10px no-repeat,
-    linear-gradient(var(--bujo-ink) 0 0) 24px 6px / 4px 4px no-repeat,
-    linear-gradient(var(--bujo-ink) 0 0) 24px 22px / 4px 4px no-repeat;
+.bujo-modal-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--bujo-ink);
+  border: 1px solid var(--bujo-line);
 }
 
-.profile-action-icon--logout {
-  background:
-    linear-gradient(var(--bujo-ink) 0 0) 12px 2px / 6px 6px no-repeat,
-    linear-gradient(var(--bujo-ink) 0 0) 9px 8px / 12px 4px no-repeat,
-    linear-gradient(var(--bujo-ink) 0 0) 6px 12px / 4px 4px no-repeat,
-    linear-gradient(var(--bujo-ink) 0 0) 20px 12px / 4px 4px no-repeat,
-    linear-gradient(var(--bujo-ink) 0 0) 3px 16px / 4px 4px no-repeat,
-    linear-gradient(var(--bujo-ink) 0 0) 23px 16px / 4px 4px no-repeat,
-    linear-gradient(var(--bujo-ink) 0 0) 6px 20px / 18px 4px no-repeat,
-    linear-gradient(var(--bujo-ink) 0 0) 2px 24px / 26px 4px no-repeat;
+.bujo-modal-icon-svg {
+  width: 16px;
+  height: 16px;
 }
 </style>
