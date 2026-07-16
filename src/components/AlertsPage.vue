@@ -69,9 +69,9 @@
               :style="notificationSwipeStyle(notification.id)"
               role="button"
               tabindex="0"
-              @click="handleNotificationClick(notification)"
-              @keydown.enter.prevent="handleNotificationClick(notification)"
-              @keydown.space.prevent="handleNotificationClick(notification)"
+              @click="handleNotificationClick(notification, 'pointer')"
+              @keydown.enter.prevent="handleNotificationClick(notification, 'keyboard')"
+              @keydown.space.prevent="handleNotificationClick(notification, 'keyboard')"
               @pointerdown="startSwipe(notification, $event)"
               @pointermove="moveSwipe(notification, $event)"
               @pointerup="finishSwipe(notification, $event)"
@@ -225,9 +225,13 @@ async function markAsRead(notification) {
   }
 }
 
-async function handleNotificationClick(notification) {
+async function handleNotificationClick(notification, activationSource) {
   const state = swipeState(notification.id)
-  if (state?.dismissing || (state?.suppressClickUntil || 0) >= performance.now()) return
+  if (state?.dismissing) return
+  if (activationSource === 'pointer' && state?.suppressNextPointerClick) {
+    state.suppressNextPointerClick = false
+    return
+  }
   // markAsRead 自行吞錯（只設 error.value），失敗不阻擋導頁
   await markAsRead(notification)
   const reference = notification.reference
@@ -256,7 +260,7 @@ function createSwipeState() {
     dragging: false,
     dismissing: false,
     collapsing: false,
-    suppressClickUntil: 0,
+    suppressNextPointerClick: false,
   }
 }
 
@@ -266,16 +270,13 @@ function ensureSwipeState(notificationId) {
 }
 
 function startSwipe(notification, event) {
-  if (
-    !canDismiss(notification) ||
-    event.button !== 0 ||
-    (activeSwipeId.value && activeSwipeId.value !== notification.id)
-  ) {
+  if (event.button !== 0 || (activeSwipeId.value && activeSwipeId.value !== notification.id)) {
     return
   }
 
   const state = ensureSwipeState(notification.id)
-  if (state.dismissing) return
+  state.suppressNextPointerClick = false
+  if (!canDismiss(notification) || state.dismissing) return
 
   state.pointerId = event.pointerId
   state.startX = event.clientX
@@ -303,7 +304,7 @@ function moveSwipe(notification, event) {
     if (absoluteX >= absoluteY * SWIPE_AXIS_RATIO) {
       state.axis = 'horizontal'
       state.dragging = true
-      state.suppressClickUntil = performance.now() + 250
+      state.suppressNextPointerClick = true
     } else {
       state.axis = 'vertical'
       state.offset = 0

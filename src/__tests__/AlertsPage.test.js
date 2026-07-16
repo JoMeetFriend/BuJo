@@ -78,7 +78,7 @@ function setRowWidth(row, width = 300) {
   row.element.releasePointerCapture = vi.fn()
 }
 
-async function pointer(row, type, { x, y = 0, pointerId = 1 } = {}) {
+async function pointer(row, type, { x, y = 0, pointerId = 1, pointerType = 'touch' } = {}) {
   const event = new MouseEvent(type, {
     bubbles: true,
     clientX: x,
@@ -87,7 +87,7 @@ async function pointer(row, type, { x, y = 0, pointerId = 1 } = {}) {
   })
   Object.defineProperties(event, {
     pointerId: { value: pointerId },
-    pointerType: { value: 'touch' },
+    pointerType: { value: pointerType },
   })
   row.element.dispatchEvent(event)
   await nextTick()
@@ -481,18 +481,57 @@ describe('AlertsPage notification swipe dismissal', () => {
     expect(api.patch).toHaveBeenCalledWith('/api/notifications/read-all')
   })
 
-  test('水平拖曳後產生的 click 不會額外標記已讀', async () => {
+  test('桌機慢速左滑超過 250ms 後的 click 不會 dismiss、已讀或導頁', async () => {
+    const wrapper = await mountAlerts()
+    await flushPromises()
+    const row = wrapper.get('.alerts-item')
+    setRowWidth(row)
+    const nowSpy = vi.spyOn(performance, 'now').mockReturnValue(0)
+
+    await pointer(row, 'pointerdown', { x: 300, pointerType: 'mouse' })
+    await pointer(row, 'pointermove', { x: 240, pointerType: 'mouse' })
+    nowSpy.mockReturnValue(300)
+    await pointer(row, 'pointerup', { x: 240, pointerType: 'mouse' })
+    await row.trigger('click')
+
+    expect(row.attributes('style')).toContain('translateX(0px)')
+    expect(api.patch).not.toHaveBeenCalled()
+    expect(router.currentRoute.value.path).toBe('/alerts')
+    nowSpy.mockRestore()
+  })
+
+  test('拖曳後的 click 只被阻擋一次，下一次正常 click 可標記已讀', async () => {
     const wrapper = await mountAlerts()
     await flushPromises()
     const row = wrapper.get('.alerts-item')
     setRowWidth(row)
 
-    await pointer(row, 'pointerdown', { x: 300 })
-    await pointer(row, 'pointermove', { x: 240 })
-    await pointer(row, 'pointerup', { x: 240 })
+    await pointer(row, 'pointerdown', { x: 300, pointerType: 'mouse' })
+    await pointer(row, 'pointermove', { x: 240, pointerType: 'mouse' })
+    await pointer(row, 'pointerup', { x: 240, pointerType: 'mouse' })
     await row.trigger('click')
+    await row.trigger('click')
+    await flushPromises()
 
-    expect(api.patch).not.toHaveBeenCalled()
+    expect(api.patch).toHaveBeenCalledTimes(1)
+    expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-1/read')
+  })
+
+  test('拖曳後若沒有合成 click，下一次 pointerdown 會清除過期 guard', async () => {
+    const wrapper = await mountAlerts()
+    await flushPromises()
+    const row = wrapper.get('.alerts-item')
+    setRowWidth(row)
+
+    await pointer(row, 'pointerdown', { x: 300, pointerType: 'mouse' })
+    await pointer(row, 'pointermove', { x: 240, pointerType: 'mouse' })
+    await pointer(row, 'pointerup', { x: 240, pointerType: 'mouse' })
+    await pointer(row, 'pointerdown', { x: 300, pointerId: 2, pointerType: 'mouse' })
+    await pointer(row, 'pointerup', { x: 300, pointerId: 2, pointerType: 'mouse' })
+    await row.trigger('click')
+    await flushPromises()
+
+    expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-1/read')
   })
 
   test('垃圾桶提供可存取名稱且元件包含 reduced-motion 規則', async () => {
@@ -525,6 +564,50 @@ describe('AlertsPage activity notification deep link', () => {
     await flushPromises()
 
     await wrapper.get('.alerts-item').trigger('click')
+    await flushPromises()
+
+    expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-act/read')
+    expect(router.currentRoute.value.path).toBe('/activity')
+    expect(router.currentRoute.value.query.focus).toBe('42')
+  })
+
+  test('滑動 guard 阻擋活動通知 click 後，下一次正常 click 仍會標記已讀並導頁', async () => {
+    api.get.mockResolvedValue({ data: { notifications: [activityNotification] } })
+    const wrapper = await mountAlerts()
+    await flushPromises()
+    const row = wrapper.get('.alerts-item')
+    setRowWidth(row)
+
+    await pointer(row, 'pointerdown', { x: 300, pointerType: 'mouse' })
+    await pointer(row, 'pointermove', { x: 240, pointerType: 'mouse' })
+    await pointer(row, 'pointerup', { x: 240, pointerType: 'mouse' })
+    await row.trigger('click')
+
+    expect(api.patch).not.toHaveBeenCalled()
+    expect(router.currentRoute.value.path).toBe('/alerts')
+
+    await row.trigger('click')
+    await flushPromises()
+
+    expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-act/read')
+    expect(router.currentRoute.value.path).toBe('/activity')
+    expect(router.currentRoute.value.query.focus).toBe('42')
+  })
+
+  test.each([
+    ['Enter', 'Enter'],
+    ['Space', ' '],
+  ])('%s 不受 pointer click guard 影響', async (_label, key) => {
+    api.get.mockResolvedValue({ data: { notifications: [activityNotification] } })
+    const wrapper = await mountAlerts()
+    await flushPromises()
+    const row = wrapper.get('.alerts-item')
+    setRowWidth(row)
+
+    await pointer(row, 'pointerdown', { x: 300, pointerType: 'mouse' })
+    await pointer(row, 'pointermove', { x: 240, pointerType: 'mouse' })
+    await pointer(row, 'pointerup', { x: 240, pointerType: 'mouse' })
+    await row.trigger('keydown', { key })
     await flushPromises()
 
     expect(api.patch).toHaveBeenCalledWith('/api/notifications/notification-act/read')
