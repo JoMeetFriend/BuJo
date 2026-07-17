@@ -297,6 +297,18 @@
                 </span>
               </div>
             </div>
+
+            <ReportCutoffReminder
+              :is-warning="isReportCutoffWarning"
+              :warning-text="reportCutoffWarningText"
+              :time-label="reportCutoffTimeLabel"
+              :offset-parts="reportCutoffOffsetParts"
+              :show-editor="showDeadlineEditor"
+              :presets="DEADLINE_PRESETS"
+              :selected-preset-key="selectedDeadlinePresetKey"
+              @toggle-editor="toggleDeadlineEditor"
+              @select-preset="selectedDeadlinePresetKey = $event"
+            />
           </div>
 
           <div
@@ -458,6 +470,18 @@
                 <span>⚠</span> {{ timeError }}
               </p>
             </div>
+
+            <ReportCutoffReminder
+              :is-warning="isReportCutoffWarning"
+              :warning-text="reportCutoffWarningText"
+              :time-label="reportCutoffTimeLabel"
+              :offset-parts="reportCutoffOffsetParts"
+              :show-editor="showDeadlineEditor"
+              :presets="DEADLINE_PRESETS"
+              :selected-preset-key="selectedDeadlinePresetKey"
+              @toggle-editor="toggleDeadlineEditor"
+              @select-preset="selectedDeadlinePresetKey = $event"
+            />
           </div>
 
           <div
@@ -617,6 +641,18 @@
                 </div>
               </template>
             </div>
+
+            <ReportCutoffReminder
+              :is-warning="isReportCutoffWarning"
+              :warning-text="reportCutoffWarningText"
+              :time-label="reportCutoffTimeLabel"
+              :offset-parts="reportCutoffOffsetParts"
+              :show-editor="showDeadlineEditor"
+              :presets="DEADLINE_PRESETS"
+              :selected-preset-key="selectedDeadlinePresetKey"
+              @toggle-editor="toggleDeadlineEditor"
+              @select-preset="selectedDeadlinePresetKey = $event"
+            />
           </div>
 
           <div
@@ -798,6 +834,18 @@
                 </span>
               </div>
             </div>
+
+            <ReportCutoffReminder
+              :is-warning="isReportCutoffWarning"
+              :warning-text="reportCutoffWarningText"
+              :time-label="reportCutoffTimeLabel"
+              :offset-parts="reportCutoffOffsetParts"
+              :show-editor="showDeadlineEditor"
+              :presets="DEADLINE_PRESETS"
+              :selected-preset-key="selectedDeadlinePresetKey"
+              @toggle-editor="toggleDeadlineEditor"
+              @select-preset="selectedDeadlinePresetKey = $event"
+            />
           </div>
         </div>
 
@@ -810,51 +858,6 @@
             rows="5"
             placeholder="補充說明，例如裝備、費用..."
           ></textarea>
-
-          <!-- 報名截止時間常駐顯示：依 isReportCutoffWarning 套用警示樣式 -->
-          <div
-            class="flex flex-col gap-1.5 border-t border-dashed border-[var(--bujo-line-soft)] pt-2"
-          >
-            <p
-              class="text-xs leading-5"
-              :class="
-                isReportCutoffWarning ? 'font-semibold text-[#dc2626]' : 'text-[var(--bujo-muted)]'
-              "
-            >
-              <template v-if="isReportCutoffWarning">{{ reportCutoffWarningText }}</template>
-              <template v-else
-                >報名開放到
-                <strong class="text-[var(--bujo-muted-strong)]">{{ reportCutoffTimeLabel }}</strong>
-                （<button type="button" class="-mx-1 -my-1 px-1 py-1" @click="toggleDeadlineEditor">
-                  <span
-                    class="text-[var(--bujo-accent)] underline decoration-dotted underline-offset-2"
-                    >{{ reportCutoffOffsetParts.number }}</span
-                  >{{ reportCutoffOffsetParts.unit }}</button
-                >截止）</template
-              >
-            </p>
-
-            <!-- 流團編輯器 -->
-            <div
-              v-if="showDeadlineEditor"
-              class="flex flex-wrap items-center gap-2 border border-dashed border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-3 py-2"
-            >
-              <button
-                v-for="preset in DEADLINE_PRESETS"
-                :key="preset.key"
-                type="button"
-                class="h-8 rounded-none border px-2 text-xs transition-colors"
-                :class="
-                  selectedDeadlinePresetKey === preset.key
-                    ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
-                    : 'border-[var(--bujo-line)] bg-white text-[var(--bujo-ink)] hover:border-[var(--bujo-ink)]'
-                "
-                @click="selectedDeadlinePresetKey = preset.key"
-              >
-                {{ preset.label }}
-              </button>
-            </div>
-          </div>
         </label>
         <div
           v-if="submitError"
@@ -908,6 +911,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { useRoute, useRouter } from 'vue-router'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
+import ReportCutoffReminder from './ReportCutoffReminder.vue'
 import partyDanceUrl from '@/assets/party-dance.png'
 import {
   createTimeOptions,
@@ -1869,7 +1873,6 @@ function parseDateValue(value) {
   return date
 }
 
-
 // 沒有指定時間的日期（情境二沒填時段範圍、allDay 等）視為「整天都有可能發生」，
 // 用當天最晚的時間點（23:59:59）當計算基準，而不是當天 00:00——
 // 用 00:00 的話同一天的活動一定會被算成「已經過期」，當天的活動反而永遠不能設定流團時間
@@ -1912,7 +1915,6 @@ function buildMonthGridCells(month) {
     }
   })
 }
-
 
 function dateButtonClass(cell) {
   const base = 'h-8 max-sm:h-7 border text-xs leading-none'
