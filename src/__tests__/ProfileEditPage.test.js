@@ -95,6 +95,13 @@ describe('ProfileEditPage', () => {
     expect(wrapper.get('[aria-label="登出目前帳號"]').text()).toBe('登出')
   })
 
+  test('一般登入沒有頭像時顯示預設像素頭像', async () => {
+    const wrapper = await mountProfileEditPage({ avatar_url: '' })
+
+    expect(wrapper.find('img[alt="使用者頭像"]').exists()).toBe(false)
+    expect(wrapper.get('[aria-label="預設使用者頭像"]').classes()).toContain('profile-edit-face')
+  })
+
   test('優先使用 uid 後五碼，沒有 uid 時 fallback 到 id 後五碼', async () => {
     const wrapper = await mountProfileEditPage()
 
@@ -226,6 +233,7 @@ describe('ProfileEditPage', () => {
     expect(wrapper.get('img[alt="使用者頭像"]').attributes('src')).toBe(
       'http://localhost:3000/uploads/avatars/avatar-user.png',
     )
+    expect(wrapper.find('[aria-label="預設使用者頭像"]').exists()).toBe(false)
   })
 
   test('更換頭像會用 FormData 上傳並更新目前登入者頭像', async () => {
@@ -260,6 +268,7 @@ describe('ProfileEditPage', () => {
     expect(wrapper.find('img[alt="使用者頭像"]').attributes('src')).toContain(
       '/uploads/avatars/avatar-user-1.png',
     )
+    expect(wrapper.find('[aria-label="預設使用者頭像"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('頭像已更新')
   })
 

@@ -8,7 +8,8 @@
         @error="handleQrError"
       />
       <p class="text-xs leading-5 text-[var(--bujo-muted-strong)]">
-        拿手機 LINE 掃一下<br />就能加入 BuJo 官方帳號
+        <strong class="text-sm font-semibold text-[var(--bujo-ink)]">拿手機 LINE 掃一下</strong
+        ><br />就能加入 BuJo 官方帳號
       </p>
     </div>
 

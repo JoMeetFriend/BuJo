@@ -19,7 +19,7 @@
       <div class="px-5 py-4">
         <div class="flex flex-col items-start gap-4 md:flex-row md:items-stretch md:gap-8">
           <div
-            class="size-24 shrink-0 overflow-hidden border border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] md:size-28"
+            class="grid size-24 shrink-0 place-items-center overflow-hidden border border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] md:size-28"
           >
             <img
               v-if="avatarUrl"
@@ -27,6 +27,7 @@
               alt="使用者頭像"
               class="size-full object-cover"
             />
+            <span v-else class="profile-edit-face" role="img" aria-label="預設使用者頭像"></span>
           </div>
           <div class="flex min-w-0 flex-col items-start gap-2 md:h-28">
             <p class="flex h-8 items-center text-base leading-none md:text-lg">{{ displayName }}</p>
@@ -602,6 +603,39 @@ const handleBioSubmit = async () => {
 <style scoped>
 .profile-card {
   box-shadow: 7px 8px 0 rgb(var(--bujo-ink-rgb) / 0.06);
+}
+
+.profile-edit-face {
+  position: relative;
+  display: block;
+  width: 48px;
+  height: 48px;
+  background:
+    linear-gradient(var(--bujo-ink) 0 0) 12px 6px / 24px 6px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 6px 12px / 6px 24px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 36px 12px / 6px 24px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 12px 36px / 24px 6px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 18px 18px / 6px 6px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 30px 18px / 6px 6px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 24px 30px / 6px 6px no-repeat;
+}
+
+.profile-edit-face::before,
+.profile-edit-face::after {
+  position: absolute;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  background: var(--bujo-ink);
+  content: '';
+}
+
+.profile-edit-face::before {
+  left: 6px;
+}
+
+.profile-edit-face::after {
+  right: 6px;
 }
 
 .profile-logout-btn {
