@@ -72,6 +72,37 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
+describe('ActivityDetailModal - 地點外部地圖連結', () => {
+  test('有地點時顯示可點擊的 Google Maps 搜尋連結', async () => {
+    const activity = makeActivity({ location: '台北車站' })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    const link = wrapper.findAll('a').find((a) => a.text().includes('台北車站'))
+    expect(link).toBeTruthy()
+    expect(link.attributes('href')).toBe(
+      'https://www.google.com/maps/search/?api=1&query=%E5%8F%B0%E5%8C%97%E8%BB%8A%E7%AB%99',
+    )
+    expect(link.attributes('target')).toBe('_blank')
+  })
+
+  test('沒有地點時不顯示地點區塊', async () => {
+    const activity = makeActivity({ location: '' })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('地點')
+  })
+})
+
 describe('ActivityDetailModal - 情境二三四(requires_voting) 揪團中提前手動成團', () => {
   test('建立者在 recruiting 狀態下可看到候選時段票數並選取後啟用「提前成團」按鈕', async () => {
     // 票數並列（沒有唯一最高票），不會自動預選，維持測試「手動選取才啟用按鈕」的意圖
@@ -1313,7 +1344,9 @@ describe('ActivityDetailModal - availability_mode: range 的報名流程', () =>
     await flushPromises()
 
     // 標籤本身就改成「時間投票中」，值只留純時間窗文字，不用再重複一次「時間投票中」
-    const timeLabel = wrapper.findAll('.activity-detail-label').find((l) => l.text() === '時間投票中')
+    const timeLabel = wrapper
+      .findAll('.activity-detail-label')
+      .find((l) => l.text() === '時間投票中')
     expect(timeLabel).toBeTruthy()
     expect(timeLabel.element.nextElementSibling.textContent).toBe('10:00–18:00區間')
     expect(wrapper.text()).not.toContain('候選時段投票中')
@@ -1546,8 +1579,20 @@ describe('ActivityDetailModal - 決策項目比例文字（X/Y人）', () => {
         { id: 'p-2', display_name: '小美', avatar_url: '' },
       ],
       decision_candidates: [
-        { id: 'slot-a', slot_start: '2026-07-10T10:00:00Z', slot_end: '2026-07-10T12:00:00Z', count: 2, supporters: [] },
-        { id: 'slot-b', slot_start: '2026-07-11T10:00:00Z', slot_end: '2026-07-11T12:00:00Z', count: 1, supporters: [] },
+        {
+          id: 'slot-a',
+          slot_start: '2026-07-10T10:00:00Z',
+          slot_end: '2026-07-10T12:00:00Z',
+          count: 2,
+          supporters: [],
+        },
+        {
+          id: 'slot-b',
+          slot_start: '2026-07-11T10:00:00Z',
+          slot_end: '2026-07-11T12:00:00Z',
+          count: 1,
+          supporters: [],
+        },
       ],
     })
     stubFetch(activity)
@@ -1563,7 +1608,13 @@ describe('ActivityDetailModal - 決策項目比例文字（X/Y人）', () => {
     const activity = makeActivity({
       participants: [{ id: 'creator-1', display_name: '小明', avatar_url: '' }],
       decision_candidates: [
-        { id: 'slot-a', slot_start: '2026-07-10T10:00:00Z', slot_end: '2026-07-10T12:00:00Z', count: 0, supporters: [] },
+        {
+          id: 'slot-a',
+          slot_start: '2026-07-10T10:00:00Z',
+          slot_end: '2026-07-10T12:00:00Z',
+          count: 0,
+          supporters: [],
+        },
       ],
     })
     stubFetch(activity)
@@ -1627,7 +1678,13 @@ describe('ActivityDetailModal - 決策清單預設前 3 名 + 顯示更多每次
   test('清單 3 筆以下時不顯示「顯示更多」按鈕', async () => {
     const activity = makeActivity({
       decision_candidates: [
-        { id: 'slot-a', slot_start: '2026-07-10T10:00:00Z', slot_end: '2026-07-10T12:00:00Z', count: 1, supporters: [] },
+        {
+          id: 'slot-a',
+          slot_start: '2026-07-10T10:00:00Z',
+          slot_end: '2026-07-10T12:00:00Z',
+          count: 1,
+          supporters: [],
+        },
       ],
     })
     stubFetch(activity)
@@ -1916,7 +1973,10 @@ describe('ActivityDetailModal - 狀態徽章文案依角色分流', () => {
     const creatorWrapper = await mountWithStatus('recruiting', { isCreator: true, hasJoined: true })
     expect(statusBadgeText(creatorWrapper)).toBe('揪團中')
 
-    const participantWrapper = await mountWithStatus('recruiting', { isCreator: false, hasJoined: true })
+    const participantWrapper = await mountWithStatus('recruiting', {
+      isCreator: false,
+      hasJoined: true,
+    })
     expect(statusBadgeText(participantWrapper)).toBe('已報名')
   })
 
@@ -1924,19 +1984,34 @@ describe('ActivityDetailModal - 狀態徽章文案依角色分流', () => {
     const creatorWrapper = await mountWithStatus('voting', { isCreator: true, hasJoined: true })
     expect(statusBadgeText(creatorWrapper)).toBe('建立者決選中')
 
-    const participantWrapper = await mountWithStatus('voting', { isCreator: false, hasJoined: true })
+    const participantWrapper = await mountWithStatus('voting', {
+      isCreator: false,
+      hasJoined: true,
+    })
     expect(statusBadgeText(participantWrapper)).toBe('已報名')
   })
 
   it('confirmed／cancelled 不分角色維持原文字', async () => {
-    const confirmedCreator = await mountWithStatus('confirmed', { isCreator: true, hasJoined: true })
+    const confirmedCreator = await mountWithStatus('confirmed', {
+      isCreator: true,
+      hasJoined: true,
+    })
     expect(statusBadgeText(confirmedCreator)).toBe('已成團')
-    const confirmedParticipant = await mountWithStatus('confirmed', { isCreator: false, hasJoined: true })
+    const confirmedParticipant = await mountWithStatus('confirmed', {
+      isCreator: false,
+      hasJoined: true,
+    })
     expect(statusBadgeText(confirmedParticipant)).toBe('已成團')
 
-    const cancelledCreator = await mountWithStatus('cancelled', { isCreator: true, hasJoined: true })
+    const cancelledCreator = await mountWithStatus('cancelled', {
+      isCreator: true,
+      hasJoined: true,
+    })
     expect(statusBadgeText(cancelledCreator)).toBe('已取消')
-    const cancelledParticipant = await mountWithStatus('cancelled', { isCreator: false, hasJoined: true })
+    const cancelledParticipant = await mountWithStatus('cancelled', {
+      isCreator: false,
+      hasJoined: true,
+    })
     expect(statusBadgeText(cancelledParticipant)).toBe('已取消')
   })
 
@@ -1952,20 +2027,35 @@ describe('ActivityDetailModal - 決選候選清單只渲染給建立者', () => 
       status: 'voting',
       requires_voting: true,
       decision_candidates: [
-        { id: 'slot-a', slot_start: '2026-07-10T10:00:00Z', slot_end: '2026-07-10T12:00:00Z', count: 1, supporters: [] },
+        {
+          id: 'slot-a',
+          slot_start: '2026-07-10T10:00:00Z',
+          slot_end: '2026-07-10T12:00:00Z',
+          count: 1,
+          supporters: [],
+        },
       ],
     })
 
-    const participantActivity = { ...baseActivity, is_creator: false, has_joined: true, decision_candidates: null }
+    const participantActivity = {
+      ...baseActivity,
+      is_creator: false,
+      has_joined: true,
+      decision_candidates: null,
+    }
     stubFetch(participantActivity)
-    const participantWrapper = mount(ActivityDetailModal, { props: { isOpen: true, activityId: 'act-1' } })
+    const participantWrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
     await flushPromises()
     expect(participantWrapper.find('.activity-detail-option').exists()).toBe(false)
     expect(participantWrapper.text()).not.toContain('目前票數')
 
     const creatorActivity = { ...baseActivity, is_creator: true, has_joined: true }
     stubFetch(creatorActivity)
-    const creatorWrapper = mount(ActivityDetailModal, { props: { isOpen: true, activityId: 'act-1' } })
+    const creatorWrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
     await flushPromises()
     expect(creatorWrapper.find('.activity-detail-option').exists()).toBe(true)
     expect(creatorWrapper.text()).toContain('目前票數')
@@ -2115,8 +2205,20 @@ describe('ActivityDetailModal - 決選候選清單過期項目呈現：維持顯
         { id: 'slot-b', slot_start: '2026-08-03T19:00:00', slot_end: '2026-08-03T21:00:00' },
       ],
       decision_candidates: [
-        { id: 'slot-a', slot_start: '2026-06-01T19:00:00', slot_end: '2026-06-01T21:00:00', count: 2, supporters: [] },
-        { id: 'slot-b', slot_start: '2026-08-03T19:00:00', slot_end: '2026-08-03T21:00:00', count: 1, supporters: [] },
+        {
+          id: 'slot-a',
+          slot_start: '2026-06-01T19:00:00',
+          slot_end: '2026-06-01T21:00:00',
+          count: 2,
+          supporters: [],
+        },
+        {
+          id: 'slot-b',
+          slot_start: '2026-08-03T19:00:00',
+          slot_end: '2026-08-03T21:00:00',
+          count: 1,
+          supporters: [],
+        },
       ],
     })
     stubFetch(activity)

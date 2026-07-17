@@ -202,9 +202,13 @@ describe('ProfileEditPage', () => {
 
     const wrapper = await mountProfileEditPage({}, '/profile/edit?linked=line')
 
-    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/auth/me'), {
-      credentials: 'include',
-    })
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/auth/me'),
+      expect.objectContaining({
+        credentials: 'include',
+        signal: expect.any(AbortSignal),
+      }),
+    )
     expect(wrapper.vm.$router.currentRoute.value.path).toBe('/calendar')
     expect(sessionStorage.getItem('bujo:line-notification-guide:return-path')).toBeNull()
     expect(localStorage.getItem('bujo:line-notification-guide:v1:legacy-11111')).toBeNull()

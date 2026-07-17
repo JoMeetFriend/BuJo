@@ -1,5 +1,7 @@
 <template>
   <div class="relative flex h-screen bg-[var(--bujo-page)] overflow-hidden text-[var(--bujo-ink)]">
+    <LoadingPage v-if="!authStore.initialized || !minDisplayElapsed" />
+
     <AppSidebar
       v-if="showSidebar"
       :isOpen="sidebarOpen"
@@ -23,7 +25,12 @@
       :class="[
         isCalendarPage || isAuthPage ? 'overflow-hidden' : 'overflow-auto',
         {
-          'pb-20': route.path !== '/activity' && !isCalendarPage && !isAuthPage && !isLandingPage,
+          'pb-20':
+            route.path !== '/activity' &&
+            !isCalendarPage &&
+            !isAuthPage &&
+            !isLandingPage &&
+            !isNotFoundPage,
         },
       ]"
     >
@@ -43,22 +50,36 @@
 
 <script setup>
 import { RouterView, useRoute } from 'vue-router'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import AppSidebar from './components/AppSidebar.vue'
 import SidebarToggleButton from './components/ui/SidebarToggleButton.vue'
 import LineNotificationOnboardingModal from './components/LineNotificationOnboardingModal.vue'
+import LoadingPage from './components/ui/LoadingPage.vue'
 import { useAuthStore } from './stores/auth'
 import {
   rememberLineNotificationOnboardingReturnPath,
   useLineNotificationOnboarding,
 } from './composables/useLineNotificationOnboarding'
 
+// 載入畫面至少顯示這麼久，避免 authStore 初始化太快時畫面閃一下就消失
+const MIN_LOADING_DISPLAY_MS = 1600
+
 const route = useRoute()
 const authStore = useAuthStore()
 const sidebarOpen = ref(true)
 const filters = ref({ joined: true, formed: true, personal: true })
+const minDisplayElapsed = ref(false)
 
-const showSidebar = computed(() => !['/login', '/register', '/'].includes(route.path))
+onMounted(() => {
+  setTimeout(() => {
+    minDisplayElapsed.value = true
+  }, MIN_LOADING_DISPLAY_MS)
+})
+
+const isNotFoundPage = computed(() => route.name === 'not-found')
+const showSidebar = computed(
+  () => !['/login', '/register', '/'].includes(route.path) && !isNotFoundPage.value,
+)
 const isAuthPage = computed(() => ['/login', '/register'].includes(route.path))
 const isLandingPage = computed(() => route.path === '/')
 const isCalendarPage = computed(() => route.name === 'calendar-page')
