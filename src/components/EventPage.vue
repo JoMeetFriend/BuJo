@@ -299,6 +299,7 @@
             </div>
 
             <ReportCutoffReminder
+              v-if="scheduleCeilingDate"
               :is-warning="isReportCutoffWarning"
               :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
@@ -472,6 +473,7 @@
             </div>
 
             <ReportCutoffReminder
+              v-if="scheduleCeilingDate"
               :is-warning="isReportCutoffWarning"
               :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
@@ -643,6 +645,7 @@
             </div>
 
             <ReportCutoffReminder
+              v-if="scheduleCeilingDate"
               :is-warning="isReportCutoffWarning"
               :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
@@ -836,6 +839,7 @@
             </div>
 
             <ReportCutoffReminder
+              v-if="scheduleCeilingDate"
               :is-warning="isReportCutoffWarning"
               :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
@@ -1404,7 +1408,7 @@ const scheduleAnchor = computed(() => {
   return { date: form.startDate, time: form.allDay ? '00:00' : form.startTime }
 })
 
-// 決策硬截止時間本身（天花板解析成實際 Date；沒有設定時間時退回當天 23:59:59，見 resolveDeadlineAnchor）
+// 決策硬截止時間本身（天花板解析成實際 Date；日期或時間還沒選完整時是 null，見 resolveDeadlineAnchor）
 const scheduleCeilingDate = computed(() =>
   resolveDeadlineAnchor(scheduleAnchor.value.date, scheduleAnchor.value.time),
 )
@@ -1446,10 +1450,14 @@ function withinSafetyBuffer(date) {
 
 // 第一行（報名截止時間）的警示判斷：本身貼近現在，或演算法已經降級到無報名緩衝——無報名緩衝
 // 時報名截止時間雖然等於天花板，但天花板本身可能還有 30~59 分鐘、不會被距今檢查直接抓到，
-// 所以額外用 selectedDeadlinePresetKey === null 撐住，跟設計文件「無報名緩衝一律警示」一致
-const isReportCutoffWarning = computed(
-  () => selectedDeadlinePresetKey.value === null || withinSafetyBuffer(voteDeadlineDate.value),
-)
+// 所以額外用 selectedDeadlinePresetKey === null 撐住，跟設計文件「無報名緩衝一律警示」一致。
+// 先擋 scheduleCeilingDate 不存在的情況（日期/時間都還沒選完）——這時候
+// computeSmartDefaultPresetKey 也會回傳 null，但那是「還沒算」不是「算出來不安全」，
+// 不能誤判成警示狀態
+const isReportCutoffWarning = computed(() => {
+  if (!scheduleCeilingDate.value) return false
+  return selectedDeadlinePresetKey.value === null || withinSafetyBuffer(voteDeadlineDate.value)
+})
 
 // 第二行（決策硬截止時間）的警示判斷，跟報名截止時間各自獨立
 const isScheduleCeilingWarning = computed(() => withinSafetyBuffer(scheduleCeilingDate.value))
@@ -1876,16 +1884,12 @@ function parseDateValue(value) {
   return date
 }
 
-// 沒有指定時間的日期（情境二沒填時段範圍、allDay 等）視為「整天都有可能發生」，
-// 用當天最晚的時間點（23:59:59）當計算基準，而不是當天 00:00——
-// 用 00:00 的話同一天的活動一定會被算成「已經過期」，當天的活動反而永遠不能設定流團時間
+// 四個情境的 scheduleAnchor 現在整日狀態都會餵一個代表 00:00 的時間字串（不再留 null），
+// 所以這裡 time 是 null 只剩一種情況：使用者根本還沒選時間，還沒填完，不是「整日、故意沒有
+// 確切時間」——直接回傳 null（沒有天花板可算），不要再退回當天 23:59:59 那種假值，避免使用者
+// 什麼都還沒選就看到一個算好的報名截止提醒
 function resolveDeadlineAnchor(dateStr, timeStr) {
-  const withTime = parseDateTimeValue(dateStr, timeStr)
-  if (withTime) return withTime
-  const dateOnly = parseDateValue(dateStr)
-  if (!dateOnly) return null
-  dateOnly.setHours(23, 59, 59, 999)
-  return dateOnly
+  return parseDateTimeValue(dateStr, timeStr)
 }
 
 function isSameDate(firstDate, secondDate) {
