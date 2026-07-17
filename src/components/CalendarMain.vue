@@ -80,22 +80,7 @@
               :class="{ 'is-active': showDots }"
               aria-label="切換背景動畫"
             >
-              <span class="calendar-arrow-text">{{ showDots ? '●' : '○' }}</span>
-              <svg
-                class="calendar-crayon-icon"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path
-                  d="M12,6 C15.3,6 18,8.7 18,12 C18,15.3 15.3,18 12,18 C8.7,18 6,15.3 6,12 C6,8.7 8.7,6 12,6"
-                />
-                <path
-                  v-if="showDots"
-                  d="M12,9 C13.7,9 15,10.3 15,12 C15,13.7 13.7,15 12,15 C10.3,15 9,13.7 9,12 C9,10.3 10.3,9 12,9"
-                  fill="currentColor"
-                />
-              </svg>
+              <span class="calendar-square-toggle" aria-hidden="true"></span>
             </button>
             <button
               @click="prevMonth"
@@ -1797,21 +1782,23 @@ function isToday(date) {
   }
 }
 
-.calendar-arrow-text {
-  display: inline;
-  font-family: var(--bujo-font-body);
-  font-size: 14px;
-  line-height: 1;
-  transition: color 160ms ease;
+.calendar-square-toggle {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgb(var(--bujo-ink-rgb) / 0.5);
+  background: transparent;
+  transition: all 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.calendar-arrow-button.is-active .calendar-arrow-text {
-  color: #98d0a2;
+.calendar-arrow-button.is-active .calendar-square-toggle {
+  background: #98d0a2;
+  border-color: #98d0a2;
+  box-shadow: 2px 2px 0 rgb(var(--bujo-ink-rgb) / 0.15);
+  transform: translate(-1px, -1px);
 }
 
-@media (max-width: 640px) {
-  .calendar-arrow-text {
-    display: none;
-  }
+.calendar-arrow-button:hover .calendar-square-toggle:not(.is-active) {
+  border-color: var(--bujo-ink);
 }
 </style>
