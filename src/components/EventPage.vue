@@ -78,7 +78,9 @@
 
         <div :class="[fieldClass, 'col-span-full']">
           <label :class="fieldLabelClass" for="event-location">地點</label>
-          <label class="inline-flex w-fit items-center gap-1.5 text-xs text-[var(--bujo-muted-strong)]">
+          <label
+            class="inline-flex w-fit items-center gap-1.5 text-xs text-[var(--bujo-muted-strong)]"
+          >
             <input
               v-model="searchOverseasLocation"
               type="checkbox"
@@ -106,11 +108,19 @@
               @keydown="handleLocationKeydown"
             />
             <div
-              v-if="isSearchingAddress || addressError || (addressHasSearched && addressResults.length === 0) || addressResults.length > 0"
+              v-if="
+                isSearchingAddress ||
+                addressError ||
+                (addressHasSearched && addressResults.length === 0) ||
+                addressResults.length > 0
+              "
               class="absolute inset-x-0 top-full z-10 mt-1 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-md"
               aria-live="polite"
             >
-              <p v-if="isSearchingAddress" class="px-3 py-2 text-sm text-[var(--bujo-muted-strong)]">
+              <p
+                v-if="isSearchingAddress"
+                class="px-3 py-2 text-sm text-[var(--bujo-muted-strong)]"
+              >
                 搜尋中...
               </p>
               <p v-else-if="addressError" class="px-3 py-2 text-sm text-[#dc2626]">
@@ -122,7 +132,12 @@
               >
                 查無符合的地址
               </p>
-              <ul v-else id="event-location-listbox" role="listbox" class="max-h-48 overflow-y-auto">
+              <ul
+                v-else
+                id="event-location-listbox"
+                role="listbox"
+                class="max-h-48 overflow-y-auto"
+              >
                 <li
                   v-for="(address, index) in addressResults"
                   :id="`event-location-option-${index}`"
@@ -1083,9 +1098,7 @@ function handleLocationKeydown(event) {
   } else if (event.key === 'ArrowUp') {
     event.preventDefault()
     activeAddressIndex.value =
-      activeAddressIndex.value <= 0
-        ? addressResults.value.length - 1
-        : activeAddressIndex.value - 1
+      activeAddressIndex.value <= 0 ? addressResults.value.length - 1 : activeAddressIndex.value - 1
   } else if (event.key === 'Enter' && activeAddressIndex.value >= 0) {
     event.preventDefault()
     selectAddress(addressResults.value[activeAddressIndex.value])
@@ -1608,7 +1621,7 @@ const isScheduleCeilingWarning = computed(() => withinSafetyBuffer(scheduleCeili
 // 緊急狀態：報名截止時間或決策硬截止時間任一貼近現在就算，不再看活動本身（scheduleAnchor）
 // 距今多久——活動距今很近時兩個算出來的時間通常會同步貼近現在，但活動距今稍遠時兩者會脫鉤
 // （例如自動選中的偏移量剛好讓算出來的報名截止時間貼近現在），這種情況舊邏輯完全偵測不到
-// eslint-disable-next-line no-unused-vars -- EventPage tests assert this setup state through wrapper.vm.
+
 // 不在 template 內使用，僅供測試透過 wrapper.vm 讀取內部狀態
 // eslint-disable-next-line no-unused-vars
 const isUrgent = computed(() => isReportCutoffWarning.value || isScheduleCeilingWarning.value)

@@ -26,7 +26,11 @@ describe('useAddressSearch', () => {
 
   it('查詢中 isSearching 為 true，查詢成功後把結果寫入 searchResults 並標記已搜尋過', async () => {
     let resolveGet
-    apiClient.get.mockReturnValue(new Promise((resolve) => { resolveGet = resolve }))
+    apiClient.get.mockReturnValue(
+      new Promise((resolve) => {
+        resolveGet = resolve
+      }),
+    )
     const { searchResults, isSearching, hasSearched, searchAddress } = useAddressSearch()
 
     const searchPromise = searchAddress('台北')
