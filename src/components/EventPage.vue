@@ -89,20 +89,34 @@
               @input="handleLocationInput"
               @blur="handleLocationBlur"
             />
-            <ul
-              v-if="addressResults.length > 0"
-              class="absolute inset-x-0 top-full z-10 mt-1 max-h-48 overflow-y-auto border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-md"
+            <div
+              v-if="isSearchingAddress || addressError || (addressHasSearched && addressResults.length === 0) || addressResults.length > 0"
+              class="absolute inset-x-0 top-full z-10 mt-1 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-md"
             >
-              <li v-for="address in addressResults" :key="address">
-                <button
-                  type="button"
-                  class="block w-full px-3 py-2 text-left text-sm text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                  @mousedown.prevent="selectAddress(address)"
-                >
-                  {{ address }}
-                </button>
-              </li>
-            </ul>
+              <p v-if="isSearchingAddress" class="px-3 py-2 text-sm text-[var(--bujo-muted-strong)]">
+                搜尋中...
+              </p>
+              <p v-else-if="addressError" class="px-3 py-2 text-sm text-[#dc2626]">
+                {{ addressError }}
+              </p>
+              <p
+                v-else-if="addressHasSearched && addressResults.length === 0"
+                class="px-3 py-2 text-sm text-[var(--bujo-muted-strong)]"
+              >
+                查無符合的地址
+              </p>
+              <ul v-else class="max-h-48 overflow-y-auto">
+                <li v-for="address in addressResults" :key="address">
+                  <button
+                    type="button"
+                    class="block w-full px-3 py-2 text-left text-sm text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                    @mousedown.prevent="selectAddress(address)"
+                  >
+                    {{ address }}
+                  </button>
+                </li>
+              </ul>
+            </div>
           </span>
         </label>
 
@@ -978,8 +992,14 @@ const scheduleRows = [
 
 const today = formatDateValue(new Date())
 
-const { searchResults: addressResults, searchAddress, clearSearch: clearAddressSearch } =
-  useAddressSearch()
+const {
+  searchResults: addressResults,
+  isSearching: isSearchingAddress,
+  error: addressError,
+  hasSearched: addressHasSearched,
+  searchAddress,
+  clearSearch: clearAddressSearch,
+} = useAddressSearch()
 let addressDebounceTimer = null
 
 function handleLocationInput() {

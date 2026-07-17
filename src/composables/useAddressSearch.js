@@ -11,6 +11,7 @@ export function useAddressSearch() {
   const searchResults = ref([])
   const isSearching = ref(false)
   const error = ref(null)
+  const hasSearched = ref(false)
 
   let abortController = null
 
@@ -19,6 +20,7 @@ export function useAddressSearch() {
     if (sanitizedKeyword.length < 2) {
       if (abortController) abortController.abort()
       searchResults.value = []
+      hasSearched.value = false
       return
     }
 
@@ -31,6 +33,7 @@ export function useAddressSearch() {
 
     isSearching.value = true
     error.value = null
+    hasSearched.value = false
 
     try {
       const response = await apiClient.get('/api/places/autocomplete', {
@@ -39,6 +42,7 @@ export function useAddressSearch() {
       })
 
       searchResults.value = response.data?.results || []
+      hasSearched.value = true
     } catch (err) {
       if (axios.isCancel(err)) {
         return
@@ -46,6 +50,7 @@ export function useAddressSearch() {
       console.error('地址搜尋失敗:', err)
       error.value = '地址搜尋發生錯誤'
       searchResults.value = []
+      hasSearched.value = true
     } finally {
       if (thisController === abortController) {
         isSearching.value = false
@@ -58,7 +63,8 @@ export function useAddressSearch() {
     searchResults.value = []
     isSearching.value = false
     error.value = null
+    hasSearched.value = false
   }
 
-  return { searchResults, isSearching, error, searchAddress, clearSearch }
+  return { searchResults, isSearching, error, hasSearched, searchAddress, clearSearch }
 }
