@@ -37,12 +37,24 @@ describe('useAddressSearch', () => {
     await searchPromise
 
     expect(apiClient.get).toHaveBeenCalledWith('/api/places/autocomplete', {
-      params: { q: '台北' },
+      params: { q: '台北', global: undefined },
       signal: expect.any(AbortSignal),
     })
     expect(searchResults.value).toEqual(['台北車站', '台北 101'])
     expect(isSearching.value).toBe(false)
     expect(hasSearched.value).toBe(true)
+  })
+
+  it('global 為 true 時會帶 global: true 給後端 API', async () => {
+    apiClient.get.mockResolvedValue({ data: { results: ['Tokyo Station'] } })
+    const { searchAddress } = useAddressSearch()
+
+    await searchAddress('Tokyo', { global: true })
+
+    expect(apiClient.get).toHaveBeenCalledWith('/api/places/autocomplete', {
+      params: { q: 'Tokyo', global: true },
+      signal: expect.any(AbortSignal),
+    })
   })
 
   it('查詢成功但查無結果時 hasSearched 為 true、searchResults 為空陣列', async () => {

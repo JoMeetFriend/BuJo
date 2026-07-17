@@ -15,7 +15,7 @@ export function useAddressSearch() {
 
   let abortController = null
 
-  const searchAddress = async (keyword) => {
+  const searchAddress = async (keyword, { global = false } = {}) => {
     const sanitizedKeyword = keyword?.trim() || ''
     if (sanitizedKeyword.length < 2) {
       if (abortController) abortController.abort()
@@ -37,7 +37,7 @@ export function useAddressSearch() {
 
     try {
       const response = await apiClient.get('/api/places/autocomplete', {
-        params: { q: sanitizedKeyword },
+        params: { q: sanitizedKeyword, global: global || undefined },
         signal: abortController.signal,
       })
 
