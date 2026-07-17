@@ -100,7 +100,15 @@
           </div>
           <div v-if="activity.location">
             <div class="activity-detail-label">地點</div>
-            <div>{{ activity.location }}</div>
+            <div>
+              <a
+                :href="googleMapsSearchUrl(activity.location)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="underline decoration-dotted underline-offset-2 hover:decoration-solid"
+                >📍 {{ activity.location }}</a
+              >
+            </div>
           </div>
           <div v-if="activity.description">
             <div class="activity-detail-label">備註</div>
@@ -639,6 +647,7 @@ import { ref, reactive, computed, watch } from 'vue'
 import PixelButton from './ui/PixelButton.vue'
 import AvailabilityPickerModal from './AvailabilityPickerModal.vue'
 import { toAvatarSrc } from '@/utils/avatar'
+import { googleMapsSearchUrl } from '@/utils/mapLink'
 
 const props = defineProps({
   isOpen: Boolean,

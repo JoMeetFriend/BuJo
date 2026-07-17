@@ -72,6 +72,37 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
+describe('ActivityDetailModal - 地點外部地圖連結', () => {
+  test('有地點時顯示可點擊的 Google Maps 搜尋連結', async () => {
+    const activity = makeActivity({ location: '台北車站' })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    const link = wrapper.findAll('a').find((a) => a.text().includes('台北車站'))
+    expect(link).toBeTruthy()
+    expect(link.attributes('href')).toBe(
+      'https://www.google.com/maps/search/?api=1&query=%E5%8F%B0%E5%8C%97%E8%BB%8A%E7%AB%99',
+    )
+    expect(link.attributes('target')).toBe('_blank')
+  })
+
+  test('沒有地點時不顯示地點區塊', async () => {
+    const activity = makeActivity({ location: '' })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('地點')
+  })
+})
+
 describe('ActivityDetailModal - 情境二三四(requires_voting) 揪團中提前手動成團', () => {
   test('建立者在 recruiting 狀態下可看到候選時段票數並選取後啟用「提前成團」按鈕', async () => {
     // 票數並列（沒有唯一最高票），不會自動預選，維持測試「手動選取才啟用按鈕」的意圖
