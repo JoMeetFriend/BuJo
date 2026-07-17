@@ -8,16 +8,16 @@ TBD - created by archiving change 'notification-deep-link-and-unread-api'. Updat
 
 ### Requirement: Activity notification click navigates to the referenced activity
 
-The alerts page SHALL, when a notification whose `reference.type` is `"activity"` and whose `reference.id` is present is clicked (or activated via Enter/Space), mark the notification as read and navigate to the activity page route `/activity` with query parameter `focus` set to the string form of `reference.id`. A failure of the mark-as-read request MUST NOT block the navigation. Notifications without an activity reference SHALL keep the existing click behavior of marking as read without navigation. The existing swipe-suppression guard (clicks during or immediately after a swipe gesture) SHALL apply before any navigation.
+The alerts page SHALL, when a notification whose `reference.type` is `"activity"` and whose `reference.id` is present is activated by a normal pointer click, Enter, or Space, mark the notification as read and navigate to the activity page route `/activity` with query parameter `focus` set to the string form of `reference.id`. A failure of the mark-as-read request MUST NOT block the navigation. Notifications without an activity reference SHALL keep the existing activation behavior of marking as read without navigation. A one-time pointer click guard armed by a horizontal drag SHALL apply before pointer-click activation and SHALL be consumed when it blocks that click. The pointer click guard MUST NOT block Enter or Space activation.
 
 #### Scenario: Click an activity notification
 
-- **WHEN** a user clicks a notification with `reference: { type: "activity", id: 42, status: "voting" }`
+- **WHEN** a user clicks a notification with `reference: { type: "activity", id: 42, status: "voting" }` without an armed pointer click guard
 - **THEN** the client marks the notification as read and navigates to `/activity?focus=42`
 
 #### Scenario: Mark-as-read fails but navigation proceeds
 
-- **WHEN** a user clicks an activity notification and the mark-as-read request fails
+- **WHEN** a user activates an activity notification and the mark-as-read request fails
 - **THEN** the client still navigates to `/activity?focus=<id>`
 
 #### Scenario: Click a non-activity notification
@@ -25,29 +25,29 @@ The alerts page SHALL, when a notification whose `reference.type` is `"activity"
 - **WHEN** a user clicks a notification whose `reference` is absent or whose `reference.type` is not `"activity"`
 - **THEN** the client marks it as read and does not navigate
 
-#### Scenario: Click suppressed right after a swipe
+#### Scenario: Pointer click suppressed after a horizontal drag
 
-- **WHEN** a click lands on an activity notification while the swipe click-suppression window is active
-- **THEN** the client neither marks the notification as read nor navigates
+- **WHEN** a pointer-generated click lands on an activity notification while its one-time pointer click guard is armed
+- **THEN** the client consumes the guard and neither marks the notification as read nor navigates
+
+#### Scenario: Enter bypasses pointer click guard
+
+- **WHEN** an activity notification has an armed pointer click guard and the user activates it with Enter
+- **THEN** the client marks the notification as read and navigates to its activity focus route
+
+#### Scenario: Space bypasses pointer click guard
+
+- **WHEN** an activity notification has an armed pointer click guard and the user activates it with Space
+- **THEN** the client marks the notification as read and navigates to its activity focus route
 
 
 <!-- @trace
-source: notification-deep-link-and-unread-api
-updated: 2026-07-14
+source: fix-notification-swipe-click-through
+updated: 2026-07-16
 code:
   - src/components/AlertsPage.vue
-  - src/components/AppSidebar.vue
-  - src/stores/friendStore.js
-  - src/components/FriendsPage.vue
-  - src/components/ActivityView.vue
-  - src/stores/notificationStore.js
-  - src/components/ProfileEditPage.vue
-  - src/stores/userStore.js
 tests:
-  - src/__tests__/notificationStore.test.js
-  - src/__tests__/ActivityView.test.js
   - src/__tests__/AlertsPage.test.js
-  - src/__tests__/AppSidebar.test.js
 -->
 
 ---
