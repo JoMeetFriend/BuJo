@@ -79,6 +79,10 @@ router.beforeEach(async (to) => {
   // 第一次載入一定要確認；之後只在進入需要登入的頁面時重新跟後端確認，
   // 避免 cookie 過期或被後端強制登出後，分頁只要沒重新整理就一直被當成已登入
   if (!authStore.initialized || to.meta.requiresAuth) {
+    // 只有第一次載入才需要先確認後端沒在 Render 冷啟動中；之後的請求後端已經醒著
+    if (!authStore.initialized) {
+      await authStore.waitForBackend()
+    }
     await authStore.fetchMe()
   }
 
