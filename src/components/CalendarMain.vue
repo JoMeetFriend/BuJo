@@ -22,6 +22,17 @@
         }"
       />
     </div>
+
+    <button
+      v-if="isMobile"
+      @click="toggleDotsAnimation"
+      class="calendar-arrow-button calendar-toggle-dots-mobile"
+      :class="{ 'is-active': showDots }"
+      aria-label="切換背景動畫"
+    >
+      <span class="calendar-square-toggle" aria-hidden="true"></span>
+    </button>
+
     <button
       type="button"
       class="calendar-profile-button calendar-page-profile-button hidden md:flex"
@@ -75,6 +86,7 @@
 
           <div class="calendar-hero-actions">
             <button
+              v-if="!isMobile"
               @click="toggleDotsAnimation"
               class="calendar-arrow-button"
               :class="{ 'is-active': showDots }"
@@ -1800,5 +1812,25 @@ function isToday(date) {
 
 .calendar-arrow-button:hover .calendar-square-toggle:not(.is-active) {
   border-color: var(--bujo-ink);
+}
+
+@media (max-width: 640px) {
+  .calendar-toggle-dots-mobile {
+    position: absolute;
+    top: 6px;
+    right: 14px;
+    z-index: 10;
+
+    display: grid;
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
+    background: transparent;
+  }
+
+  .calendar-toggle-dots-mobile:hover {
+    border-color: var(--bujo-ink);
+    background: var(--bujo-surface);
+  }
 }
 </style>
