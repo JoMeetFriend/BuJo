@@ -45,7 +45,8 @@ describe('LineNotificationOnboardingModal', () => {
     expect(wrapper.get('h2').text()).toBe('用 LINE 收到揪團提醒')
     expect(wrapper.text()).toContain('想在 LINE 收到揪團提醒嗎？')
     expect(wrapper.text()).toContain('先把 BuJo 帳號連上 LINE')
-    expect(wrapper.text()).toContain('現在不想設定也沒關係')
+    expect(wrapper.text()).toContain('這次先略過也沒關係')
+    expect(wrapper.text()).toContain('之後可以到個人編輯頁面繼續設定')
     expect(wrapper.find('[data-testid="line-official-account-entry"]').exists()).toBe(true)
     expect(wrapper.get('img').attributes('alt')).toBe('BuJo LINE 官方帳號加入好友 QR Code')
     expect(wrapper.get('a[aria-label="連接 LINE 並開啟通知設定"]').attributes('href')).toBe(
@@ -71,14 +72,16 @@ describe('LineNotificationOnboardingModal', () => {
 
     expect(wrapper.get('h2').text()).toBe('LINE 提醒就差一步')
     expect(wrapper.text()).toContain('你的 BuJo 已經連上 LINE 囉！')
-    expect(wrapper.text()).toContain('也記得確認沒有封鎖我們')
+    expect(wrapper.text()).toContain('這次先略過也沒關係')
+    expect(wrapper.text()).toContain('之後可到個人編輯頁面掃 QR Code')
+    expect(wrapper.text()).not.toContain('確認沒有封鎖我們')
     expect(wrapper.find('[data-testid="line-official-account-entry"]').exists()).toBe(true)
     expect(wrapper.find('a[aria-label="連接 LINE 並開啟通知設定"]').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('已加入官方帳號')
     expect(wrapper.text()).not.toContain('推播已開啟')
   })
 
-  test('關閉、稍後再說、綁定與官方帳號動作都送出 complete', async () => {
+  test('關閉、稍後再說與官方帳號動作送出 complete，綁定動作保留 onboarding', async () => {
     const unconnected = mountModal({ id: 'user-1', identities: [] })
     await unconnected.get('[aria-label="測試關閉彈窗"]').trigger('click')
     await unconnected
@@ -96,7 +99,8 @@ describe('LineNotificationOnboardingModal', () => {
     )
     await unconnectedOfficialAccountLink.trigger('click')
 
-    expect(unconnected.emitted('complete')).toHaveLength(4)
+    expect(unconnected.emitted('complete')).toHaveLength(3)
+    expect(unconnected.emitted('link-start')).toHaveLength(1)
 
     const connected = mountModal({
       id: 'user-2',

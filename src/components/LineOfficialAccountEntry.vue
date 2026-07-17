@@ -1,10 +1,6 @@
 <template>
   <div class="line-official-entry" data-testid="line-official-account-entry">
-    <div
-      v-if="showQrCode"
-      class="line-official-entry__qr hidden md:flex"
-      data-testid="line-official-account-qr"
-    >
+    <div v-if="showQrCode" class="line-official-entry__qr" data-testid="line-official-account-qr">
       <img
         :src="normalizedQrCodeUrl"
         alt="BuJo LINE 官方帳號加入好友 QR Code"
@@ -18,7 +14,7 @@
 
     <p
       v-else-if="qrUnavailableMessage"
-      class="hidden text-xs leading-5 text-[var(--bujo-muted-strong)] md:block"
+      class="text-xs leading-5 text-[var(--bujo-muted-strong)]"
       aria-live="polite"
     >
       {{ qrUnavailableMessage }}
@@ -37,14 +33,11 @@
       <span aria-hidden="true">↗</span>
     </a>
     <p
-      v-else
-      :class="[
-        'border border-dashed border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-3 py-2 text-xs leading-5 text-[var(--bujo-muted-strong)]',
-        showQrCode ? 'md:hidden' : '',
-      ]"
+      v-else-if="!showQrCode"
+      class="border border-dashed border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-3 py-2 text-xs leading-5 text-[var(--bujo-muted-strong)]"
       role="status"
     >
-      {{ addFriendUnavailableMessage }}
+      LINE 官方帳號連結暫時打不開，晚點再試試看。
     </p>
   </div>
 </template>
@@ -76,11 +69,6 @@ const qrUnavailableMessage = computed(() => {
   }
   return ''
 })
-const addFriendUnavailableMessage = computed(() =>
-  showQrCode.value
-    ? '手機加入連結暫時打不開，可以改用桌機掃 QR Code。'
-    : 'LINE 官方帳號連結暫時打不開，晚點再試試看。',
-)
 
 watch(normalizedQrCodeUrl, () => {
   qrLoadFailed.value = false
@@ -98,11 +86,21 @@ function handleQrError() {
 }
 
 .line-official-entry__qr {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 16px;
   border: 1px solid var(--bujo-line-soft);
   background: var(--bujo-surface-muted);
   padding: 12px;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .line-official-entry__qr {
+    flex-direction: row;
+    text-align: left;
+  }
 }
 
 .line-official-entry__link {

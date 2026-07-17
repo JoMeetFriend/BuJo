@@ -35,7 +35,7 @@ async function selectAvatarFile(wrapper, file) {
   await flushPromises()
 }
 
-async function mountProfileEditPage(user = {}) {
+async function mountProfileEditPage(user = {}, path = '/profile/edit') {
   const pinia = createPinia()
   setActivePinia(pinia)
   const authStore = useAuthStore()
@@ -48,10 +48,11 @@ async function mountProfileEditPage(user = {}) {
     history: createMemoryHistory(),
     routes: [
       { path: '/profile/edit', component: ProfileEditPage },
+      { path: '/calendar', component: { template: '<div>Calendar</div>' } },
       { path: '/login', component: { template: '<div>Login</div>' } },
     ],
   })
-  await router.push('/profile/edit')
+  await router.push(path)
   await router.isReady()
 
   const wrapper = mount(ProfileEditPage, {
@@ -66,6 +67,7 @@ async function mountProfileEditPage(user = {}) {
 beforeEach(() => {
   vi.restoreAllMocks()
   localStorage.clear()
+  sessionStorage.clear()
   globalThis.fetch = vi.fn()
   stubClipboard()
   window.google = {
@@ -137,24 +139,35 @@ describe('ProfileEditPage', () => {
     expect(wrapper.text()).toContain('test@example.com')
   })
 
-  test('未連接 LINE 時永久通知區塊提供既有綁定入口', async () => {
+  test('未連接 LINE 時同時提供唯一綁定入口與官方帳號 QR Code', async () => {
     const wrapper = await mountProfileEditPage()
     const settings = wrapper.get('[data-testid="line-notification-settings"]')
+    const sectionHeadings = wrapper.findAll('h2').map((heading) => heading.text())
 
-    expect(settings.text()).toContain('尚未連接 LINE')
-    expect(settings.text()).toContain('先連接 LINE 帳號')
-    expect(settings.find('[data-testid="line-official-account-entry"]').exists()).toBe(false)
-    expect(settings.get('[aria-label="連接 LINE 以接收通知"]').text()).toBe('連接 LINE')
+    expect(sectionHeadings).not.toContain('LINE 通知')
+    expect(settings.text()).toContain('尚未連接 LINE 帳號')
+    expect(settings.text()).toContain('接收 LINE 揪團提醒')
+    expect(settings.text()).toContain(
+      '先連接上方的 LINE 帳號，再掃 QR Code 加入 BuJo LINE 官方帳號，就能收到揪團提醒',
+    )
+    expect(settings.find('[data-testid="line-official-account-entry"]').exists()).toBe(true)
+    expect(settings.find('[data-testid="line-official-account-qr"]').exists()).toBe(true)
+    expect(settings.findAll('[aria-label="連接 LINE"]')).toHaveLength(1)
+    expect(settings.get('[aria-label="連接 LINE"]').text()).toBe('連接')
+    expect(profileEditPageSource).toContain('/api/auth/line/link')
   })
 
-  test('已連接 LINE 時永久通知區塊提供官方帳號入口但不宣稱完成', async () => {
+  test('已連接 LINE 時同一區塊提供解除連接與官方帳號入口', async () => {
     const wrapper = await mountProfileEditPage({
       identities: [...baseUser.identities, { provider: 'line', email: null }],
     })
     const settings = wrapper.get('[data-testid="line-notification-settings"]')
 
-    expect(settings.text()).toContain('LINE 帳號已連接')
-    expect(settings.text()).toContain('請加入或解除封鎖 BuJo LINE 官方帳號')
+    expect(settings.text()).toContain('已連接')
+    expect(settings.text()).toContain('接收 LINE 揪團提醒')
+    expect(settings.text()).toContain('加入或解除封鎖 BuJo LINE 官方帳號')
+    expect(settings.find('[aria-label="連接 LINE"]').exists()).toBe(false)
+    expect(settings.get('[aria-label="解除 LINE 連接"]').text()).toBe('解除連接')
     expect(settings.find('[data-testid="line-official-account-entry"]').exists()).toBe(true)
     expect(settings.text()).not.toContain('已加入官方帳號')
     expect(settings.text()).not.toContain('推播已開啟')
@@ -168,14 +181,41 @@ describe('ProfileEditPage', () => {
     expect(wrapper.find('[data-testid="line-notification-settings"]').exists()).toBe(true)
   })
 
-  test('LINE 通知設定沿用方角線框與鍵盤 focus 樣式', async () => {
+  test('onboarding 的 LINE callback 成功後回到原頁，讓完成步驟繼續顯示', async () => {
+    sessionStorage.setItem('bujo:line-notification-guide:return-path', '/calendar')
+    fetch.mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({
+        user: {
+          ...baseUser,
+          identities: [...baseUser.identities, { provider: 'line', email: null }],
+        },
+      }),
+    })
+
+    const wrapper = await mountProfileEditPage({}, '/profile/edit?linked=line')
+
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/auth/me'), {
+      credentials: 'include',
+    })
+    expect(wrapper.vm.$router.currentRoute.value.path).toBe('/calendar')
+    expect(sessionStorage.getItem('bujo:line-notification-guide:return-path')).toBeNull()
+    expect(localStorage.getItem('bujo:line-notification-guide:v1:legacy-11111')).toBeNull()
+  })
+
+  test('整合後的 LINE 設定沿用方角線框與鍵盤 focus 樣式', async () => {
     const wrapper = await mountProfileEditPage()
-    const linkButton = wrapper.get('[aria-label="連接 LINE 以接收通知"]')
+    const linkButton = wrapper.get('[aria-label="連接 LINE"]')
 
     expect(linkButton.attributes('type')).toBe('button')
-    expect(profileEditPageSource).toContain('.line-notification-summary')
-    expect(profileEditPageSource).toContain('border-left: 3px solid #00a63c')
+    document.body.appendChild(wrapper.element)
+    linkButton.element.focus()
+    expect(document.activeElement).toBe(linkButton.element)
+    expect(profileEditPageSource).toContain('.profile-line-account__notification')
+    expect(profileEditPageSource).toContain('border-top: 1px solid var(--bujo-line-soft)')
     expect(profileEditPageSource).toContain('.profile-link-btn:focus-visible')
+
+    wrapper.unmount()
   })
 
   test('初始相對頭像路徑會補上 API base URL', async () => {

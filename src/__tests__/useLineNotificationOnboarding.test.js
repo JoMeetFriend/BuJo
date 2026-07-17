@@ -1,8 +1,11 @@
 import { computed, ref } from 'vue'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import {
+  LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY,
   LINE_NOTIFICATION_ONBOARDING_SEEN_VALUE,
+  consumeLineNotificationOnboardingReturnPath,
   getLineNotificationOnboardingKey,
+  rememberLineNotificationOnboardingReturnPath,
   useLineNotificationOnboarding,
 } from '@/composables/useLineNotificationOnboarding'
 
@@ -11,6 +14,7 @@ function createStorage(initial = {}) {
   return {
     getItem: vi.fn((key) => values.get(key) ?? null),
     setItem: vi.fn((key, value) => values.set(key, value)),
+    removeItem: vi.fn((key) => values.delete(key)),
   }
 }
 
@@ -89,5 +93,30 @@ describe('useLineNotificationOnboarding', () => {
     observations.push(onboarding.shouldShow.value)
 
     expect(observations).toEqual([false])
+  })
+
+  test('OAuth 前暫存站內返回頁，callback 後讀取並清除', () => {
+    const storage = createStorage()
+
+    rememberLineNotificationOnboardingReturnPath('/calendar?view=month', storage)
+
+    expect(storage.setItem).toHaveBeenCalledWith(
+      LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY,
+      '/calendar?view=month',
+    )
+    expect(consumeLineNotificationOnboardingReturnPath(storage)).toBe('/calendar?view=month')
+    expect(storage.removeItem).toHaveBeenCalledWith(LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY)
+    expect(consumeLineNotificationOnboardingReturnPath(storage)).toBe('')
+  })
+
+  test('不接受外部或 malformed 返回路徑', () => {
+    const storage = createStorage({
+      [LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY]: '//example.com/phishing',
+    })
+
+    rememberLineNotificationOnboardingReturnPath('https://example.com', storage)
+
+    expect(storage.setItem).not.toHaveBeenCalled()
+    expect(consumeLineNotificationOnboardingReturnPath(storage)).toBe('')
   })
 })

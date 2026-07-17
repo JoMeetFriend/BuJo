@@ -8,7 +8,7 @@ const addFriendUrl = 'https://line.me/R/ti/p/@bujo'
 const qrCodeUrl = 'https://example.com/bujo-line-qr.png'
 
 describe('LineOfficialAccountEntry', () => {
-  test('手機保留 add friend 連結，桌機顯示 QR 並保留連結備援', () => {
+  test('手機與桌機都顯示 QR 並保留 add friend 連結備援', () => {
     const wrapper = mount(LineOfficialAccountEntry, {
       props: { addFriendUrl, qrCodeUrl },
     })
@@ -19,12 +19,14 @@ describe('LineOfficialAccountEntry', () => {
     expect(link.attributes('rel')).toBe('noopener noreferrer')
 
     const qrContainer = wrapper.get('[data-testid="line-official-account-qr"]')
-    expect(qrContainer.classes()).toContain('hidden')
-    expect(qrContainer.classes()).toContain('md:flex')
+    expect(qrContainer.classes()).not.toContain('hidden')
+    expect(qrContainer.classes()).toContain('line-official-entry__qr')
     expect(qrContainer.get('img').attributes()).toMatchObject({
       src: qrCodeUrl,
       alt: 'BuJo LINE 官方帳號加入好友 QR Code',
     })
+    expect(officialAccountEntrySource).toContain('flex-direction: column')
+    expect(officialAccountEntrySource).toContain('@media (min-width: 768px)')
   })
 
   test('未設定外部 QR URL 時使用專案內建的官方 QR Code', () => {
@@ -36,16 +38,19 @@ describe('LineOfficialAccountEntry', () => {
     expect(wrapper.text()).toContain('拿手機 LINE 掃一下')
   })
 
-  test('缺少 add friend URL 時不產生空連結並顯示不可用狀態', () => {
+  test('缺少 add friend URL 時只顯示可用 QR，不殘留連結錯誤提示', async () => {
     const wrapper = mount(LineOfficialAccountEntry, {
       props: { addFriendUrl: '  ', qrCodeUrl: '' },
     })
 
     expect(wrapper.find('a').exists()).toBe(false)
     expect(wrapper.get('img').attributes('src')).toBe(bundledQrCodeUrl)
-    expect(wrapper.get('[role="status"]').classes()).toContain('md:hidden')
+    expect(wrapper.find('[role="status"]').exists()).toBe(false)
+
+    await wrapper.get('img').trigger('error')
+
     expect(wrapper.get('[role="status"]').text()).toBe(
-      '手機加入連結暫時打不開，可以改用桌機掃 QR Code。',
+      'LINE 官方帳號連結暫時打不開，晚點再試試看。',
     )
   })
 

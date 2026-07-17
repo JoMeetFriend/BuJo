@@ -35,6 +35,7 @@
     <LineNotificationOnboardingModal
       v-if="showLineNotificationOnboarding"
       :user="authStore.user"
+      @link-start="rememberOnboardingReturnPath"
       @complete="markLineNotificationOnboardingSeen"
     />
   </div>
@@ -47,7 +48,10 @@ import AppSidebar from './components/AppSidebar.vue'
 import SidebarToggleButton from './components/ui/SidebarToggleButton.vue'
 import LineNotificationOnboardingModal from './components/LineNotificationOnboardingModal.vue'
 import { useAuthStore } from './stores/auth'
-import { useLineNotificationOnboarding } from './composables/useLineNotificationOnboarding'
+import {
+  rememberLineNotificationOnboardingReturnPath,
+  useLineNotificationOnboarding,
+} from './composables/useLineNotificationOnboarding'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -74,6 +78,10 @@ const showLineNotificationOnboarding = computed(
 
 function toggleFilter(key) {
   filters.value[key] = !filters.value[key]
+}
+
+function rememberOnboardingReturnPath() {
+  rememberLineNotificationOnboardingReturnPath(route.fullPath)
 }
 </script>
 

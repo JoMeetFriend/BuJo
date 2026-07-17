@@ -8,10 +8,14 @@
       </div>
 
       <template v-if="isLineConnected">
-        <p class="text-sm leading-6 text-[var(--bujo-text-body)]">
-          你的 BuJo 已經連上 LINE 囉！再加入 BuJo LINE
-          官方帳號，就能收到揪團提醒。之前加過的話，也記得確認沒有封鎖我們。
-        </p>
+        <div class="grid gap-2">
+          <p class="text-sm leading-6 text-[var(--bujo-text-body)]">
+            你的 BuJo 已經連上 LINE 囉！再加入 BuJo LINE 官方帳號，就能收到揪團提醒。
+          </p>
+          <p class="text-xs leading-5 text-[var(--bujo-muted-strong)]">
+            這次先略過也沒關係，之後可到個人編輯頁面掃 QR Code。
+          </p>
+        </div>
         <LineOfficialAccountEntry
           :addFriendUrl="addFriendUrl"
           :qrCodeUrl="qrCodeUrl"
@@ -33,7 +37,7 @@
           @activate="finishOnboarding"
         />
         <p class="text-xs leading-5 text-[var(--bujo-muted-strong)]">
-          現在不想設定也沒關係，之後可以從個人設定再回來。
+          這次先略過也沒關係，之後可以到個人編輯頁面繼續設定。
         </p>
       </template>
     </div>
@@ -45,7 +49,7 @@
         :href="lineLinkUrl"
         class="line-onboarding-primary"
         aria-label="連接 LINE 並開啟通知設定"
-        @click="finishOnboarding"
+        @click="beginLineLink"
       >
         先連接 LINE
       </a>
@@ -78,7 +82,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['complete'])
+const emit = defineEmits(['complete', 'link-start'])
 
 const isLineConnected = computed(
   () =>
@@ -95,6 +99,10 @@ const lineLinkUrl = computed(() => {
 
 function finishOnboarding() {
   emit('complete')
+}
+
+function beginLineLink() {
+  emit('link-start')
 }
 </script>
 

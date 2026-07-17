@@ -2,6 +2,8 @@ import { computed, ref, unref } from 'vue'
 
 export const LINE_NOTIFICATION_ONBOARDING_KEY_PREFIX = 'bujo:line-notification-guide:v1:'
 export const LINE_NOTIFICATION_ONBOARDING_SEEN_VALUE = 'seen'
+export const LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY =
+  'bujo:line-notification-guide:return-path'
 
 export function getLineNotificationOnboardingKey(userId) {
   return `${LINE_NOTIFICATION_ONBOARDING_KEY_PREFIX}${String(userId)}`
@@ -12,6 +14,34 @@ function getBrowserStorage() {
     return globalThis.localStorage
   } catch {
     return null
+  }
+}
+
+function getSessionStorage() {
+  try {
+    return globalThis.sessionStorage
+  } catch {
+    return null
+  }
+}
+
+export function rememberLineNotificationOnboardingReturnPath(path, storage = getSessionStorage()) {
+  if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//')) return
+
+  try {
+    storage?.setItem(LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY, path)
+  } catch {
+    // OAuth 仍可繼續；sessionStorage 無法使用時只會沿用後端預設返回頁。
+  }
+}
+
+export function consumeLineNotificationOnboardingReturnPath(storage = getSessionStorage()) {
+  try {
+    const path = storage?.getItem(LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY) || ''
+    storage?.removeItem(LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY)
+    return path.startsWith('/') && !path.startsWith('//') ? path : ''
+  } catch {
+    return ''
   }
 }
 

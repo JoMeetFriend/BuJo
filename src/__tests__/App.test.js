@@ -25,11 +25,12 @@ const routes = [
 
 const LineNotificationOnboardingModalStub = {
   props: ['user'],
-  emits: ['complete'],
+  emits: ['complete', 'link-start'],
   template: `
     <div data-testid="line-notification-onboarding">
       <span>{{ user.id }}</span>
       <button type="button" @click="$emit('complete')">稍後再說</button>
+      <button type="button" @click="$emit('link-start')">先連接 LINE</button>
     </div>
   `,
 }
@@ -61,6 +62,7 @@ async function mountApp({ path = '/calendar', currentUser = user, initialized = 
 
 beforeEach(() => {
   localStorage.clear()
+  sessionStorage.clear()
 })
 
 describe('App LINE notification onboarding', () => {
@@ -99,5 +101,18 @@ describe('App LINE notification onboarding', () => {
     expect(localStorage.getItem('bujo:line-notification-guide:v1:user-123')).toBe('seen')
     expect(wrapper.find('[data-testid="line-notification-onboarding"]').exists()).toBe(false)
     expect(router.currentRoute.value.path).toBe('/calendar')
+  })
+
+  test('開始連接 LINE 時記住目前頁面且不先完成 onboarding', async () => {
+    const { wrapper } = await mountApp()
+
+    await wrapper
+      .findAll('[data-testid="line-notification-onboarding"] button')
+      .find((button) => button.text() === '先連接 LINE')
+      .trigger('click')
+
+    expect(sessionStorage.getItem('bujo:line-notification-guide:return-path')).toBe('/calendar')
+    expect(localStorage.getItem('bujo:line-notification-guide:v1:user-123')).toBeNull()
+    expect(wrapper.find('[data-testid="line-notification-onboarding"]').exists()).toBe(true)
   })
 })

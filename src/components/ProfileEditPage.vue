@@ -259,81 +259,69 @@
           </button>
         </div>
 
-        <!-- LINE -->
-        <div class="profile-identity-row">
-          <div class="flex items-center gap-3">
-            <svg width="20" height="20" viewBox="0 0 48 48" fill="none" class="shrink-0">
-              <rect width="48" height="48" rx="10" fill="#00B900" />
-              <path
-                d="M40 22.2C40 15.1 32.8 9.3 24 9.3S8 15.1 8 22.2c0 6.4 5.7 11.7 13.3 12.7.5.1 1.2.3 1.4.8.2.4.1 1 .1 1.4l-.2 1.4c-.1.5-.4 1.8 1.6.99 2-.8 10.8-6.4 14.7-10.9C39.1 26.1 40 24.3 40 22.2z"
-                fill="white"
-              />
-              <path
-                d="M20.3 19.5h-1.2c-.2 0-.4.2-.4.4v7.4c0 .2.2.4.4.4h1.2c.2 0 .4-.2.4-.4v-7.4c0-.2-.2-.4-.4-.4zM29.1 19.5h-1.2c-.2 0-.4.2-.4.4v4.4l-3.4-4.6c0-.1-.1-.1-.1-.2h-1.3c-.2 0-.4.2-.4.4v7.4c0 .2.2.4.4.4H24c.2 0 .4-.2.4-.4v-4.4l3.4 4.6c.1.1.2.2.3.2h1.2c.2 0 .4-.2.4-.4v-7.4c-.2-.2-.4-.4-.6-.4zM17.4 25.7h-3.3v-5.8c0-.2-.2-.4-.4-.4h-1.2c-.2 0-.4.2-.4.4v7.4c0 .1.1.2.1.3.1.1.2.1.3.1h4.9c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4zM35.9 21.5c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4H31c-.1 0-.2 0-.3.1-.1.1-.1.2-.1.3v7.4c0 .1 0 .2.1.3.1.1.2.1.3.1h4.9c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4h-3.3v-1.3h3.3c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4h-3.3v-1.3h3.3z"
-                fill="#00B900"
-              />
-            </svg>
+        <!-- LINE 帳號與通知 -->
+        <div class="profile-line-account" data-testid="line-notification-settings">
+          <div class="profile-identity-row profile-line-account__identity">
+            <div class="flex min-w-0 items-center gap-3">
+              <svg width="20" height="20" viewBox="0 0 48 48" fill="none" class="shrink-0">
+                <rect width="48" height="48" rx="10" fill="#00B900" />
+                <path
+                  d="M40 22.2C40 15.1 32.8 9.3 24 9.3S8 15.1 8 22.2c0 6.4 5.7 11.7 13.3 12.7.5.1 1.2.3 1.4.8.2.4.1 1 .1 1.4l-.2 1.4c-.1.5-.4 1.8 1.6.99 2-.8 10.8-6.4 14.7-10.9C39.1 26.1 40 24.3 40 22.2z"
+                  fill="white"
+                />
+                <path
+                  d="M20.3 19.5h-1.2c-.2 0-.4.2-.4.4v7.4c0 .2.2.4.4.4h1.2c.2 0 .4-.2.4-.4v-7.4c0-.2-.2-.4-.4-.4zM29.1 19.5h-1.2c-.2 0-.4.2-.4.4v4.4l-3.4-4.6c0-.1-.1-.1-.1-.2h-1.3c-.2 0-.4.2-.4.4v7.4c0 .2.2.4.4.4H24c.2 0 .4-.2.4-.4v-4.4l3.4 4.6c.1.1.2.2.3.2h1.2c.2 0 .4-.2.4-.4v-7.4c-.2-.2-.4-.4-.6-.4zM17.4 25.7h-3.3v-5.8c0-.2-.2-.4-.4-.4h-1.2c-.2 0-.4.2-.4.4v7.4c0 .1.1.2.1.3.1.1.2.1.3.1h4.9c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4zM35.9 21.5c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4H31c-.1 0-.2 0-.3.1-.1.1-.1.2-.1.3v7.4c0 .1 0 .2.1.3.1.1.2.1.3.1h4.9c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4h-3.3v-1.3h3.3c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4h-3.3v-1.3h3.3z"
+                  fill="#00B900"
+                />
+              </svg>
+              <div class="min-w-0">
+                <p class="text-sm font-semibold">LINE</p>
+                <p class="text-xs leading-5 text-[var(--bujo-muted-strong)]">
+                  {{ isConnected('line') ? '已連接' : '尚未連接 LINE 帳號' }}
+                </p>
+              </div>
+            </div>
+            <button
+              v-if="!isConnected('line')"
+              type="button"
+              aria-label="連接 LINE"
+              class="profile-link-btn"
+              :disabled="linkLoading"
+              @click="handleLineLink"
+            >
+              連接
+            </button>
+            <button
+              v-else
+              type="button"
+              aria-label="解除 LINE 連接"
+              class="profile-unlink-btn"
+              :disabled="linkLoading || identityCount <= 1"
+              @click="handleUnlink('line')"
+            >
+              解除連接
+            </button>
+          </div>
+
+          <div class="profile-line-account__notification">
             <div>
-              <p class="text-sm font-semibold">LINE</p>
-              <p class="text-xs text-[var(--bujo-muted-strong)]">
-                {{ isConnected('line') ? '已連接' : '' }}
+              <p class="text-sm font-semibold text-[var(--bujo-ink)]">接收 LINE 揪團提醒</p>
+              <p class="mt-1 text-xs leading-5 text-[var(--bujo-muted-strong)]">
+                <template v-if="isConnected('line')">
+                  加入或解除封鎖 BuJo LINE 官方帳號，就能接收揪團提醒。
+                </template>
+                <template v-else>
+                  先連接上方的 LINE 帳號，再掃 QR Code 加入 BuJo LINE 官方帳號，就能收到揪團提醒。
+                </template>
               </p>
             </div>
+            <LineOfficialAccountEntry />
           </div>
-          <button
-            v-if="!isConnected('line')"
-            @click="handleLineLink"
-            :disabled="linkLoading"
-            class="profile-link-btn"
-          >
-            連接
-          </button>
-          <button
-            v-else
-            @click="handleUnlink('line')"
-            :disabled="linkLoading || identityCount <= 1"
-            class="profile-unlink-btn"
-          >
-            解除連接
-          </button>
         </div>
 
         <p v-if="identityCount <= 1" class="text-xs text-[var(--bujo-muted)]">
           需要至少連接兩種登入方式才能解除其中一個。
         </p>
-      </div>
-
-      <!-- LINE 通知永久入口 -->
-      <header class="profile-section-header">
-        <h2>LINE 通知</h2>
-      </header>
-      <div class="grid gap-4 px-5 py-4" data-testid="line-notification-settings">
-        <div class="line-notification-summary">
-          <span class="line-notification-summary__label" aria-hidden="true">LINE</span>
-          <div class="min-w-0">
-            <p class="text-sm font-semibold text-[var(--bujo-ink)]">
-              {{ isConnected('line') ? 'LINE 帳號已連接' : '尚未連接 LINE' }}
-            </p>
-            <p class="mt-1 text-xs leading-5 text-[var(--bujo-muted-strong)]">
-              <template v-if="isConnected('line')">
-                請加入或解除封鎖 BuJo LINE 官方帳號，才能接收屬於你的推播提醒。
-              </template>
-              <template v-else> 先連接 LINE 帳號，再依 LINE 授權畫面加入官方帳號。 </template>
-            </p>
-          </div>
-        </div>
-
-        <LineOfficialAccountEntry v-if="isConnected('line')" />
-        <button
-          v-else
-          type="button"
-          class="profile-link-btn min-h-[40px] justify-self-start"
-          :disabled="linkLoading"
-          aria-label="連接 LINE 以接收通知"
-          @click="handleLineLink"
-        >
-          連接 LINE
-        </button>
       </div>
 
       <footer class="flex justify-end border-t border-[var(--bujo-line)] px-5 py-4">
@@ -359,6 +347,7 @@ import { ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
 import PixelButton from './ui/PixelButton.vue'
 import LineOfficialAccountEntry from './LineOfficialAccountEntry.vue'
 import { useAuthStore } from '@/stores/auth'
+import { consumeLineNotificationOnboardingReturnPath } from '@/composables/useLineNotificationOnboarding'
 import { toAvatarSrc } from '@/utils/avatar'
 import { useUserStore } from '@/stores/userStore'
 
@@ -544,7 +533,12 @@ onMounted(async () => {
   if (route.query.linked === 'line') {
     await authStore.fetchMe()
     showMsg('LINE 帳號連結成功')
-    router.replace({ query: {} })
+    const onboardingReturnPath = consumeLineNotificationOnboardingReturnPath()
+    if (onboardingReturnPath) {
+      await router.replace(onboardingReturnPath)
+      return
+    }
+    await router.replace({ query: {} })
   }
 
   // Init Google SDK for linking
@@ -728,28 +722,21 @@ const handleBioSubmit = async () => {
   color: var(--bujo-ink);
 }
 
-.line-notification-summary {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 14px;
-  border-left: 3px solid #00a63c;
-  background: var(--bujo-surface-muted);
-  padding: 12px 14px;
+.profile-line-account {
+  border: 1px solid var(--bujo-line);
+  background: var(--bujo-surface);
 }
 
-.line-notification-summary__label {
+.profile-line-account__identity {
+  gap: 12px;
+  border: 0;
+}
+
+.profile-line-account__notification {
   display: grid;
-  height: 36px;
-  min-width: 48px;
-  place-items: center;
-  border: 1px solid #00a63c;
-  background: var(--bujo-surface);
-  color: #08752f;
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  gap: 12px;
+  border-top: 1px solid var(--bujo-line-soft);
+  padding: 14px 16px 16px;
 }
 
 .profile-link-btn,
