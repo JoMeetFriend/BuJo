@@ -348,7 +348,10 @@ import { ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
 import PixelButton from './ui/PixelButton.vue'
 import LineOfficialAccountEntry from './LineOfficialAccountEntry.vue'
 import { useAuthStore } from '@/stores/auth'
-import { consumeLineNotificationOnboardingReturnPath } from '@/composables/useLineNotificationOnboarding'
+import {
+  clearLineNotificationOnboardingReturnPath,
+  consumeLineNotificationOnboardingReturnPath,
+} from '@/composables/useLineNotificationOnboarding'
 import { toAvatarSrc } from '@/utils/avatar'
 import { useUserStore } from '@/stores/userStore'
 
@@ -492,6 +495,7 @@ const handleGoogleLink = () => {
 
 // LINE link — redirects through backend OAuth flow
 const handleLineLink = () => {
+  clearLineNotificationOnboardingReturnPath()
   window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/line/link`
 }
 
@@ -529,20 +533,11 @@ async function handleLogout() {
   }
 }
 
-onMounted(async () => {
-  // LINE link callback redirects back with ?linked=line
-  if (route.query.linked === 'line') {
-    await authStore.fetchMe()
-    showMsg('LINE 帳號連結成功')
-    const onboardingReturnPath = consumeLineNotificationOnboardingReturnPath()
-    if (onboardingReturnPath) {
-      await router.replace(onboardingReturnPath)
-      return
-    }
-    await router.replace({ query: {} })
-  }
+function isProfileEditDestination(path) {
+  return router.resolve(path).matched.some((record) => record.path === '/profile/edit')
+}
 
-  // Init Google SDK for linking
+function initializeGoogleLinking() {
   if (window.google) {
     window.google.accounts.id.initialize({
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
@@ -550,6 +545,7 @@ onMounted(async () => {
     })
     return
   }
+
   const script = document.createElement('script')
   script.src = 'https://accounts.google.com/gsi/client'
   script.onload = () => {
@@ -559,6 +555,36 @@ onMounted(async () => {
     })
   }
   document.head.appendChild(script)
+}
+
+onMounted(async () => {
+  const lineLinkSucceeded = route.query.linked === 'line'
+  const lineLinkError = ['line_link_cancelled', 'line_link_failed'].includes(route.query.error)
+
+  if (lineLinkSucceeded || lineLinkError) {
+    if (lineLinkSucceeded) {
+      await authStore.fetchMe()
+      showMsg('LINE 帳號連結成功')
+    }
+
+    const onboardingReturnPath = consumeLineNotificationOnboardingReturnPath()
+    if (lineLinkError) {
+      showMsg(
+        route.query.error === 'line_link_cancelled' ? '已取消 LINE 連接' : 'LINE 連接失敗',
+        'error',
+      )
+    }
+
+    if (onboardingReturnPath) {
+      const staysOnProfileEdit = isProfileEditDestination(onboardingReturnPath)
+      await router.replace(onboardingReturnPath)
+      if (!staysOnProfileEdit) return
+    } else {
+      await router.replace({ query: {} })
+    }
+  }
+
+  initializeGoogleLinking()
 })
 
 const handleNameSubmit = async () => {

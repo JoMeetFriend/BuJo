@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change 'add-line-notification-onboarding'. Update Purpose after archive.
+Guide signed-in users through connecting a LINE identity and adding the BuJo LINE Official Account without blocking normal product use, while retaining a permanent setup entry in profile settings.
 
 ## Requirements
 
@@ -25,10 +25,20 @@ The frontend SHALL display the LINE notification onboarding modal when authentic
 - **WHEN** the user closes the modal or activates `稍後再說`
 - **THEN** the frontend stores `seen` at `bujo:line-notification-guide:v1:<userId>` and closes the modal without navigating
 
-#### Scenario: User starts an onboarding action
+#### Scenario: User starts LINE linking
 
-- **WHEN** the user activates the LINE linking action or the Official Account action
-- **THEN** the frontend stores `seen` before navigation or external opening begins
+- **WHEN** the user activates the LINE linking action
+- **THEN** the frontend remembers the current internal route without storing `seen`, starts the existing LINE linking flow, and returns to that route after a successful callback so the connected guidance can continue
+
+#### Scenario: User starts the Official Account action
+
+- **WHEN** the user activates the Official Account action
+- **THEN** the frontend stores `seen` before external opening begins
+
+#### Scenario: LINE linking is cancelled or fails
+
+- **WHEN** the backend returns `line_link_cancelled` or `line_link_failed`
+- **THEN** the frontend clears the remembered return route and returns to the original internal route when available without leaving stale callback state
 
 #### Scenario: Same account does not see the prompt again on the device
 
@@ -43,7 +53,7 @@ The frontend SHALL display the LINE notification onboarding modal when authentic
 #### Scenario: Browser storage is unavailable
 
 - **WHEN** reading or writing localStorage throws an exception
-- **THEN** the frontend continues without crashing and prevents the modal from reopening during the current SPA session after the user closes or acts on it
+- **THEN** the frontend continues without crashing and prevents the modal from reopening during the current SPA session after the user closes it or completes the Official Account action
 
 
 <!-- @trace
@@ -115,12 +125,12 @@ tests:
 ---
 ### Requirement: Official Account entry points adapt to viewport and configuration
 
-The frontend SHALL use `VITE_LINE_OFFICIAL_ACCOUNT_ADD_FRIEND_URL` as the public add-friend destination. It SHALL use `VITE_LINE_OFFICIAL_ACCOUNT_QR_CODE_URL` when configured and SHALL otherwise use the bundled official add-friend QR image. Compact viewports SHALL prioritize the add-friend link. Desktop viewports SHALL display the QR image and retain a clickable link fallback.
+The frontend SHALL use `VITE_LINE_OFFICIAL_ACCOUNT_ADD_FRIEND_URL` as the public add-friend destination. It SHALL use `VITE_LINE_OFFICIAL_ACCOUNT_QR_CODE_URL` when configured and SHALL otherwise use the bundled official add-friend QR image. Compact and desktop viewports SHALL display the QR image, and SHALL also retain the clickable add-friend link when configured.
 
-#### Scenario: Mobile user opens the Official Account
+#### Scenario: Mobile user views Official Account guidance
 
-- **WHEN** a compact-viewport user activates the configured Official Account action
-- **THEN** the frontend opens `VITE_LINE_OFFICIAL_ACCOUNT_ADD_FRIEND_URL`
+- **WHEN** a compact-viewport user views Official Account guidance
+- **THEN** the frontend displays the QR image and, when configured, allows the user to open `VITE_LINE_OFFICIAL_ACCOUNT_ADD_FRIEND_URL`
 
 #### Scenario: Desktop user receives QR and link choices
 
@@ -135,7 +145,7 @@ The frontend SHALL use `VITE_LINE_OFFICIAL_ACCOUNT_ADD_FRIEND_URL` as the public
 #### Scenario: Add-friend URL is missing
 
 - **WHEN** `VITE_LINE_OFFICIAL_ACCOUNT_ADD_FRIEND_URL` is empty
-- **THEN** the frontend does not render an empty clickable destination and displays that the Official Account entry is temporarily unavailable
+- **THEN** the frontend does not render an empty clickable destination and continues displaying the configured or bundled QR image
 
 #### Scenario: QR image fails to load
 
@@ -171,7 +181,7 @@ The onboarding modal SHALL explain the LINE setup steps with short, conversation
 #### Scenario: Connected user reads the onboarding guidance
 
 - **WHEN** a user with a LINE identity opens the onboarding modal
-- **THEN** the modal says that LINE reminders are one step away and naturally asks the user to add the Official Account or confirm it is not blocked
+- **THEN** the modal says that LINE reminders are one step away and naturally asks the user to add the Official Account
 
 #### Scenario: Unconnected user reads the onboarding guidance
 
@@ -200,24 +210,24 @@ tests:
 -->
 
 ---
-### Requirement: Profile settings retain a permanent LINE notification entry
+### Requirement: Profile settings retain an integrated LINE notification entry
 
-The profile edit page SHALL display a `LINE 通知` section independently of whether the onboarding modal has been seen. The section SHALL use the same LINE identity rules and Official Account configuration as the modal.
+The profile edit page SHALL combine LINE identity and notification guidance in one permanent LINE account container independently of whether the onboarding modal has been seen. The container SHALL use the same LINE identity rules and Official Account configuration as the modal and SHALL NOT display a duplicate linking action.
 
 #### Scenario: Unconnected user opens profile settings
 
 - **WHEN** a signed-in user without a LINE identity opens the profile edit page
-- **THEN** the LINE notification section explains the missing connection and offers the existing LINE linking action
+- **THEN** the integrated LINE container explains the missing connection, offers one existing LINE linking action, and displays the configured or bundled Official Account QR entry
 
 #### Scenario: Connected user opens profile settings
 
 - **WHEN** a signed-in user with a LINE identity opens the profile edit page
-- **THEN** the LINE notification section displays add-or-confirm Official Account guidance with the configured QR and link entry points
+- **THEN** the integrated LINE container displays the unlink action and add-or-unblock Official Account guidance with the configured QR and link entry points
 
 #### Scenario: Seen onboarding does not remove settings entry
 
 - **WHEN** the current user's onboarding key contains `seen`
-- **THEN** the profile edit page still displays the LINE notification section
+- **THEN** the profile edit page still displays the integrated LINE account and notification container
 
 
 <!-- @trace
@@ -254,6 +264,11 @@ The onboarding modal and permanent settings section SHALL preserve BuJo's Modern
 
 - **WHEN** the modal or LINE notification settings section is rendered
 - **THEN** it uses square paper-like surfaces and existing BuJo design tokens rather than generic rounded soft cards
+
+#### Scenario: Onboarding opens on a short viewport
+
+- **WHEN** the modal content is taller than the available viewport
+- **THEN** the body remains scrollable while the title and footer actions remain reachable
 
 <!-- @trace
 source: add-line-notification-onboarding

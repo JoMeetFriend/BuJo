@@ -4,7 +4,10 @@ import LineNotificationOnboardingModal from '@/components/LineNotificationOnboar
 import onboardingModalSource from '@/components/LineNotificationOnboardingModal.vue?raw'
 
 const BaseModalStub = {
-  props: ['title'],
+  props: {
+    title: String,
+    scrollable: Boolean,
+  },
   emits: ['close'],
   template: `
     <section>
@@ -126,5 +129,11 @@ describe('LineNotificationOnboardingModal', () => {
     expect(onboardingModalSource).toContain('.line-onboarding-primary:focus-visible')
     expect(onboardingModalSource).toContain('border: 1px solid var(--bujo-line-soft)')
     expect(onboardingModalSource).not.toMatch(/rounded-(?:md|lg|xl|2xl|3xl)/)
+  })
+
+  test('內容在短螢幕可捲動並保留 footer 操作', () => {
+    const wrapper = mountModal({ id: 'user-1', identities: [] })
+
+    expect(wrapper.getComponent(BaseModalStub).props('scrollable')).toBe(true)
   })
 })

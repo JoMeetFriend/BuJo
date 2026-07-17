@@ -31,7 +31,7 @@ VITE_LINE_OFFICIAL_ACCOUNT_QR_CODE_URL=    # LINE 官方帳號公開 QR Code 圖
 Vite 讀取順序為 `.env.local` > `.env`，因此本地開發會自動使用 `.env.local` 的設定，部署環境則使用 `.env`，不需要手動切換。
 
 `VITE_LINE_OFFICIAL_ACCOUNT_ADD_FRIEND_URL` 與
-`VITE_LINE_OFFICIAL_ACCOUNT_QR_CODE_URL` 只用來在登入後引導與個人設定頁顯示公開的加入好友入口。兩者可以從 LINE Official Account Manager 或 LINE Developers Console 取得；未設定時，前端會顯示暫時無法使用，不會產生空連結或壞掉的 QR 圖片。
+`VITE_LINE_OFFICIAL_ACCOUNT_QR_CODE_URL` 只用來在登入後引導與個人設定頁顯示公開的加入好友入口。兩者可以從 LINE Official Account Manager 或 LINE Developers Console 取得。QR Code 圖片網址未設定時會改用專案內建的官方 QR Code；加入好友網址未設定時不會產生空連結，仍可透過 QR Code 加入。
 
 所有 `VITE_` 變數都會被打包到瀏覽器端，**禁止**放入 LINE Messaging API channel access token、LINE Channel Secret、OAuth Client Secret 或其他機密。`LINE_MESSAGING_CHANNEL_ACCESS_TOKEN` 與 `LINE_PUSH_ENABLED` 僅能設定在 BuJoBackend。
 

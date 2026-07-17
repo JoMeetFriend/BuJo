@@ -35,10 +35,18 @@ export function rememberLineNotificationOnboardingReturnPath(path, storage = get
   }
 }
 
+export function clearLineNotificationOnboardingReturnPath(storage = getSessionStorage()) {
+  try {
+    storage?.removeItem(LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY)
+  } catch {
+    // 清除失敗不應阻止使用者繼續 OAuth 或使用個人設定。
+  }
+}
+
 export function consumeLineNotificationOnboardingReturnPath(storage = getSessionStorage()) {
   try {
     const path = storage?.getItem(LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY) || ''
-    storage?.removeItem(LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY)
+    clearLineNotificationOnboardingReturnPath(storage)
     return path.startsWith('/') && !path.startsWith('//') ? path : ''
   } catch {
     return ''

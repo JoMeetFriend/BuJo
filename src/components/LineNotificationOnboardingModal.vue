@@ -1,5 +1,11 @@
 <template>
-  <BaseModal :isOpen="true" :title="modalTitle" maxWidth="480px" @close="finishOnboarding">
+  <BaseModal
+    :isOpen="true"
+    :title="modalTitle"
+    maxWidth="480px"
+    scrollable
+    @close="finishOnboarding"
+  >
     <div class="grid gap-4">
       <div class="line-onboarding-note" aria-hidden="true">
         <span>LINE</span>

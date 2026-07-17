@@ -47,7 +47,7 @@ async function mountProfileEditPage(user = {}, path = '/profile/edit') {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
-      { path: '/profile/edit', component: ProfileEditPage },
+      { path: '/profile/edit', name: 'profile-edit', component: ProfileEditPage },
       { path: '/calendar', component: { template: '<div>Calendar</div>' } },
       { path: '/login', component: { template: '<div>Login</div>' } },
     ],
@@ -209,6 +209,38 @@ describe('ProfileEditPage', () => {
     expect(sessionStorage.getItem('bujo:line-notification-guide:return-path')).toBeNull()
     expect(localStorage.getItem('bujo:line-notification-guide:v1:legacy-11111')).toBeNull()
   })
+
+  test('LINE callback 回到個人編輯頁時仍初始化 Google 連接功能', async () => {
+    sessionStorage.setItem('bujo:line-notification-guide:return-path', '/profile/edit')
+    fetch.mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({
+        user: {
+          ...baseUser,
+          identities: [...baseUser.identities, { provider: 'line', email: null }],
+        },
+      }),
+    })
+
+    const wrapper = await mountProfileEditPage({}, '/profile/edit?linked=line')
+
+    expect(wrapper.vm.$router.currentRoute.value.fullPath).toBe('/profile/edit')
+    expect(window.google.accounts.id.initialize).toHaveBeenCalledTimes(1)
+    expect(sessionStorage.getItem('bujo:line-notification-guide:return-path')).toBeNull()
+  })
+
+  test.each(['line_link_cancelled', 'line_link_failed'])(
+    'LINE callback 回傳 %s 時清除暫存路徑並回到原頁',
+    async (error) => {
+      sessionStorage.setItem('bujo:line-notification-guide:return-path', '/calendar')
+
+      const wrapper = await mountProfileEditPage({}, `/profile/edit?error=${error}`)
+
+      expect(wrapper.vm.$router.currentRoute.value.path).toBe('/calendar')
+      expect(sessionStorage.getItem('bujo:line-notification-guide:return-path')).toBeNull()
+      expect(fetch).not.toHaveBeenCalled()
+    },
+  )
 
   test('整合後的 LINE 設定沿用方角線框與鍵盤 focus 樣式', async () => {
     const wrapper = await mountProfileEditPage()

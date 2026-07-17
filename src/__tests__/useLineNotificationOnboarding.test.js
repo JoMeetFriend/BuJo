@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 import {
   LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY,
   LINE_NOTIFICATION_ONBOARDING_SEEN_VALUE,
+  clearLineNotificationOnboardingReturnPath,
   consumeLineNotificationOnboardingReturnPath,
   getLineNotificationOnboardingKey,
   rememberLineNotificationOnboardingReturnPath,
@@ -107,6 +108,17 @@ describe('useLineNotificationOnboarding', () => {
     expect(consumeLineNotificationOnboardingReturnPath(storage)).toBe('/calendar?view=month')
     expect(storage.removeItem).toHaveBeenCalledWith(LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY)
     expect(consumeLineNotificationOnboardingReturnPath(storage)).toBe('')
+  })
+
+  test('取消或手動連接前可直接清除暫存返回頁', () => {
+    const storage = createStorage({
+      [LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY]: '/calendar',
+    })
+
+    clearLineNotificationOnboardingReturnPath(storage)
+
+    expect(storage.removeItem).toHaveBeenCalledWith(LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY)
+    expect(storage.getItem(LINE_NOTIFICATION_ONBOARDING_RETURN_PATH_KEY)).toBeNull()
   })
 
   test('不接受外部或 malformed 返回路徑', () => {
