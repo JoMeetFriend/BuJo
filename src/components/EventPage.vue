@@ -1475,10 +1475,12 @@ const minutesUntilVoteDeadline = computed(() => {
   return Math.max(1, Math.ceil((voteDeadlineDate.value.getTime() - Date.now()) / 60000))
 })
 
+// 報名截止提醒不顯示年份——這個提醒的時間點必然在近期（截止時間不會晚於活動本身），
+// 加年份對這個情境是多餘資訊，跟 formatDateValue（月曆、候選日期等其他地方共用）分開處理
 function formatDateTimeDisplay(date) {
   const hour = String(date.getHours()).padStart(2, '0')
   const minute = String(date.getMinutes()).padStart(2, '0')
-  return `${formatDateValue(date)} ${hour}:${minute}`
+  return `${date.getMonth() + 1}/${date.getDate()} ${hour}:${minute}`
 }
 
 const reportCutoffTimeLabel = computed(() =>
