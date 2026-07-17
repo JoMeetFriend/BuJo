@@ -78,13 +78,32 @@
 
         <label :class="[fieldClass, 'col-span-full']" for="event-location">
           <span :class="fieldLabelClass">地點</span>
-          <input
-            id="event-location"
-            v-model="form.location"
-            :class="inputClass"
-            type="text"
-            placeholder="在哪裡集合？"
-          />
+          <span class="relative block">
+            <input
+              id="event-location"
+              v-model="form.location"
+              :class="inputClass"
+              type="text"
+              placeholder="在哪裡集合？"
+              autocomplete="off"
+              @input="handleLocationInput"
+              @blur="handleLocationBlur"
+            />
+            <ul
+              v-if="addressResults.length > 0"
+              class="absolute inset-x-0 top-full z-10 mt-1 max-h-48 overflow-y-auto border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-md"
+            >
+              <li v-for="address in addressResults" :key="address">
+                <button
+                  type="button"
+                  class="block w-full px-3 py-2 text-left text-sm text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                  @mousedown.prevent="selectAddress(address)"
+                >
+                  {{ address }}
+                </button>
+              </li>
+            </ul>
+          </span>
         </label>
 
         <div
@@ -919,6 +938,7 @@ import { useRoute, useRouter } from 'vue-router'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
 import partyDanceUrl from '@/assets/party-dance.png'
+import { useAddressSearch } from '@/composables/useAddressSearch'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -957,6 +977,28 @@ const scheduleRows = [
 ]
 
 const today = formatDateValue(new Date())
+
+const { searchResults: addressResults, searchAddress, clearSearch: clearAddressSearch } =
+  useAddressSearch()
+let addressDebounceTimer = null
+
+function handleLocationInput() {
+  clearTimeout(addressDebounceTimer)
+  addressDebounceTimer = setTimeout(() => {
+    searchAddress(form.location)
+  }, 300)
+}
+
+function handleLocationBlur() {
+  clearAddressSearch()
+}
+
+function selectAddress(address) {
+  form.location = address
+  clearAddressSearch()
+}
+
+onBeforeUnmount(() => clearTimeout(addressDebounceTimer))
 
 const form = reactive({
   name: '',
@@ -1567,6 +1609,7 @@ function resetForm() {
   form.type = null
   form.limit = null
   form.location = ''
+  clearAddressSearch()
   form.allDay = false
   form.startDate = todayStr
   form.startTime = null
