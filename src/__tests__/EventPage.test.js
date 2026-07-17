@@ -767,7 +767,7 @@ describe('EventPage - 底部常駐顯示：報名截止時間套用警示樣式�
 
     expect(document.body.textContent).toContain('報名開放到')
     expect(document.body.textContent).toContain('截止）')
-    expect(document.body.textContent).not.toContain('已經沒有緩衝時間')
+    expect(document.body.textContent).not.toContain('距離報名截止僅剩')
 
     wrapper.unmount()
   })
@@ -781,7 +781,8 @@ describe('EventPage - 底部常駐顯示：報名截止時間套用警示樣式�
     clickTimeOption('開始時間選單', '10:00')
     await flushPromises()
 
-    expect(document.body.textContent).toContain('已經沒有緩衝時間')
+    expect(document.body.textContent).toContain('距離報名截止僅剩')
+    expect(document.body.textContent).toContain('分鐘！')
 
     wrapper.unmount()
   })
@@ -817,7 +818,8 @@ describe('EventPage - 底部常駐顯示：報名截止時間套用警示樣式�
     wrapper.vm.selectSlotTime(wrapper.vm.timeWindow, 'startTime', '10:00')
     await flushPromises()
 
-    expect(document.body.textContent).toContain('活動快開始了，已經沒有緩衝時間')
+    expect(document.body.textContent).toContain('距離報名截止僅剩')
+    expect(document.body.textContent).toContain('分鐘！')
 
     wrapper.unmount()
   })

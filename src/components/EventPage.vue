@@ -300,7 +300,7 @@
 
             <ReportCutoffReminder
               :is-warning="isReportCutoffWarning"
-              :warning-text="reportCutoffWarningText"
+              :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
               :offset-parts="reportCutoffOffsetParts"
               :show-editor="showDeadlineEditor"
@@ -473,7 +473,7 @@
 
             <ReportCutoffReminder
               :is-warning="isReportCutoffWarning"
-              :warning-text="reportCutoffWarningText"
+              :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
               :offset-parts="reportCutoffOffsetParts"
               :show-editor="showDeadlineEditor"
@@ -644,7 +644,7 @@
 
             <ReportCutoffReminder
               :is-warning="isReportCutoffWarning"
-              :warning-text="reportCutoffWarningText"
+              :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
               :offset-parts="reportCutoffOffsetParts"
               :show-editor="showDeadlineEditor"
@@ -837,7 +837,7 @@
 
             <ReportCutoffReminder
               :is-warning="isReportCutoffWarning"
-              :warning-text="reportCutoffWarningText"
+              :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
               :offset-parts="reportCutoffOffsetParts"
               :show-editor="showDeadlineEditor"
@@ -1462,10 +1462,17 @@ const isScheduleCeilingWarning = computed(() => withinSafetyBuffer(scheduleCeili
 // eslint-disable-next-line no-unused-vars
 const isUrgent = computed(() => isReportCutoffWarning.value || isScheduleCeilingWarning.value)
 
-// 距天花板還有幾分鐘（第二行警示文案、二次確認 modal 都要用）
+// 距天花板還有幾分鐘（二次確認 modal 用）
 const minutesUntilCeiling = computed(() => {
   if (!scheduleCeilingDate.value) return 0
   return Math.max(1, Math.ceil((scheduleCeilingDate.value.getTime() - Date.now()) / 60000))
+})
+
+// 距報名截止時間還有幾分鐘（第一行警示文案用）——跟 minutesUntilCeiling 同樣邏輯，
+// 只是基準換成 voteDeadlineDate（報名截止）而不是 scheduleCeilingDate（決策硬截止天花板）
+const minutesUntilVoteDeadline = computed(() => {
+  if (!voteDeadlineDate.value) return 0
+  return Math.max(1, Math.ceil((voteDeadlineDate.value.getTime() - Date.now()) / 60000))
 })
 
 function formatDateTimeDisplay(date) {
@@ -1485,12 +1492,6 @@ const reportCutoffOffsetParts = computed(() => {
   if (!preset) return { number: '', unit: '' }
   const match = preset.label.match(/^(\d+)\s*(.+)$/)
   return match ? { number: match[1], unit: match[2] } : { number: '', unit: preset.label }
-})
-
-// 第一行警示狀態文字（無報名緩衝或報名截止時間貼近現在時使用，不顯示偏移量）
-const reportCutoffWarningText = computed(() => {
-  if (!voteDeadlineDate.value) return ''
-  return `報名開放到 ${formatDateTimeDisplay(voteDeadlineDate.value)}——活動快開始了，已經沒有緩衝時間`
 })
 
 watch(

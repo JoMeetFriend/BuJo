@@ -1,10 +1,17 @@
 <template>
   <div class="flex flex-col gap-1.5 border-t border-dashed border-[var(--bujo-line-soft)] pt-2">
     <p
-      class="text-xs leading-5"
-      :class="isWarning ? 'font-semibold text-[#dc2626]' : 'text-[var(--bujo-muted)]'"
+      class="flex items-center gap-1 text-xs leading-5"
+      :class="
+        isWarning ? 'font-semibold text-[var(--bujo-notification)]' : 'text-[var(--bujo-muted)]'
+      "
     >
-      <template v-if="isWarning">{{ warningText }}</template>
+      <template v-if="isWarning">
+        <ClockIcon class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        距離報名截止僅剩
+        <strong class="font-[var(--bujo-font-meta)]">{{ remainingMinutes }}</strong>
+        分鐘！
+      </template>
       <template v-else
         >報名開放到
         <strong class="text-[var(--bujo-muted-strong)]">{{ timeLabel }}</strong>
@@ -41,9 +48,11 @@
 </template>
 
 <script setup>
+import { ClockIcon } from '@heroicons/vue/24/outline'
+
 defineProps({
   isWarning: Boolean,
-  warningText: String,
+  remainingMinutes: Number,
   timeLabel: String,
   offsetParts: Object,
   showEditor: Boolean,
