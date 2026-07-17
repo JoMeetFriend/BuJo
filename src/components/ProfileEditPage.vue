@@ -303,6 +303,39 @@
         </p>
       </div>
 
+      <!-- LINE 通知永久入口 -->
+      <header class="profile-section-header">
+        <h2>LINE 通知</h2>
+      </header>
+      <div class="grid gap-4 px-5 py-4" data-testid="line-notification-settings">
+        <div class="line-notification-summary">
+          <span class="line-notification-summary__label" aria-hidden="true">LINE</span>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-[var(--bujo-ink)]">
+              {{ isConnected('line') ? 'LINE 帳號已連接' : '尚未連接 LINE' }}
+            </p>
+            <p class="mt-1 text-xs leading-5 text-[var(--bujo-muted-strong)]">
+              <template v-if="isConnected('line')">
+                請加入或解除封鎖 BuJo LINE 官方帳號，才能接收屬於你的推播提醒。
+              </template>
+              <template v-else> 先連接 LINE 帳號，再依 LINE 授權畫面加入官方帳號。 </template>
+            </p>
+          </div>
+        </div>
+
+        <LineOfficialAccountEntry v-if="isConnected('line')" />
+        <button
+          v-else
+          type="button"
+          class="profile-link-btn min-h-[40px] justify-self-start"
+          :disabled="linkLoading"
+          aria-label="連接 LINE 以接收通知"
+          @click="handleLineLink"
+        >
+          連接 LINE
+        </button>
+      </div>
+
       <footer class="flex justify-end border-t border-[var(--bujo-line)] px-5 py-4">
         <PixelButton
           variant="danger"
@@ -324,6 +357,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
 import PixelButton from './ui/PixelButton.vue'
+import LineOfficialAccountEntry from './LineOfficialAccountEntry.vue'
 import { useAuthStore } from '@/stores/auth'
 import { toAvatarSrc } from '@/utils/avatar'
 import { useUserStore } from '@/stores/userStore'
@@ -350,7 +384,9 @@ const bioSuccessMsg = ref('')
 const isBioLoading = ref(false)
 const bioErrorMsg = ref('')
 
-const identities = computed(() => authStore.user?.identities ?? [])
+const identities = computed(() =>
+  Array.isArray(authStore.user?.identities) ? authStore.user.identities : [],
+)
 const identityCount = computed(() => identities.value.length)
 const displayName = computed(() => authStore.user?.display_name || '未登入')
 const shareCode = computed(() => {
@@ -692,6 +728,30 @@ const handleBioSubmit = async () => {
   color: var(--bujo-ink);
 }
 
+.line-notification-summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px;
+  border-left: 3px solid #00a63c;
+  background: var(--bujo-surface-muted);
+  padding: 12px 14px;
+}
+
+.line-notification-summary__label {
+  display: grid;
+  height: 36px;
+  min-width: 48px;
+  place-items: center;
+  border: 1px solid #00a63c;
+  background: var(--bujo-surface);
+  color: #08752f;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
 .profile-link-btn,
 .profile-unlink-btn {
   border: 1px solid var(--bujo-ink);
@@ -707,6 +767,12 @@ const handleBioSubmit = async () => {
 .profile-link-btn:hover:not(:disabled) {
   background: var(--bujo-ink);
   color: var(--bujo-white);
+}
+
+.profile-link-btn:focus-visible,
+.profile-unlink-btn:focus-visible {
+  outline: 2px solid var(--bujo-accent);
+  outline-offset: 2px;
 }
 
 .profile-unlink-btn {

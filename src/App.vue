@@ -31,6 +31,12 @@
         <component :is="Component" :sidebarOpen="sidebarOpen" :filters="filters" />
       </RouterView>
     </main>
+
+    <LineNotificationOnboardingModal
+      v-if="showLineNotificationOnboarding"
+      :user="authStore.user"
+      @complete="markLineNotificationOnboardingSeen"
+    />
   </div>
 </template>
 
@@ -39,8 +45,12 @@ import { RouterView, useRoute } from 'vue-router'
 import { ref, computed } from 'vue'
 import AppSidebar from './components/AppSidebar.vue'
 import SidebarToggleButton from './components/ui/SidebarToggleButton.vue'
+import LineNotificationOnboardingModal from './components/LineNotificationOnboardingModal.vue'
+import { useAuthStore } from './stores/auth'
+import { useLineNotificationOnboarding } from './composables/useLineNotificationOnboarding'
 
 const route = useRoute()
+const authStore = useAuthStore()
 const sidebarOpen = ref(true)
 const filters = ref({ joined: true, formed: true, personal: true })
 
@@ -48,6 +58,19 @@ const showSidebar = computed(() => !['/login', '/register', '/'].includes(route.
 const isAuthPage = computed(() => ['/login', '/register'].includes(route.path))
 const isLandingPage = computed(() => route.path === '/')
 const isCalendarPage = computed(() => route.name === 'calendar-page')
+const onboardingUserId = computed(() => authStore.user?.id ?? authStore.user?.uid ?? '')
+const {
+  shouldShow: hasUnseenLineNotificationOnboarding,
+  markSeen: markLineNotificationOnboardingSeen,
+} = useLineNotificationOnboarding(onboardingUserId)
+const showLineNotificationOnboarding = computed(
+  () =>
+    authStore.initialized &&
+    Boolean(authStore.user) &&
+    Boolean(onboardingUserId.value) &&
+    Boolean(route.meta.requiresAuth) &&
+    hasUnseenLineNotificationOnboarding.value,
+)
 
 function toggleFilter(key) {
   filters.value[key] = !filters.value[key]

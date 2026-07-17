@@ -4,6 +4,7 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import ProfileEditPage from '@/components/ProfileEditPage.vue'
 import { useAuthStore } from '@/stores/auth'
+import profileEditPageSource from '@/components/ProfileEditPage.vue?raw'
 
 const baseUser = {
   display_name: 'Test A',
@@ -64,6 +65,7 @@ async function mountProfileEditPage(user = {}) {
 
 beforeEach(() => {
   vi.restoreAllMocks()
+  localStorage.clear()
   globalThis.fetch = vi.fn()
   stubClipboard()
   window.google = {
@@ -133,6 +135,47 @@ describe('ProfileEditPage', () => {
     expect(sectionHeadings).not.toContain('頭像')
     expect(wrapper.text()).not.toContain('電子郵件')
     expect(wrapper.text()).toContain('test@example.com')
+  })
+
+  test('未連接 LINE 時永久通知區塊提供既有綁定入口', async () => {
+    const wrapper = await mountProfileEditPage()
+    const settings = wrapper.get('[data-testid="line-notification-settings"]')
+
+    expect(settings.text()).toContain('尚未連接 LINE')
+    expect(settings.text()).toContain('先連接 LINE 帳號')
+    expect(settings.find('[data-testid="line-official-account-entry"]').exists()).toBe(false)
+    expect(settings.get('[aria-label="連接 LINE 以接收通知"]').text()).toBe('連接 LINE')
+  })
+
+  test('已連接 LINE 時永久通知區塊提供官方帳號入口但不宣稱完成', async () => {
+    const wrapper = await mountProfileEditPage({
+      identities: [...baseUser.identities, { provider: 'line', email: null }],
+    })
+    const settings = wrapper.get('[data-testid="line-notification-settings"]')
+
+    expect(settings.text()).toContain('LINE 帳號已連接')
+    expect(settings.text()).toContain('請加入或解除封鎖 BuJo LINE 官方帳號')
+    expect(settings.find('[data-testid="line-official-account-entry"]').exists()).toBe(true)
+    expect(settings.text()).not.toContain('已加入官方帳號')
+    expect(settings.text()).not.toContain('推播已開啟')
+  })
+
+  test('onboarding 已看過仍保留 LINE 通知設定入口', async () => {
+    localStorage.setItem('bujo:line-notification-guide:v1:legacy-11111', 'seen')
+
+    const wrapper = await mountProfileEditPage()
+
+    expect(wrapper.find('[data-testid="line-notification-settings"]').exists()).toBe(true)
+  })
+
+  test('LINE 通知設定沿用方角線框與鍵盤 focus 樣式', async () => {
+    const wrapper = await mountProfileEditPage()
+    const linkButton = wrapper.get('[aria-label="連接 LINE 以接收通知"]')
+
+    expect(linkButton.attributes('type')).toBe('button')
+    expect(profileEditPageSource).toContain('.line-notification-summary')
+    expect(profileEditPageSource).toContain('border-left: 3px solid #00a63c')
+    expect(profileEditPageSource).toContain('.profile-link-btn:focus-visible')
   })
 
   test('初始相對頭像路徑會補上 API base URL', async () => {
