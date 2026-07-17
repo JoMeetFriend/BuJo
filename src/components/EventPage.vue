@@ -811,7 +811,7 @@
             placeholder="補充說明，例如裝備、費用..."
           ></textarea>
 
-          <!-- 截止時間常駐顯示：兩行永遠都在，各自獨立判斷是否套用警示樣式，不再跟緊急狀態互斥 -->
+          <!-- 報名截止時間常駐顯示：依 isReportCutoffWarning 套用警示樣式 -->
           <div
             class="flex flex-col gap-1.5 border-t border-dashed border-[var(--bujo-line-soft)] pt-2"
           >
@@ -832,24 +832,6 @@
                   >{{ reportCutoffOffsetParts.unit }}</button
                 >截止）</template
               >
-            </p>
-
-            <p
-              class="text-[11px] leading-5"
-              :class="
-                isScheduleCeilingWarning
-                  ? 'font-semibold text-[#dc2626]'
-                  : 'text-[var(--bujo-muted)]'
-              "
-            >
-              {{ scheduleCeilingLineText }}
-            </p>
-
-            <p
-              v-if="candidateDateReminderText"
-              class="text-[11px] leading-5 text-[var(--bujo-accent)]"
-            >
-              {{ candidateDateReminderText }}
             </p>
 
             <!-- 流團編輯器 -->
@@ -896,8 +878,9 @@
     <template #default>
       <div class="grid gap-3 py-2 text-center">
         <p class="text-sm leading-6 text-[var(--bujo-ink)]">
-          活動即將開始，這次建立將不會有任何報名緩衝時間，送出後請立即到活動頁面手動確認成團
+          距離活動開始只剩 {{ minutesUntilCeiling }} 分鐘
         </p>
+        <p class="text-sm leading-6 text-[var(--bujo-ink)]">確定要建立活動嗎？</p>
       </div>
     </template>
     <template #footer>
@@ -1504,34 +1487,6 @@ const reportCutoffOffsetParts = computed(() => {
 const reportCutoffWarningText = computed(() => {
   if (!voteDeadlineDate.value) return ''
   return `報名開放到 ${formatDateTimeDisplay(voteDeadlineDate.value)}——活動快開始了，已經沒有緩衝時間`
-})
-
-// 第二行文字：決策硬截止時間，固定值，正常/警示狀態各自的文案
-const scheduleCeilingLineText = computed(() => {
-  if (!scheduleCeilingDate.value) return ''
-  if (isScheduleCeilingWarning.value) {
-    return `只剩 ${minutesUntilCeiling.value} 分鐘了，記得手動確認成團，不然活動會被自動取消喔`
-  }
-  return `最晚 ${formatDateTimeDisplay(scheduleCeilingDate.value)} 要手動確認成團，不然活動會自動取消`
-})
-
-// 第三行：情境三／四專屬的候選日提醒，任一已選候選日期距今 ≤1 小時就顯示，純資訊提示，
-// 跟報名截止/決策硬截止的計算完全無關——新模型下天花板已經改錨定最晚候選日，其他候選日
-// 投票確實不受影響，是做得到的事實，不需要再靠這行文字硬撐一個做不到的承諾
-const candidateDateReminderText = computed(() => {
-  const isScenarioC = dateMode.value === 'range' && timeMode.value === 'fixed'
-  const isScenarioD = dateMode.value === 'range' && timeMode.value === 'vote'
-  if (!isScenarioC && !isScenarioD) return ''
-  const entries = isScenarioC
-    ? candidateDates.value.map((date) => ({ date, time: uniformTime.startTime }))
-    : configuredSlots.value.map((slot) => ({ date: slot.date, time: slot.startTime }))
-  const now = Date.now()
-  const nearTerm = entries
-    .map(({ date, time }) => ({ date, start: parseDateTimeValue(date, time) }))
-    .filter((e) => e.start && e.start.getTime() - now > 0 && e.start.getTime() - now <= 60 * 60000)
-    .sort((a, b) => a.start - b.start)
-  if (nearTerm.length === 0) return ''
-  return `${shortDate(nearTerm[0].date)} 快到了，選這天的話記得手動確認成團呦～其他候選日不受影響，照常開放投票！`
 })
 
 watch(
