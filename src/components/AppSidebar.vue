@@ -70,7 +70,7 @@
           class="w-8 h-8 object-cover shrink-0"
         />
         <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
-        <span>ME</span>
+        <span>{{ authStore.user?.display_name || 'ME' }}</span>
       </button>
     </div>
   </aside>
