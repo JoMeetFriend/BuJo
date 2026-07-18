@@ -299,6 +299,7 @@
     "error": "發生錯誤：{message}",
     "removeFriend": "移除好友",
     "confirmRemove": "確定要將 {name} 從好友名單中移除嗎？",
+    "friendAvatar": "好友頭像",
     "friendId": "BuJo ID",
     "nickname": "暱稱",
     "online": "在線",

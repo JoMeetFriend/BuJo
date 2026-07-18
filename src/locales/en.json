@@ -299,6 +299,7 @@
     "error": "Error: {message}",
     "removeFriend": "Remove friend",
     "confirmRemove": "Remove {name} from your friends?",
+    "friendAvatar": "Friend avatar",
     "friendId": "BuJo ID",
     "nickname": "Nickname",
     "online": "Online",

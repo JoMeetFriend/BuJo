@@ -38,7 +38,7 @@
               <p
                 class="mt-1 truncate font-[space-mono] text-[10px] text-[var(--bujo-muted-strong)] md:text-[12px]"
               >
-                {{ event.time || t('dateEvents.timeNotSet') }}
+                {{ event.time ? translateTime(event.time) : t('dateEvents.timeNotSet') }}
                 <span v-if="event.location"> ・ {{ event.location }}</span>
               </p>
             </div>
@@ -93,6 +93,11 @@ import BaseModal from './ui/BaseModal.vue'
 import ActivityDetailModal from './ActivityDetailModal.vue'
 
 const { t } = useI18n()
+
+function translateTime(timeStr) {
+  if (!timeStr) return ''
+  return timeStr.replaceAll('上午', t('common.am')).replaceAll('下午', t('common.pm'))
+}
 
 const isModalOpen = ref(false)
 const selectedActivityId = ref(null)

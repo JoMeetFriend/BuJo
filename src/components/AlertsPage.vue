@@ -4,22 +4,24 @@
       <p class="alerts-eyebrow">SOCIAL INBOX</p>
       <div class="alerts-title-line">
         <h1>ALERTS</h1>
-        <span class="alerts-cn-tag">通知</span>
+        <span class="alerts-cn-tag">{{ t('alerts.subtitle') }}</span>
       </div>
     </header>
 
     <main class="px-5 pt-2 md:px-14 md:py-4">
       <div class="mb-4 flex items-center justify-between gap-3">
-        <p v-if="isLoading" class="alerts-status-text">通知讀取中...</p>
+        <p v-if="isLoading" class="alerts-status-text">{{ t('alerts.loading') }}</p>
         <p v-else-if="error" class="alerts-status-text alerts-status-text--error">{{ error }}</p>
         <p v-else class="alerts-status-text">{{ summaryText }}</p>
 
         <PixelButton type="button" :disabled="!hasUnread || isLoading" @click="markAllAsRead">
-          全部已讀
+          {{ t('alerts.markAllRead') }}
         </PixelButton>
       </div>
 
-      <div v-if="!isLoading && notifications.length === 0" class="alerts-empty">目前沒有通知</div>
+      <div v-if="!isLoading && notifications.length === 0" class="alerts-empty">
+        {{ t('alerts.empty') }}
+      </div>
 
       <ul v-else class="flex flex-col">
         <li
@@ -37,7 +39,7 @@
             class="alerts-dismiss-affordance"
             :style="dismissAffordanceStyle(notification.id)"
             role="img"
-            aria-label="移除通知"
+            :aria-label="t('alerts.remove')"
           >
             <div class="alerts-dismiss-icon-wrap">
               <svg
@@ -119,7 +121,7 @@
                     :disabled="isActionBusy(notification.id)"
                     @click="handleFriendshipAction(notification, 'accept')"
                   >
-                    接受
+                    {{ t('alerts.accept') }}
                   </button>
                   <button
                     v-if="notification.actions.includes('reject')"
@@ -128,7 +130,7 @@
                     :disabled="isActionBusy(notification.id)"
                     @click="handleFriendshipAction(notification, 'reject')"
                   >
-                    拒絕
+                    {{ t('alerts.reject') }}
                   </button>
                 </div>
               </div>
@@ -143,7 +145,7 @@
                 v-if="canHoverDismiss(notification)"
                 type="button"
                 class="alerts-hover-dismiss"
-                aria-label="移除通知"
+                :aria-label="t('alerts.remove')"
                 @pointerdown.stop
                 @keydown.stop
                 @click.stop="dismissNotificationFromButton(notification, $event)"
@@ -170,9 +172,12 @@ import axios from 'axios'
 import { TrashIcon } from '@heroicons/vue/24/outline'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import PixelButton from './ui/PixelButton.vue'
 import { useNotificationStore } from '@/stores/notificationStore'
 import { toAvatarSrc } from '@/utils/avatar'
+
+const { t } = useI18n()
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -207,9 +212,9 @@ const ACTOR_AVATAR_NOTIFICATION_TYPES = new Set([
 
 const hasUnread = computed(() => notifications.value.some((notification) => !notification.isRead))
 const summaryText = computed(() => {
-  if (notifications.value.length === 0) return '0 則通知'
+  if (notifications.value.length === 0) return t('alerts.notificationCount', { count: 0 })
   const unreadCount = notifications.value.filter((notification) => !notification.isRead).length
-  return unreadCount > 0 ? `${unreadCount} 則未讀` : '已全部讀取'
+  return unreadCount > 0 ? t('alerts.unreadCount', { count: unreadCount }) : t('alerts.allRead')
 })
 
 onMounted(() => {
@@ -237,7 +242,7 @@ async function fetchNotifications() {
     }
   } catch (err) {
     console.error('取得通知失敗:', err)
-    error.value = err.response?.data?.message || '無法取得通知'
+    error.value = err.response?.data?.message || t('alerts.unableToFetch')
     notifications.value = []
   } finally {
     isLoading.value = false
@@ -256,7 +261,7 @@ async function markAsRead(notification) {
     notificationStore.setUnreadCount(notificationStore.unreadCount - 1)
   } catch (err) {
     console.error('標記通知已讀失敗:', err)
-    error.value = err.response?.data?.message || '無法標記已讀'
+    error.value = err.response?.data?.message || t('alerts.unableToMarkRead')
   }
 }
 
@@ -450,7 +455,7 @@ async function dismissNotification(notification, state, visualMode) {
   } catch (err) {
     console.error('移除通知失敗:', err)
     resetSwipeState(state)
-    error.value = '無法移除通知'
+    error.value = t('alerts.unableToDismiss')
   }
 }
 
@@ -480,7 +485,7 @@ async function markAllAsRead() {
     notificationStore.setUnreadCount(0)
   } catch (err) {
     console.error('全部已讀失敗:', err)
-    error.value = err.response?.data?.message || '無法全部已讀'
+    error.value = err.response?.data?.message || t('alerts.unableToMarkAllRead')
   }
 }
 
@@ -497,7 +502,7 @@ async function handleFriendshipAction(notification, action) {
     await fetchNotifications()
   } catch (err) {
     console.error('處理好友邀請失敗:', err)
-    error.value = err.response?.data?.message || '無法處理好友邀請'
+    error.value = err.response?.data?.message || t('alerts.unableToProcessInvite')
   } finally {
     setActionBusy(notification.id, false)
   }
@@ -508,7 +513,7 @@ function normalizeNotification(notification) {
     id: String(notification.id),
     type: String(notification.type || ''),
     category: notification.category || 'general',
-    message: notification.message || '你有一則新通知',
+    message: notification.message || t('alerts.newNotification'),
     timeText: notification.timeText || '',
     isRead: Boolean(notification.isRead),
     createdAt: notification.createdAt || null,
