@@ -1,10 +1,22 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { createI18n } from 'vue-i18n'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import ProfileEditPage from '@/components/ProfileEditPage.vue'
 import { useAuthStore } from '@/stores/auth'
 import profileEditPageSource from '@/components/ProfileEditPage.vue?raw'
+import en from '@/locales/en.json'
+import zhTW from '@/locales/zh-TW.json'
+
+function createTestI18n() {
+  return createI18n({
+    legacy: false,
+    locale: 'zh-TW',
+    fallbackLocale: 'en',
+    messages: { en, 'zh-TW': zhTW },
+  })
+}
 
 const baseUser = {
   display_name: 'Test A',
@@ -57,7 +69,7 @@ async function mountProfileEditPage(user = {}, path = '/profile/edit') {
 
   const wrapper = mount(ProfileEditPage, {
     global: {
-      plugins: [pinia, router],
+      plugins: [pinia, router, createTestI18n()],
     },
   })
   await flushPromises()

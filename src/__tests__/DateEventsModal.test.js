@@ -1,6 +1,18 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, expect, test, vi, afterEach } from 'vitest'
 import DateEventsModal from '@/components/DateEventsModal.vue'
+import { createI18n } from 'vue-i18n'
+import en from '@/locales/en.json'
+import zhTW from '@/locales/zh-TW.json'
+
+function createTestI18n() {
+  return createI18n({
+    legacy: false,
+    locale: 'zh-TW',
+    fallbackLocale: 'en',
+    messages: { en, 'zh-TW': zhTW },
+  })
+}
 
 // BaseModal 用 <Teleport to="body">，實際 DOM 掛在 document.body 底下
 function queryBody(selector) {
@@ -57,6 +69,9 @@ const activityDetail = {
 function mountModal() {
   return mount(DateEventsModal, {
     props: { date: '2026-07-10', events },
+    global: {
+      plugins: [createTestI18n()],
+    },
     attachTo: document.body,
   })
 }

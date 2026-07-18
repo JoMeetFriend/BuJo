@@ -3,6 +3,18 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import LoginView from '@/components/LoginView.vue'
+import { createI18n } from 'vue-i18n'
+import en from '@/locales/en.json'
+import zhTW from '@/locales/zh-TW.json'
+
+function createTestI18n() {
+  return createI18n({
+    legacy: false,
+    locale: 'zh-TW',
+    fallbackLocale: 'en',
+    messages: { en, 'zh-TW': zhTW },
+  })
+}
 
 globalThis.fetch = vi.fn()
 
@@ -18,7 +30,7 @@ function mountLoginView() {
   })
 
   return mount(LoginView, {
-    global: { plugins: [createPinia(), router] },
+    global: { plugins: [createPinia(), router, createTestI18n()] },
   })
 }
 

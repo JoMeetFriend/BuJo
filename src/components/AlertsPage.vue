@@ -1,9 +1,9 @@
 <template>
   <div class="min-h-screen bg-[var(--bujo-page)] pb-24 text-[var(--bujo-ink)]">
     <header class="alerts-header sticky top-0 z-10 bg-[var(--bujo-page)] px-5 pt-8 pb-4 md:px-14">
-      <p class="alerts-eyebrow">SOCIAL INBOX</p>
+      <p class="alerts-eyebrow">{{ t('alerts.eyebrow') }}</p>
       <div class="alerts-title-line">
-        <h1>ALERTS</h1>
+        <h1>{{ t('alerts.pageTitle') }}</h1>
         <span class="alerts-cn-tag">{{ t('alerts.subtitle') }}</span>
       </div>
     </header>

@@ -87,10 +87,12 @@
       </section>
 
       <!-- Bento grid -->
-      <section class="landing-bento" aria-label="BuJo 功能一覽">
+      <section class="landing-bento" :aria-label="t('landing.bentoAria')">
         <article class="landing-card landing-card--note landing-card--green">
           <span class="landing-tape landing-tape--top"></span>
-          <p class="landing-card-title">BUJO IS FOR <span aria-hidden="true">♥</span></p>
+          <p class="landing-card-title">
+            {{ t('landing.bentoBujoIsFor') }} <span aria-hidden="true">♥</span>
+          </p>
           <ul class="landing-checklist">
             <li v-for="item in bujoIsFor" :key="item">
               <span aria-hidden="true">☐</span>{{ item }}
@@ -105,17 +107,17 @@
           <div class="landing-cal-paper">
             <div class="landing-cal-header">
               <div class="landing-cal-heading">
-                <p class="landing-cal-eyebrow">SOCIAL INBOX CALENDAR</p>
+                <p class="landing-cal-eyebrow">{{ t('landing.bentoCalendarEyebrow') }}</p>
                 <div class="landing-cal-title-line">
                   <h3>{{ monthNameUpper }}</h3>
                   <span class="landing-cal-year">{{ currentYear }}</span>
                 </div>
-                <p class="landing-cal-caption">( social index / small plans )</p>
+                <p class="landing-cal-caption">{{ t('landing.bentoCalendarCaption') }}</p>
               </div>
               <div class="landing-cal-actions" aria-hidden="true">
                 <span class="landing-cal-arrow">&lt;</span>
                 <span class="landing-cal-arrow">&gt;</span>
-                <span class="landing-cal-create">＋ CREATE</span>
+                <span class="landing-cal-create">{{ t('landing.bentoCalendarCreate') }}</span>
               </div>
             </div>
 
@@ -150,19 +152,19 @@
         </article>
 
         <article class="landing-card landing-card--note landing-card--blue">
-          <p class="landing-card-title">TODAY'S NUDGE</p>
+          <p class="landing-card-title">{{ t('landing.bentoTodaysNudge') }}</p>
           <p class="landing-nudge-text">{{ t('landing.bentoNudge') }}</p>
           <span class="landing-nudge-icon" aria-hidden="true">✦</span>
         </article>
 
         <article class="landing-card landing-card--photo landing-card--photo-dusk">
           <span class="landing-photo-grain" aria-hidden="true"></span>
-          <span class="landing-photo-caption">slow afternoon</span>
+          <span class="landing-photo-caption">{{ t('landing.bentoPhotoDusk') }}</span>
         </article>
 
         <article class="landing-card landing-card--note landing-card--tan">
           <span class="landing-tape landing-tape--top"></span>
-          <p class="landing-card-title">CREATE IN SECONDS</p>
+          <p class="landing-card-title">{{ t('landing.bentoCreateInSecondsTitle') }}</p>
           <ul class="landing-checklist">
             <li v-for="item in createInSeconds" :key="item">
               <span aria-hidden="true">☐</span>{{ item }}
@@ -171,7 +173,7 @@
         </article>
 
         <article class="landing-card landing-card--note landing-card--purple">
-          <p class="landing-card-title">WHY BUJO?</p>
+          <p class="landing-card-title">{{ t('landing.bentoWhyBujoTitle') }}</p>
           <p class="landing-nudge-text">
             {{ t('landing.bentoWhyBujo') }}
           </p>
@@ -179,7 +181,7 @@
 
         <article class="landing-card landing-card--photo landing-card--photo-coffee">
           <span class="landing-photo-grain" aria-hidden="true"></span>
-          <span class="landing-photo-caption">coffee &amp; plans</span>
+          <span class="landing-photo-caption">{{ t('landing.bentoPhotoCoffee') }}</span>
         </article>
       </section>
 
@@ -207,7 +209,7 @@
         <img :src="bujoMarkUrl" alt="" class="landing-brand-mark landing-brand-mark--small" />
         <img :src="bujoLogoUrl" alt="BuJo" class="landing-footer-logo" />
         <p class="landing-footer-copy">
-          &copy; {{ t('landing.footerCopyright', { year: currentYear }) }}
+          {{ t('landing.footerCopyright', { year: currentYear }) }}
         </p>
       </div>
 
@@ -283,19 +285,19 @@ const weekdayLabels = computed(() => [
   t('landing.weekdaySun'),
 ])
 
-const bujoIsFor = ['small plans', 'social calendar', 'reminders', 'close friends', 'easy creation']
-const createInSeconds = computed(() => {
-  const map =
-    locale.value === 'zh-TW'
-      ? { pickTime: '選時間', pickPlace: '選地點', inviteFriends: '邀朋友', done: '完成！' }
-      : {
-          pickTime: 'Pick time',
-          pickPlace: 'Pick place',
-          inviteFriends: 'Invite friends',
-          done: 'Done!',
-        }
-  return ['pickTime', 'pickPlace', 'inviteFriends', 'done'].map((key) => map[key])
-})
+const bujoIsFor = computed(() => [
+  t('landing.bujoIsForItems.0'),
+  t('landing.bujoIsForItems.1'),
+  t('landing.bujoIsForItems.2'),
+  t('landing.bujoIsForItems.3'),
+  t('landing.bujoIsForItems.4'),
+])
+const createInSeconds = computed(() => [
+  t('landing.bentoCreateInSeconds.pickTime'),
+  t('landing.bentoCreateInSeconds.pickPlace'),
+  t('landing.bentoCreateInSeconds.inviteFriends'),
+  t('landing.bentoCreateInSeconds.done'),
+])
 
 const features = computed(() => [
   {

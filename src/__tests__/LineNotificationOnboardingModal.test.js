@@ -1,7 +1,19 @@
 import { mount } from '@vue/test-utils'
+import { createI18n } from 'vue-i18n'
 import { afterEach, describe, expect, test } from 'vitest'
 import LineNotificationOnboardingModal from '@/components/LineNotificationOnboardingModal.vue'
 import onboardingModalSource from '@/components/LineNotificationOnboardingModal.vue?raw'
+import en from '@/locales/en.json'
+import zhTW from '@/locales/zh-TW.json'
+
+function createTestI18n() {
+  return createI18n({
+    legacy: false,
+    locale: 'zh-TW',
+    fallbackLocale: 'en',
+    messages: { en, 'zh-TW': zhTW },
+  })
+}
 
 const BaseModalStub = {
   props: {
@@ -28,6 +40,7 @@ function mountModal(user) {
       qrCodeUrl: 'https://example.com/bujo-line-qr.png',
     },
     global: {
+      plugins: [createTestI18n()],
       stubs: { BaseModal: BaseModalStub },
     },
     attachTo: document.body,

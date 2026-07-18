@@ -4,10 +4,10 @@
   >
     <!-- 頁首 -->
     <header class="mb-5">
-      <p class="profile-eyebrow">ACCOUNT SETTINGS</p>
+      <p class="profile-eyebrow">{{ t('profileEdit.title') }}</p>
       <div class="profile-title-line">
         <h1>{{ t('profileEdit.subtitle') }}</h1>
-        <span class="profile-cn-tag">ME</span>
+        <span class="profile-cn-tag">{{ t('profileEdit.meTag') }}</span>
       </div>
     </header>
 
@@ -38,7 +38,7 @@
             <p class="flex h-8 items-center text-base leading-none md:text-lg">{{ displayName }}</p>
             <div v-if="shareCode" class="flex h-8 min-w-0 items-center gap-2">
               <p class="min-w-0 font-[space-mono] text-sm text-[var(--bujo-muted-strong)]">
-                Bujo ID: {{ shareCode }}
+                {{ t('profileEdit.bujoIdLabel') }} {{ shareCode }}
               </p>
               <button
                 type="button"

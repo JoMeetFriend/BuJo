@@ -2,6 +2,18 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import { describe, expect, test, beforeEach, afterEach, vi } from 'vitest'
 import EventPage from '@/components/EventPage.vue'
+import { createI18n } from 'vue-i18n'
+import en from '@/locales/en.json'
+import zhTW from '@/locales/zh-TW.json'
+
+function createTestI18n() {
+  return createI18n({
+    legacy: false,
+    locale: 'zh-TW',
+    fallbackLocale: 'en',
+    messages: { en, 'zh-TW': zhTW },
+  })
+}
 
 // EventPage 用 <Teleport to="body">，實際 DOM 會掛在 document.body 底下，
 // 不在 wrapper 自己的節點內，所以要直接查 document 才找得到內容
@@ -28,7 +40,7 @@ async function mountEventPage() {
 
   return mount(EventPage, {
     props: { isOpen: true },
-    global: { plugins: [router] },
+    global: { plugins: [router, createTestI18n()] },
     attachTo: document.body,
   })
 }

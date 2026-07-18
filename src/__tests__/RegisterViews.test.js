@@ -1,8 +1,20 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
+import { createI18n } from 'vue-i18n'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import RegisterViews from '@/components/RegisterViews.vue'
+import en from '@/locales/en.json'
+import zhTW from '@/locales/zh-TW.json'
+
+function createTestI18n() {
+  return createI18n({
+    legacy: false,
+    locale: 'zh-TW',
+    fallbackLocale: 'en',
+    messages: { en, 'zh-TW': zhTW },
+  })
+}
 
 globalThis.fetch = vi.fn()
 
@@ -17,7 +29,7 @@ function mountRegisterViews() {
   })
 
   return mount(RegisterViews, {
-    global: { plugins: [createPinia(), router] },
+    global: { plugins: [createPinia(), router, createTestI18n()] },
   })
 }
 

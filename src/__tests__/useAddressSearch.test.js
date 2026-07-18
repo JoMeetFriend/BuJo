@@ -7,6 +7,19 @@ vi.mock('axios', () => {
   return { default: { create: vi.fn(() => apiClient), isCancel: vi.fn(() => false) } }
 })
 
+vi.mock('@/i18n', () => ({
+  default: {
+    global: {
+      t: vi.fn((key) => {
+        const messages = {
+          'composable.addressSearchError': '地址搜尋發生錯誤',
+        }
+        return messages[key] || key
+      }),
+    },
+  },
+}))
+
 const apiClient = axios.create()
 
 beforeEach(() => {

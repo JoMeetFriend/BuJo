@@ -2,11 +2,11 @@
   <div class="activity-gallery-page">
     <header class="activity-gallery-header">
       <div class="activity-heading">
-        <p class="activity-eyebrow">SOCIAL ACTIVITY INDEX</p>
-        <h1>BuJo Activity</h1>
-        <p class="activity-caption">( rooms becoming visible / friends in motion )</p>
+        <p class="activity-eyebrow">{{ t('activity.socialIndex') }}</p>
+        <h1>{{ t('activity.activityLabel') }}</h1>
+        <p class="activity-caption">{{ t('activity.activityCaption') }}</p>
         <div class="activity-filter-row">
-          <div class="activity-filter-scroller" aria-label="activity filters">
+          <div class="activity-filter-scroller" :aria-label="t('activity.ariaFilters')">
             <button
               v-for="item in filters"
               :key="item.key"
@@ -45,7 +45,7 @@
         />
       </section>
 
-      <section class="activity-card-rail" aria-label="activities">
+      <section class="activity-card-rail" :aria-label="t('activity.ariaActivities')">
         <ul class="activity-strip">
           <li
             v-for="activity in filteredActivities"

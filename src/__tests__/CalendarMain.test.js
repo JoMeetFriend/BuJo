@@ -5,6 +5,18 @@ import { describe, expect, test, vi } from 'vitest'
 import CalendarMain from '@/components/CalendarMain.vue'
 import calendarMainSource from '@/components/CalendarMain.vue?raw'
 import { useAuthStore } from '@/stores/auth'
+import { createI18n } from 'vue-i18n'
+import en from '@/locales/en.json'
+import zhTW from '@/locales/zh-TW.json'
+
+function createTestI18n() {
+  return createI18n({
+    legacy: false,
+    locale: 'zh-TW',
+    fallbackLocale: 'en',
+    messages: { en, 'zh-TW': zhTW },
+  })
+}
 
 async function mountCalendarMain(user = {}) {
   const pinia = createPinia()
@@ -29,7 +41,7 @@ async function mountCalendarMain(user = {}) {
 
   return mount(CalendarMain, {
     global: {
-      plugins: [pinia, router],
+      plugins: [pinia, router, createTestI18n()],
       stubs: {
         DateEventsModal: true,
         EventPage: true,

@@ -177,7 +177,7 @@
           </div>
         </div>
 
-        <section class="calendar-mobile-pocket" aria-label="Mobile social pocket">
+        <section class="calendar-mobile-pocket" :aria-label="t('calendar.ariaMobilePocket')">
           <div class="calendar-mobile-pocket-header">
             <span>{{ t('calendar.keepsakePocket') }}</span>
             <strong>{{ visibleEvents.length }}</strong>
@@ -213,7 +213,7 @@
         </section>
       </div>
 
-      <aside class="calendar-social-rail" aria-label="Social rail">
+      <aside class="calendar-social-rail" :aria-label="t('calendar.ariaSocialRail')">
         <div class="calendar-rail-heading">
           <span>{{ t('calendar.socialRail') }}</span>
           <strong>{{ visibleEvents.length }}</strong>

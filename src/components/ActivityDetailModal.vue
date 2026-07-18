@@ -2,7 +2,7 @@
   <article v-if="isOpen" class="activity-detail-panel" :class="focusCardClass">
     <header class="activity-detail-header">
       <div>
-        <div class="activity-detail-kicker">ACTIVITY ROOM</div>
+        <div class="activity-detail-kicker">{{ t('activityDetail.kicker') }}</div>
         <h2>{{ activity?.title || t('activityDetail.title') }}</h2>
       </div>
       <div class="activity-detail-header-right">

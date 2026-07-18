@@ -19,7 +19,7 @@
           </p>
           <div v-if="shareCode" class="mt-1 flex min-w-0 items-center gap-2">
             <p class="min-w-0 font-[space-mono] text-sm text-[var(--bujo-muted-strong)]">
-              Bujo ID: {{ shareCode }}
+              {{ t('profileAccount.bujoIdLabel') }} {{ shareCode }}
             </p>
             <button
               type="button"

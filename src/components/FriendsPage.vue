@@ -5,9 +5,9 @@
       class="friends-header sticky top-0 z-10 flex items-center justify-between bg-[var(--bujo-page)] px-5 pt-8 pb-4 md:px-14"
     >
       <div>
-        <p class="friends-eyebrow">SOCIAL COLLECTION</p>
+        <p class="friends-eyebrow">{{ t('friends.eyebrow') }}</p>
         <div class="friends-title-line">
-          <h1>FRIENDS</h1>
+          <h1>{{ t('friends.pageTitle') }}</h1>
           <span class="friends-cn-tag">{{ t('friends.subtitle') }}</span>
         </div>
       </div>

@@ -1,10 +1,22 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
+import { createI18n } from 'vue-i18n'
 import { describe, expect, test, vi } from 'vitest'
 import axios from 'axios'
 import AppSidebar from '@/components/AppSidebar.vue'
 import { useAuthStore } from '@/stores/auth'
+import en from '@/locales/en.json'
+import zhTW from '@/locales/zh-TW.json'
+
+function createTestI18n() {
+  return createI18n({
+    legacy: false,
+    locale: 'zh-TW',
+    fallbackLocale: 'en',
+    messages: { en, 'zh-TW': zhTW },
+  })
+}
 
 vi.mock('axios', () => {
   const apiClient = { get: vi.fn().mockResolvedValue({ data: { unreadCount: 0 } }) }
@@ -44,7 +56,7 @@ async function mountAppSidebar(user = {}) {
       filters: { joined: true, formed: true, personal: true },
     },
     global: {
-      plugins: [pinia, router],
+      plugins: [pinia, router, createTestI18n()],
       stubs: {
         ProfileAccountModal: true,
       },
