@@ -70,7 +70,7 @@
             <button
               class="grid h-7 w-7 place-items-center text-lg leading-none text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:text-[var(--bujo-ink)] active:translate-x-px active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bujo-accent)]"
               type="button"
-              :aria-label="`關閉${title}`"
+              :aria-label="t('common.closeTitle', { title })"
               @click="emit('close')"
             >
               ×
@@ -112,6 +112,9 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   isOpen: {

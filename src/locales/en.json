@@ -439,7 +439,8 @@
     "ariaCloseFilter": "Close filter",
     "ariaOpenFilter": "Open filter",
     "ariaMobileProfile": "Open profile account",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "ariaToggle": "Toggle sidebar"
   },
   "common": {
     "loading": "Loading...",
@@ -451,6 +452,7 @@
     "delete": "Delete",
     "edit": "Edit",
     "close": "Close",
+    "closeTitle": "Close {title}",
     "back": "Back",
     "retry": "Retry",
     "noData": "No data available.",
