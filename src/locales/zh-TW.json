@@ -306,7 +306,17 @@
     "googleLinkFailed": "Google 連結失敗",
     "unlinkSuccess": "已解除連結",
     "unlinkFailed": "解除連結失敗",
-    "lineLinkSuccess": "LINE 帳號連結成功"
+    "lineLinkSuccess": "LINE 帳號連結成功",
+    "defaultAvatarAlt": "預設使用者頭像",
+    "ariaLogout": "登出目前帳號",
+    "lineNotConnected": "尚未連接 LINE 帳號",
+    "ariaLinkLine": "連接 LINE",
+    "ariaUnlinkLine": "解除 LINE 連接",
+    "lineNotifyTitle": "接收 LINE 揪團提醒",
+    "lineNotifyDescConnected": "加入或解除封鎖 BuJo LINE 官方帳號，就能接收揪團提醒。",
+    "lineNotifyDescNotConnected": "先連接上方的 LINE 帳號，再掃 QR Code 加入 BuJo LINE 官方帳號，就能收到揪團提醒。",
+    "errorLineCancelled": "已取消 LINE 連接",
+    "errorLineFailed": "LINE 連接失敗"
   },
   "profileAccount": {
     "title": "我的帳號",
@@ -318,7 +328,33 @@
     "editProfile": "個人編輯",
     "editSubtitle": "頭貼、名稱",
     "logoutButton": "登出",
-    "logoutSubtitle": "離開 BuJo"
+    "logoutSubtitle": "離開 BuJo",
+    "notLoggedIn": "未登入",
+    "copied": "已複製",
+    "copyFailed": "複製失敗"
+  },
+  "lineOnboarding": {
+    "titleConnected": "LINE 提醒就差一步",
+    "titleNotConnected": "用 LINE 收到揪團提醒",
+    "descConnected": "你的 BuJo 已經連上 LINE 囉！再加入 BuJo LINE 官方帳號，就能收到揪團提醒。",
+    "descSkipHint": "這次先略過也沒關係，之後可到個人編輯頁面掃 QR Code。",
+    "descNotConnected": "想在 LINE 收到揪團提醒嗎？先把 BuJo 跟 LINE 連起來，再加入官方帳號就完成囉！",
+    "descSkipLater": "這次先略過也沒關係，之後可以到個人編輯頁面繼續設定。",
+    "step1": "先把 BuJo 帳號連上 LINE",
+    "step2": "加入 BuJo LINE 官方帳號",
+    "skipButton": "稍後再說",
+    "connectButton": "先連接 LINE",
+    "ariaSteps": "開啟 LINE 通知步驟",
+    "ariaConnectLine": "連接 LINE 並開啟通知設定"
+  },
+  "lineOfficial": {
+    "qrAlt": "BuJo LINE 官方帳號加入好友 QR Code",
+    "qrScanHint": "拿手機 LINE 掃一下",
+    "qrJoinHint": "就能加入 BuJo 官方帳號",
+    "addFriendButton": "加入 BuJo 官方 LINE",
+    "ariaAddFriend": "開啟 BuJo LINE 官方帳號加入好友頁面",
+    "unavailableMessage": "LINE 官方帳號連結暫時打不開，晚點再試試看。",
+    "qrFailedMessage": "QR Code 沒有載入成功，點下面的連結也可以加入。"
   },
   "dateEvents": {
     "addEvent": "新增行程"

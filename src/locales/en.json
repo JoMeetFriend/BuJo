@@ -306,7 +306,17 @@
     "googleLinkFailed": "Google linking failed",
     "unlinkSuccess": "Account unlinked",
     "unlinkFailed": "Unlinking failed",
-    "lineLinkSuccess": "LINE account linked successfully"
+    "lineLinkSuccess": "LINE account linked successfully",
+    "defaultAvatarAlt": "Default user avatar",
+    "ariaLogout": "Log out current account",
+    "lineNotConnected": "LINE account not linked",
+    "ariaLinkLine": "Link LINE",
+    "ariaUnlinkLine": "Unlink LINE",
+    "lineNotifyTitle": "Receive LINE activity reminders",
+    "lineNotifyDescConnected": "Add or unblock the BuJo LINE official account to receive activity reminders.",
+    "lineNotifyDescNotConnected": "Link your LINE account above, then scan the QR code to add the BuJo LINE official account to receive activity reminders.",
+    "errorLineCancelled": "LINE link cancelled",
+    "errorLineFailed": "LINE link failed"
   },
   "profileAccount": {
     "title": "My Account",
@@ -318,7 +328,33 @@
     "editProfile": "Edit Profile",
     "editSubtitle": "Avatar, Name",
     "logoutButton": "Log Out",
-    "logoutSubtitle": "Leave BuJo"
+    "logoutSubtitle": "Leave BuJo",
+    "notLoggedIn": "Not logged in",
+    "copied": "Copied!",
+    "copyFailed": "Copy failed"
+  },
+  "lineOnboarding": {
+    "titleConnected": "Almost there with LINE notifications",
+    "titleNotConnected": "Get activity reminders via LINE",
+    "descConnected": "Your BuJo is already connected to LINE! Add the BuJo LINE official account to receive activity reminders.",
+    "descSkipHint": "You can skip this for now — you can always scan the QR code later from your profile settings.",
+    "descNotConnected": "Want activity reminders on LINE? Link BuJo to LINE first, then add the official account to complete setup!",
+    "descSkipLater": "You can skip this for now — you can continue setup later from your profile settings.",
+    "step1": "Link your BuJo account to LINE",
+    "step2": "Add the BuJo LINE official account",
+    "skipButton": "Maybe later",
+    "connectButton": "Link LINE first",
+    "ariaSteps": "Steps to enable LINE notifications",
+    "ariaConnectLine": "Link LINE and enable notifications"
+  },
+  "lineOfficial": {
+    "qrAlt": "BuJo LINE official account QR code to add as friend",
+    "qrScanHint": "Scan with LINE on your phone",
+    "qrJoinHint": "to add the official account",
+    "addFriendButton": "Add BuJo Official LINE",
+    "ariaAddFriend": "Open BuJo LINE official account add friend page",
+    "unavailableMessage": "LINE official account link is temporarily unavailable, please try again later.",
+    "qrFailedMessage": "QR Code didn't load successfully, you can also use the link below to add."
   },
   "dateEvents": {
     "addEvent": "Add Event"

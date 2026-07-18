@@ -98,7 +98,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'logout'])
 
-const displayName = computed(() => props.user?.display_name || '未登入')
+const displayName = computed(() => props.user?.display_name || t('profileAccount.notLoggedIn'))
 const avatarSrc = computed(() => toAvatarSrc(props.user?.avatar_url))
 const shareCode = computed(() => {
   const idSource = props.user?.uid ?? props.user?.id
@@ -106,8 +106,8 @@ const shareCode = computed(() => {
 })
 const copyStatus = ref('idle')
 const copyStatusMessage = computed(() => {
-  if (copyStatus.value === 'success') return '已複製'
-  if (copyStatus.value === 'error') return '複製失敗'
+  if (copyStatus.value === 'success') return t('profileAccount.copied')
+  if (copyStatus.value === 'error') return t('profileAccount.copyFailed')
   return ''
 })
 
