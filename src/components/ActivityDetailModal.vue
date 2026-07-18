@@ -39,7 +39,9 @@
         </div>
 
         <div v-if="showCandidateChips && isScenarioDMode" class="activity-detail-info">
-          <div class="activity-detail-label">日期、時段投票中（{{ candidateChipsForCard.length }}）</div>
+          <div class="activity-detail-label">
+            日期、時段投票中（{{ candidateChipsForCard.length }}）
+          </div>
           <div class="activity-detail-date-list">
             <button
               v-for="chip in visibleCandidateChips"
@@ -95,12 +97,22 @@
             <div>{{ dateText }}</div>
           </div>
           <div v-if="!(showCandidateChips && isScenarioDMode)">
-            <div class="activity-detail-label">{{ rangeTimeWindowText ? '時間投票中' : '時間' }}</div>
+            <div class="activity-detail-label">
+              {{ rangeTimeWindowText ? '時間投票中' : '時間' }}
+            </div>
             <div>{{ rangeTimeWindowText || timeText }}</div>
           </div>
           <div v-if="activity.location">
             <div class="activity-detail-label">地點</div>
-            <div>{{ activity.location }}</div>
+            <div>
+              <a
+                :href="googleMapsSearchUrl(activity.location)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="underline decoration-dotted underline-offset-2 hover:decoration-solid"
+                >📍 {{ activity.location }}</a
+              >
+            </div>
           </div>
           <div v-if="activity.description">
             <div class="activity-detail-label">備註</div>
@@ -450,11 +462,7 @@
                 @touchend="handleAvatarTouchEnd"
                 @touchmove="handleAvatarTouchEnd"
               >
-                <span
-                  v-for="s in entry.supporters"
-                  :key="s.user_id"
-                  class="activity-detail-avatar"
-                >
+                <span v-for="s in entry.supporters" :key="s.user_id" class="activity-detail-avatar">
                   <img v-if="s.avatar_url" :src="toAvatarSrc(s.avatar_url)" alt="" />
                   <span v-else>{{ s.display_name?.slice(0, 1) ?? '?' }}</span>
                 </span>
@@ -535,11 +543,7 @@
             @click="handleConfirmFormation"
           >
             {{
-              actionLoading
-                ? '處理中...'
-                : activity.requires_voting
-                  ? '確認此時段成團'
-                  : '立即成團'
+              actionLoading ? '處理中...' : activity.requires_voting ? '確認此時段成團' : '立即成團'
             }}
           </PixelButton>
           <PixelButton
@@ -639,6 +643,7 @@ import { ref, reactive, computed, watch } from 'vue'
 import PixelButton from './ui/PixelButton.vue'
 import AvailabilityPickerModal from './AvailabilityPickerModal.vue'
 import { toAvatarSrc } from '@/utils/avatar'
+import { googleMapsSearchUrl } from '@/utils/mapLink'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -1124,7 +1129,12 @@ const statusText = computed(() => {
   if (!a.is_creator && a.has_joined && inProgress) {
     return '已報名'
   }
-  const map = { recruiting: '揪團中', voting: '建立者決選中', confirmed: '已成團', cancelled: '已取消' }
+  const map = {
+    recruiting: '揪團中',
+    voting: '建立者決選中',
+    confirmed: '已成團',
+    cancelled: '已取消',
+  }
   return map[a.status] ?? a.status
 })
 
