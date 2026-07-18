@@ -8,17 +8,26 @@
       <span class="login-scene-dot login-scene-dot--b" aria-hidden="true"></span>
 
       <article class="login-invite-card">
+        <button
+          class="absolute top-3 left-3 px-3 py-1 rounded border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-xs font-semibold text-[var(--bujo-ink)] cursor-pointer transition-colors hover:bg-[var(--bujo-line-soft)]"
+          @click="toggleLanguage"
+        >
+          {{ locale === 'zh-TW' ? 'EN' : '中文' }}
+        </button>
+
         <!-- Logo -->
         <div class="flex flex-col items-center mb-6">
           <img :src="bujoLogoUrl" alt="BuJo" class="bujo-login-logo-image" />
-          <p class="text-xs text-[var(--bujo-muted-strong)] mt-2">不揪喔～說完，你就揪到了</p>
+          <p class="text-xs text-[var(--bujo-muted-strong)] mt-2">{{ t('login.gotcha') }}</p>
         </div>
 
         <!-- 表單 -->
         <form @submit.prevent="handleLogin" class="space-y-3">
           <!-- 電子郵件 -->
           <div>
-            <label class="block text-sm font-medium text-[var(--bujo-ink)] mb-1">電子郵件</label>
+            <label class="block text-sm font-medium text-[var(--bujo-ink)] mb-1">{{
+              t('login.emailLabel')
+            }}</label>
             <div
               class="flex items-center gap-2 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 transition-[border-color,box-shadow] duration-150 focus-within:border-[var(--bujo-accent)] focus-within:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
             >
@@ -34,7 +43,9 @@
 
           <!-- 密碼 -->
           <div>
-            <label class="block text-sm font-medium text-[var(--bujo-ink)] mb-1">密碼</label>
+            <label class="block text-sm font-medium text-[var(--bujo-ink)] mb-1">{{
+              t('login.passwordLabel')
+            }}</label>
             <div
               class="flex items-center gap-2 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 transition-[border-color,box-shadow] duration-150 focus-within:border-[var(--bujo-accent)] focus-within:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
             >
@@ -62,7 +73,7 @@
               to="/forgot-password"
               class="text-sm text-[var(--bujo-muted-strong)] underline decoration-[var(--bujo-line)] underline-offset-2 transition-colors duration-150 hover:text-[var(--bujo-ink)]"
             >
-              忘記密碼？
+              {{ t('login.forgotPassword') }}
             </router-link>
           </div>
 
@@ -76,14 +87,14 @@
 
           <!-- 登入按鈕 -->
           <button type="submit" :disabled="isLoading" class="bujo-hero-btn w-full">
-            {{ isLoading ? '登入中...' : '登入' }}
+            {{ isLoading ? t('login.submitLoading') : t('login.submit') }}
           </button>
         </form>
 
         <!-- 分隔線 -->
         <div class="flex items-center gap-3 my-4">
           <div class="flex-1 h-px bg-[var(--bujo-line-soft)]"></div>
-          <span class="text-xs text-[var(--bujo-muted)]">或</span>
+          <span class="text-xs text-[var(--bujo-muted)]">{{ t('login.orContinueWith') }}</span>
           <div class="flex-1 h-px bg-[var(--bujo-line-soft)]"></div>
         </div>
 
@@ -111,7 +122,7 @@
               d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
             />
           </svg>
-          使用 Google 帳號快速登入
+          {{ t('login.googleLogin') }}
         </button>
 
         <!-- LINE 登入 -->
@@ -133,16 +144,16 @@
               fill="#00B900"
             />
           </svg>
-          使用 LINE 快速登入
+          {{ t('login.lineLogin') }}
         </button>
 
         <!-- 註冊連結 -->
         <p class="text-center text-sm text-[var(--bujo-muted-strong)] mt-4">
-          還沒有帳號？
+          {{ t('login.noAccount') }}
           <router-link
             to="/register"
             class="text-[var(--bujo-ink)] font-semibold underline decoration-[var(--bujo-line)] underline-offset-2"
-            >前往註冊</router-link
+            >{{ t('login.goToRegister') }}</router-link
           >
         </p>
       </article>
@@ -165,31 +176,45 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
+import { useLocaleStore } from '@/stores/locale'
 import bujoLogoUrl from '@/assets/bujo-logo-auth.svg'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const localeStore = useLocaleStore()
+const { t, locale } = useI18n()
 const showPassword = ref(false)
 const isLoading = ref(false)
-const errorMsg = ref('')
+const _errorMsg = ref({ key: '', params: {}, text: '' })
 let previousHtmlOverflowY = ''
 let previousBodyOverflowY = ''
+
+const errorMsg = computed(() => {
+  if (_errorMsg.value.text) return _errorMsg.value.text
+  return _errorMsg.value.key ? t(_errorMsg.value.key, _errorMsg.value.params) : ''
+})
 
 const form = reactive({
   email: '',
   password: '',
 })
 
+function toggleLanguage() {
+  const newLocale = locale.value === 'zh-TW' ? 'en' : 'zh-TW'
+  localeStore.setLocale(newLocale, { global: { locale } })
+}
+
 const handleLogin = async () => {
-  errorMsg.value = ''
+  _errorMsg.value = { key: '', params: {}, text: '' }
 
   if (!form.email || !form.password) {
-    errorMsg.value = '請填寫電子郵件與密碼'
+    _errorMsg.value = { key: 'login.errorEmpty' }
     return
   }
 
@@ -207,19 +232,21 @@ const handleLogin = async () => {
     if (res.status === 429) {
       const retryAfter = res.headers.get('Retry-After')
       const waitMin = retryAfter ? Math.ceil(Number(retryAfter) / 60) : 15
-      errorMsg.value = data.error || `登入嘗試過多，請 ${waitMin} 分鐘後再試`
+      _errorMsg.value = data.error
+        ? { text: data.error }
+        : { key: 'login.errorRateLimit', params: { minutes: waitMin } }
       return
     }
 
     if (!res.ok) {
-      errorMsg.value = data.error || '登入失敗，請確認帳號密碼'
+      _errorMsg.value = data.error ? { text: data.error } : { key: 'login.errorInvalid' }
       return
     }
 
     authStore.setUser(data.user)
     router.push('/calendar')
   } catch {
-    errorMsg.value = '網路錯誤，請確認連線後再試'
+    _errorMsg.value = { key: 'login.errorNetwork' }
   } finally {
     isLoading.value = false
   }
@@ -234,18 +261,18 @@ const handleCredentialResponse = async (response) => {
       body: JSON.stringify({ credential: response.credential }),
     })
     const data = await res.json()
-    if (!res.ok) throw new Error(data.error || 'Google 登入失敗')
+    if (!res.ok) throw new Error(data.error || t('login.errorGoogleFailed'))
     authStore.setUser(data.user)
     router.push('/calendar')
   } catch (err) {
-    errorMsg.value = err.message || 'Google 登入失敗，請稍後再試'
+    _errorMsg.value = { text: err.message || t('login.errorGoogleFailed') }
   }
 }
 
 const handleGoogleLogin = () => {
   window.google?.accounts.id.prompt((notification) => {
     if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-      errorMsg.value = 'Google 登入目前無法使用，請改用帳密或 LINE 登入'
+      _errorMsg.value = { key: 'login.errorGoogleUnavailable' }
     }
   })
 }
@@ -261,12 +288,12 @@ onMounted(() => {
   document.body.style.overflowY = 'hidden'
 
   const errorMap = {
-    line_cancelled: '已取消 LINE 登入',
-    line_login_failed: 'LINE 登入失敗，請再試一次',
+    line_cancelled: { key: 'login.errorLineCancelled' },
+    line_login_failed: { key: 'login.errorLineFailed' },
   }
   const lineError = errorMap[route.query.error]
   if (lineError) {
-    errorMsg.value = lineError
+    _errorMsg.value = lineError
     router.replace({ query: {} })
   }
 
