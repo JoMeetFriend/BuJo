@@ -38,6 +38,13 @@
         <component :is="Component" :sidebarOpen="sidebarOpen" :filters="filters" />
       </RouterView>
     </main>
+
+    <LineNotificationOnboardingModal
+      v-if="showLineNotificationOnboarding"
+      :user="authStore.user"
+      @link-start="rememberOnboardingReturnPath"
+      @complete="markLineNotificationOnboardingSeen"
+    />
   </div>
 </template>
 
@@ -46,8 +53,13 @@ import { RouterView, useRoute } from 'vue-router'
 import { ref, computed, onMounted } from 'vue'
 import AppSidebar from './components/AppSidebar.vue'
 import SidebarToggleButton from './components/ui/SidebarToggleButton.vue'
+import LineNotificationOnboardingModal from './components/LineNotificationOnboardingModal.vue'
 import LoadingPage from './components/ui/LoadingPage.vue'
 import { useAuthStore } from './stores/auth'
+import {
+  rememberLineNotificationOnboardingReturnPath,
+  useLineNotificationOnboarding,
+} from './composables/useLineNotificationOnboarding'
 
 // 載入畫面至少顯示這麼久，避免 authStore 初始化太快時畫面閃一下就消失
 const MIN_LOADING_DISPLAY_MS = 1600
@@ -71,9 +83,26 @@ const showSidebar = computed(
 const isAuthPage = computed(() => ['/login', '/register'].includes(route.path))
 const isLandingPage = computed(() => route.path === '/')
 const isCalendarPage = computed(() => route.name === 'calendar-page')
+const onboardingUserId = computed(() => authStore.user?.id ?? authStore.user?.uid ?? '')
+const {
+  shouldShow: hasUnseenLineNotificationOnboarding,
+  markSeen: markLineNotificationOnboardingSeen,
+} = useLineNotificationOnboarding(onboardingUserId)
+const showLineNotificationOnboarding = computed(
+  () =>
+    authStore.initialized &&
+    Boolean(authStore.user) &&
+    Boolean(onboardingUserId.value) &&
+    Boolean(route.meta.requiresAuth) &&
+    hasUnseenLineNotificationOnboarding.value,
+)
 
 function toggleFilter(key) {
   filters.value[key] = !filters.value[key]
+}
+
+function rememberOnboardingReturnPath() {
+  rememberLineNotificationOnboardingReturnPath(route.fullPath)
 }
 </script>
 
