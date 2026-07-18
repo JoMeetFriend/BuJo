@@ -686,17 +686,27 @@
     "expired": "Expired",
     "wholeDay": "All day",
     "person": "people",
-    "comma": ", "
+    "comma": ", ",
+    "unnamed": "Unnamed"
   },
-  "stores": {
-    "friendFetchFailed": "Unable to fetch friends, please check your connection",
-    "friendDeleteFailed": "Deletion failed",
-    "friendInvalidUser": "Invalid user",
-    "friendSendFailed": "Failed to send, please try again",
-    "userSearchExpired": "Session expired, please log in again",
-    "userSearchError": "Search error occurred",
-    "addressSearchError": "Address search error occurred",
+  "userStore": {
+    "nameEmpty": "Display name cannot be empty.",
+    "nameTooLong": "Display name cannot exceed 50 characters.",
+    "nameUnchanged": "Name unchanged.",
+    "nameUpdateFailed": "Name update failed.",
+    "nameUpdateSuccess": "Name updated successfully.",
     "bioTooLong": "Bio cannot exceed 150 characters",
     "bioUpdateFailed": "Bio update failed"
+  },
+  "friendStore": {
+    "fetchFailed": "Unable to fetch friends, please check your connection",
+    "deleteFailed": "Deletion failed",
+    "invalidUser": "Invalid user",
+    "sendFailed": "Failed to send, please try again"
+  },
+  "composable": {
+    "userSearchExpired": "Session expired, please log in again",
+    "userSearchError": "Search error occurred",
+    "addressSearchError": "Address search error occurred"
   }
 }

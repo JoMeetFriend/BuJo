@@ -686,17 +686,27 @@
     "expired": "已過期",
     "wholeDay": "整天",
     "person": "人",
-    "comma": "、"
+    "comma": "、",
+    "unnamed": "未命名"
   },
-  "stores": {
-    "friendFetchFailed": "無法取得好友資訊，請檢查網路連線",
-    "friendDeleteFailed": "刪除失敗",
-    "friendInvalidUser": "無效的使用者",
-    "friendSendFailed": "發送失敗，請重試",
-    "userSearchExpired": "登入已過期，請重新登入",
-    "userSearchError": "搜尋發生錯誤",
-    "addressSearchError": "地址搜尋發生錯誤",
+  "userStore": {
+    "nameEmpty": "顯示名稱不可為空白",
+    "nameTooLong": "顯示名稱不可超過 50 個字元",
+    "nameUnchanged": "名稱未變更",
+    "nameUpdateFailed": "名稱更新失敗",
+    "nameUpdateSuccess": "名稱更新成功",
     "bioTooLong": "簡介不可超過 150 個字元",
     "bioUpdateFailed": "簡介更新失敗"
+  },
+  "friendStore": {
+    "fetchFailed": "無法取得好友資訊，請檢查網路連線",
+    "deleteFailed": "刪除失敗",
+    "invalidUser": "無效的使用者",
+    "sendFailed": "發送失敗，請重試"
+  },
+  "composable": {
+    "userSearchExpired": "登入已過期，請重新登入",
+    "userSearchError": "搜尋發生錯誤",
+    "addressSearchError": "地址搜尋發生錯誤"
   }
 }
