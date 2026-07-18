@@ -70,7 +70,7 @@
             <input
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
-              placeholder="••••••••"
+              :placeholder="t('register.passwordPlaceholder')"
               class="flex-1 bg-transparent outline-none py-2 text-sm text-[var(--bujo-ink)] placeholder:text-[var(--bujo-muted)]"
             />
             <button
@@ -96,7 +96,7 @@
             <input
               v-model="form.confirmPassword"
               :type="showConfirmPassword ? 'text' : 'password'"
-              placeholder="••••••••"
+              :placeholder="t('register.confirmPasswordPlaceholder')"
               class="flex-1 bg-transparent outline-none py-2 text-sm text-[var(--bujo-ink)] placeholder:text-[var(--bujo-muted)]"
             />
             <button

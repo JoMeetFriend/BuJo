@@ -53,7 +53,7 @@
               <input
                 v-model="form.password"
                 :type="showPassword ? 'text' : 'password'"
-                placeholder="••••••••"
+                :placeholder="t('login.passwordPlaceholder')"
                 class="flex-1 bg-transparent outline-none py-2 text-sm text-[var(--bujo-ink)] placeholder:text-[var(--bujo-muted)]"
               />
               <button

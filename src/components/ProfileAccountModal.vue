@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :isOpen="true" title="我的帳號" @close="emit('close')">
+  <BaseModal :isOpen="true" :title="t('profileAccount.title')" @close="emit('close')">
     <div class="space-y-4">
       <div class="flex items-center gap-3">
         <div
@@ -24,7 +24,7 @@
             <button
               type="button"
               class="grid h-7 w-7 shrink-0 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)] hover:text-[var(--bujo-ink)]"
-              aria-label="複製 BuJo ID"
+              :aria-label="t('profileAccount.copyId')"
               @click="copyShareCode"
             >
               <ClipboardDocumentIcon class="h-4 w-4" aria-hidden="true" />
@@ -36,6 +36,13 @@
             >
               {{ copyStatusMessage }}
             </p>
+            <button
+              type="button"
+              class="ml-auto shrink-0 rounded border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-1 text-xs font-semibold text-[var(--bujo-ink)] transition-colors duration-150 hover:bg-[var(--bujo-line-soft)]"
+              @click="toggleLanguage"
+            >
+              {{ locale === 'zh-TW' ? 'EN' : '中文' }}
+            </button>
           </div>
         </div>
       </div>
@@ -47,8 +54,10 @@
       >
         <span class="profile-action-icon profile-action-icon--edit" aria-hidden="true"></span>
         <span class="flex flex-1 flex-col items-center leading-tight">
-          <span class="text-sm font-semibold">個人編輯</span>
-          <span class="mt-1 text-xs text-[var(--bujo-muted-strong)]">頭貼、名稱</span>
+          <span class="text-sm font-semibold">{{ t('profileAccount.editProfile') }}</span>
+          <span class="mt-1 text-xs text-[var(--bujo-muted-strong)]">{{
+            t('profileAccount.editSubtitle')
+          }}</span>
         </span>
       </RouterLink>
 
@@ -59,8 +68,10 @@
       >
         <span class="profile-action-icon profile-action-icon--logout" aria-hidden="true"></span>
         <span class="flex flex-1 flex-col items-center leading-tight">
-          <span class="text-sm font-semibold">登出</span>
-          <span class="mt-1 text-xs text-[var(--bujo-muted-strong)]">離開 BuJo</span>
+          <span class="text-sm font-semibold">{{ t('profileAccount.logoutButton') }}</span>
+          <span class="mt-1 text-xs text-[var(--bujo-muted-strong)]">{{
+            t('profileAccount.logoutSubtitle')
+          }}</span>
         </span>
       </button>
     </div>
@@ -69,9 +80,14 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
 import BaseModal from './ui/BaseModal.vue'
 import { toAvatarSrc } from '@/utils/avatar'
+import { useLocaleStore } from '@/stores/locale'
+
+const { t, locale } = useI18n()
+const localeStore = useLocaleStore()
 
 const props = defineProps({
   user: {
@@ -94,6 +110,11 @@ const copyStatusMessage = computed(() => {
   if (copyStatus.value === 'error') return '複製失敗'
   return ''
 })
+
+function toggleLanguage() {
+  const newLocale = locale.value === 'zh-TW' ? 'en' : 'zh-TW'
+  localeStore.setLocale(newLocale, { global: { locale } })
+}
 
 async function copyShareCode() {
   if (!shareCode.value) return
@@ -135,11 +156,9 @@ async function copyShareCode() {
   background: var(--bujo-ink);
   content: '';
 }
-
 .profile-modal-face::before {
   left: 4px;
 }
-
 .profile-modal-face::after {
   right: 4px;
 }

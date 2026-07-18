@@ -54,7 +54,8 @@
     "errorGoogleUnavailable": "Google sign-in is currently unavailable, please use email/password or LINE",
     "errorLineCancelled": "LINE sign-in cancelled",
     "errorLineFailed": "LINE sign-in failed, please try again",
-    "errorRateLimit": "Too many login attempts, please try again in {minutes} minutes"
+    "errorRateLimit": "Too many login attempts, please try again in {minutes} minutes",
+    "passwordPlaceholder": "••••••••"
   },
   "register": {
     "nicknameLabel": "Nickname",
@@ -65,8 +66,8 @@
     "submitLoading": "Signing up...",
     "nicknamePlaceholder": "Enter a nickname",
     "emailPlaceholder": "user{'@'}gmail.com",
-    "passwordPlaceholder": "Enter password",
-    "confirmPasswordPlaceholder": "Confirm password",
+    "passwordPlaceholder": "••••••••",
+    "confirmPasswordPlaceholder": "••••••••",
     "errorNicknameEmpty": "Nickname cannot be empty.",
     "errorEmailEmpty": "Email cannot be empty.",
     "errorPasswordEmpty": "Password cannot be empty.",

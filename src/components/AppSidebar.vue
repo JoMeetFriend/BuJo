@@ -29,7 +29,7 @@
             <span
               v-if="item.key === 'alerts' && notificationStore.unreadCount > 0"
               class="bujo-nav-badge"
-              aria-label="未讀通知數"
+              :aria-label="t('sidebar.ariaUnreadCount')"
             >
               {{ alertBadgeText }}
             </span>
@@ -43,7 +43,7 @@
     <div class="flex flex-col gap-5">
       <!-- 篩選按鈕 -->
       <div v-if="isCalendarPage" class="bujo-sidebar-filter whitespace-nowrap">
-        <div class="bujo-sidebar-filter-title">CALENDAR FILTER</div>
+        <div class="bujo-sidebar-filter-title">{{ t('sidebar.filterTitle') }}</div>
         <button
           v-for="item in filterItems"
           :key="item.key"
@@ -60,17 +60,17 @@
       <button
         type="button"
         class="bujo-sidebar-profile whitespace-nowrap"
-        aria-label="開啟側邊欄個人帳號"
+        :aria-label="t('sidebar.ariaOpenProfile')"
         @click="showProfileModal = true"
       >
         <img
           v-if="userAvatarSrc"
           :src="userAvatarSrc"
-          :alt="authStore.user?.display_name || 'Me'"
+          :alt="authStore.user?.display_name || t('sidebar.meFallback')"
           class="w-8 h-8 object-cover shrink-0"
         />
         <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
-        <span>ME</span>
+        <span>{{ t('sidebar.me') }}</span>
       </button>
     </div>
   </aside>
@@ -80,12 +80,12 @@
     <!-- 篩選抽屜 -->
     <div v-if="isCalendarPage && drawerOpen" class="bujo-mobile-filter-tray">
       <div class="bujo-mobile-filter-header">
-        <span>CALENDAR FILTER</span>
+        <span>{{ t('sidebar.filterTitle') }}</span>
         <button
           type="button"
           class="bujo-mobile-filter-close"
           @click="drawerOpen = false"
-          aria-label="收合篩選"
+          :aria-label="t('sidebar.ariaCloseFilter')"
         >
           ▾
         </button>
@@ -112,7 +112,7 @@
         @click="drawerOpen = !drawerOpen"
         class="bujo-mobile-filter-toggle"
         :class="{ 'is-open': drawerOpen }"
-        :aria-label="drawerOpen ? '收合篩選' : '展開篩選'"
+        :aria-label="drawerOpen ? t('sidebar.ariaCloseFilter') : t('sidebar.ariaOpenFilter')"
       >
         {{ drawerOpen ? '▾' : '▴' }}
       </button>
@@ -133,7 +133,7 @@
           <span
             v-if="item.key === 'alerts' && notificationStore.unreadCount > 0"
             class="bujo-nav-badge"
-            aria-label="未讀通知數"
+            :aria-label="t('sidebar.ariaUnreadCount')"
           >
             {{ alertBadgeText }}
           </span>
@@ -146,12 +146,12 @@
         :class="{ 'btn-bounce-green': profileBtnBouncing }"
         @click="profileBtnBouncing = true"
         @animationend="onProfileAnimEnd"
-        aria-label="開啟個人帳號"
+        :aria-label="t('sidebar.ariaMobileProfile')"
       >
         <img
           v-if="userAvatarSrc"
           :src="userAvatarSrc"
-          :alt="authStore.user?.display_name || 'Me'"
+          :alt="authStore.user?.display_name || t('sidebar.meFallback')"
           class="w-full h-full object-cover"
         />
         <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
@@ -168,6 +168,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import {
   CalendarDaysIcon,
@@ -188,6 +189,7 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
+const { t } = useI18n()
 const isCalendarPage = computed(() => route.path === '/calendar')
 const userAvatarSrc = computed(() => toAvatarSrc(authStore.user?.avatar_url))
 
@@ -222,42 +224,42 @@ const drawerOpen = ref(false)
 const profileBtnBouncing = ref(false)
 const showProfileModal = ref(false)
 
-const navItems = [
+const navItems = computed(() => [
   {
     key: 'calendar',
-    label: 'CALENDAR',
+    label: t('sidebar.calendar'),
     to: '/calendar',
     icon: CalendarDaysIcon,
     color: 'var(--bujo-card-pink)',
   },
   {
     key: 'activity',
-    label: 'ACTIVITY',
+    label: t('sidebar.activity'),
     to: '/activity',
     icon: PencilSquareIcon,
     color: 'var(--bujo-card-blue)',
   },
   {
     key: 'friends',
-    label: 'FRIENDS',
+    label: t('sidebar.friends'),
     to: '/friends-page',
     icon: UserGroupIcon,
     color: '#c9b8e8',
   },
   {
     key: 'alerts',
-    label: 'ALERTS',
+    label: t('sidebar.navAlerts'),
     to: '/alerts',
     icon: BellAlertIcon,
     color: 'var(--bujo-accent)',
   },
-]
+])
 
-const filterItems = [
-  { key: 'joined', label: 'JOINING', color: 'var(--bujo-card-blue)' },
-  { key: 'formed', label: 'FORMED', color: 'var(--bujo-accent)' },
-  { key: 'personal', label: 'PERSONAL', color: 'var(--bujo-card-yellow)' },
-]
+const filterItems = computed(() => [
+  { key: 'joined', label: t('sidebar.filterJoining'), color: 'var(--bujo-card-blue)' },
+  { key: 'formed', label: t('sidebar.filterFormed'), color: 'var(--bujo-accent)' },
+  { key: 'personal', label: t('sidebar.filterPersonal'), color: 'var(--bujo-card-yellow)' },
+])
 
 function onProfileAnimEnd() {
   profileBtnBouncing.value = false

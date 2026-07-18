@@ -54,7 +54,8 @@
     "errorGoogleUnavailable": "Google 登入目前無法使用，請改用帳密或 LINE 登入",
     "errorLineCancelled": "已取消 LINE 登入",
     "errorLineFailed": "LINE 登入失敗，請再試一次",
-    "errorRateLimit": "登入嘗試過多，請 {minutes} 分鐘後再試"
+    "errorRateLimit": "登入嘗試過多，請 {minutes} 分鐘後再試",
+    "passwordPlaceholder": "••••••••"
   },
   "register": {
     "nicknameLabel": "暱稱",
@@ -65,8 +66,8 @@
     "submitLoading": "註冊中...",
     "nicknamePlaceholder": "請輸入暱稱",
     "emailPlaceholder": "user{'@'}gmail.com",
-    "passwordPlaceholder": "請輸入密碼",
-    "confirmPasswordPlaceholder": "請再次輸入密碼",
+    "passwordPlaceholder": "••••••••",
+    "confirmPasswordPlaceholder": "••••••••",
     "errorNicknameEmpty": "暱稱不可為空白。",
     "errorEmailEmpty": "電子郵件不可為空白。",
     "errorPasswordEmpty": "密碼不可為空白。",
