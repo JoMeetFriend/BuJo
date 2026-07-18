@@ -4,7 +4,7 @@
       <button
         type="button"
         class="grid h-7 w-7 place-items-center text-lg leading-none text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:text-[var(--bujo-ink)] active:translate-x-px active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bujo-accent)]"
-        aria-label="新增行程"
+        :aria-label="t('dateEvents.addEventAria')"
         @click="emit('add', props.date)"
       >
         +
@@ -38,7 +38,7 @@
               <p
                 class="mt-1 truncate font-[space-mono] text-[10px] text-[var(--bujo-muted-strong)] md:text-[12px]"
               >
-                {{ event.time || '未設定時間' }}
+                {{ event.time || t('dateEvents.timeNotSet') }}
                 <span v-if="event.location"> ・ {{ event.location }}</span>
               </p>
             </div>
@@ -47,7 +47,7 @@
               class="ml-2 shrink-0 border border-[var(--bujo-ink)] px-1.5 py-1 font-[space-mono] text-[11px] text-[var(--bujo-ink)] md:ml-3 md:px-2 md:text-[12px]"
               :class="statusClass[event.status] || statusClass.formed"
             >
-              {{ statusLabel[event.status] || '已成團' }}
+              {{ statusLabel[event.status] || t('dateEvents.statusFormed') }}
             </span>
           </article>
         </div>
@@ -56,11 +56,11 @@
           v-else
           class="flex min-h-[82px] flex-col items-center justify-center gap-2 text-center text-[var(--bujo-muted-strong)]"
         >
-          <p class="font-[plex-sans-tc] text-[15px]">這天還沒有行程</p>
+          <p class="font-[plex-sans-tc] text-[15px]">{{ t('dateEvents.noEventsToday') }}</p>
           <button
             type="button"
             class="grid h-8 w-8 place-items-center text-lg leading-none text-[var(--bujo-muted-strong)] transition-transform duration-150 hover:scale-125 hover:text-[var(--bujo-ink)] active:translate-x-px active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bujo-accent)]"
-            aria-label="新增行程"
+            :aria-label="t('dateEvents.addEventAria')"
             @click="emit('add', props.date)"
           >
             +
@@ -70,7 +70,12 @@
     </template>
   </BaseModal>
 
-  <BaseModal :isOpen="isModalOpen" title="活動詳情" bare @close="isModalOpen = false">
+  <BaseModal
+    :isOpen="isModalOpen"
+    :title="t('dateEvents.activityDetails')"
+    bare
+    @close="isModalOpen = false"
+  >
     <ActivityDetailModal
       :is-open="isModalOpen"
       :activity-id="selectedActivityId"
@@ -83,8 +88,11 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import BaseModal from './ui/BaseModal.vue'
 import ActivityDetailModal from './ActivityDetailModal.vue'
+
+const { t } = useI18n()
 
 const isModalOpen = ref(false)
 const selectedActivityId = ref(null)
@@ -115,15 +123,15 @@ const formattedDate = computed(() => {
   }
 
   const [, month, day] = parts
-  return `${Number(month)} 月 ${Number(day)} 日`
+  return t('dateEvents.dateDisplay', { month: Number(month), day: Number(day) })
 })
 
-const statusLabel = {
-  joined: '已報名',
-  formed: '已成團',
-  personal: '個人',
-  recruiting: '招募中',
-}
+const statusLabel = computed(() => ({
+  joined: t('dateEvents.statusJoined'),
+  formed: t('dateEvents.statusFormed'),
+  personal: t('dateEvents.statusPersonal'),
+  recruiting: t('dateEvents.statusRecruiting'),
+}))
 
 const statusClass = {
   joined: 'bg-[var(--bujo-card-blue)]',

@@ -1,7 +1,7 @@
 <template>
   <BaseModal
     :isOpen="modelValue"
-    :title="dateOnly ? '選擇可參加日期' : '選取有空時間'"
+    :title="dateOnly ? t('availabilityPicker.dateOnlyTitle') : t('availabilityPicker.timeTitle')"
     :scrollable="!compact"
     :max-width="dateOnly ? '480px' : fixedDate ? '440px' : '800px'"
     @close="close"
@@ -14,12 +14,21 @@
       <div
         class="bg-[var(--bujo-surface-muted)] border-b border-[var(--bujo-line-soft)] px-4 py-1.5 shrink-0 text-[12px] font-bold text-[var(--bujo-muted-strong)]"
       >
-        <template v-if="dateOnly"> 活動時間：{{ fixedTimeLabel }} </template>
-        <template v-else-if="fixedDate">
-          活動時間：{{ formatChip(fixedDate)
-          }}{{ hasTimeWindow ? `　${toLabel(timeWindowStart)} – ${toLabel(timeWindowEnd)}` : '' }}
+        <template v-if="dateOnly">
+          {{ t('availabilityPicker.activityTime', { time: fixedTimeLabel }) }}
         </template>
-        <template v-else> 活動日期範圍：{{ rangeStart }} — {{ rangeEnd }} </template>
+        <template v-else-if="fixedDate">
+          {{
+            t('availabilityPicker.activityTimeWithWindow', {
+              date: formatChip(fixedDate),
+              start: toLabel(timeWindowStart),
+              end: toLabel(timeWindowEnd),
+            })
+          }}
+        </template>
+        <template v-else>
+          {{ t('availabilityPicker.activityDateRange', { start: rangeStart, end: rangeEnd }) }}
+        </template>
       </div>
 
       <!-- Body -->
@@ -31,7 +40,9 @@
         <div
           v-if="!fixedDate"
           class="p-3 md:p-4 w-full md:flex-1 flex flex-col"
-          :class="dateOnly ? '' : 'border-b md:border-b-0 md:border-r border-[var(--bujo-line-soft)]'"
+          :class="
+            dateOnly ? '' : 'border-b md:border-b-0 md:border-r border-[var(--bujo-line-soft)]'
+          "
         >
           <!-- 月份標題 -->
           <div class="flex items-center justify-between mb-2 shrink-0">
@@ -39,7 +50,7 @@
               type="button"
               class="text-[13px] font-black text-[var(--bujo-muted-strong)] disabled:opacity-30"
               :disabled="!canGoPrevMonth"
-              aria-label="上一個月"
+              :aria-label="t('availabilityPicker.prevMonth')"
               @click="goPrevMonth"
             >
               ‹
@@ -51,7 +62,7 @@
               type="button"
               class="text-[13px] font-black text-[var(--bujo-muted-strong)] disabled:opacity-30"
               :disabled="!canGoNextMonth"
-              aria-label="下一個月"
+              :aria-label="t('availabilityPicker.nextMonth')"
               @click="goNextMonth"
             >
               ›
@@ -96,7 +107,7 @@
             v-if="!activeDate || !(activeDate in selectedDates)"
             class="text-[11px] text-[var(--bujo-muted)] py-8 text-center border border-dashed border-[var(--bujo-line-soft)]"
           >
-            ← 選取日期
+            {{ t('availabilityPicker.selectDateHint') }}
           </div>
 
           <template v-else>
@@ -114,13 +125,13 @@
               class="bg-[var(--bujo-surface-muted)] border border-[var(--bujo-line)] px-3 py-2 flex items-center justify-between mb-2"
             >
               <span class="text-[12px] md:text-[13px] font-bold text-[var(--bujo-ink)]">
-                整天有空
+                {{ t('availabilityPicker.allDay') }}
               </span>
               <button
                 @click="startCustom"
                 class="text-[11px] md:text-xs font-bold border border-[var(--bujo-line)] px-2 py-1 transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
               >
-                指定時段
+                {{ t('availabilityPicker.customTime') }}
               </button>
             </div>
 
@@ -210,7 +221,7 @@
                 @click="addRange"
                 class="w-full text-[11px] font-bold text-[var(--bujo-muted-strong)] border border-dashed border-[var(--bujo-line)] py-1.5 transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
               >
-                ＋ 新增時段
+                {{ t('availabilityPicker.addTimeSlot') }}
               </button>
 
               <button
@@ -218,7 +229,7 @@
                 @click="resetAllDay"
                 class="mt-2 text-[10px] text-[var(--bujo-muted)] transition-colors duration-150 hover:text-[var(--bujo-ink)] block"
               >
-                ↩ 改回整天有空
+                {{ t('availabilityPicker.resetAllDay') }}
               </button>
             </template>
           </template>
@@ -234,12 +245,16 @@
             v-if="!summaryItems.length"
             class="text-[10px] md:text-[12px] text-[var(--bujo-muted)]"
           >
-            {{ dateOnly ? '尚未選取任何日期' : '尚未選取任何時段' }}
+            {{
+              dateOnly
+                ? t('availabilityPicker.noDatesSelected')
+                : t('availabilityPicker.noTimesSelected')
+            }}
           </span>
           <template v-else>
             <span
               class="flex items-center text-[10px] md:text-[12px] font-black text-[var(--bujo-muted-strong)] shrink-0"
-              >已選：</span
+              >{{ t('availabilityPicker.selectedLabel') }}</span
             >
             <button
               v-for="item in summaryItems"
@@ -261,7 +276,7 @@
               v-if="dateOnly"
               class="flex items-center text-[10px] md:text-[12px] font-black text-[var(--bujo-muted-strong)] shrink-0"
             >
-              已選 {{ summaryItems.length }} 天
+              {{ t('availabilityPicker.selectedDays', { count: summaryItems.length }) }}
             </span>
           </template>
         </div>
@@ -274,16 +289,23 @@
       </div>
     </div>
     <template #footer>
-      <PixelButton variant="white" type="button" @click="close">取消</PixelButton>
-      <PixelButton type="button" @click="handleConfirm">確認報名</PixelButton>
+      <PixelButton variant="white" type="button" @click="close">{{
+        t('availabilityPicker.cancel')
+      }}</PixelButton>
+      <PixelButton type="button" @click="handleConfirm">{{
+        t('availabilityPicker.confirmSignup')
+      }}</PixelButton>
     </template>
   </BaseModal>
 </template>
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import PixelButton from './ui/PixelButton.vue'
 import BaseModal from './ui/BaseModal.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: Boolean,
@@ -366,7 +388,15 @@ const confirmError = ref('')
 const dragState = reactive({ active: false, startDate: null, hovering: new Set() })
 
 // ── 日曆 computed ──
-const DOW_LABELS = ['一', '二', '三', '四', '五', '六', '日']
+const DOW_LABELS = computed(() => [
+  t('availabilityPicker.dowMon'),
+  t('availabilityPicker.dowTue'),
+  t('availabilityPicker.dowWed'),
+  t('availabilityPicker.dowThu'),
+  t('availabilityPicker.dowFri'),
+  t('availabilityPicker.dowSat'),
+  t('availabilityPicker.dowSun'),
+])
 
 const visibleMonth = ref((props.allowedDates[0] ?? props.rangeStart).slice(0, 7))
 const calYear = computed(() => parseInt(visibleMonth.value.split('-')[0]))
@@ -572,7 +602,9 @@ function addRange() {
   confirmError.value = ''
   const existing = selectedDates.value[activeDate.value]
   const bounds = windowBoundsFor(activeDate.value)
-  const fallback = bounds ? { from: bounds.start ?? '09:00', to: bounds.end ?? '17:00' } : { from: '09:00', to: '17:00' }
+  const fallback = bounds
+    ? { from: bounds.start ?? '09:00', to: bounds.end ?? '17:00' }
+    : { from: '09:00', to: '17:00' }
   // 預設值不直接沿用固定的 fallback——如果已經有時段，接在最後一筆的結束時間之後，
   // 避免使用者連續點兩次「+ 新增時段」時，兩筆時段預設值完全相同（一開始就重疊）
   let from = fallback.from
@@ -599,12 +631,18 @@ function resetAllDay() {
   selectedDates.value[activeDate.value] = defaultDayValue(activeDate.value)
 }
 
-const allHourOptions = Array.from({ length: 24 }, (_, hour) => {
-  const period = hour < 12 ? '上午' : '下午'
-  const display = String(hour % 12 || 12)
-  const value = String(hour).padStart(2, '0') + ':00'
-  return { label: `${period} ${display}:00`, value }
-})
+function periodLabel(hour) {
+  return hour < 12 ? t('common.am') : t('common.pm')
+}
+
+const allHourOptions = computed(() =>
+  Array.from({ length: 24 }, (_, hour) => {
+    const period = periodLabel(hour)
+    const display = String(hour % 12 || 12)
+    const value = String(hour).padStart(2, '0') + ':00'
+    return { label: `${period} ${display}:00`, value }
+  }),
+)
 
 // 情境無關的窗口邊界查詢：優先看 dateWindows（情境四單一窗口），否則看全域
 // timeWindowStart/timeWindowEnd（情境二/三），兩者都沒設定就回傳 null（無邊界限制）。
@@ -623,9 +661,10 @@ const activeWindowBounds = computed(() => windowBoundsFor(activeDate.value))
 
 const hourOptions = computed(() => {
   const bounds = activeWindowBounds.value
-  if (!bounds) return allHourOptions
-  return allHourOptions.filter(
-    (opt) => (!bounds.start || opt.value >= bounds.start) && (!bounds.end || opt.value <= bounds.end),
+  if (!bounds) return allHourOptions.value
+  return allHourOptions.value.filter(
+    (opt) =>
+      (!bounds.start || opt.value >= bounds.start) && (!bounds.end || opt.value <= bounds.end),
   )
 })
 
@@ -732,7 +771,7 @@ function closeTimePicker() {
 function toLabel(value) {
   if (!value) return ''
   const hour = parseInt(value.split(':')[0])
-  const period = hour < 12 ? '上午' : '下午'
+  const period = periodLabel(hour)
   const display = String(hour % 12 || 12)
   return `${period} ${display}:00`
 }
@@ -795,7 +834,7 @@ const summaryItems = computed(() =>
       label: props.dateOnly
         ? ''
         : !ranges || ranges.length === 0
-          ? '整天'
+          ? t('availabilityPicker.allDay')
           : ranges.map((r) => `${r.from}–${r.to}`).join(' / '),
     })),
 )
@@ -842,7 +881,8 @@ function findOutOfWindowDates() {
     const bounds = windowBoundsFor(date)
     if (!bounds || !Array.isArray(ranges)) continue
     for (const range of ranges) {
-      const fits = (!bounds.start || range.from >= bounds.start) && (!bounds.end || range.to <= bounds.end)
+      const fits =
+        (!bounds.start || range.from >= bounds.start) && (!bounds.end || range.to <= bounds.end)
       if (!fits) dates.add(date)
     }
   }
@@ -859,7 +899,7 @@ const problemDates = computed(() => {
 
 function handleConfirm() {
   if (props.dateOnly && Object.keys(selectedDates.value).length === 0) {
-    confirmError.value = '請至少選擇一天'
+    confirmError.value = t('availabilityPicker.pleaseSelectOneDay')
     return
   }
 
@@ -871,12 +911,15 @@ function handleConfirm() {
     confirmError.value = allProblemDates
       .map((date) => {
         const reasons = []
-        if (overlapDates.has(date)) reasons.push('重疊或重複的時段')
-        if (outOfWindowDates.has(date)) reasons.push('時段超出候選時段範圍')
-        return `${formatChip(date)} 有${reasons.join('、')}`
+        if (overlapDates.has(date)) reasons.push(t('availabilityPicker.overlapOrDuplicate'))
+        if (outOfWindowDates.has(date)) reasons.push(t('availabilityPicker.outOfWindow'))
+        return t('availabilityPicker.problemDate', {
+          date: formatChip(date),
+          reasons: reasons.join(t('common.comma')),
+        })
       })
       .join('；')
-    confirmError.value += '，請修改後再送出'
+    confirmError.value += t('availabilityPicker.pleaseFixBeforeSubmit')
     activeDate.value = allProblemDates[0]
     return
   }
