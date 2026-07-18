@@ -26,7 +26,7 @@
       class="calendar-profile-button calendar-page-profile-button hidden md:flex"
       :class="{ 'btn-bounce-green': profileBtnBouncing }"
       @animationend="profileBtnBouncing = false"
-      aria-label="開啟個人帳號"
+      :aria-label="t('calendar.openAccountMenu')"
       @click="openProfileModal"
     >
       <img
@@ -37,15 +37,12 @@
       />
       <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
     </button>
-    <p
-      class="calendar-mood-line"
-      aria-label="BuJo catches the little plans, keeps your people close, and nudges the day into motion."
-    >
+    <p class="calendar-mood-line" :aria-label="t('calendar.moodLineAria')">
       <strong>BuJo</strong>
       <span class="calendar-mood-divider"></span>
-      <span>catches the little plans</span>
-      <span>, keeps your people close</span>
-      <span>, and nudges the day into motion</span>
+      <span>{{ t('calendar.moodLinePart1') }}</span>
+      <span>{{ t('calendar.moodLinePart2') }}</span>
+      <span>{{ t('calendar.moodLinePart3') }}</span>
       <span>.</span>
       <span class="calendar-mood-flag" aria-hidden="true"></span>
     </p>
@@ -63,12 +60,12 @@
         <section class="calendar-hero-composition">
           <div class="calendar-hero-copy" :class="{ 'md:pl-[50px]': !sidebarOpen }">
             <div>
-              <p class="calendar-eyebrow">SOCIAL INBOX CALENDAR</p>
+              <p class="calendar-eyebrow">{{ t('calendar.eyebrow') }}</p>
               <div class="calendar-title-line">
                 <h1>{{ monthNames[currentMonth] }}</h1>
                 <span class="calendar-year-mark">{{ currentYear }}</span>
               </div>
-              <p class="calendar-exhibition-caption">( social index / small plans )</p>
+              <p class="calendar-exhibition-caption">{{ t('calendar.caption') }}</p>
             </div>
           </div>
 
@@ -76,7 +73,7 @@
             <button
               @click="prevMonth"
               class="calendar-arrow-button calendar-arrow-button--prev"
-              aria-label="上一個月"
+              :aria-label="t('calendar.prevMonth')"
             >
               &lt;
               <svg
@@ -93,7 +90,7 @@
             <button
               @click="nextMonth"
               class="calendar-arrow-button calendar-arrow-button--next"
-              aria-label="下一個月"
+              :aria-label="t('calendar.nextMonth')"
             >
               &gt;
               <svg
@@ -111,7 +108,7 @@
             <!-- 揪一團按鈕 -->
             <PixelButton class="calendar-create-button" @click="openEventModal">
               <span class="calendar-create-plus">＋</span
-              ><span class="hidden md:inline">CREATE</span>
+              ><span class="hidden md:inline">{{ t('calendar.createBtn') }}</span>
             </PixelButton>
           </div>
         </section>
@@ -182,7 +179,7 @@
 
         <section class="calendar-mobile-pocket" aria-label="Mobile social pocket">
           <div class="calendar-mobile-pocket-header">
-            <span>KEEPSAKE POCKET</span>
+            <span>{{ t('calendar.keepsakePocket') }}</span>
             <strong>{{ visibleEvents.length }}</strong>
           </div>
 
@@ -207,23 +204,23 @@
                 <strong>{{ currentMonth + 1 }}</strong>
                 <em>{{ currentYear }}</em>
               </span>
-              <span class="calendar-mobile-ticket-title">no saved plans yet</span>
-              <small>room notes</small>
+              <span class="calendar-mobile-ticket-title">{{ t('calendar.noSavedPlans') }}</span>
+              <small>{{ t('calendar.roomNotes') }}</small>
             </div>
           </div>
 
-          <p class="calendar-mobile-pocket-note">little plans, kept close.</p>
+          <p class="calendar-mobile-pocket-note">{{ t('calendar.pocketNote') }}</p>
         </section>
       </div>
 
       <aside class="calendar-social-rail" aria-label="Social rail">
         <div class="calendar-rail-heading">
-          <span>SOCIAL RAIL</span>
+          <span>{{ t('calendar.socialRail') }}</span>
           <strong>{{ visibleEvents.length }}</strong>
         </div>
 
         <div class="calendar-rail-section">
-          <p>MUST SEE</p>
+          <p>{{ t('calendar.mustSee') }}</p>
           <button
             v-for="item in socialRailItems.mustSee"
             :key="item.id"
@@ -241,7 +238,7 @@
         </div>
 
         <div class="calendar-rail-section">
-          <p>FYI</p>
+          <p>{{ t('calendar.fyi') }}</p>
           <button
             v-for="item in socialRailItems.fyi"
             :key="item.id"
@@ -259,8 +256,8 @@
         </div>
 
         <div class="calendar-rail-note">
-          <span>room notes</span>
-          <p>small plans are becoming visible.</p>
+          <span>{{ t('calendar.roomNotes') }}</span>
+          <p>{{ t('calendar.railNote') }}</p>
         </div>
       </aside>
     </section>
@@ -292,6 +289,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import PixelButton from './ui/PixelButton.vue'
@@ -305,6 +303,7 @@ const eventModalInitialDate = ref(null)
 const profileBtnBouncing = ref(false)
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const currentUser = computed(() => authStore.user)
 const currentUserAvatarSrc = computed(() => toAvatarSrc(currentUser.value?.avatar_url))
@@ -434,35 +433,40 @@ const currentYear = ref(today.getFullYear())
 const currentMonth = ref(today.getMonth())
 const selectedDate = ref(null)
 
-const monthNames = [
-  'JANUARY',
-  'FEBRUARY',
-  'MARCH',
-  'APRIL',
-  'MAY',
-  'JUNE',
-  'JULY',
-  'AUGUST',
-  'SEPTEMBER',
-  'OCTOBER',
-  'NOVEMBER',
-  'DECEMBER',
+const monthKeys = [
+  'monthJanuary',
+  'monthFebruary',
+  'monthMarch',
+  'monthApril',
+  'monthMay',
+  'monthJune',
+  'monthJuly',
+  'monthAugust',
+  'monthSeptember',
+  'monthOctober',
+  'monthNovember',
+  'monthDecember',
 ]
-const monthShortNames = [
-  'JAN',
-  'FEB',
-  'MAR',
-  'APR',
-  'MAY',
-  'JUN',
-  'JUL',
-  'AUG',
-  'SEP',
-  'OCT',
-  'NOV',
-  'DEC',
+const monthNames = computed(() => monthKeys.map((key) => t(`calendar.${key}`)))
+
+const monthShortKeys = [
+  'monthShortJanuary',
+  'monthShortFebruary',
+  'monthShortMarch',
+  'monthShortApril',
+  'monthShortMay',
+  'monthShortJune',
+  'monthShortJuly',
+  'monthShortAugust',
+  'monthShortSeptember',
+  'monthShortOctober',
+  'monthShortNovember',
+  'monthShortDecember',
 ]
-const weekDays = ['一', '二', '三', '四', '五', '六', '日']
+const monthShortNames = computed(() => monthShortKeys.map((key) => t(`calendar.${key}`)))
+
+const weekDayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+const weekDays = computed(() => weekDayKeys.map((key) => t(`calendar.${key}`)))
 
 const activities = ref([])
 
@@ -498,7 +502,7 @@ async function fetchActivities() {
     })
     if (!res.ok) {
       console.error('fetchActivities 失敗：', res.status)
-      activitiesFetchError.value = '活動載入失敗，顯示的可能是舊資料'
+      activitiesFetchError.value = t('calendar.loadActivitiesError')
       return
     }
     const data = await res.json()
@@ -506,7 +510,7 @@ async function fetchActivities() {
     activitiesFetchError.value = ''
   } catch (err) {
     console.error('fetchActivities 失敗：', err)
-    activitiesFetchError.value = '無法連線到伺服器，顯示的可能是舊資料'
+    activitiesFetchError.value = t('calendar.loadActivitiesNetworkError')
   }
 }
 
@@ -518,13 +522,13 @@ const statusStyle = {
   none: 'calendar-event-chip--none',
 }
 
-const statusMeta = {
-  joined: 'JOIN',
-  formed: 'LIVE',
-  personal: 'SOLO',
-  recruiting: 'OPEN',
-  none: '',
-}
+const statusMeta = computed(() => ({
+  joined: t('calendar.statusJoined'),
+  formed: t('calendar.statusFormed'),
+  personal: t('calendar.statusPersonal'),
+  recruiting: t('calendar.statusRecruiting'),
+  none: t('calendar.statusNone'),
+}))
 
 function prevMonth() {
   if (currentMonth.value === 0) {
@@ -617,8 +621,8 @@ const socialRailItems = computed(() => {
       ...event,
       monthShort: monthShortNames[monthIndex] || month,
       dayNumber: Number(day),
-      statusLabel: statusMeta[event.status] || 'ROOM',
-      meta: `${Number(month)}/${Number(day)} · ${statusMeta[event.status] || 'ROOM'}`,
+      statusLabel: statusMeta.value[event.status] || 'ROOM',
+      meta: `${Number(month)}/${Number(day)} · ${statusMeta.value[event.status] || 'ROOM'}`,
     }
   })
 
