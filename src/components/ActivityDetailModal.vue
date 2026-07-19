@@ -51,9 +51,7 @@
 
       <template v-else-if="activity">
         <div v-if="showCandidateChips && isScenarioDMode" class="activity-detail-info">
-          <div class="activity-detail-label">
-            日期、時段投票中（{{ candidateChipsForCard.length }}）
-          </div>
+          <div class="activity-detail-label">日期、時段投票中</div>
           <div class="activity-detail-date-list">
             <button
               v-for="chip in visibleCandidateChips"
@@ -243,7 +241,7 @@
           </template>
           <template v-else-if="isScenarioDMode">
             <template v-if="activity.has_joined">
-              <div class="activity-detail-label">你已選擇的候選時段</div>
+              <div class="activity-detail-label">已報名的時段</div>
               <div v-if="selectedScenarioDSlots.length" class="activity-detail-date-list">
                 <span
                   v-for="slot in selectedScenarioDSlots"
@@ -394,7 +392,7 @@
           "
           class="activity-detail-options"
         >
-          <div class="activity-detail-label">你已選擇的候選時段</div>
+          <div class="activity-detail-label">已報名的時段</div>
           <div v-if="selectedScenarioDSlots.length" class="activity-detail-date-list">
             <span
               v-for="slot in selectedScenarioDSlots"

@@ -4,7 +4,6 @@
       <div class="activity-heading">
         <p class="activity-eyebrow">SOCIAL ACTIVITY INDEX</p>
         <h1>BuJo Activity</h1>
-        <p class="activity-caption">( rooms becoming visible / friends in motion )</p>
         <div class="activity-filter-row">
           <div class="activity-filter-scroller" aria-label="activity filters">
             <button
@@ -53,7 +52,9 @@
             class="activity-mini-card"
             :class="[
               miniCardClass(activity),
-              !focusMissing && activity.id === featuredActivity?.id ? 'activity-mini-card--active' : '',
+              !focusMissing && activity.id === featuredActivity?.id
+                ? 'activity-mini-card--active'
+                : '',
             ]"
             @click="selectActivity(activity.id)"
           >
@@ -283,6 +284,7 @@ onMounted(() => {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  margin-top: 16px;
   font-family: var(--bujo-font-meta);
 }
 
