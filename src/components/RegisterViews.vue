@@ -11,7 +11,7 @@
         class="absolute top-3 left-3 px-3 py-1 rounded border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-xs font-semibold text-[var(--bujo-ink)] cursor-pointer transition-colors hover:bg-[var(--bujo-line-soft)]"
         @click="toggleLanguage"
       >
-        {{ locale === 'zh-TW' ? 'EN' : '中文' }}
+        {{ locale === 'zh-TW' ? t('common.langEn') : t('common.langZhTw') }}
       </button>
 
       <!-- Logo -->
@@ -133,7 +133,7 @@
       <!-- 分隔線 -->
       <div class="flex items-center gap-3 my-4">
         <div class="flex-1 h-px bg-[var(--bujo-line-soft)]"></div>
-        <span class="text-xs text-[var(--bujo-muted)]">或</span>
+        <span class="text-xs text-[var(--bujo-muted)]">{{ t('register.orSeparator') }}</span>
         <div class="flex-1 h-px bg-[var(--bujo-line-soft)]"></div>
       </div>
 
@@ -161,7 +161,7 @@
             d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
           />
         </svg>
-        使用 Google 帳號快速註冊
+        {{ t('register.googleRegister') }}
       </button>
 
       <!-- LINE 註冊 -->
@@ -177,7 +177,7 @@
             fill="#00B900"
           />
         </svg>
-        使用 LINE 快速註冊
+        {{ t('register.lineRegister') }}
       </button>
 
       <!-- 登入連結 -->
@@ -313,18 +313,18 @@ const handleCredentialResponse = async (response) => {
       body: JSON.stringify({ credential: response.credential }),
     })
     const data = await res.json()
-    if (!res.ok) throw new Error(data.error || 'Google 註冊失敗')
+    if (!res.ok) throw new Error(data.error || t('register.errorGoogleFailed'))
     authStore.setUser(data.user)
     router.push('/calendar')
-  } catch (err) {
-    errorMsg.value = err.message || 'Google 註冊失敗，請稍後再試'
+  } catch {
+    _errorMsg.value = { key: 'register.errorGoogleRetry' }
   }
 }
 
 const handleGoogleLogin = () => {
   window.google?.accounts.id.prompt((notification) => {
     if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-      errorMsg.value = 'Google 註冊目前無法使用，請改用帳密或 LINE 註冊'
+      _errorMsg.value = { key: 'register.errorGoogleUnavailable' }
     }
   })
 }
@@ -334,13 +334,12 @@ const handleLineLogin = () => {
 }
 
 onMounted(() => {
-  const errorMap = {
-    line_cancelled: '已取消 LINE 登入',
-    line_login_failed: 'LINE 登入失敗，請再試一次',
-  }
-  const lineError = errorMap[route.query.error]
-  if (lineError) {
-    errorMsg.value = lineError
+  const lineError = route.query.error
+  if (lineError === 'line_cancelled') {
+    _errorMsg.value = { key: 'register.errorLineCancelled' }
+    router.replace({ query: {} })
+  } else if (lineError === 'line_login_failed') {
+    _errorMsg.value = { key: 'register.errorLineFailed' }
     router.replace({ query: {} })
   }
 

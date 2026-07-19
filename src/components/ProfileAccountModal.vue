@@ -41,7 +41,7 @@
               class="ml-auto shrink-0 rounded border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-1 text-xs font-semibold text-[var(--bujo-ink)] transition-colors duration-150 hover:bg-[var(--bujo-line-soft)]"
               @click="toggleLanguage"
             >
-              {{ locale === 'zh-TW' ? 'EN' : '中文' }}
+              {{ locale === 'zh-TW' ? t('common.langEn') : t('common.langZhTw') }}
             </button>
           </div>
         </div>

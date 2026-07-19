@@ -3,8 +3,8 @@
     type="button"
     class="bujo-tour-help-btn"
     :class="floating ? 'bujo-tour-help-btn--floating' : 'bujo-tour-help-btn--inline'"
-    aria-label="重新開啟新手導覽"
-    title="新手導覽"
+    :aria-label="t('tour.helpButtonLabel')"
+    :title="t('tour.helpButtonTitle')"
     @click="emit('click')"
   >
     ?
@@ -12,6 +12,10 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 defineProps({
   // 桌機版嵌在側邊欄 CALENDAR FILTER 那條線上面，跟著版面走；
   // 手機版沒有側邊欄可以嵌，改成浮在畫面右上角

@@ -1137,12 +1137,12 @@ async function handleJoin() {
       actionError.value = t('activityDetail.pleaseSelectSlot')
       return
     }
-    await callAction('join', 'POST', '報名成功！', {
+    await callAction('join', 'POST', t('activityDetail.joinSuccess'), {
       candidateSlotIds: selectedJoinSlotIds.value,
     })
     return
   }
-  await callAction('join', 'POST', '報名成功！')
+  await callAction('join', 'POST', t('activityDetail.joinSuccess'))
 }
 
 function openScenarioCPicker() {
@@ -1167,7 +1167,7 @@ async function handleAvailabilityConfirm(entries) {
       end: `${entry.date}T${r.to}:00`,
     }))
   })
-  await callAction('join', 'POST', '報名成功！', { ranges })
+  await callAction('join', 'POST', t('activityDetail.joinSuccess'), { ranges })
 }
 
 async function handlePickerConfirm(entries) {
@@ -1190,7 +1190,7 @@ async function handleScenarioCDateConfirm(entries) {
     actionError.value = t('activityDetail.pleaseSelectDate')
     return
   }
-  await callAction('join', 'POST', '報名成功！', { candidateSlotIds })
+  await callAction('join', 'POST', t('activityDetail.joinSuccess'), { candidateSlotIds })
 }
 
 async function handleScenarioDConfirm(entries) {
@@ -1213,11 +1213,14 @@ async function handleScenarioDConfirm(entries) {
     actionError.value = t('activityDetail.pleaseSelectSlot')
     return
   }
-  await callAction('join', 'POST', '報名成功！', { candidateSlotIds, candidateSlotRanges })
+  await callAction('join', 'POST', t('activityDetail.joinSuccess'), {
+    candidateSlotIds,
+    candidateSlotRanges,
+  })
 }
 
 async function handleCancelJoin() {
-  await callAction('join', 'DELETE', '已取消報名')
+  await callAction('join', 'DELETE', t('activityDetail.cancelJoinSuccess'))
 }
 
 async function handleConfirmFormation() {
@@ -1230,7 +1233,7 @@ async function handleConfirmFormation() {
       (c) => c.radioId === selectedDecisionSlotId.value,
     )
     if (!candidate) return
-    await callAction('confirm-formation', 'POST', '成團成功！', {
+    await callAction('confirm-formation', 'POST', t('activityDetail.confirmFormationSuccess'), {
       slotStart: candidate.slot_start,
       slotEnd: candidate.slot_end,
     })
@@ -1246,7 +1249,7 @@ async function handleConfirmFormation() {
     )
     const segment = group?.segments.find((seg) => seg.radioId === selectedDecisionSlotId.value)
     if (!group || !segment) return
-    await callAction('confirm-formation', 'POST', '成團成功！', {
+    await callAction('confirm-formation', 'POST', t('activityDetail.confirmFormationSuccess'), {
       candidateSlotId: group.candidateSlotId,
       slotStart: segment.slot_start,
       slotEnd: segment.slot_end,
@@ -1258,16 +1261,16 @@ async function handleConfirmFormation() {
       actionError.value = t('activityDetail.pleaseSelectSlotToConfirm')
       return
     }
-    await callAction('confirm-formation', 'POST', '成團成功！', {
+    await callAction('confirm-formation', 'POST', t('activityDetail.confirmFormationSuccess'), {
       candidateSlotId: selectedDecisionSlotId.value,
     })
     return
   }
-  await callAction('confirm-formation', 'POST', '成團成功！')
+  await callAction('confirm-formation', 'POST', t('activityDetail.confirmFormationSuccess'))
 }
 
 async function handleCancel() {
-  await callAction('cancel', 'POST', '活動已取消')
+  await callAction('cancel', 'POST', t('activityDetail.cancelActivitySuccess'))
 }
 
 function resetPanel() {

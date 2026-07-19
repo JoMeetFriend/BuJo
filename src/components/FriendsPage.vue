@@ -165,6 +165,7 @@ onMounted(() => {
 <style scoped>
 .friends-eyebrow {
   margin: 0 0 2px;
+  padding-bottom: 6px;
   color: var(--bujo-muted-strong);
   font-family: 'Space Mono', monospace;
   font-size: 11px;

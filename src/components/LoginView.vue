@@ -12,7 +12,7 @@
           class="absolute top-3 left-3 px-3 py-1 rounded border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-xs font-semibold text-[var(--bujo-ink)] cursor-pointer transition-colors hover:bg-[var(--bujo-line-soft)]"
           @click="toggleLanguage"
         >
-          {{ locale === 'zh-TW' ? 'EN' : '中文' }}
+          {{ locale === 'zh-TW' ? t('common.langEn') : t('common.langZhTw') }}
         </button>
 
         <!-- Logo -->

@@ -113,7 +113,15 @@
     "success": "Registration successful! Redirecting...",
     "gotcha": "Say 'don't invite me'... and you're already in.",
     "hasAccount": "Already have an account?",
-    "goToLogin": "Go to log in"
+    "goToLogin": "Go to log in",
+    "orSeparator": "or",
+    "googleRegister": "Sign up with Google account",
+    "lineRegister": "Sign up with LINE",
+    "errorGoogleFailed": "Google sign-up failed",
+    "errorGoogleRetry": "Google sign-up failed, please try again later",
+    "errorGoogleUnavailable": "Google sign-up is currently unavailable, please use email/password or LINE",
+    "errorLineCancelled": "LINE login cancelled",
+    "errorLineFailed": "LINE login failed, please try again"
   },
   "notFound": {
     "title": "Oops, lost your way?",
@@ -268,7 +276,8 @@
     "wed": "Wed",
     "thu": "Thu",
     "fri": "Fri",
-    "sat": "Sat"
+    "sat": "Sat",
+    "toggleAnimation": "Toggle background animation"
   },
   "alerts": {
     "title": "SOCIAL INBOX",
@@ -503,6 +512,9 @@
     "preset3h": "3 hours before",
     "preset1h": "1 hour before",
     "preset30m": "30 minutes before",
+    "maxChars": "Max {count} characters",
+    "urgentConfirmCountdown": "Only {minutes} minutes until activity starts",
+    "urgentConfirmPrompt": "Are you sure you want to create this activity?",
     "noneYet": "None yet",
     "candidateSlotForDate": "candidate time slots",
     "removeCandidateDate": "Remove this candidate date",
@@ -591,6 +603,65 @@
     "ariaMobileProfile": "Open profile account",
     "ariaToggle": "Toggle sidebar"
   },
+  "tour": {
+    "helpButtonLabel": "Restart onboarding tour",
+    "helpButtonTitle": "Onboarding tour",
+    "calendarTitle": "Calendar",
+    "calendarDesc": "View all group activities and their schedules at a glance.",
+    "todayCellTitle": "Show only formed activities",
+    "todayCellDesc": "The calendar only shows formed activities — recruiting/voting activities won't appear on the calendar even if they have candidate dates. The creator must manually confirm the group.",
+    "activityTitle": "Activity",
+    "activityDesc": "Browse activities you've created or joined, and keep track of each activity's latest status.",
+    "createButtonTitle": "Create Activity",
+    "createButtonDesc": "Click here to create an activity.<br>Clicking a date on the calendar auto-fills the date.<br>The activity page also has the same entry point.",
+    "scenarioGuideTitle": "Activity Scenario Guide",
+    "scenarioGuideDesc": "There are four scenarios: after selecting date × time, click '?' to see the relevant guide.",
+    "friendsTitle": "Friends",
+    "friendsDesc": "Manage your friend list, send invitations, and find people to hang out with.",
+    "addFriendTitle": "Add Friend",
+    "addFriendDesc": "Enter a friend's BuJo ID to connect!",
+    "alertsTitle": "Alerts",
+    "alertsDesc": "Friend requests, invitations, and activity updates will appear here. Don't miss important messages.",
+    "profileTitle": "Profile",
+    "profileDesc": "Edit your display name, avatar, and connect LINE notifications.",
+    "prevBtn": "Previous",
+    "nextBtn": "Next",
+    "doneBtn": "Done",
+    "skipBtn": "Skip tour",
+    "progress": "{current} / {total}"
+  },
+  "guide": {
+    "scenarioA0Title": "How to schedule?",
+    "scenarioA0Desc": "Default is 'Fixed': date and time are both set directly. Suitable for groups that have already agreed on a time — everyone can sign up directly without voting.",
+    "scenarioB0Title": "How to schedule?",
+    "scenarioB0Desc": "Now in 'Time Open' mode: date is fixed, time is open for voting — set a time range, and everyone reports their available slots within it.",
+    "scenarioB1Title": "Votable Time Slots",
+    "scenarioB1Desc": "Set a time range (e.g., 09:00–18:00), participants can only pick times within this range. You'll pick a final time from the results.",
+    "scenarioC0Title": "How to schedule?",
+    "scenarioC0Desc": "Now in 'Date Open' mode: time is fixed, date is open for voting — select multiple candidate dates, and everyone votes on which ones work.",
+    "scenarioC1Title": "Candidate Dates",
+    "scenarioC1Desc": "Select multiple candidate dates for voting; the time applies uniformly to all dates. You pick the final date from the results.",
+    "scenarioD0Title": "How to schedule?",
+    "scenarioD0Desc": "Now in 'All Open' mode: both date and time are open for voting — set multiple candidate dates, each with its own time slots.",
+    "scenarioD1Title": "Candidate Dates & Time Slots",
+    "scenarioD1Desc": "After selecting candidate dates, each date can have its own time slots. Unlike scenario C, each date can have different times.",
+    "shared0Title": "Sign-up Deadline & Group Confirmation",
+    "shared0Desc": "Sign-ups have capacity and deadline limits. The group still needs to be manually confirmed by you before appearing on the calendar.",
+    "shared1Title": "Sign-up Deadline",
+    "shared1Desc": "You can manually adjust the sign-up open duration.",
+    "prevBtn": "Previous",
+    "nextBtn": "Next",
+    "doneBtn": "Got it",
+    "progress": "{current} / {total}"
+  },
+  "reportCutoff": {
+    "helpButtonLabel": "Restart onboarding tour",
+    "helpButtonTitle": "Onboarding tour",
+    "warningPrefix": "Only",
+    "warningSuffix": "minutes left until sign-up closes!",
+    "openUntilPrefix": "Sign-up open until",
+    "deadlineSuffix": " deadline)"
+  },
   "common": {
     "closeTitle": "Close {title}",
     "networkError": "Network error, please check your connection or try again later.",
@@ -607,7 +678,9 @@
     "wholeDay": "All day",
     "person": "people",
     "comma": ", ",
-    "unnamed": "Unnamed"
+    "unnamed": "Unnamed",
+    "langEn": "EN",
+    "langZhTw": "中文"
   },
   "userStore": {
     "nameEmpty": "Display name cannot be empty.",

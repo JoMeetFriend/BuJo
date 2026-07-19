@@ -113,7 +113,15 @@
     "success": "註冊成功！即將跳轉...",
     "gotcha": "不揪喔～說完，你就揪到了",
     "hasAccount": "已經有帳號了？",
-    "goToLogin": "前往登入"
+    "goToLogin": "前往登入",
+    "orSeparator": "或",
+    "googleRegister": "使用 Google 帳號快速註冊",
+    "lineRegister": "使用 LINE 快速註冊",
+    "errorGoogleFailed": "Google 註冊失敗",
+    "errorGoogleRetry": "Google 註冊失敗，請稍後再試",
+    "errorGoogleUnavailable": "Google 註冊目前無法使用，請改用帳密或 LINE 註冊",
+    "errorLineCancelled": "已取消 LINE 登入",
+    "errorLineFailed": "LINE 登入失敗，請再試一次"
   },
   "notFound": {
     "title": "糟糕，迷路了嗎？",
@@ -268,7 +276,8 @@
     "wed": "三",
     "thu": "四",
     "fri": "五",
-    "sat": "六"
+    "sat": "六",
+    "toggleAnimation": "切換背景動畫"
   },
   "alerts": {
     "title": "SOCIAL INBOX",
@@ -503,6 +512,9 @@
     "preset3h": "3 小時前",
     "preset1h": "1 小時前",
     "preset30m": "30 分鐘前",
+    "maxChars": "最多 {count} 字",
+    "urgentConfirmCountdown": "距離活動開始只剩 {minutes} 分鐘",
+    "urgentConfirmPrompt": "確定要建立活動嗎？",
     "noneYet": "尚無",
     "candidateSlotForDate": "的候選時段",
     "removeCandidateDate": "移除此候選日期",
@@ -591,6 +603,63 @@
     "ariaMobileProfile": "開啟個人帳號",
     "ariaToggle": "切換側邊欄"
   },
+  "tour": {
+    "helpButtonLabel": "重新開啟新手導覽",
+    "helpButtonTitle": "新手導覽",
+    "calendarTitle": "行事曆",
+    "calendarDesc": "在這裡查看所有揪團跟活動的時間安排，一眼掌握你的行程。",
+    "todayCellTitle": "只顯示已成團的活動",
+    "todayCellDesc": "行事曆只顯示已成團的活動——招募中／投票中的活動即使有候選日期，也不會出現在月曆上，必須由建立者手動確認成團。",
+    "activityTitle": "活動",
+    "activityDesc": "瀏覽你發起或參加的活動列表，掌握每個活動的最新狀態。",
+    "createButtonTitle": "新增活動",
+    "createButtonDesc": "點這裡新增活動。<br>點行事曆格子新增活動會自動帶入日期。<br>活動頁也有一樣的入口可以新增活動。",
+    "scenarioGuideTitle": "活動情境說明",
+    "scenarioGuideDesc": "建立活動有四種情境：選擇日期 × 時段後，點「？」可以查看相關導覽。",
+    "friendsTitle": "朋友",
+    "friendsDesc": "管理好友名單、傳送邀請，找到一起揪團的夥伴。",
+    "addFriendTitle": "加好友",
+    "addFriendDesc": "輸入朋友的 BuJo ID 來交朋友吧！",
+    "alertsTitle": "通知",
+    "alertsDesc": "加好友、揪團邀請、活動更新都會出現在這裡，別錯過重要訊息。",
+    "profileTitle": "個人設定",
+    "profileDesc": "編輯顯示名稱、大頭貼，還可以連動 LINE 通知。",
+    "prevBtn": "上一步",
+    "nextBtn": "下一步",
+    "doneBtn": "完成",
+    "skipBtn": "跳過導覽",
+    "progress": "{current} / {total}"
+  },
+  "guide": {
+    "scenarioA0Title": "怎麼喬時間？",
+    "scenarioA0Desc": "預設是「都確定」：日期和時間都直接約好，適合已經講好時間的揪團——大家打開活動就能直接報名，不用等投票。",
+    "scenarioB0Title": "怎麼喬時間？",
+    "scenarioB0Desc": "現在是「時間開放」：日期已經定了，時間留給大家投票——你只要抓一個時間範圍，大家會在範圍內回報自己方便的時段。",
+    "scenarioB1Title": "可投票時段",
+    "scenarioB1Desc": "設定大家可以回報的時間範圍（例如 09:00–18:00），參加者只能在這個範圍內選時間，你之後再從回報結果挑一個時間確定。",
+    "scenarioC0Title": "怎麼喬時間？",
+    "scenarioC0Desc": "現在是「日期開放」：時間已經定了，日期留給大家投票——你可以勾選多個候選日期，大家會投票選出可以的日子。",
+    "scenarioC1Title": "候選日期",
+    "scenarioC1Desc": "點選多個候選日期讓大家投票；時間統一套用到所有候選日，不能每天喬不同時間，之後你再從投票結果挑一天確定成團。",
+    "scenarioD0Title": "怎麼喬時間？",
+    "scenarioD0Desc": "現在是「都開放」：日期和時間都留給大家投票——你可以設定多個候選日期，每個日期還能各自安排不同的時段。",
+    "scenarioD1Title": "候選日期與時段",
+    "scenarioD1Desc": "點選候選日期後，下面會打開該日的時段編輯——跟情境三不同，這裡每個候選日可以各自設定不同時段，之後再從投票結果挑一組確定成團。",
+    "shared0Title": "報名截止與成團確認",
+    "shared0Desc": "報名有名額和截止時間限制，成團最後仍要由你手動確認才會上行事曆。",
+    "shared1Title": "報名截止時間",
+    "shared1Desc": "可以手動修改報名開放時間。",
+    "prevBtn": "上一步",
+    "nextBtn": "下一步",
+    "doneBtn": "知道了",
+    "progress": "{current} / {total}"
+  },
+  "reportCutoff": {
+    "warningPrefix": "距離報名截止僅剩",
+    "warningSuffix": "分鐘！",
+    "openUntilPrefix": "報名開放到",
+    "deadlineSuffix": "截止）"
+  },
   "common": {
     "closeTitle": "關閉{title}",
     "networkError": "網路連線異常，請檢查您的網路或稍後再試。",
@@ -607,7 +676,9 @@
     "wholeDay": "整天",
     "person": "人",
     "comma": "、",
-    "unnamed": "未命名"
+    "unnamed": "未命名",
+    "langEn": "EN",
+    "langZhTw": "中文"
   },
   "userStore": {
     "nameEmpty": "顯示名稱不可為空白",

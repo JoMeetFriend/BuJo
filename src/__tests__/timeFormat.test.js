@@ -33,7 +33,7 @@ describe('parseHourFromTimeStr', () => {
 // formatTime(9 點的 Date) 的斷言用同一個字串，兩邊各自跑但約定要保持一致，
 // 前後端才不會對「9 點」這個小時各自解讀出不同的字串
 describe('前後端一致性 fixture：9 點的格式化字串', () => {
-  test("createTimeOptions()[9] 對應到後端 formatTime(9 點) 應輸出的同一個字串", () => {
+  test('createTimeOptions()[9] 對應到後端 formatTime(9 點) 應輸出的同一個字串', () => {
     expect(createTimeOptions()[9]).toBe('09:00')
   })
 })

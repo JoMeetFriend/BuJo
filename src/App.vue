@@ -61,6 +61,7 @@ import {
   rememberLineNotificationOnboardingReturnPath,
   useLineNotificationOnboarding,
 } from './composables/useLineNotificationOnboarding'
+import { useI18n } from 'vue-i18n'
 import { useAppTour } from './composables/useAppTour'
 import { markEventScenarioGuideSeen } from './composables/useEventScenarioGuide'
 
@@ -101,8 +102,10 @@ const showLineNotificationOnboarding = computed(
     hasUnseenLineNotificationOnboarding.value,
 )
 
+const { t } = useI18n()
 const { hasSeenTour: hasSeenAppTour, startTour: startAppTour } = useAppTour(onboardingUserId, {
   navigate: (path) => router.push(path),
+  t,
   // 主導覽自己開了新增活動彈窗要介紹「？」按鈕時，先標記情境一的彈窗導覽已看過，
   // 避免彈窗一開兩邊導覽疊在一起
   onSuppressEventScenarioGuide: () => markEventScenarioGuideSeen(onboardingUserId.value, 'a'),

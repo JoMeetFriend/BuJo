@@ -3,7 +3,7 @@
     <header class="activity-gallery-header">
       <div class="activity-heading">
         <p class="activity-eyebrow">{{ t('activity.socialIndex') }}</p>
-        <h1>BuJo Activity</h1>
+        <h1>{{ t('activity.activityLabel') }}</h1>
         <div class="activity-filter-row">
           <div class="activity-filter-scroller" :aria-label="t('activity.ariaFilters')">
             <button
@@ -265,6 +265,7 @@ onMounted(() => {
 
 .activity-eyebrow {
   margin-bottom: 2px;
+  padding-bottom: 6px;
 }
 
 .activity-heading h1 {

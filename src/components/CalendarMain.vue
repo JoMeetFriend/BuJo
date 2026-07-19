@@ -28,7 +28,7 @@
       @click="toggleDotsAnimation"
       class="calendar-arrow-button calendar-toggle-dots-mobile"
       :class="{ 'is-active': showDots }"
-      aria-label="切換背景動畫"
+      :aria-label="t('calendar.toggleAnimation')"
     >
       <span class="calendar-square-toggle" aria-hidden="true"></span>
     </button>
@@ -87,7 +87,7 @@
               @click="toggleDotsAnimation"
               class="calendar-arrow-button"
               :class="{ 'is-active': showDots }"
-              aria-label="切換背景動畫"
+              :aria-label="t('calendar.toggleAnimation')"
             >
               <span class="calendar-square-toggle" aria-hidden="true"></span>
             </button>
@@ -267,7 +267,9 @@
           </button>
 
           <div v-if="upcomingItems.length === 0" class="calendar-upcoming-card is-empty">
-            <span class="calendar-upcoming-empty-title">本月沒有即將開始的活動</span>
+            <span class="calendar-upcoming-empty-title">{{
+              t('calendar.noUpcomingThisMonth')
+            }}</span>
           </div>
         </div>
 
@@ -289,7 +291,7 @@
     <BaseModal
       v-if="selectedActivityId"
       :is-open="true"
-      title="活動詳情"
+      :title="t('activityDetail.title')"
       bare
       @close="closeActivityDetail"
     >
@@ -753,6 +755,7 @@ function isToday(date) {
 
 .calendar-eyebrow {
   margin-bottom: 2px;
+  padding-bottom: 6px;
   color: var(--bujo-text-muted);
   font-size: 11px;
   font-weight: 700;

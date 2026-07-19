@@ -28,84 +28,81 @@ function resolveTourElement(selector) {
   return candidates[0] ?? null
 }
 
-const TOUR_STEPS = [
-  {
-    selector: 'nav-calendar',
-    popover: {
-      title: '行事曆',
-      description: '在這裡查看所有揪團跟活動的時間安排，一眼掌握你的行程。',
+function buildTourSteps(t) {
+  return [
+    {
+      selector: 'nav-calendar',
+      popover: {
+        title: t('tour.calendarTitle'),
+        description: t('tour.calendarDesc'),
+      },
     },
-  },
-  {
-    selector: 'calendar-today-cell',
-    popover: {
-      title: '只顯示已成團的活動',
-      description:
-        '行事曆只顯示已成團的活動——招募中／投票中的活動即使有候選日期，也不會出現在月曆上，必須由建立者手動確認成團。',
+    {
+      selector: 'calendar-today-cell',
+      popover: {
+        title: t('tour.todayCellTitle'),
+        description: t('tour.todayCellDesc'),
+      },
     },
-  },
-  {
-    selector: 'nav-activity',
-    popover: {
-      title: '活動',
-      description: '瀏覽你發起或參加的活動列表，掌握每個活動的最新狀態。',
+    {
+      selector: 'nav-activity',
+      popover: {
+        title: t('tour.activityTitle'),
+        description: t('tour.activityDesc'),
+      },
     },
-  },
-  {
-    selector: 'calendar-create-button',
-    popover: {
-      title: '新增活動',
-      description:
-        '點這裡新增活動。<br>點行事曆格子新增活動會自動帶入日期。<br>活動頁也有一樣的入口可以新增活動。',
+    {
+      selector: 'calendar-create-button',
+      popover: {
+        title: t('tour.createButtonTitle'),
+        description: t('tour.createButtonDesc'),
+      },
+      clickSelfOnNext: true,
+      suppressEventScenarioGuideOnClick: true,
     },
-    // 下一步的錨點在新增活動彈窗裡：先點開彈窗，並標記彈窗自己的情境一導覽已看過，
-    // 避免彈窗一開，那邊的導覽也自動跳出來跟這裡疊在一起
-    clickSelfOnNext: true,
-    suppressEventScenarioGuideOnClick: true,
-  },
-  {
-    selector: 'event-scenario-guide-button',
-    popover: {
-      title: '活動情境說明',
-      description: '建立活動有四種情境：選擇日期 × 時段後，點「？」可以查看相關導覽。',
+    {
+      selector: 'event-scenario-guide-button',
+      popover: {
+        title: t('tour.scenarioGuideTitle'),
+        description: t('tour.scenarioGuideDesc'),
+      },
+      waitForElement: 1500,
     },
-    waitForElement: 1500,
-  },
-  {
-    selector: 'nav-friends',
-    popover: {
-      title: '朋友',
-      description: '管理好友名單、傳送邀請，找到一起揪團的夥伴。',
+    {
+      selector: 'nav-friends',
+      popover: {
+        title: t('tour.friendsTitle'),
+        description: t('tour.friendsDesc'),
+      },
+      navigateOnNextTo: '/friends-page',
     },
-    // 下一步的錨點在朋友頁面上，先切過去再繼續導覽
-    navigateOnNextTo: '/friends-page',
-  },
-  {
-    selector: 'friend-add-button',
-    popover: {
-      title: '加好友',
-      description: '輸入朋友的 BuJo ID 來交朋友吧！',
+    {
+      selector: 'friend-add-button',
+      popover: {
+        title: t('tour.addFriendTitle'),
+        description: t('tour.addFriendDesc'),
+      },
+      waitForElement: 1500,
     },
-    waitForElement: 1500,
-  },
-  {
-    selector: 'nav-alerts',
-    popover: {
-      title: '通知',
-      description: '加好友、揪團邀請、活動更新都會出現在這裡，別錯過重要訊息。',
+    {
+      selector: 'nav-alerts',
+      popover: {
+        title: t('tour.alertsTitle'),
+        description: t('tour.alertsDesc'),
+      },
     },
-  },
-  {
-    selector: 'nav-profile',
-    popover: {
-      title: '個人設定',
-      description: '編輯顯示名稱、大頭貼，還可以連動 LINE 通知。',
+    {
+      selector: 'nav-profile',
+      popover: {
+        title: t('tour.profileTitle'),
+        description: t('tour.profileDesc'),
+      },
     },
-  },
-]
+  ]
+}
 
-export function buildDriveSteps(navigate, onSuppressEventScenarioGuide) {
-  return TOUR_STEPS.map(
+export function buildDriveSteps(t, navigate, onSuppressEventScenarioGuide) {
+  return buildTourSteps(t).map(
     ({
       selector,
       popover,
@@ -148,11 +145,11 @@ export function buildDriveSteps(navigate, onSuppressEventScenarioGuide) {
   )
 }
 
-function createAppTourDriver(navigate, onSuppressEventScenarioGuide, onDestroyed) {
+function createAppTourDriver(t, navigate, onSuppressEventScenarioGuide, onDestroyed) {
   let tourInstance = null
 
   tourInstance = driver({
-    steps: buildDriveSteps(navigate, onSuppressEventScenarioGuide),
+    steps: buildDriveSteps(t, navigate, onSuppressEventScenarioGuide),
     showProgress: true,
     allowClose: true,
     overlayClickBehavior: 'close',
@@ -161,15 +158,15 @@ function createAppTourDriver(navigate, onSuppressEventScenarioGuide, onDestroyed
     stagePadding: 6,
     stageRadius: 3,
     popoverClass: 'bujo-tour-popover',
-    progressText: '{{current}} / {{total}}',
-    prevBtnText: '上一步',
-    nextBtnText: '下一步',
-    doneBtnText: '完成',
+    progressText: t('tour.progress'),
+    prevBtnText: t('tour.prevBtn'),
+    nextBtnText: t('tour.nextBtn'),
+    doneBtnText: t('tour.doneBtn'),
     onPopoverRender: (popover) => {
       const skipBtn = document.createElement('button')
       skipBtn.type = 'button'
       skipBtn.className = 'bujo-tour-skip-btn'
-      skipBtn.textContent = '跳過導覽'
+      skipBtn.textContent = t('tour.skipBtn')
       skipBtn.addEventListener('click', () => tourInstance?.destroy())
       popover.footerButtons.prepend(skipBtn)
     },
@@ -188,6 +185,7 @@ export function useAppTour(userId, options = {}) {
   const storage = Object.hasOwn(options, 'storage') ? options.storage : getBrowserStorage()
   const navigate = options.navigate
   const onSuppressEventScenarioGuide = options.onSuppressEventScenarioGuide
+  const t = options.t ?? ((key) => key)
   const revision = ref(0)
 
   const normalizedUserId = computed(() => {
@@ -226,7 +224,7 @@ export function useAppTour(userId, options = {}) {
   }
 
   function startTour() {
-    createAppTourDriver(navigate, onSuppressEventScenarioGuide, markSeen).drive()
+    createAppTourDriver(t, navigate, onSuppressEventScenarioGuide, markSeen).drive()
   }
 
   return {

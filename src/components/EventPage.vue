@@ -18,7 +18,7 @@
             :placeholder="t('event.namePlaceholder')"
           />
           <span id="event-name-hint" class="text-xs font-medium text-[var(--bujo-muted-strong)]">
-            最多 {{ ACTIVITY_TITLE_MAX_LENGTH }} 字
+            {{ t('event.maxChars', { count: ACTIVITY_TITLE_MAX_LENGTH }) }}
           </span>
         </label>
 
@@ -1004,9 +1004,9 @@
     <template #default>
       <div class="grid gap-3 py-2 text-center">
         <p class="text-sm leading-6 text-[var(--bujo-ink)]">
-          距離活動開始只剩 {{ minutesUntilCeiling }} 分鐘
+          {{ t('event.urgentConfirmCountdown', { minutes: minutesUntilCeiling }) }}
         </p>
-        <p class="text-sm leading-6 text-[var(--bujo-ink)]">確定要建立活動嗎？</p>
+        <p class="text-sm leading-6 text-[var(--bujo-ink)]">{{ t('event.urgentConfirmPrompt') }}</p>
       </div>
     </template>
     <template #footer>
@@ -1247,6 +1247,7 @@ const { hasSeenGuide: hasSeenScenarioGuide, startGuide: startScenarioGuide } =
     openDeadlineEditor: () => {
       showDeadlineEditor.value = true
     },
+    t,
   })
 
 // 彈窗開著的時候切到還沒看過介紹的情境，自動彈一次該情境的說明
@@ -1410,8 +1411,8 @@ watch(currentScenarioKey, (key) => {
       timeSlots: [
         {
           id: scenario4SlotIdSeq++,
-          startTime: '上午 9:00',
-          endTime: '下午 6:00',
+          startTime: `${t('common.am')} 9:00`,
+          endTime: `${t('common.pm')} 6:00`,
           endTimeUserSet: true,
         },
       ],

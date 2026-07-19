@@ -28,7 +28,7 @@
         </div>
         <nav class="landing-topbar-actions">
           <button class="landing-lang-toggle" @click="toggleLanguage">
-            {{ locale === 'zh-TW' ? 'EN' : '中文' }}
+            {{ locale === 'zh-TW' ? t('common.langEn') : t('common.langZhTw') }}
           </button>
           <RouterLink to="/login" class="landing-link">{{ t('landing.navLogin') }}</RouterLink>
           <RouterLink to="/register" class="landing-cta-pill">{{
@@ -839,6 +839,7 @@ const sampleEvents = computed(() => {
 
 .landing-cal-eyebrow {
   margin: 0 0 2px;
+  padding-bottom: 4px;
   color: var(--landing-muted);
   font-family: var(--bujo-font-meta);
   font-size: 10px;
