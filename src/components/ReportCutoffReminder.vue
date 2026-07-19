@@ -5,9 +5,7 @@
   >
     <p
       class="flex items-center gap-1 text-xs leading-5"
-      :class="
-        isWarning ? 'font-semibold text-[var(--bujo-warning)]' : 'text-[var(--bujo-muted)]'
-      "
+      :class="isWarning ? 'font-semibold text-[var(--bujo-warning)]' : 'text-[var(--bujo-muted)]'"
     >
       <template v-if="isWarning">
         <ClockIcon class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -32,10 +30,7 @@
       >
     </p>
 
-    <p
-      v-if="candidateReminderText"
-      class="text-[11px] leading-5 text-[var(--bujo-accent)]"
-    >
+    <p v-if="candidateReminderText" class="text-[11px] leading-5 text-[var(--bujo-accent)]">
       {{ candidateReminderText }}
     </p>
 

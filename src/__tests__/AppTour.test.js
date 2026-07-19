@@ -4,6 +4,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import App from '@/App.vue'
 import { useAuthStore } from '@/stores/auth'
+import { createTestI18n } from './testUtils'
 
 const { hasSeenTourRef, startTourMock } = vi.hoisted(() => ({
   hasSeenTourRef: { value: false },
@@ -61,7 +62,7 @@ async function mountApp({ path = '/calendar', currentUser = user, initialized = 
 
   const wrapper = mount(App, {
     global: {
-      plugins: [pinia, router],
+      plugins: [pinia, router, createTestI18n()],
       stubs: {
         AppSidebar: AppSidebarStub,
         SidebarToggleButton: true,

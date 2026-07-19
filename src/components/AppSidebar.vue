@@ -67,7 +67,7 @@
         type="button"
         class="bujo-sidebar-profile whitespace-nowrap"
         data-tour="nav-profile"
-        aria-label="t('sidebar.ariaOpenProfile')"
+        :aria-label="t('sidebar.ariaOpenProfile')"
         @click="showProfileModal = true"
       >
         <img

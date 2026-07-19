@@ -77,10 +77,10 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
     const wrapper = await mountActivityView()
     await flushPromises()
 
-    await clickFilter(wrapper, 'RECRUITING')
+    await clickFilter(wrapper, '揪團中')
     expect(wrapper.text()).toContain('2')
 
-    await clickFilter(wrapper, 'HOSTING')
+    await clickFilter(wrapper, '我建立的')
     expect(wrapper.findAll('.activity-mini-card')).toHaveLength(1)
   })
 
@@ -110,7 +110,7 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
     const wrapper = await mountActivityView()
     await flushPromises()
 
-    await clickFilter(wrapper, 'JOINED')
+    await clickFilter(wrapper, '已報名')
     const cards = wrapper.findAll('.activity-mini-card')
     expect(cards).toHaveLength(2)
   })
@@ -140,7 +140,7 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
     const wrapper = await mountActivityView()
     await flushPromises()
 
-    await clickFilter(wrapper, 'CONFIRMED')
+    await clickFilter(wrapper, '已成團')
     expect(wrapper.findAll('.activity-mini-card')).toHaveLength(2)
   })
 
@@ -169,7 +169,7 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
     const wrapper = await mountActivityView()
     await flushPromises()
 
-    await clickFilter(wrapper, 'HOSTING')
+    await clickFilter(wrapper, '我建立的')
     expect(wrapper.findAll('.activity-mini-card')).toHaveLength(2)
   })
 })

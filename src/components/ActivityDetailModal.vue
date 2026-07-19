@@ -1402,6 +1402,7 @@ function formatTime(date) {
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .activity-detail-header-right {
