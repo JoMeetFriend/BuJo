@@ -105,9 +105,15 @@ describe('CalendarMain - 行事曆只依 date_iso 決定是否顯示活動', () 
     global.fetch = originalFetch
   })
 
-  test('已成團的活動不分建立者或參與者身分，一律歸類為 formed 樣式', async () => {
+  test('已成團的活動會依據建立者身分，分別顯示 MINE 或 JOINED 樣式', async () => {
     const originalFetch = global.fetch
-    const today = isoToday()
+
+    const d = new Date()
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day1 = `${year}-${month}-15`
+    const day2 = `${year}-${month}-16`
+
     global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
@@ -120,8 +126,19 @@ describe('CalendarMain - 行事曆只依 date_iso 決定是否顯示活動', () 
                 status: 'confirmed',
                 is_creator: true,
                 has_joined: true,
-                date_iso: today,
-                confirmed_start: `${today}T02:00:00.000Z`,
+                date_iso: day1,
+                confirmed_start: `${day1}T02:00:00.000Z`,
+                time: '10:00 - 12:00',
+                location: '',
+              },
+              {
+                id: 'a-joined-confirmed',
+                title: '我加入且已成團',
+                status: 'confirmed',
+                is_creator: false,
+                has_joined: true,
+                date_iso: day2,
+                confirmed_start: `${day2}T04:00:00.000Z`,
                 time: '10:00 - 12:00',
                 location: '',
               },
@@ -134,10 +151,15 @@ describe('CalendarMain - 行事曆只依 date_iso 決定是否顯示活動', () 
     await flushPromises()
 
     const chips = wrapper.findAll('.calendar-event-chip')
-    expect(chips).toHaveLength(1)
+    expect(chips).toHaveLength(2)
+
+    // 驗證建立者 (MINE)
     expect(chips[0].classes()).toContain('calendar-event-chip--formed')
-    expect(chips[0].classes()).not.toContain('calendar-event-chip--personal')
-    expect(chips[0].classes()).not.toContain('calendar-event-chip--joined')
+    expect(chips[0].text()).toContain('我創建')
+
+    // 驗證參與者 (JOINED)
+    expect(chips[1].classes()).toContain('calendar-event-chip--joined')
+    expect(chips[1].text()).toContain('已參加')
 
     global.fetch = originalFetch
   })

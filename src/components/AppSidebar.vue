@@ -77,7 +77,7 @@
           class="w-8 h-8 object-cover shrink-0"
         />
         <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
-        <span>{{ t('sidebar.me') }}</span>
+        <span>{{ authStore.user?.display_name || 'ME' }}</span>
       </button>
     </div>
   </aside>
@@ -268,9 +268,12 @@ const navItems = computed(() => [
 ])
 
 const filterItems = computed(() => [
-  { key: 'joined', label: t('sidebar.filterJoining'), color: 'var(--bujo-card-blue)' },
-  { key: 'formed', label: t('sidebar.filterFormed'), color: 'var(--bujo-accent)' },
-  { key: 'personal', label: t('sidebar.filterPersonal'), color: 'var(--bujo-card-yellow)' },
+  { key: 'formedByMe', label: t('sidebar.filterFormedByMe'), color: 'var(--bujo-accent)' },
+  {
+    key: 'formedByOthers',
+    label: t('sidebar.filterFormedByOthers'),
+    color: 'var(--bujo-card-blue)',
+  },
 ])
 
 function onProfileAnimEnd() {

@@ -141,16 +141,14 @@ const formattedDate = computed(() => {
 })
 
 const statusLabel = computed(() => ({
-  joined: t('dateEvents.statusJoined'),
-  formed: t('dateEvents.statusFormed'),
-  personal: t('dateEvents.statusPersonal'),
+  formedByMe: t('dateEvents.statusFormedByMe'),
+  formedByOthers: t('dateEvents.statusFormedByOthers'),
   recruiting: t('dateEvents.statusRecruiting'),
 }))
 
 const statusClass = {
-  joined: 'bg-[var(--bujo-card-blue)]',
-  formed: 'bg-[var(--bujo-accent)]',
-  personal: 'bg-[var(--bujo-surface)]',
+  formedByMe: 'bg-[var(--bujo-accent)]',
+  formedByOthers: 'bg-[var(--bujo-accent)]',
   recruiting: 'bg-[var(--bujo-card-pink)]',
 }
 </script>
