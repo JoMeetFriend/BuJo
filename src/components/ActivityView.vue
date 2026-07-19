@@ -4,7 +4,6 @@
       <div class="activity-heading">
         <p class="activity-eyebrow">SOCIAL ACTIVITY INDEX</p>
         <h1>BuJo Activity</h1>
-        <p class="activity-caption">( rooms becoming visible / friends in motion )</p>
         <div class="activity-filter-row">
           <div class="activity-filter-scroller" aria-label="activity filters">
             <button
@@ -53,11 +52,13 @@
             class="activity-mini-card"
             :class="[
               miniCardClass(activity),
-              !focusMissing && activity.id === featuredActivity?.id ? 'activity-mini-card--active' : '',
+              !focusMissing && activity.id === featuredActivity?.id
+                ? 'activity-mini-card--active'
+                : '',
             ]"
             @click="selectActivity(activity.id)"
           >
-            <h2>{{ activity.title }}</h2>
+            <h2 :title="activity.title">{{ miniCardTitle(activity.title) }}</h2>
             <div class="activity-mini-bottom">
               <span>{{ activity.date }}</span>
               <span class="activity-mini-dot"></span>
@@ -161,6 +162,11 @@ function cardStatus(activity) {
 
 function miniCardClass(activity) {
   return `activity-mini-card--${cardStatus(activity)}`
+}
+
+function miniCardTitle(title) {
+  const text = String(title ?? '')
+  return text.length > 13 ? `${text.slice(0, 13)}...` : text
 }
 
 async function fetchActivities() {
@@ -283,6 +289,7 @@ onMounted(() => {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  margin-top: 16px;
   font-family: var(--bujo-font-meta);
 }
 
@@ -483,8 +490,12 @@ onMounted(() => {
   margin: 0;
   color: var(--activity-ink);
   font-size: 16px;
-  line-height: 1.08;
+  line-height: 1.12;
   font-weight: 700;
+  max-height: 2.24em;
+  contain: paint;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 .activity-mini-bottom {
@@ -514,7 +525,7 @@ onMounted(() => {
 }
 
 .activity-state-message--error {
-  color: #dc2626;
+  color: var(--bujo-danger);
 }
 
 @media (max-width: 900px) {

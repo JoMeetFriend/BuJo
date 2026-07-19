@@ -3,6 +3,7 @@
     class="calendar-main-shell flex flex-col flex-1 min-h-0 px-4 pb-8 md:px-16 md:pt-6 md:pb-16 relative isolate"
   >
     <div
+      v-show="showDots"
       ref="overlayRef"
       class="absolute left-0 right-0 top-0 pointer-events-none"
       style="z-index: -1; bottom: -5rem"
@@ -21,6 +22,17 @@
         }"
       />
     </div>
+
+    <button
+      v-if="isMobile"
+      @click="toggleDotsAnimation"
+      class="calendar-arrow-button calendar-toggle-dots-mobile"
+      :class="{ 'is-active': showDots }"
+      aria-label="切換背景動畫"
+    >
+      <span class="calendar-square-toggle" aria-hidden="true"></span>
+    </button>
+
     <button
       type="button"
       class="calendar-profile-button calendar-page-profile-button hidden md:flex"
@@ -73,6 +85,15 @@
           </div>
 
           <div class="calendar-hero-actions">
+            <button
+              v-if="!isMobile"
+              @click="toggleDotsAnimation"
+              class="calendar-arrow-button"
+              :class="{ 'is-active': showDots }"
+              aria-label="切換背景動畫"
+            >
+              <span class="calendar-square-toggle" aria-hidden="true"></span>
+            </button>
             <button
               @click="prevMonth"
               class="calendar-arrow-button calendar-arrow-button--prev"
@@ -296,7 +317,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import PixelButton from './ui/PixelButton.vue'
@@ -305,6 +326,7 @@ import ProfileAccountModal from './ProfileAccountModal.vue'
 import EventPage from './EventPage.vue'
 import { toAvatarSrc } from '@/utils/avatar'
 
+const showDots = ref(true)
 const showEventModal = ref(false)
 const eventModalInitialDate = ref(null)
 const profileBtnBouncing = ref(false)
@@ -388,6 +410,8 @@ function hitsCalendar(x, y, size, cal) {
 }
 
 function tickDots() {
+  if (!showDots.value) return
+
   const W = overlayRef.value?.clientWidth
   const H = overlayRef.value?.clientHeight
   if (!W || !H) return
@@ -422,6 +446,22 @@ function tickDots() {
     }
   })
   dotAnimId = requestAnimationFrame(tickDots)
+}
+
+async function toggleDotsAnimation() {
+  showDots.value = !showDots.value
+
+  if (showDots.value) {
+    await nextTick()
+
+    initDots()
+    dotAnimId = requestAnimationFrame(tickDots)
+  } else {
+    if (dotAnimId) {
+      cancelAnimationFrame(dotAnimId)
+      dotAnimId = null
+    }
+  }
 }
 
 onMounted(() => {
@@ -857,7 +897,7 @@ function isToday(date) {
   position: relative;
   z-index: 8;
   margin: 0 0 8px;
-  color: #dc2626;
+  color: var(--bujo-danger);
   font-family: var(--bujo-font-meta);
   font-size: 12px;
   font-weight: 700;
@@ -1756,6 +1796,46 @@ function isToday(date) {
   .calendar-event-dot {
     width: 5px;
     height: 5px;
+  }
+}
+
+.calendar-square-toggle {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgb(var(--bujo-ink-rgb) / 0.5);
+  background: transparent;
+  transition: all 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.calendar-arrow-button.is-active .calendar-square-toggle {
+  background: #98d0a2;
+  border-color: #98d0a2;
+  box-shadow: 2px 2px 0 rgb(var(--bujo-ink-rgb) / 0.15);
+  transform: translate(-1px, -1px);
+}
+
+.calendar-arrow-button:hover .calendar-square-toggle:not(.is-active) {
+  border-color: var(--bujo-ink);
+}
+
+@media (max-width: 640px) {
+  .calendar-toggle-dots-mobile {
+    position: absolute;
+    top: 6px;
+    right: 14px;
+    z-index: 10;
+
+    display: grid;
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
+    background: transparent;
+  }
+
+  .calendar-toggle-dots-mobile:hover {
+    border-color: var(--bujo-ink);
+    background: var(--bujo-surface);
   }
 }
 </style>

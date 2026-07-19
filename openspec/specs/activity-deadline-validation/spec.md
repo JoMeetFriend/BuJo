@@ -110,12 +110,14 @@ tests:
 ---
 ### Requirement: Form blocks submission when the computed deadline is not in the future
 
-The create-activity form SHALL validate, immediately before submission, that the computed report-cutoff time (the value shown and adjustable in the first persistent line) is strictly after the current time, for all four scheduling scenarios. This validation SHALL remain in place regardless of whether the value came from the default algorithm or a manual preset selection, as a safeguard against elapsed time between selection and submission.
+The create-activity form SHALL validate, immediately before submission, that the computed report-cutoff time (the value shown and adjustable in the first persistent line) is strictly after the current time, for all four scheduling scenarios. This validation SHALL remain in place regardless of whether the value came from the default algorithm or a manual preset selection, as a safeguard against elapsed time between selection and submission. When this validation fails, the form SHALL display its inline error using the message text, color, and icon specified below, shared with all other inline validation errors on this form.
+
+The inline error message text for this specific failure SHALL read "報名截止時間已經過去，請重新調整活動日期或時間". The inline error container SHALL use the `--bujo-danger` design token for both its border and text color, replacing any hard-coded color value. The inline error container SHALL display an `ExclamationTriangleIcon` (from `@heroicons/vue/24/outline`) instead of an emoji character.
 
 #### Scenario: Computed report-cutoff time is already in the past
 
 - **WHEN** the user submits the form and the computed report-cutoff time resolves to a timestamp at or before the current time
-- **THEN** the form SHALL show an inline error asking the user to adjust the deadline settings or schedule, and SHALL NOT submit the request
+- **THEN** the form SHALL show an inline error reading "報名截止時間已經過去，請重新調整活動日期或時間", styled with the `--bujo-danger` color token and an `ExclamationTriangleIcon`, and SHALL NOT submit the request
 
 #### Scenario: Computed report-cutoff time cannot be resolved
 
@@ -127,87 +129,82 @@ The create-activity form SHALL validate, immediately before submission, that the
 - **WHEN** the user submits the form and the computed report-cutoff time is strictly after the current time
 - **THEN** the form SHALL proceed to the schedule-ceiling proximity check described in "Confirmation gate for near-zero decision buffer" before submitting
 
+
 <!-- @trace
-source: fix-deadline-not-in-past
-updated: 2026-07-10
+source: block-past-date-activity-creation
+updated: 2026-07-19
 code:
-  - src/components/ActivityDetailModal.vue
-  - src/components/AvailabilityPickerModal.vue
+  - src/components/DateEventsModal.vue
   - src/components/EventPage.vue
 tests:
-  - src/__tests__/ActivityDetailModal.test.js
-  - src/__tests__/AvailabilityPickerModal.test.js
+  - src/__tests__/DateEventsModal.test.js
   - src/__tests__/EventPage.test.js
 -->
 
-
 <!-- @trace
-source: deadline-model-redesign
-updated: 2026-07-12
+source: unify-danger-warning-colors
+updated: 2026-07-19
 code:
-  - src/components/ActivityDetailModal.vue
-  - src/components/AvailabilityPickerModal.vue
+  - src/assets/main.css
   - src/components/EventPage.vue
-  - src/components/UrgentStartWarning.vue
+  - src/components/ReportCutoffReminder.vue
+  - src/components/AvailabilityPickerModal.vue
+  - src/components/ProfileEditPage.vue
+  - src/components/LoginView.vue
+  - src/components/RegisterViews.vue
+  - src/components/FriendAddModal.vue
+  - src/components/FriendsPage.vue
+  - src/components/AlertsPage.vue
+  - src/components/ActivityView.vue
+  - src/components/CalendarMain.vue
+  - src/components/ActivityDetailModal.vue
+  - src/components/ui/PixelButton.vue
 tests:
   - src/__tests__/AvailabilityPickerModal.test.js
-  - src/__tests__/EventPage.test.js
-  - src/__tests__/ActivityDetailModal.test.js
 -->
 
 ---
 ### Requirement: Two persistent deadline lines replace the mutually-exclusive adjust-row/warning-banner
 
-The create-activity form SHALL display two persistent lines below the schedule fields, both visible at all times regardless of urgency: a first line showing the report cutoff (`vote_deadline_at`, user-adjustable via the preset editor) and a second line showing the schedule ceiling (`deadline_at`, fixed, not user-adjustable). Each line SHALL independently switch to a warning visual style when its own displayed time is within 30 minutes of the current time. The form SHALL NOT hide either line based on urgency, and SHALL NOT use a separate warning banner component for this purpose.
+The create-activity form SHALL display a single persistent line, rendered directly below the schedule fields of whichever of the four scenarios (fixed date/fixed time, fixed date/voted time, voted dates/fixed time, voted dates/voted time) is currently active, showing the report cutoff (`vote_deadline_at`, user-adjustable via the preset editor). Because the four scenarios are mutually exclusive, exactly one copy of this line SHALL be visible at any time. This line SHALL switch to a warning visual style when the report-cutoff time is within 30 minutes of the current time, or when the default preset algorithm has degraded to no report buffer (no preset yields at least 30 minutes of lead time). The form SHALL NOT display a separate persistent line for the schedule ceiling (`deadline_at`); the schedule ceiling's proximity to the current time is surfaced only through the confirmation modal described in "Confirmation gate for near-zero decision buffer", not through a persistent line. This replaces the prior two-line layout (report cutoff plus a separate schedule-ceiling line) and the prior fixed bottom-of-form position.
 
-#### Scenario: Both lines show normal styling when neither is near-term
+#### Scenario: Line appears below the active scenario's own schedule fields, not at a fixed bottom position
 
-- **WHEN** both the report cutoff and the schedule ceiling are more than 30 minutes ahead of the current time
-- **THEN** both persistent lines SHALL render in their normal (non-warning) visual style
+- **WHEN** the create-activity form is showing any one of the four scenarios
+- **THEN** the persistent report-cutoff line SHALL render directly after that scenario's own date/time selection fields, not at a shared location independent of scenario
 
-#### Scenario: Only the report-cutoff line shows warning styling
+##### Example: line follows the active scenario
 
-- **WHEN** the report cutoff is within 30 minutes of the current time but the schedule ceiling is not
-- **THEN** the first line SHALL switch to its warning visual style and the second line SHALL remain in its normal style
+- **GIVEN** the user switches from scenario A (fixed date/fixed time) to scenario C (voted dates/fixed time)
+- **WHEN** the form re-renders for scenario C
+- **THEN** the persistent line SHALL appear below scenario C's candidate-date/uniform-time fields, not below scenario A's fields, and no second copy SHALL remain visible
 
-#### Scenario: Only the schedule-ceiling line shows warning styling
+#### Scenario: Line shows normal styling when the report cutoff is not near-term
 
-- **WHEN** the schedule ceiling is within 30 minutes of the current time but the report cutoff is not (this can occur only when the user has manually widened the report-cutoff gap toward the ceiling)
-- **THEN** the second line SHALL switch to its warning visual style and the first line SHALL remain in its normal style
+- **WHEN** the report cutoff is more than 30 minutes ahead of the current time and the default algorithm found a safe preset
+- **THEN** the persistent line SHALL render in its normal (non-warning) visual style
 
-#### Scenario: Report-cutoff line text
+#### Scenario: Line shows warning styling when the report cutoff is near-term or no safe preset exists
+
+- **WHEN** the report cutoff is within 30 minutes of the current time, or the default algorithm degraded to no report buffer
+- **THEN** the persistent line SHALL switch to its warning visual style
+
+#### Scenario: Report-cutoff line normal text
 
 - **WHEN** the report cutoff is not within 30 minutes of the current time
-- **THEN** the first line SHALL read "報名開放到 {報名截止時間}（{偏移量} 截止）"
+- **THEN** the line SHALL read "報名開放到 {報名截止時間}（{偏移量} 截止）"
 
 #### Scenario: Report-cutoff line warning text
 
-- **WHEN** the report cutoff is within 30 minutes of the current time
-- **THEN** the first line SHALL read "報名開放到 {報名截止時間}——活動快開始了，已經沒有緩衝時間"
-
-#### Scenario: Schedule-ceiling line text
-
-- **WHEN** the schedule ceiling is not within 30 minutes of the current time
-- **THEN** the second line SHALL read "最晚 {決策硬截止時間} 要手動確認成團，不然活動會自動取消"
-
-#### Scenario: Schedule-ceiling line warning text
-
-- **WHEN** the schedule ceiling is within 30 minutes of the current time
-- **THEN** the second line SHALL read "只剩 {N} 分鐘了，記得手動確認成團，不然活動會被自動取消喔"
+- **WHEN** the report cutoff is within 30 minutes of the current time, or no safe preset was found
+- **THEN** the line SHALL read "距離報名截止僅剩 {X} 分鐘！", where {X} is the number of minutes from now until the report-cutoff time
 
 
 <!-- @trace
-source: deadline-model-redesign
-updated: 2026-07-12
+source: redesign-activity-deadline-reminder
+updated: 2026-07-17
 code:
-  - src/components/ActivityDetailModal.vue
-  - src/components/AvailabilityPickerModal.vue
   - src/components/EventPage.vue
-  - src/components/UrgentStartWarning.vue
-tests:
-  - src/__tests__/AvailabilityPickerModal.test.js
-  - src/__tests__/EventPage.test.js
-  - src/__tests__/ActivityDetailModal.test.js
 -->
 
 ---
@@ -241,46 +238,6 @@ tests:
 -->
 
 ---
-### Requirement: Third line for near-term candidate date reminder in scenario C and D
-
-For scenario C (`find_date`) and scenario D (`find_date_time`) only, the create-activity form SHALL render a third, informational-styled (not warning-styled) line below the two persistent deadline lines whenever any of the user's currently selected candidate dates is within 1 hour of the current time. Scenario A and scenario B SHALL NOT render this third line under any condition. This line SHALL use the same reminder copy for both scenario C and scenario D.
-
-#### Scenario: Third line appears when a near-term candidate date is selected in scenario C
-
-- **WHEN** the form is in scenario C and at least one selected candidate date is within 1 hour of the current time
-- **THEN** the third line SHALL render with the near-term candidate reminder text
-
-#### Scenario: Third line appears when a near-term candidate slot is configured in scenario D
-
-- **WHEN** the form is in scenario D and at least one configured candidate slot's date is within 1 hour of the current time
-- **THEN** the third line SHALL render with the same reminder text used for scenario C
-
-#### Scenario: Third line does not appear for scenario A or B
-
-- **WHEN** the form is in scenario A or scenario B, regardless of how near the schedule anchor is
-- **THEN** the third line SHALL NOT render (scenario A and B only ever show the two persistent deadline lines)
-
-#### Scenario: Third line does not appear when no candidate date is near-term
-
-- **WHEN** the form is in scenario C or D and none of the selected candidate dates is within 1 hour of the current time
-- **THEN** the third line SHALL NOT render
-
-
-<!-- @trace
-source: deadline-model-redesign
-updated: 2026-07-12
-code:
-  - src/components/ActivityDetailModal.vue
-  - src/components/AvailabilityPickerModal.vue
-  - src/components/EventPage.vue
-  - src/components/UrgentStartWarning.vue
-tests:
-  - src/__tests__/AvailabilityPickerModal.test.js
-  - src/__tests__/EventPage.test.js
-  - src/__tests__/ActivityDetailModal.test.js
--->
-
----
 ### Requirement: Confirmation gate for near-zero decision buffer
 
 The create-activity form SHALL intercept submission with a confirmation modal only when the schedule ceiling (`deadline_at`) itself is within 30 minutes of the current time — i.e. when even the no-report-buffer fallback from the default algorithm cannot provide 30 minutes of lead time. This replaces the prior condition of intercepting whenever the schedule anchor was within 1 hour of the current time.
@@ -288,7 +245,7 @@ The create-activity form SHALL intercept submission with a confirmation modal on
 #### Scenario: Confirmation modal appears only at the extreme edge
 
 - **WHEN** the user submits the form and the schedule ceiling is within 30 minutes of the current time
-- **THEN** the form SHALL show a confirmation modal reading "活動即將開始，這次建立將不會有任何報名緩衝時間，送出後請立即到活動頁面手動確認成團" and SHALL only submit after the user confirms
+- **THEN** the form SHALL show a confirmation modal reading two lines — "距離活動開始只剩 {X} 分鐘" followed by "確定要建立活動嗎？", where {X} is the number of minutes from now until the schedule ceiling — and SHALL only submit after the user confirms
 
 #### Scenario: Submission proceeds without a confirmation modal outside the extreme edge
 
@@ -297,17 +254,10 @@ The create-activity form SHALL intercept submission with a confirmation modal on
 
 
 <!-- @trace
-source: deadline-model-redesign
-updated: 2026-07-12
+source: redesign-activity-deadline-reminder
+updated: 2026-07-17
 code:
-  - src/components/ActivityDetailModal.vue
-  - src/components/AvailabilityPickerModal.vue
   - src/components/EventPage.vue
-  - src/components/UrgentStartWarning.vue
-tests:
-  - src/__tests__/AvailabilityPickerModal.test.js
-  - src/__tests__/EventPage.test.js
-  - src/__tests__/ActivityDetailModal.test.js
 -->
 
 ---
