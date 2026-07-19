@@ -20,8 +20,8 @@ function getBrowserStorage() {
 
 // 桌機版側邊欄與手機版底部導覽列同時存在於 DOM，只有其中一個透過 CSS 顯示；
 // 用 offsetParent 找出目前實際可見的那個，driver.js 才能正確定位框選範圍。
-function resolveTourElement(key) {
-  const candidates = document.querySelectorAll(`[data-tour="nav-${key}"]`)
+function resolveTourElement(selector) {
+  const candidates = document.querySelectorAll(`[data-tour="${selector}"]`)
   for (const el of candidates) {
     if (el.offsetParent !== null) return el
   }
@@ -30,35 +30,43 @@ function resolveTourElement(key) {
 
 const TOUR_STEPS = [
   {
-    key: 'calendar',
+    selector: 'nav-calendar',
     popover: {
       title: '行事曆',
       description: '在這裡查看所有揪團跟活動的時間安排，一眼掌握你的行程。',
     },
   },
   {
-    key: 'activity',
+    selector: 'calendar-today-cell',
+    popover: {
+      title: '只顯示已成團的活動',
+      description:
+        '行事曆只顯示已成團的活動——招募中／投票中的活動即使有候選日期，也不會出現在月曆上，必須由建立者手動確認成團。',
+    },
+  },
+  {
+    selector: 'nav-activity',
     popover: {
       title: '活動',
       description: '瀏覽你發起或參加的活動列表，掌握每個活動的最新狀態。',
     },
   },
   {
-    key: 'friends',
+    selector: 'nav-friends',
     popover: {
       title: '朋友',
       description: '管理好友名單、傳送邀請，找到一起揪團的夥伴。',
     },
   },
   {
-    key: 'alerts',
+    selector: 'nav-alerts',
     popover: {
       title: '通知',
       description: '揪團邀請、活動更新都會出現在這裡，別錯過重要訊息。',
     },
   },
   {
-    key: 'profile',
+    selector: 'nav-profile',
     popover: {
       title: '個人設定',
       description: '編輯顯示名稱、大頭貼，還可以連動 LINE 通知。',
@@ -67,8 +75,8 @@ const TOUR_STEPS = [
 ]
 
 function buildDriveSteps() {
-  return TOUR_STEPS.map(({ key, popover }) => ({
-    element: () => resolveTourElement(key),
+  return TOUR_STEPS.map(({ selector, popover }) => ({
+    element: () => resolveTourElement(selector),
     popover,
     skipMissingElement: true,
   }))

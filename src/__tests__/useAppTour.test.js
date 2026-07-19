@@ -82,9 +82,12 @@ describe('useAppTour', () => {
         el.setAttribute('data-tour', `nav-${key}`)
         document.body.appendChild(el)
       })
+      const todayCell = document.createElement('div')
+      todayCell.setAttribute('data-tour', 'calendar-today-cell')
+      document.body.appendChild(todayCell)
     })
 
-    test('五大區塊都有對應錨點時可以正常啟動導覽', () => {
+    test('五大區塊與行事曆成團說明都有對應錨點時可以正常啟動導覽', () => {
       const tour = useAppTour(ref('user-123'), { storage: createStorage() })
 
       expect(() => tour.startTour()).not.toThrow()
