@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, test } from 'vitest'
 import App from '@/App.vue'
+import appSource from '@/App.vue?raw'
 import { useAuthStore } from '@/stores/auth'
 
 const user = {
@@ -63,6 +64,16 @@ async function mountApp({ path = '/calendar', currentUser = user, initialized = 
 beforeEach(() => {
   localStorage.clear()
   sessionStorage.clear()
+})
+
+describe('App mobile viewport layout', () => {
+  test('App 外框使用動態視窗高度並保留舊瀏覽器 fallback', async () => {
+    const { wrapper } = await mountApp()
+
+    expect(wrapper.get('.app-shell').exists()).toBe(true)
+    expect(appSource).toContain('height: 100vh;')
+    expect(appSource).toContain('height: 100dvh;')
+  })
 })
 
 describe('App LINE notification onboarding', () => {

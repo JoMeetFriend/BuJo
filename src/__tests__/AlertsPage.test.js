@@ -502,6 +502,14 @@ describe('AlertsPage initial load animation', () => {
 })
 
 describe('AlertsPage read state visuals', () => {
+  test('通知清單尾端提供可計入捲動高度的底部導覽列留白', async () => {
+    const wrapper = await mountAlerts()
+    await flushPromises()
+
+    expect(wrapper.get('.alerts-bottom-spacer').attributes('aria-hidden')).toBe('true')
+    expect(alertsPageSource).toContain('height: calc(5rem + env(safe-area-inset-bottom, 0px));')
+  })
+
   test('未讀與已讀通知使用不同狀態且只有未讀列顯示方形提示點', async () => {
     api.get.mockResolvedValueOnce({
       data: { notifications: [notifications[0], secondNotification] },
