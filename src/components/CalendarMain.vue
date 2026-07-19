@@ -109,7 +109,11 @@
             </button>
 
             <!-- 揪一團按鈕 -->
-            <PixelButton class="calendar-create-button" @click="openEventModal">
+            <PixelButton
+              class="calendar-create-button"
+              data-tour="calendar-create-button"
+              @click="openEventModal"
+            >
               <span class="calendar-create-plus">＋</span
               ><span class="hidden md:inline">CREATE</span>
             </PixelButton>

@@ -52,6 +52,14 @@ const TOUR_STEPS = [
     },
   },
   {
+    selector: 'calendar-create-button',
+    popover: {
+      title: '新增活動',
+      description:
+        '點這裡新增活動。<br>點行事曆格子新增活動會自動帶入日期。<br>活動頁也有一樣的入口可以新增活動。',
+    },
+  },
+  {
     selector: 'nav-friends',
     popover: {
       title: '朋友',
