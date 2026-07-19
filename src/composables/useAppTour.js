@@ -72,7 +72,7 @@ const TOUR_STEPS = [
     selector: 'nav-alerts',
     popover: {
       title: '通知',
-      description: '揪團邀請、活動更新都會出現在這裡，別錯過重要訊息。',
+      description: '加好友、揪團邀請、活動更新都會出現在這裡，別錯過重要訊息。',
     },
   },
   {
