@@ -340,7 +340,7 @@
                     v-if="row.timeField === 'startTime' && timeError"
                     class="mt-1 flex items-center gap-1 text-xs text-[var(--bujo-danger)]"
                   >
-                    <span>⚠</span> {{ timeError }}
+                    <ExclamationTriangleIcon class="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {{ timeError }}
                   </p>
 
                   <div
@@ -541,7 +541,7 @@
               </div>
 
               <p v-if="timeError" class="flex items-center gap-1 text-xs text-[var(--bujo-danger)]">
-                <span>⚠</span> {{ timeError }}
+                <ExclamationTriangleIcon class="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {{ timeError }}
               </p>
             </div>
 

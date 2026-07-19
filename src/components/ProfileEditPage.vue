@@ -207,7 +207,7 @@
         <!-- 帳號密碼 -->
         <div class="profile-identity-row">
           <div class="flex items-center gap-3">
-            <span class="text-lg">✉</span>
+            <EnvelopeIcon class="h-5 w-5" aria-hidden="true" />
             <div>
               <p class="text-sm font-semibold">帳號密碼</p>
               <p class="text-xs text-[var(--bujo-muted-strong)]">{{ localEmail || '未設定' }}</p>
@@ -344,7 +344,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
+import { ClipboardDocumentIcon, EnvelopeIcon } from '@heroicons/vue/24/outline'
 import PixelButton from './ui/PixelButton.vue'
 import LineOfficialAccountEntry from './LineOfficialAccountEntry.vue'
 import { useAuthStore } from '@/stores/auth'

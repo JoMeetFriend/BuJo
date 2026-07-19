@@ -22,7 +22,7 @@
             <div
               class="flex items-center gap-2 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 transition-[border-color,box-shadow] duration-150 focus-within:border-[var(--bujo-accent)] focus-within:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
             >
-              <span class="text-[var(--bujo-muted-strong)]">✉</span>
+              <EnvelopeIcon class="h-4 w-4 text-[var(--bujo-muted-strong)]" aria-hidden="true" />
               <input
                 v-model="form.email"
                 type="email"
@@ -167,7 +167,7 @@
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
+import { EyeIcon, EyeSlashIcon, EnvelopeIcon } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import bujoLogoUrl from '@/assets/bujo-logo-auth.svg'
 

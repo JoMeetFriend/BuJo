@@ -269,7 +269,7 @@
           v-if="confirmError"
           class="mt-1 flex items-start gap-2 border border-[var(--bujo-danger)] bg-[var(--bujo-surface)] px-2 py-1.5 text-[11px] text-[var(--bujo-danger)]"
         >
-          ⚠️ {{ confirmError }}
+          <ExclamationTriangleIcon class="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {{ confirmError }}
         </div>
       </div>
     </div>
@@ -282,6 +282,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import PixelButton from './ui/PixelButton.vue'
 import BaseModal from './ui/BaseModal.vue'
 import { formatHourAsTimeString } from '@/utils/timeFormat'
