@@ -3,7 +3,7 @@
     <p
       class="flex items-center gap-1 text-xs leading-5"
       :class="
-        isWarning ? 'font-semibold text-[var(--bujo-notification)]' : 'text-[var(--bujo-muted)]'
+        isWarning ? 'font-semibold text-[var(--bujo-warning)]' : 'text-[var(--bujo-muted)]'
       "
     >
       <template v-if="isWarning">

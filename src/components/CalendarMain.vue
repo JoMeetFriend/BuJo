@@ -852,7 +852,7 @@ function isToday(date) {
   position: relative;
   z-index: 8;
   margin: 0 0 8px;
-  color: #dc2626;
+  color: var(--bujo-danger);
   font-family: var(--bujo-font-meta);
   font-size: 12px;
   font-weight: 700;

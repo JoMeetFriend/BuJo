@@ -17,7 +17,7 @@
     <!-- 內容區 -->
     <div class="flex flex-col gap-4 px-5 pt-2 pb-4 md:px-14 md:py-4">
       <div v-if="isLoading" class="text-sm text-[var(--bujo-muted-strong)]">資料讀取中...</div>
-      <div v-else-if="error" class="text-sm text-[#dc2626]">發生錯誤：{{ error }}</div>
+      <div v-else-if="error" class="text-sm text-[var(--bujo-danger)]">發生錯誤：{{ error }}</div>
 
       <div v-else>
         <div v-if="friends?.length === 0" class="friends-empty">目前還沒有好友喔！</div>
@@ -261,7 +261,7 @@ onMounted(() => {
 }
 
 .friend-stamp-delete-btn:hover .hover-cross {
-  color: #dc2626;
+  color: var(--bujo-danger);
 }
 
 .friend-stamp-avatar {

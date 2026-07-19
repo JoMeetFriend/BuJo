@@ -69,7 +69,7 @@
           <!-- 錯誤訊息 -->
           <p
             v-if="errorMsg"
-            class="text-xs border border-[#dc2626] bg-[var(--bujo-surface)] text-[#dc2626] px-3 py-2"
+            class="text-xs border border-[var(--bujo-danger)] bg-[var(--bujo-surface)] text-[var(--bujo-danger)] px-3 py-2"
           >
             {{ errorMsg }}
           </p>

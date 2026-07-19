@@ -1570,7 +1570,7 @@ function formatTime(date) {
 
 .activity-detail-state--error,
 .activity-detail-error {
-  color: #dc2626;
+  color: var(--bujo-danger);
 }
 
 .activity-detail-creator,

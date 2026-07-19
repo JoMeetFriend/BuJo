@@ -199,7 +199,7 @@
                   </div>
                   <button
                     @click="removeRange(i)"
-                    class="w-6 h-6 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-[var(--bujo-muted-strong)] text-[11px] font-bold flex items-center justify-center shrink-0 transition-colors duration-150 hover:border-[#dc2626] hover:text-[#dc2626]"
+                    class="w-6 h-6 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-[var(--bujo-muted-strong)] text-[11px] font-bold flex items-center justify-center shrink-0 transition-colors duration-150 hover:border-[var(--bujo-danger)] hover:text-[var(--bujo-danger)]"
                   >
                     ✕
                   </button>
@@ -247,11 +247,11 @@
               @click="activeDate = item.date"
               class="text-[10px] md:text-[12px] font-bold px-2 py-0.5 border transition-colors duration-150"
               :class="[
-                problemDates.has(item.date) ? 'ring-1 ring-[#dc2626] ring-inset' : '',
+                problemDates.has(item.date) ? 'ring-1 ring-[var(--bujo-danger)] ring-inset' : '',
                 !dateOnly && activeDate === item.date
                   ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)] border-[var(--bujo-ink)]'
                   : problemDates.has(item.date)
-                    ? 'bg-[var(--bujo-surface)] text-[#dc2626] border-[#dc2626] hover:border-[#dc2626]'
+                    ? 'bg-[var(--bujo-surface)] text-[var(--bujo-danger)] border-[var(--bujo-danger)] hover:border-[var(--bujo-danger)]'
                     : 'bg-[var(--bujo-surface)] text-[var(--bujo-ink)] border-[var(--bujo-line)] hover:border-[var(--bujo-ink)]',
               ]"
             >
@@ -267,7 +267,7 @@
         </div>
         <div
           v-if="confirmError"
-          class="mt-1 flex items-start gap-2 border border-[#dc2626] bg-[var(--bujo-surface)] px-2 py-1.5 text-[11px] text-[#dc2626]"
+          class="mt-1 flex items-start gap-2 border border-[var(--bujo-danger)] bg-[var(--bujo-surface)] px-2 py-1.5 text-[11px] text-[var(--bujo-danger)]"
         >
           ⚠️ {{ confirmError }}
         </div>
