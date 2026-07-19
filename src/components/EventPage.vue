@@ -13,8 +13,13 @@
             :class="inputClass"
             type="text"
             required
+            :maxlength="ACTIVITY_TITLE_MAX_LENGTH"
+            aria-describedby="event-name-hint"
             :placeholder="t('event.namePlaceholder')"
           />
+          <span id="event-name-hint" class="text-xs font-medium text-[var(--bujo-muted-strong)]">
+            最多 {{ ACTIVITY_TITLE_MAX_LENGTH }} 字
+          </span>
         </label>
 
         <div class="grid grid-cols-2 gap-5 max-sm:gap-2">
@@ -125,7 +130,7 @@
               >
                 {{ t('event.searching') }}
               </p>
-              <p v-else-if="addressError" class="px-3 py-2 text-sm text-[#dc2626]">
+              <p v-else-if="addressError" class="px-3 py-2 text-sm text-[var(--bujo-danger)]">
                 {{ addressError }}
               </p>
               <p
@@ -328,7 +333,9 @@
                     :class="[
                       pickerButtonClass,
                       'w-full',
-                      row.timeField === 'startTime' && timeError ? 'border-[#dc2626]' : '',
+                      row.timeField === 'startTime' && timeError
+                        ? 'border-[var(--bujo-danger)]'
+                        : '',
                     ]"
                     type="button"
                     :data-time-field="row.timeField"
@@ -340,9 +347,10 @@
                   </button>
                   <p
                     v-if="row.timeField === 'startTime' && timeError"
-                    class="mt-1 flex items-center gap-1 text-xs text-[#dc2626]"
+                    class="mt-1 flex items-center gap-1 text-xs text-[var(--bujo-danger)]"
                   >
-                    <span>⚠</span> {{ timeError }}
+                    <ExclamationTriangleIcon class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    {{ timeError }}
                   </p>
 
                   <div
@@ -372,6 +380,19 @@
                 </span>
               </div>
             </div>
+
+            <ReportCutoffReminder
+              v-if="scheduleCeilingDate"
+              :is-warning="isReportCutoffWarning"
+              :remaining-minutes="minutesUntilVoteDeadline"
+              :time-label="reportCutoffTimeLabel"
+              :offset-parts="reportCutoffOffsetParts"
+              :show-editor="showDeadlineEditor"
+              :presets="DEADLINE_PRESETS"
+              :selected-preset-key="selectedDeadlinePresetKey"
+              @toggle-editor="toggleDeadlineEditor"
+              @select-preset="selectedDeadlinePresetKey = $event"
+            />
           </div>
 
           <div
@@ -531,10 +552,24 @@
                 </span>
               </div>
 
-              <p v-if="timeError" class="flex items-center gap-1 text-xs text-[#dc2626]">
-                <span>⚠</span> {{ timeError }}
+              <p v-if="timeError" class="flex items-center gap-1 text-xs text-[var(--bujo-danger)]">
+                <ExclamationTriangleIcon class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                {{ timeError }}
               </p>
             </div>
+
+            <ReportCutoffReminder
+              v-if="scheduleCeilingDate"
+              :is-warning="isReportCutoffWarning"
+              :remaining-minutes="minutesUntilVoteDeadline"
+              :time-label="reportCutoffTimeLabel"
+              :offset-parts="reportCutoffOffsetParts"
+              :show-editor="showDeadlineEditor"
+              :presets="DEADLINE_PRESETS"
+              :selected-preset-key="selectedDeadlinePresetKey"
+              @toggle-editor="toggleDeadlineEditor"
+              @select-preset="selectedDeadlinePresetKey = $event"
+            />
           </div>
 
           <div
@@ -696,6 +731,19 @@
                 </div>
               </template>
             </div>
+
+            <ReportCutoffReminder
+              v-if="scheduleCeilingDate"
+              :is-warning="isReportCutoffWarning"
+              :remaining-minutes="minutesUntilVoteDeadline"
+              :time-label="reportCutoffTimeLabel"
+              :offset-parts="reportCutoffOffsetParts"
+              :show-editor="showDeadlineEditor"
+              :presets="DEADLINE_PRESETS"
+              :selected-preset-key="selectedDeadlinePresetKey"
+              @toggle-editor="toggleDeadlineEditor"
+              @select-preset="selectedDeadlinePresetKey = $event"
+            />
           </div>
 
           <div
@@ -768,7 +816,7 @@
                 >
                 <button
                   type="button"
-                  class="text-xs text-[var(--bujo-muted-strong)] hover:text-[#dc2626]"
+                  class="text-xs text-[var(--bujo-muted-strong)] hover:text-[var(--bujo-danger)]"
                   @click.stop="removeCandidateSlot(editingSlot.date)"
                 >
                   {{ t('event.removeCandidateDate') }}
@@ -879,6 +927,19 @@
                 </span>
               </div>
             </div>
+
+            <ReportCutoffReminder
+              v-if="scheduleCeilingDate"
+              :is-warning="isReportCutoffWarning"
+              :remaining-minutes="minutesUntilVoteDeadline"
+              :time-label="reportCutoffTimeLabel"
+              :offset-parts="reportCutoffOffsetParts"
+              :show-editor="showDeadlineEditor"
+              :presets="DEADLINE_PRESETS"
+              :selected-preset-key="selectedDeadlinePresetKey"
+              @toggle-editor="toggleDeadlineEditor"
+              @select-preset="selectedDeadlinePresetKey = $event"
+            />
           </div>
         </div>
 
@@ -891,75 +952,13 @@
             rows="5"
             :placeholder="t('event.notePlaceholder')"
           ></textarea>
-
-          <!-- 截止時間常駐顯示：兩行永遠都在，各自獨立判斷是否套用警示樣式，不再跟緊急狀態互斥 -->
-          <div
-            class="flex flex-col gap-1.5 border-t border-dashed border-[var(--bujo-line-soft)] pt-2"
-          >
-            <p
-              class="text-xs leading-5"
-              :class="
-                isReportCutoffWarning ? 'font-semibold text-[#dc2626]' : 'text-[var(--bujo-muted)]'
-              "
-            >
-              <template v-if="isReportCutoffWarning">{{ reportCutoffWarningText }}</template>
-              <template v-else
-                >{{ t('event.signupOpenUntil') }}
-                <strong class="text-[var(--bujo-muted-strong)]">{{ reportCutoffTimeLabel }}</strong>
-                （<button type="button" class="-mx-1 -my-1 px-1 py-1" @click="toggleDeadlineEditor">
-                  <span
-                    class="text-[var(--bujo-accent)] underline decoration-dotted underline-offset-2"
-                    >{{ reportCutoffOffsetParts.number }}</span
-                  >{{ reportCutoffOffsetParts.unit }}</button
-                >{{ t('event.deadlineSuffix') }}</template
-              >
-            </p>
-
-            <p
-              class="text-[11px] leading-5"
-              :class="
-                isScheduleCeilingWarning
-                  ? 'font-semibold text-[#dc2626]'
-                  : 'text-[var(--bujo-muted)]'
-              "
-            >
-              {{ scheduleCeilingLineText }}
-            </p>
-
-            <p
-              v-if="candidateDateReminderText"
-              class="text-[11px] leading-5 text-[var(--bujo-accent)]"
-            >
-              {{ candidateDateReminderText }}
-            </p>
-
-            <!-- 流團編輯器 -->
-            <div
-              v-if="showDeadlineEditor"
-              class="flex flex-wrap items-center gap-2 border border-dashed border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-3 py-2"
-            >
-              <button
-                v-for="preset in DEADLINE_PRESETS"
-                :key="preset.key"
-                type="button"
-                class="h-8 rounded-none border px-2 text-xs transition-colors"
-                :class="
-                  selectedDeadlinePresetKey === preset.key
-                    ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
-                    : 'border-[var(--bujo-line)] bg-white text-[var(--bujo-ink)] hover:border-[var(--bujo-ink)]'
-                "
-                @click="selectedDeadlinePresetKey = preset.key"
-              >
-                {{ preset.label }}
-              </button>
-            </div>
-          </div>
         </label>
         <div
           v-if="submitError"
-          class="col-span-full flex items-start gap-2 border border-[#dc2626] bg-[var(--bujo-surface)] px-3 py-2 text-xs text-[#dc2626]"
+          class="col-span-full flex items-start gap-2 border border-[var(--bujo-danger)] bg-[var(--bujo-surface)] px-3 py-2 text-xs text-[var(--bujo-danger)]"
         >
-          ⚠️ {{ submitError }}
+          <ExclamationTriangleIcon class="h-3.5 w-3.5 shrink-0 mt-0.5" aria-hidden="true" />
+          {{ submitError }}
         </div>
       </form>
     </template>
@@ -983,8 +982,9 @@
     <template #default>
       <div class="grid gap-3 py-2 text-center">
         <p class="text-sm leading-6 text-[var(--bujo-ink)]">
-          {{ t('event.urgentConfirmDesc') }}
+          距離活動開始只剩 {{ minutesUntilCeiling }} 分鐘
         </p>
+        <p class="text-sm leading-6 text-[var(--bujo-ink)]">確定要建立活動嗎？</p>
       </div>
     </template>
     <template #footer>
@@ -1015,9 +1015,17 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
+import ReportCutoffReminder from './ReportCutoffReminder.vue'
 import partyDanceUrl from '@/assets/party-dance.png'
+import {
+  createTimeOptions,
+  formatHourAsTimeString,
+  parseDateTimeValue,
+  parseHourFromTimeStr,
+} from '@/utils/timeFormat'
 import { useAddressSearch } from '@/composables/useAddressSearch'
 
 const props = defineProps({
@@ -1031,9 +1039,6 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-function periodLabel(hour) {
-  return hour < 12 ? t('common.am') : t('common.pm')
-}
 const isRouteComponent = computed(() => route.name === 'event-new')
 const modalOpen = computed(() => (isRouteComponent.value ? true : props.isOpen))
 
@@ -1069,6 +1074,7 @@ const scheduleRows = computed(() => [
 ])
 
 const today = formatDateValue(new Date())
+const ACTIVITY_TITLE_MAX_LENGTH = 15
 
 const {
   searchResults: addressResults,
@@ -1208,9 +1214,10 @@ watch(
   () => props.isOpen,
   (open) => {
     if (!open || !props.initialDate) return
+    const dateValue = props.initialDate.replaceAll('-', '/')
+    if (dateValue < today) return // 過去日期不套用，維持表單預設（今天）
     dateMode.value = 'fixed'
     timeMode.value = 'fixed'
-    const dateValue = props.initialDate.replaceAll('-', '/')
     form.startDate = dateValue
     form.endDate = dateValue
     form.singleDate = dateValue
@@ -1478,22 +1485,7 @@ const weekdays = computed(() => [
   t('common.fri'),
   t('common.sat'),
 ])
-const timeOptions = computed(() =>
-  Array.from({ length: 24 }, (_, hour) => {
-    const displayHour = String(hour % 12 || 12)
-    return `${periodLabel(hour)} ${displayHour}:00`
-  }),
-)
-
-function parseHourFromTimeStr(timeStr) {
-  const match = timeStr?.match(/^(上午|下午|AM|PM)\s+(\d+):(\d+)$/)
-  if (!match) return -1
-  let hour = Number(match[2])
-  const period = match[1]
-  if ((period === '下午' || period === 'PM') && hour !== 12) hour += 12
-  if ((period === '上午' || period === 'AM') && hour === 12) hour = 0
-  return hour
-}
+const timeOptions = computed(() => createTimeOptions())
 
 // 同一天內比較：結束時間是否晚於開始時間（時段選項只到整點，比小時即可）
 function isEndAfterStart(startTime, endTime) {
@@ -1601,10 +1593,7 @@ const scheduleAnchor = computed(() => {
     // 整日時沒有確切時間，後端把整日候選時段的 deadline_at 算成當天 00:00（slot_start）——
     // 這裡要餵同樣的 00:00 錨點，不能留 null 退回 resolveDeadlineAnchor 的 23:59:59 預設值，
     // 不然前端算出的報名截止時間預設會晚於後端實際天花板，送出時被誤擋
-    return {
-      date: latestDate,
-      time: uniformTime.allDay ? `${periodLabel(0)} 12:00` : uniformTime.startTime,
-    }
+    return { date: latestDate, time: uniformTime.allDay ? '00:00' : uniformTime.startTime }
   }
   if (dateMode.value === 'range' && timeMode.value === 'vote') {
     const sorted = [...configuredSlots.value].sort((a, b) =>
@@ -1616,10 +1605,10 @@ const scheduleAnchor = computed(() => {
     return { date: latest?.date ?? null, time: latest?.startTime ?? null }
   }
   // 情境一整日同理：跟情境三整日一樣，餵 00:00 錨點對齊後端 buildFixedSlot 的 slot_start
-  return { date: form.startDate, time: form.allDay ? `${periodLabel(0)} 12:00` : form.startTime }
+  return { date: form.startDate, time: form.allDay ? '00:00' : form.startTime }
 })
 
-// 決策硬截止時間本身（天花板解析成實際 Date；沒有設定時間時退回當天 23:59:59，見 resolveDeadlineAnchor）
+// 決策硬截止時間本身（天花板解析成實際 Date；日期或時間還沒選完整時是 null，見 resolveDeadlineAnchor）
 const scheduleCeilingDate = computed(() =>
   resolveDeadlineAnchor(scheduleAnchor.value.date, scheduleAnchor.value.time),
 )
@@ -1661,10 +1650,14 @@ function withinSafetyBuffer(date) {
 
 // 第一行（報名截止時間）的警示判斷：本身貼近現在，或演算法已經降級到無報名緩衝——無報名緩衝
 // 時報名截止時間雖然等於天花板，但天花板本身可能還有 30~59 分鐘、不會被距今檢查直接抓到，
-// 所以額外用 selectedDeadlinePresetKey === null 撐住，跟設計文件「無報名緩衝一律警示」一致
-const isReportCutoffWarning = computed(
-  () => selectedDeadlinePresetKey.value === null || withinSafetyBuffer(voteDeadlineDate.value),
-)
+// 所以額外用 selectedDeadlinePresetKey === null 撐住，跟設計文件「無報名緩衝一律警示」一致。
+// 先擋 scheduleCeilingDate 不存在的情況（日期/時間都還沒選完）——這時候
+// computeSmartDefaultPresetKey 也會回傳 null，但那是「還沒算」不是「算出來不安全」，
+// 不能誤判成警示狀態
+const isReportCutoffWarning = computed(() => {
+  if (!scheduleCeilingDate.value) return false
+  return selectedDeadlinePresetKey.value === null || withinSafetyBuffer(voteDeadlineDate.value)
+})
 
 // 第二行（決策硬截止時間）的警示判斷，跟報名截止時間各自獨立
 const isScheduleCeilingWarning = computed(() => withinSafetyBuffer(scheduleCeilingDate.value))
@@ -1677,17 +1670,25 @@ const isScheduleCeilingWarning = computed(() => withinSafetyBuffer(scheduleCeili
 // eslint-disable-next-line no-unused-vars
 const isUrgent = computed(() => isReportCutoffWarning.value || isScheduleCeilingWarning.value)
 
-// 距天花板還有幾分鐘（第二行警示文案、二次確認 modal 都要用）
+// 距天花板還有幾分鐘（二次確認 modal 用）
 const minutesUntilCeiling = computed(() => {
   if (!scheduleCeilingDate.value) return 0
   return Math.max(1, Math.ceil((scheduleCeilingDate.value.getTime() - Date.now()) / 60000))
 })
 
+// 距報名截止時間還有幾分鐘（第一行警示文案用）——跟 minutesUntilCeiling 同樣邏輯，
+// 只是基準換成 voteDeadlineDate（報名截止）而不是 scheduleCeilingDate（決策硬截止天花板）
+const minutesUntilVoteDeadline = computed(() => {
+  if (!voteDeadlineDate.value) return 0
+  return Math.max(1, Math.ceil((voteDeadlineDate.value.getTime() - Date.now()) / 60000))
+})
+
+// 報名截止提醒不顯示年份——這個提醒的時間點必然在近期（截止時間不會晚於活動本身），
+// 加年份對這個情境是多餘資訊，跟 formatDateValue（月曆、候選日期等其他地方共用）分開處理
 function formatDateTimeDisplay(date) {
-  const period = periodLabel(date.getHours())
-  const hour = date.getHours() % 12 || 12
+  const hour = String(date.getHours()).padStart(2, '0')
   const minute = String(date.getMinutes()).padStart(2, '0')
-  return `${formatDateValue(date)} ${period} ${hour}:${minute}`
+  return `${date.getMonth() + 1}/${date.getDate()} ${hour}:${minute}`
 }
 
 const reportCutoffTimeLabel = computed(() =>
@@ -1701,40 +1702,6 @@ const reportCutoffOffsetParts = computed(() => {
   if (!preset) return { number: '', unit: '' }
   const match = preset.label.match(/^(\d+)\s*(.+)$/)
   return match ? { number: match[1], unit: match[2] } : { number: '', unit: preset.label }
-})
-
-// 第一行警示狀態文字（無報名緩衝或報名截止時間貼近現在時使用，不顯示偏移量）
-const reportCutoffWarningText = computed(() => {
-  if (!voteDeadlineDate.value) return ''
-  return t('event.deadlineWarning', { time: formatDateTimeDisplay(voteDeadlineDate.value) })
-})
-
-// 第二行文字：決策硬截止時間，固定值，正常/警示狀態各自的文案
-const scheduleCeilingLineText = computed(() => {
-  if (!scheduleCeilingDate.value) return ''
-  if (isScheduleCeilingWarning.value) {
-    return t('event.ceilingWarning', { minutes: minutesUntilCeiling.value })
-  }
-  return t('event.ceilingNormal', { time: formatDateTimeDisplay(scheduleCeilingDate.value) })
-})
-
-// 第三行：情境三／四專屬的候選日提醒，任一已選候選日期距今 ≤1 小時就顯示，純資訊提示，
-// 跟報名截止/決策硬截止的計算完全無關——新模型下天花板已經改錨定最晚候選日，其他候選日
-// 投票確實不受影響，是做得到的事實，不需要再靠這行文字硬撐一個做不到的承諾
-const candidateDateReminderText = computed(() => {
-  const isScenarioC = dateMode.value === 'range' && timeMode.value === 'fixed'
-  const isScenarioD = dateMode.value === 'range' && timeMode.value === 'vote'
-  if (!isScenarioC && !isScenarioD) return ''
-  const entries = isScenarioC
-    ? candidateDates.value.map((date) => ({ date, time: uniformTime.startTime }))
-    : configuredSlots.value.map((slot) => ({ date: slot.date, time: slot.startTime }))
-  const now = Date.now()
-  const nearTerm = entries
-    .map(({ date, time }) => ({ date, start: parseDateTimeValue(date, time) }))
-    .filter((e) => e.start && e.start.getTime() - now > 0 && e.start.getTime() - now <= 60 * 60000)
-    .sort((a, b) => a.start - b.start)
-  if (nearTerm.length === 0) return ''
-  return t('event.candidateDateReminder', { date: shortDate(nearTerm[0].date) })
 })
 
 watch(
@@ -1793,7 +1760,7 @@ watch(
     if (!start) return
     const newEnd = new Date(start.getTime() + 60 * 60 * 1000)
     form.endDate = formatDateValue(newEnd)
-    form.endTime = formatTimeValue(newEnd)
+    form.endTime = formatHourAsTimeString(newEnd.getHours())
   },
 )
 
@@ -1889,6 +1856,16 @@ async function doSubmitInternal() {
   const isScenario2 = dateMode.value === 'fixed' && timeMode.value === 'vote'
   const isScenario3 = dateMode.value === 'range' && timeMode.value === 'fixed'
   const isScenario4 = dateMode.value === 'range' && timeMode.value === 'vote'
+  const trimmedTitle = form.name.trim()
+
+  if (!trimmedTitle) {
+    submitError.value = '活動名稱為必填'
+    return
+  }
+  if (trimmedTitle.length > ACTIVITY_TITLE_MAX_LENGTH) {
+    submitError.value = `活動名稱最多 ${ACTIVITY_TITLE_MAX_LENGTH} 字`
+    return
+  }
 
   if (isScenario2) {
     // 時段範圍從選填改為必填（新截止時間模型下，情境二的決策硬截止天花板錨定在時間窗開始時間，
@@ -1954,7 +1931,7 @@ async function doSubmitInternal() {
   }
 
   const commonPayload = {
-    title: form.name,
+    title: trimmedTitle,
     location: form.location || null,
     limit: limitValue,
     note: form.note || null,
@@ -2119,37 +2096,12 @@ function parseDateValue(value) {
   return date
 }
 
-function formatTimeValue(date) {
-  const period = periodLabel(date.getHours())
-  const hour = date.getHours() % 12 || 12
-  return `${period} ${hour}:00`
-}
-
-function parseDateTimeValue(dateStr, timeStr) {
-  if (!timeStr) return null
-  const date = parseDateValue(dateStr)
-  if (!date) return null
-  const match = timeStr.match(/^(上午|下午|AM|PM)\s+(\d+):(\d+)$/)
-  if (!match) return null
-  let hour = Number(match[2])
-  const minute = Number(match[3])
-  const period = match[1]
-  if ((period === '下午' || period === 'PM') && hour !== 12) hour += 12
-  if ((period === '上午' || period === 'AM') && hour === 12) hour = 0
-  date.setHours(hour, minute, 0, 0)
-  return date
-}
-
-// 沒有指定時間的日期（情境二沒填時段範圍、allDay 等）視為「整天都有可能發生」，
-// 用當天最晚的時間點（23:59:59）當計算基準，而不是當天 00:00——
-// 用 00:00 的話同一天的活動一定會被算成「已經過期」，當天的活動反而永遠不能設定流團時間
+// 四個情境的 scheduleAnchor 現在整日狀態都會餵一個代表 00:00 的時間字串（不再留 null），
+// 所以這裡 time 是 null 只剩一種情況：使用者根本還沒選時間，還沒填完，不是「整日、故意沒有
+// 確切時間」——直接回傳 null（沒有天花板可算），不要再退回當天 23:59:59 那種假值，避免使用者
+// 什麼都還沒選就看到一個算好的報名截止提醒
 function resolveDeadlineAnchor(dateStr, timeStr) {
-  const withTime = parseDateTimeValue(dateStr, timeStr)
-  if (withTime) return withTime
-  const dateOnly = parseDateValue(dateStr)
-  if (!dateOnly) return null
-  dateOnly.setHours(23, 59, 59, 999)
-  return dateOnly
+  return parseDateTimeValue(dateStr, timeStr)
 }
 
 function isSameDate(firstDate, secondDate) {

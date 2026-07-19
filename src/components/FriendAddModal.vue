@@ -20,7 +20,7 @@
       <div class="grid gap-2">
         <p class="m-0 text-xs leading-none text-[var(--bujo-muted-strong)]">
           <span v-if="isSearching">{{ t('friendAdd.searching') }}</span>
-          <span v-else-if="error" class="text-[#dc2626]">{{ error }}</span>
+          <span v-else-if="error" class="text-[var(--bujo-danger)]">{{ error }}</span>
           <span v-else-if="hasSearched && searchResults.length === 0">{{
             t('friendAdd.notFound')
           }}</span>

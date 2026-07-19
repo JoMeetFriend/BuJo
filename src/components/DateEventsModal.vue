@@ -1,6 +1,6 @@
 <template>
   <BaseModal :isOpen="!isModalOpen" :title="formattedDate" @close="emit('close')">
-    <template v-if="events.length" #header-actions>
+    <template v-if="events.length && !isPastDate" #header-actions>
       <button
         type="button"
         class="grid h-7 w-7 place-items-center text-lg leading-none text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:text-[var(--bujo-ink)] active:translate-x-px active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bujo-accent)]"
@@ -54,10 +54,13 @@
 
         <div
           v-else
-          class="flex min-h-[82px] flex-col items-center justify-center gap-2 text-center text-[var(--bujo-muted-strong)]"
+          class="flex min-h-[82px] items-center justify-center gap-2 text-center text-[var(--bujo-muted-strong)]"
         >
-          <p class="font-[plex-sans-tc] text-[15px]">{{ t('dateEvents.noEventsToday') }}</p>
+          <p class="font-[plex-sans-tc] text-[15px]">
+            {{ isPastDate ? t('dateEvents.noEventsPast') : t('dateEvents.noEventsToday') }}
+          </p>
           <button
+            v-if="!isPastDate"
             type="button"
             class="grid h-8 w-8 place-items-center text-lg leading-none text-[var(--bujo-muted-strong)] transition-transform duration-150 hover:scale-125 hover:text-[var(--bujo-ink)] active:translate-x-px active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bujo-accent)]"
             :aria-label="t('dateEvents.addEventAria')"
@@ -119,6 +122,12 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'add', 'refresh'])
+
+const isPastDate = computed(() => {
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  return props.date < todayStr
+})
 
 const formattedDate = computed(() => {
   const parts = props.date.split('-')

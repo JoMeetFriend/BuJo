@@ -19,7 +19,7 @@
       <div v-if="isLoading" class="text-sm text-[var(--bujo-muted-strong)]">
         {{ t('friends.loading') }}
       </div>
-      <div v-else-if="error" class="text-sm text-[#dc2626]">
+      <div v-else-if="error" class="text-sm text-[var(--bujo-danger)]">
         {{ t('friends.error', { message: error }) }}
       </div>
 
@@ -267,7 +267,7 @@ onMounted(() => {
 }
 
 .friend-stamp-delete-btn:hover .hover-cross {
-  color: #dc2626;
+  color: var(--bujo-danger);
 }
 
 .friend-stamp-avatar {

@@ -432,6 +432,7 @@
   "dateEvents": {
     "addEventAria": "Add Event",
     "noEventsToday": "No events scheduled for this day",
+    "noEventsPast": "No events on this day",
     "activityDetails": "Activity Details",
     "statusJoined": "Joined",
     "statusFormed": "Formed",
@@ -508,7 +509,7 @@
     "uniformEndMenuLabel": "Unified end time menu",
     "candidateStartMenuLabel": "Candidate start time menu",
     "candidateEndMenuLabel": "Candidate end time menu",
-    "deadlineAlreadyPassed": "The deadline is no longer in the future, please readjust the deadline settings or activity time",
+    "deadlineAlreadyPassed": "Registration deadline has already passed, please adjust the activity date or time",
     "errorTimeRangeRequired": "Please select a start time for the time range",
     "errorEndTimeRequired": "Please select an end time for the time range",
     "errorEndTimeAfterStart": "End time must be later than start time",

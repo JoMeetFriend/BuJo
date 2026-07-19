@@ -113,7 +113,7 @@
                 @input="bioErrorMsg = ''"
               ></textarea>
 
-              <p v-if="bioErrorMsg" class="text-xs text-[#dc2626]" aria-live="polite">
+              <p v-if="bioErrorMsg" class="text-xs text-[var(--bujo-danger)]" aria-live="polite">
                 {{ bioErrorMsg }}
               </p>
 
@@ -146,7 +146,9 @@
           v-if="avatarMsg"
           :class="[
             'mt-3 text-xs',
-            avatarMsgType === 'error' ? 'text-[#dc2626]' : 'text-[var(--bujo-muted-strong)]',
+            avatarMsgType === 'error'
+              ? 'text-[var(--bujo-danger)]'
+              : 'text-[var(--bujo-muted-strong)]',
           ]"
           aria-live="polite"
         >
@@ -175,7 +177,7 @@
           <p class="text-xs text-[var(--bujo-muted)]">{{ t('profileEdit.nameHint') }}</p>
         </label>
 
-        <p v-if="userStore.errorMsg" class="text-xs text-[#dc2626]" aria-live="polite">
+        <p v-if="userStore.errorMsg" class="text-xs text-[var(--bujo-danger)]" aria-live="polite">
           {{ userStore.errorMsg }}
         </p>
         <p v-if="userStore.successMsg" class="text-xs text-[var(--bujo-ink)]" aria-live="polite">
@@ -207,7 +209,7 @@
           :class="[
             'text-xs px-3 py-2 border',
             linkMsgType === 'error'
-              ? 'text-[#dc2626] border-[#dc2626] bg-[var(--bujo-surface)]'
+              ? 'text-[var(--bujo-danger)] border-[var(--bujo-danger)] bg-[var(--bujo-surface)]'
               : 'text-[var(--bujo-ink)] border-[var(--bujo-accent)] bg-[var(--bujo-surface)]',
           ]"
         >
@@ -217,7 +219,7 @@
         <!-- 帳號密碼 -->
         <div class="profile-identity-row">
           <div class="flex items-center gap-3">
-            <span class="text-lg">✉</span>
+            <EnvelopeIcon class="h-5 w-5" aria-hidden="true" />
             <div>
               <p class="text-sm font-semibold">{{ t('profileEdit.emailPassword') }}</p>
               <p class="text-xs text-[var(--bujo-muted-strong)]">
@@ -365,7 +367,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
+import { ClipboardDocumentIcon, EnvelopeIcon } from '@heroicons/vue/24/outline'
 import PixelButton from './ui/PixelButton.vue'
 import LineOfficialAccountEntry from './LineOfficialAccountEntry.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -689,14 +691,14 @@ const handleBioSubmit = async () => {
 }
 
 .profile-logout-btn {
-  border-color: #dc2626;
-  color: #dc2626;
+  border-color: var(--bujo-danger);
+  color: var(--bujo-danger);
 }
 
 .profile-logout-btn:hover:not(:disabled) {
-  border-color: #ef4444;
-  background: #fef2f2;
-  color: #ef4444;
+  border-color: var(--bujo-danger);
+  background: color-mix(in srgb, var(--bujo-danger) 40%, white);
+  color: var(--bujo-danger);
 }
 
 .profile-eyebrow {
