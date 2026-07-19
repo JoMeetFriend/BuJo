@@ -19,7 +19,7 @@
       <div class="px-5 py-4">
         <div class="flex flex-col items-start gap-4 md:flex-row md:items-stretch md:gap-8">
           <div
-            class="size-24 shrink-0 overflow-hidden border border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] md:size-28"
+            class="grid size-24 shrink-0 place-items-center overflow-hidden border border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] md:size-28"
           >
             <img
               v-if="avatarUrl"
@@ -27,6 +27,7 @@
               alt="使用者頭像"
               class="size-full object-cover"
             />
+            <span v-else class="profile-edit-face" role="img" aria-label="預設使用者頭像"></span>
           </div>
           <div class="flex min-w-0 flex-col items-start gap-2 md:h-28">
             <p class="flex h-8 items-center text-base leading-none md:text-lg">{{ displayName }}</p>
@@ -105,7 +106,7 @@
                 @input="bioErrorMsg = ''"
               ></textarea>
 
-              <p v-if="bioErrorMsg" class="text-xs text-[#dc2626]" aria-live="polite">
+              <p v-if="bioErrorMsg" class="text-xs text-[var(--bujo-danger)]" aria-live="polite">
                 {{ bioErrorMsg }}
               </p>
 
@@ -136,7 +137,7 @@
           v-if="avatarMsg"
           :class="[
             'mt-3 text-xs',
-            avatarMsgType === 'error' ? 'text-[#dc2626]' : 'text-[var(--bujo-muted-strong)]',
+            avatarMsgType === 'error' ? 'text-[var(--bujo-danger)]' : 'text-[var(--bujo-muted-strong)]',
           ]"
           aria-live="polite"
         >
@@ -164,7 +165,7 @@
           <p class="text-xs text-[var(--bujo-muted)]">顯示名稱會出現在揪團、行事曆與留言中。</p>
         </label>
 
-        <p v-if="userStore.errorMsg" class="text-xs text-[#dc2626]" aria-live="polite">
+        <p v-if="userStore.errorMsg" class="text-xs text-[var(--bujo-danger)]" aria-live="polite">
           {{ userStore.errorMsg }}
         </p>
         <p v-if="userStore.successMsg" class="text-xs text-[var(--bujo-ink)]" aria-live="polite">
@@ -196,7 +197,7 @@
           :class="[
             'text-xs px-3 py-2 border',
             linkMsgType === 'error'
-              ? 'text-[#dc2626] border-[#dc2626] bg-[var(--bujo-surface)]'
+              ? 'text-[var(--bujo-danger)] border-[var(--bujo-danger)] bg-[var(--bujo-surface)]'
               : 'text-[var(--bujo-ink)] border-[var(--bujo-accent)] bg-[var(--bujo-surface)]',
           ]"
         >
@@ -206,7 +207,7 @@
         <!-- 帳號密碼 -->
         <div class="profile-identity-row">
           <div class="flex items-center gap-3">
-            <span class="text-lg">✉</span>
+            <EnvelopeIcon class="h-5 w-5" aria-hidden="true" />
             <div>
               <p class="text-sm font-semibold">帳號密碼</p>
               <p class="text-xs text-[var(--bujo-muted-strong)]">{{ localEmail || '未設定' }}</p>
@@ -259,43 +260,64 @@
           </button>
         </div>
 
-        <!-- LINE -->
-        <div class="profile-identity-row">
-          <div class="flex items-center gap-3">
-            <svg width="20" height="20" viewBox="0 0 48 48" fill="none" class="shrink-0">
-              <rect width="48" height="48" rx="10" fill="#00B900" />
-              <path
-                d="M40 22.2C40 15.1 32.8 9.3 24 9.3S8 15.1 8 22.2c0 6.4 5.7 11.7 13.3 12.7.5.1 1.2.3 1.4.8.2.4.1 1 .1 1.4l-.2 1.4c-.1.5-.4 1.8 1.6.99 2-.8 10.8-6.4 14.7-10.9C39.1 26.1 40 24.3 40 22.2z"
-                fill="white"
-              />
-              <path
-                d="M20.3 19.5h-1.2c-.2 0-.4.2-.4.4v7.4c0 .2.2.4.4.4h1.2c.2 0 .4-.2.4-.4v-7.4c0-.2-.2-.4-.4-.4zM29.1 19.5h-1.2c-.2 0-.4.2-.4.4v4.4l-3.4-4.6c0-.1-.1-.1-.1-.2h-1.3c-.2 0-.4.2-.4.4v7.4c0 .2.2.4.4.4H24c.2 0 .4-.2.4-.4v-4.4l3.4 4.6c.1.1.2.2.3.2h1.2c.2 0 .4-.2.4-.4v-7.4c-.2-.2-.4-.4-.6-.4zM17.4 25.7h-3.3v-5.8c0-.2-.2-.4-.4-.4h-1.2c-.2 0-.4.2-.4.4v7.4c0 .1.1.2.1.3.1.1.2.1.3.1h4.9c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4zM35.9 21.5c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4H31c-.1 0-.2 0-.3.1-.1.1-.1.2-.1.3v7.4c0 .1 0 .2.1.3.1.1.2.1.3.1h4.9c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4h-3.3v-1.3h3.3c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4h-3.3v-1.3h3.3z"
-                fill="#00B900"
-              />
-            </svg>
+        <!-- LINE 帳號與通知 -->
+        <div class="profile-line-account" data-testid="line-notification-settings">
+          <div class="profile-identity-row profile-line-account__identity">
+            <div class="flex min-w-0 items-center gap-3">
+              <svg width="20" height="20" viewBox="0 0 48 48" fill="none" class="shrink-0">
+                <rect width="48" height="48" rx="10" fill="#00B900" />
+                <path
+                  d="M40 22.2C40 15.1 32.8 9.3 24 9.3S8 15.1 8 22.2c0 6.4 5.7 11.7 13.3 12.7.5.1 1.2.3 1.4.8.2.4.1 1 .1 1.4l-.2 1.4c-.1.5-.4 1.8 1.6.99 2-.8 10.8-6.4 14.7-10.9C39.1 26.1 40 24.3 40 22.2z"
+                  fill="white"
+                />
+                <path
+                  d="M20.3 19.5h-1.2c-.2 0-.4.2-.4.4v7.4c0 .2.2.4.4.4h1.2c.2 0 .4-.2.4-.4v-7.4c0-.2-.2-.4-.4-.4zM29.1 19.5h-1.2c-.2 0-.4.2-.4.4v4.4l-3.4-4.6c0-.1-.1-.1-.1-.2h-1.3c-.2 0-.4.2-.4.4v7.4c0 .2.2.4.4.4H24c.2 0 .4-.2.4-.4v-4.4l3.4 4.6c.1.1.2.2.3.2h1.2c.2 0 .4-.2.4-.4v-7.4c-.2-.2-.4-.4-.6-.4zM17.4 25.7h-3.3v-5.8c0-.2-.2-.4-.4-.4h-1.2c-.2 0-.4.2-.4.4v7.4c0 .1.1.2.1.3.1.1.2.1.3.1h4.9c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4zM35.9 21.5c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4H31c-.1 0-.2 0-.3.1-.1.1-.1.2-.1.3v7.4c0 .1 0 .2.1.3.1.1.2.1.3.1h4.9c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4h-3.3v-1.3h3.3c.2 0 .4-.2.4-.4v-1.2c0-.2-.2-.4-.4-.4h-3.3v-1.3h3.3z"
+                  fill="#00B900"
+                />
+              </svg>
+              <div class="min-w-0">
+                <p class="text-sm font-semibold">LINE</p>
+                <p class="text-xs leading-5 text-[var(--bujo-muted-strong)]">
+                  {{ isConnected('line') ? '已連接' : '尚未連接 LINE 帳號' }}
+                </p>
+              </div>
+            </div>
+            <button
+              v-if="!isConnected('line')"
+              type="button"
+              aria-label="連接 LINE"
+              class="profile-link-btn"
+              :disabled="linkLoading"
+              @click="handleLineLink"
+            >
+              連接
+            </button>
+            <button
+              v-else
+              type="button"
+              aria-label="解除 LINE 連接"
+              class="profile-unlink-btn"
+              :disabled="linkLoading || identityCount <= 1"
+              @click="handleUnlink('line')"
+            >
+              解除連接
+            </button>
+          </div>
+
+          <div class="profile-line-account__notification">
             <div>
-              <p class="text-sm font-semibold">LINE</p>
-              <p class="text-xs text-[var(--bujo-muted-strong)]">
-                {{ isConnected('line') ? '已連接' : '' }}
+              <p class="text-sm font-semibold text-[var(--bujo-ink)]">接收 LINE 揪團提醒</p>
+              <p class="mt-1 text-xs leading-5 text-[var(--bujo-muted-strong)]">
+                <template v-if="isConnected('line')">
+                  加入或解除封鎖 BuJo LINE 官方帳號，就能接收揪團提醒。
+                </template>
+                <template v-else>
+                  先連接上方的 LINE 帳號，再掃 QR Code 加入 BuJo LINE 官方帳號，就能收到揪團提醒。
+                </template>
               </p>
             </div>
+            <LineOfficialAccountEntry />
           </div>
-          <button
-            v-if="!isConnected('line')"
-            @click="handleLineLink"
-            :disabled="linkLoading"
-            class="profile-link-btn"
-          >
-            連接
-          </button>
-          <button
-            v-else
-            @click="handleUnlink('line')"
-            :disabled="linkLoading || identityCount <= 1"
-            class="profile-unlink-btn"
-          >
-            解除連接
-          </button>
         </div>
 
         <p v-if="identityCount <= 1" class="text-xs text-[var(--bujo-muted)]">
@@ -322,9 +344,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ClipboardDocumentIcon } from '@heroicons/vue/24/outline'
+import { ClipboardDocumentIcon, EnvelopeIcon } from '@heroicons/vue/24/outline'
 import PixelButton from './ui/PixelButton.vue'
+import LineOfficialAccountEntry from './LineOfficialAccountEntry.vue'
 import { useAuthStore } from '@/stores/auth'
+import {
+  clearLineNotificationOnboardingReturnPath,
+  consumeLineNotificationOnboardingReturnPath,
+} from '@/composables/useLineNotificationOnboarding'
 import { toAvatarSrc } from '@/utils/avatar'
 import { useUserStore } from '@/stores/userStore'
 
@@ -350,7 +377,9 @@ const bioSuccessMsg = ref('')
 const isBioLoading = ref(false)
 const bioErrorMsg = ref('')
 
-const identities = computed(() => authStore.user?.identities ?? [])
+const identities = computed(() =>
+  Array.isArray(authStore.user?.identities) ? authStore.user.identities : [],
+)
 const identityCount = computed(() => identities.value.length)
 const displayName = computed(() => authStore.user?.display_name || '未登入')
 const shareCode = computed(() => {
@@ -466,6 +495,7 @@ const handleGoogleLink = () => {
 
 // LINE link — redirects through backend OAuth flow
 const handleLineLink = () => {
+  clearLineNotificationOnboardingReturnPath()
   window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/line/link`
 }
 
@@ -503,15 +533,11 @@ async function handleLogout() {
   }
 }
 
-onMounted(async () => {
-  // LINE link callback redirects back with ?linked=line
-  if (route.query.linked === 'line') {
-    await authStore.fetchMe()
-    showMsg('LINE 帳號連結成功')
-    router.replace({ query: {} })
-  }
+function isProfileEditDestination(path) {
+  return router.resolve(path).matched.some((record) => record.path === '/profile/edit')
+}
 
-  // Init Google SDK for linking
+function initializeGoogleLinking() {
   if (window.google) {
     window.google.accounts.id.initialize({
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
@@ -519,6 +545,7 @@ onMounted(async () => {
     })
     return
   }
+
   const script = document.createElement('script')
   script.src = 'https://accounts.google.com/gsi/client'
   script.onload = () => {
@@ -528,6 +555,36 @@ onMounted(async () => {
     })
   }
   document.head.appendChild(script)
+}
+
+onMounted(async () => {
+  const lineLinkSucceeded = route.query.linked === 'line'
+  const lineLinkError = ['line_link_cancelled', 'line_link_failed'].includes(route.query.error)
+
+  if (lineLinkSucceeded || lineLinkError) {
+    if (lineLinkSucceeded) {
+      await authStore.fetchMe()
+      showMsg('LINE 帳號連結成功')
+    }
+
+    const onboardingReturnPath = consumeLineNotificationOnboardingReturnPath()
+    if (lineLinkError) {
+      showMsg(
+        route.query.error === 'line_link_cancelled' ? '已取消 LINE 連接' : 'LINE 連接失敗',
+        'error',
+      )
+    }
+
+    if (onboardingReturnPath) {
+      const staysOnProfileEdit = isProfileEditDestination(onboardingReturnPath)
+      await router.replace(onboardingReturnPath)
+      if (!staysOnProfileEdit) return
+    } else {
+      await router.replace({ query: {} })
+    }
+  }
+
+  initializeGoogleLinking()
 })
 
 const handleNameSubmit = async () => {
@@ -574,15 +631,48 @@ const handleBioSubmit = async () => {
   box-shadow: 7px 8px 0 rgb(var(--bujo-ink-rgb) / 0.06);
 }
 
+.profile-edit-face {
+  position: relative;
+  display: block;
+  width: 48px;
+  height: 48px;
+  background:
+    linear-gradient(var(--bujo-ink) 0 0) 12px 6px / 24px 6px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 6px 12px / 6px 24px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 36px 12px / 6px 24px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 12px 36px / 24px 6px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 18px 18px / 6px 6px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 30px 18px / 6px 6px no-repeat,
+    linear-gradient(var(--bujo-ink) 0 0) 24px 30px / 6px 6px no-repeat;
+}
+
+.profile-edit-face::before,
+.profile-edit-face::after {
+  position: absolute;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  background: var(--bujo-ink);
+  content: '';
+}
+
+.profile-edit-face::before {
+  left: 6px;
+}
+
+.profile-edit-face::after {
+  right: 6px;
+}
+
 .profile-logout-btn {
-  border-color: #dc2626;
-  color: #dc2626;
+  border-color: var(--bujo-danger);
+  color: var(--bujo-danger);
 }
 
 .profile-logout-btn:hover:not(:disabled) {
-  border-color: #ef4444;
-  background: #fef2f2;
-  color: #ef4444;
+  border-color: var(--bujo-danger);
+  background: color-mix(in srgb, var(--bujo-danger) 40%, white);
+  color: var(--bujo-danger);
 }
 
 .profile-eyebrow {
@@ -692,6 +782,23 @@ const handleBioSubmit = async () => {
   color: var(--bujo-ink);
 }
 
+.profile-line-account {
+  border: 1px solid var(--bujo-line);
+  background: var(--bujo-surface);
+}
+
+.profile-line-account__identity {
+  gap: 12px;
+  border: 0;
+}
+
+.profile-line-account__notification {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--bujo-line-soft);
+  padding: 14px 16px 16px;
+}
+
 .profile-link-btn,
 .profile-unlink-btn {
   border: 1px solid var(--bujo-ink);
@@ -707,6 +814,12 @@ const handleBioSubmit = async () => {
 .profile-link-btn:hover:not(:disabled) {
   background: var(--bujo-ink);
   color: var(--bujo-white);
+}
+
+.profile-link-btn:focus-visible,
+.profile-unlink-btn:focus-visible {
+  outline: 2px solid var(--bujo-accent);
+  outline-offset: 2px;
 }
 
 .profile-unlink-btn {

@@ -4,6 +4,7 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 import { describe, expect, test, vi } from 'vitest'
 import axios from 'axios'
 import AppSidebar from '@/components/AppSidebar.vue'
+import appSidebarSource from '@/components/AppSidebar.vue?raw'
 import { useAuthStore } from '@/stores/auth'
 
 vi.mock('axios', () => {
@@ -53,6 +54,10 @@ async function mountAppSidebar(user = {}) {
 }
 
 describe('AppSidebar', () => {
+  test('手機月曆篩選按鈕往導覽列內收，避免貼住活動卡片', () => {
+    expect(appSidebarSource).toContain('bottom: calc(100% - 13px);')
+  })
+
   test('側欄下方個人入口會顯示正規化後的使用者頭像', async () => {
     const wrapper = await mountAppSidebar({
       avatar_url: '/uploads/avatars/avatar-user.png',
@@ -153,5 +158,24 @@ describe('AppSidebar', () => {
     const badges = wrapper.findAll('.bujo-nav-badge')
     expect(badges).toHaveLength(2)
     expect(badges.map((badge) => badge.text())).toEqual(['4', '4'])
+  })
+
+  describe('新手導覽問號', () => {
+    test('桌機版（CALENDAR FILTER 上方）與手機版（浮動右上角）各有一顆問號按鈕', async () => {
+      const wrapper = await mountAppSidebar()
+
+      const buttons = wrapper.findAll('[aria-label="重新開啟新手導覽"]')
+      expect(buttons).toHaveLength(2)
+    })
+
+    test('點擊任一顆問號按鈕都會 emit open-tour', async () => {
+      const wrapper = await mountAppSidebar()
+      const buttons = wrapper.findAll('[aria-label="重新開啟新手導覽"]')
+
+      await buttons[0].trigger('click')
+      await buttons[1].trigger('click')
+
+      expect(wrapper.emitted('open-tour')).toHaveLength(2)
+    })
   })
 })

@@ -13,8 +13,13 @@
             :class="inputClass"
             type="text"
             required
+            :maxlength="ACTIVITY_TITLE_MAX_LENGTH"
+            aria-describedby="event-name-hint"
             placeholder="想揪什麼？"
           />
+          <span id="event-name-hint" class="text-xs font-medium text-[var(--bujo-muted-strong)]">
+            最多 {{ ACTIVITY_TITLE_MAX_LENGTH }} 字
+          </span>
         </label>
 
         <div class="grid grid-cols-2 gap-5 max-sm:gap-2">
@@ -76,81 +81,173 @@
           </div>
         </div>
 
-        <label :class="[fieldClass, 'col-span-full']" for="event-location">
-          <span :class="fieldLabelClass">地點</span>
-          <input
-            id="event-location"
-            v-model="form.location"
-            :class="inputClass"
-            type="text"
-            placeholder="在哪裡集合？"
-          />
-        </label>
+        <div :class="[fieldClass, 'col-span-full']">
+          <label :class="fieldLabelClass" for="event-location">地點</label>
+          <label
+            class="inline-flex w-fit items-center gap-1.5 text-xs text-[var(--bujo-muted-strong)]"
+          >
+            <input
+              v-model="searchOverseasLocation"
+              type="checkbox"
+              class="h-4 w-4 cursor-pointer appearance-none rounded-none border border-[var(--bujo-line)] bg-[var(--bujo-surface)] checked:border-[var(--bujo-ink)] checked:bg-[var(--bujo-ink)] focus:outline-none focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
+              @change="handleOverseasToggleChange"
+            />
+            搜尋海外地點
+          </label>
+          <span class="relative block">
+            <input
+              id="event-location"
+              v-model="form.location"
+              :class="inputClass"
+              type="text"
+              placeholder="在哪裡集合？"
+              autocomplete="off"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-haspopup="listbox"
+              :aria-expanded="addressResults.length > 0"
+              aria-controls="event-location-listbox"
+              :aria-activedescendant="activeAddressOptionId"
+              @input="handleLocationInput"
+              @blur="handleLocationBlur"
+              @keydown="handleLocationKeydown"
+            />
+            <div
+              v-if="
+                isSearchingAddress ||
+                addressError ||
+                (addressHasSearched && addressResults.length === 0) ||
+                addressResults.length > 0
+              "
+              class="absolute inset-x-0 top-full z-10 mt-1 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-md"
+              aria-live="polite"
+            >
+              <p
+                v-if="isSearchingAddress"
+                class="px-3 py-2 text-sm text-[var(--bujo-muted-strong)]"
+              >
+                搜尋中...
+              </p>
+              <p v-else-if="addressError" class="px-3 py-2 text-sm text-[var(--bujo-danger)]">
+                {{ addressError }}
+              </p>
+              <p
+                v-else-if="addressHasSearched && addressResults.length === 0"
+                class="px-3 py-2 text-sm text-[var(--bujo-muted-strong)]"
+              >
+                查無符合的地址
+              </p>
+              <ul
+                v-else
+                id="event-location-listbox"
+                role="listbox"
+                class="max-h-48 overflow-y-auto"
+              >
+                <li
+                  v-for="(address, index) in addressResults"
+                  :id="`event-location-option-${index}`"
+                  :key="address"
+                  role="option"
+                  :aria-selected="index === activeAddressIndex"
+                >
+                  <button
+                    type="button"
+                    tabindex="-1"
+                    class="block w-full px-3 py-2 text-left text-sm text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                    :class="{ 'bg-[var(--bujo-surface-muted)]': index === activeAddressIndex }"
+                    @mousedown.prevent="selectAddress(address)"
+                  >
+                    {{ address }}
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </span>
+        </div>
 
         <div
           class="col-span-full grid gap-2 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 py-3"
         >
-          <!-- Q1: 日期確定了嗎？ -->
-          <div class="px-0.5">
-            <div
-              class="grid min-h-[34px] grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-[rgb(var(--bujo-ink-rgb)/0.08)] pb-2 max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2 max-sm:gap-y-1"
-            >
-              <span class="text-[13px] font-semibold leading-5 text-[var(--bujo-ink)]"
-                >日期確定了嗎？</span
-              >
+          <div data-tour="event-scenario-toggles" class="grid gap-2">
+            <div class="flex items-center justify-between px-0.5">
               <span
-                class="min-w-0 text-xs leading-5 text-[var(--bujo-muted)] max-sm:col-span-2 max-sm:row-start-2"
+                class="text-[11px] font-semibold uppercase tracking-wide text-[var(--bujo-muted-strong)]"
+                >怎麼喬時間？</span
               >
-                {{ dateModeHint }}
-              </span>
-              <label class="gui-switch justify-self-end">
-                <input
-                  v-model="isDateFixed"
-                  class="gui-switch__input"
-                  type="checkbox"
-                  role="switch"
-                  aria-label="日期確定了嗎？"
-                />
-                <span class="gui-switch__track" aria-hidden="true">
-                  <span class="gui-switch__thumb"></span>
-                </span>
-              </label>
+              <button
+                type="button"
+                data-tour="event-scenario-guide-button"
+                class="event-scenario-guide-btn"
+                aria-label="說明：怎麼喬時間？"
+                title="怎麼喬時間？"
+                @click="startScenarioGuide"
+              >
+                ？
+              </button>
             </div>
-          </div>
 
-          <!-- Q2: 時間確定了嗎？ -->
-          <div class="px-0.5">
-            <div
-              class="grid min-h-[34px] grid-cols-[auto_1fr_auto] items-center gap-3 py-0.5 max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2 max-sm:gap-y-1"
-            >
-              <span class="text-[13px] font-semibold leading-5 text-[var(--bujo-ink)]"
-                >時間確定了嗎？</span
+            <!-- Q1: 日期確定了嗎？ -->
+            <div class="px-0.5">
+              <div
+                class="grid min-h-[34px] grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-[rgb(var(--bujo-ink-rgb)/0.08)] pb-2 max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2 max-sm:gap-y-1"
               >
-              <span
-                class="min-w-0 text-xs leading-5 text-[var(--bujo-muted)] max-sm:col-span-2 max-sm:row-start-2"
-              >
-                {{ timeModeHint }}
-              </span>
-              <label class="gui-switch justify-self-end">
-                <input
-                  v-model="isTimeFixed"
-                  class="gui-switch__input"
-                  type="checkbox"
-                  role="switch"
-                  aria-label="時間確定了嗎？"
-                />
-                <span class="gui-switch__track" aria-hidden="true">
-                  <span class="gui-switch__thumb"></span>
+                <span class="text-[13px] font-semibold leading-5 text-[var(--bujo-ink)]"
+                  >日期確定了嗎？</span
+                >
+                <span
+                  class="min-w-0 text-xs leading-5 text-[var(--bujo-muted)] max-sm:col-span-2 max-sm:row-start-2"
+                >
+                  {{ dateModeHint }}
                 </span>
-              </label>
+                <label class="gui-switch justify-self-end">
+                  <input
+                    v-model="isDateFixed"
+                    class="gui-switch__input"
+                    type="checkbox"
+                    role="switch"
+                    aria-label="日期確定了嗎？"
+                  />
+                  <span class="gui-switch__track" aria-hidden="true">
+                    <span class="gui-switch__thumb"></span>
+                  </span>
+                </label>
+              </div>
             </div>
-          </div>
-          <!-- 情境說明 -->
-          <div
-            v-if="dateMode !== 'fixed' || timeMode !== 'fixed'"
-            class="border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 py-2 text-xs leading-5 text-[var(--bujo-muted-strong)]"
-          >
-            {{ scenarioDescription }}
+
+            <!-- Q2: 時間確定了嗎？ -->
+            <div class="px-0.5">
+              <div
+                class="grid min-h-[34px] grid-cols-[auto_1fr_auto] items-center gap-3 py-0.5 max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2 max-sm:gap-y-1"
+              >
+                <span class="text-[13px] font-semibold leading-5 text-[var(--bujo-ink)]"
+                  >時間確定了嗎？</span
+                >
+                <span
+                  class="min-w-0 text-xs leading-5 text-[var(--bujo-muted)] max-sm:col-span-2 max-sm:row-start-2"
+                >
+                  {{ timeModeHint }}
+                </span>
+                <label class="gui-switch justify-self-end">
+                  <input
+                    v-model="isTimeFixed"
+                    class="gui-switch__input"
+                    type="checkbox"
+                    role="switch"
+                    aria-label="時間確定了嗎？"
+                  />
+                  <span class="gui-switch__track" aria-hidden="true">
+                    <span class="gui-switch__thumb"></span>
+                  </span>
+                </label>
+              </div>
+            </div>
+            <!-- 情境說明 -->
+            <div
+              v-if="dateMode !== 'fixed' || timeMode !== 'fixed'"
+              class="border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 py-2 text-xs leading-5 text-[var(--bujo-muted-strong)]"
+            >
+              {{ scenarioDescription }}
+            </div>
           </div>
 
           <div
@@ -253,7 +350,7 @@
                     :class="[
                       pickerButtonClass,
                       'w-full',
-                      row.timeField === 'startTime' && timeError ? 'border-[#dc2626]' : '',
+                      row.timeField === 'startTime' && timeError ? 'border-[var(--bujo-danger)]' : '',
                     ]"
                     type="button"
                     :data-time-field="row.timeField"
@@ -265,9 +362,9 @@
                   </button>
                   <p
                     v-if="row.timeField === 'startTime' && timeError"
-                    class="mt-1 flex items-center gap-1 text-xs text-[#dc2626]"
+                    class="mt-1 flex items-center gap-1 text-xs text-[var(--bujo-danger)]"
                   >
-                    <span>⚠</span> {{ timeError }}
+                    <ExclamationTriangleIcon class="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {{ timeError }}
                   </p>
 
                   <div
@@ -297,6 +394,19 @@
                 </span>
               </div>
             </div>
+
+            <ReportCutoffReminder
+              v-if="scheduleCeilingDate"
+              :is-warning="isReportCutoffWarning"
+              :remaining-minutes="minutesUntilVoteDeadline"
+              :time-label="reportCutoffTimeLabel"
+              :offset-parts="reportCutoffOffsetParts"
+              :show-editor="showDeadlineEditor"
+              :presets="DEADLINE_PRESETS"
+              :selected-preset-key="selectedDeadlinePresetKey"
+              @toggle-editor="toggleDeadlineEditor"
+              @select-preset="selectedDeadlinePresetKey = $event"
+            />
           </div>
 
           <div
@@ -369,7 +479,7 @@
               </span>
             </div>
 
-            <div class="grid gap-2">
+            <div data-tour="event-time-window" class="grid gap-2">
               <span :class="fieldLabelClass">可投票時段</span>
 
               <div class="grid max-w-[280px] grid-cols-[1fr_12px_1fr] items-center gap-2">
@@ -454,10 +564,23 @@
                 </span>
               </div>
 
-              <p v-if="timeError" class="flex items-center gap-1 text-xs text-[#dc2626]">
-                <span>⚠</span> {{ timeError }}
+              <p v-if="timeError" class="flex items-center gap-1 text-xs text-[var(--bujo-danger)]">
+                <ExclamationTriangleIcon class="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {{ timeError }}
               </p>
             </div>
+
+            <ReportCutoffReminder
+              v-if="scheduleCeilingDate"
+              :is-warning="isReportCutoffWarning"
+              :remaining-minutes="minutesUntilVoteDeadline"
+              :time-label="reportCutoffTimeLabel"
+              :offset-parts="reportCutoffOffsetParts"
+              :show-editor="showDeadlineEditor"
+              :presets="DEADLINE_PRESETS"
+              :selected-preset-key="selectedDeadlinePresetKey"
+              @toggle-editor="toggleDeadlineEditor"
+              @select-preset="selectedDeadlinePresetKey = $event"
+            />
           </div>
 
           <div
@@ -466,7 +589,7 @@
             class="grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
             @click="closePicker"
           >
-            <div class="grid gap-2">
+            <div data-tour="event-candidate-dates" class="grid gap-2">
               <span :class="fieldLabelClass">候選日期</span>
 
               <div class="mb-1 flex items-center justify-between gap-2">
@@ -617,6 +740,20 @@
                 </div>
               </template>
             </div>
+
+            <ReportCutoffReminder
+              v-if="scheduleCeilingDate"
+              :is-warning="isReportCutoffWarning"
+              :remaining-minutes="minutesUntilVoteDeadline"
+              :time-label="reportCutoffTimeLabel"
+              :offset-parts="reportCutoffOffsetParts"
+              :show-editor="showDeadlineEditor"
+              :presets="DEADLINE_PRESETS"
+              :selected-preset-key="selectedDeadlinePresetKey"
+              :candidate-reminder-text="candidateDateReminderText"
+              @toggle-editor="toggleDeadlineEditor"
+              @select-preset="selectedDeadlinePresetKey = $event"
+            />
           </div>
 
           <div
@@ -625,7 +762,7 @@
             class="grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
             @click="closePicker"
           >
-            <div class="grid gap-2">
+            <div data-tour="event-scenario4-dates" class="grid gap-2">
               <span :class="fieldLabelClass">候選日期與時段</span>
 
               <div class="mb-1 flex items-center justify-between gap-2">
@@ -687,7 +824,7 @@
                 <span :class="fieldLabelClass">{{ shortDate(editingSlot.date) }} 的候選時段</span>
                 <button
                   type="button"
-                  class="text-xs text-[var(--bujo-muted-strong)] hover:text-[#dc2626]"
+                  class="text-xs text-[var(--bujo-muted-strong)] hover:text-[var(--bujo-danger)]"
                   @click.stop="removeCandidateSlot(editingSlot.date)"
                 >
                   移除此候選日期
@@ -798,6 +935,20 @@
                 </span>
               </div>
             </div>
+
+            <ReportCutoffReminder
+              v-if="scheduleCeilingDate"
+              :is-warning="isReportCutoffWarning"
+              :remaining-minutes="minutesUntilVoteDeadline"
+              :time-label="reportCutoffTimeLabel"
+              :offset-parts="reportCutoffOffsetParts"
+              :show-editor="showDeadlineEditor"
+              :presets="DEADLINE_PRESETS"
+              :selected-preset-key="selectedDeadlinePresetKey"
+              :candidate-reminder-text="candidateDateReminderText"
+              @toggle-editor="toggleDeadlineEditor"
+              @select-preset="selectedDeadlinePresetKey = $event"
+            />
           </div>
         </div>
 
@@ -810,75 +961,13 @@
             rows="5"
             placeholder="補充說明，例如裝備、費用..."
           ></textarea>
-
-          <!-- 截止時間常駐顯示：兩行永遠都在，各自獨立判斷是否套用警示樣式，不再跟緊急狀態互斥 -->
-          <div
-            class="flex flex-col gap-1.5 border-t border-dashed border-[var(--bujo-line-soft)] pt-2"
-          >
-            <p
-              class="text-xs leading-5"
-              :class="
-                isReportCutoffWarning ? 'font-semibold text-[#dc2626]' : 'text-[var(--bujo-muted)]'
-              "
-            >
-              <template v-if="isReportCutoffWarning">{{ reportCutoffWarningText }}</template>
-              <template v-else
-                >報名開放到
-                <strong class="text-[var(--bujo-muted-strong)]">{{ reportCutoffTimeLabel }}</strong>
-                （<button type="button" class="-mx-1 -my-1 px-1 py-1" @click="toggleDeadlineEditor">
-                  <span
-                    class="text-[var(--bujo-accent)] underline decoration-dotted underline-offset-2"
-                    >{{ reportCutoffOffsetParts.number }}</span
-                  >{{ reportCutoffOffsetParts.unit }}</button
-                >截止）</template
-              >
-            </p>
-
-            <p
-              class="text-[11px] leading-5"
-              :class="
-                isScheduleCeilingWarning
-                  ? 'font-semibold text-[#dc2626]'
-                  : 'text-[var(--bujo-muted)]'
-              "
-            >
-              {{ scheduleCeilingLineText }}
-            </p>
-
-            <p
-              v-if="candidateDateReminderText"
-              class="text-[11px] leading-5 text-[var(--bujo-accent)]"
-            >
-              {{ candidateDateReminderText }}
-            </p>
-
-            <!-- 流團編輯器 -->
-            <div
-              v-if="showDeadlineEditor"
-              class="flex flex-wrap items-center gap-2 border border-dashed border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-3 py-2"
-            >
-              <button
-                v-for="preset in DEADLINE_PRESETS"
-                :key="preset.key"
-                type="button"
-                class="h-8 rounded-none border px-2 text-xs transition-colors"
-                :class="
-                  selectedDeadlinePresetKey === preset.key
-                    ? 'border-[var(--bujo-ink)] bg-[var(--bujo-ink)] text-[var(--bujo-white)]'
-                    : 'border-[var(--bujo-line)] bg-white text-[var(--bujo-ink)] hover:border-[var(--bujo-ink)]'
-                "
-                @click="selectedDeadlinePresetKey = preset.key"
-              >
-                {{ preset.label }}
-              </button>
-            </div>
-          </div>
         </label>
         <div
           v-if="submitError"
-          class="col-span-full flex items-start gap-2 border border-[#dc2626] bg-[var(--bujo-surface)] px-3 py-2 text-xs text-[#dc2626]"
+          class="col-span-full flex items-start gap-2 border border-[var(--bujo-danger)] bg-[var(--bujo-surface)] px-3 py-2 text-xs text-[var(--bujo-danger)]"
         >
-          ⚠️ {{ submitError }}
+          <ExclamationTriangleIcon class="h-3.5 w-3.5 shrink-0 mt-0.5" aria-hidden="true" />
+          {{ submitError }}
         </div>
       </form>
     </template>
@@ -896,8 +985,9 @@
     <template #default>
       <div class="grid gap-3 py-2 text-center">
         <p class="text-sm leading-6 text-[var(--bujo-ink)]">
-          活動即將開始，這次建立將不會有任何報名緩衝時間，送出後請立即到活動頁面手動確認成團
+          距離活動開始只剩 {{ minutesUntilCeiling }} 分鐘
         </p>
+        <p class="text-sm leading-6 text-[var(--bujo-ink)]">確定要建立活動嗎？</p>
       </div>
     </template>
     <template #footer>
@@ -923,9 +1013,20 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
+import ReportCutoffReminder from './ReportCutoffReminder.vue'
 import partyDanceUrl from '@/assets/party-dance.png'
+import {
+  createTimeOptions,
+  formatHourAsTimeString,
+  parseDateTimeValue,
+  parseHourFromTimeStr,
+} from '@/utils/timeFormat'
+import { useAddressSearch } from '@/composables/useAddressSearch'
+import { useAuthStore } from '@/stores/auth'
+import { useEventScenarioGuide } from '@/composables/useEventScenarioGuide'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -938,6 +1039,9 @@ const route = useRoute()
 const router = useRouter()
 const isRouteComponent = computed(() => route.name === 'event-new')
 const modalOpen = computed(() => (isRouteComponent.value ? true : props.isOpen))
+
+const authStore = useAuthStore()
+const scenarioGuideUserId = computed(() => authStore.user?.id ?? authStore.user?.uid ?? '')
 
 const eventTypes = ['吃飯', '運動', '讀書', '逛街', '看展', '其他']
 const dateFields = ['startDate', 'endDate', 'singleDate']
@@ -964,6 +1068,81 @@ const scheduleRows = [
 ]
 
 const today = formatDateValue(new Date())
+const ACTIVITY_TITLE_MAX_LENGTH = 15
+
+const {
+  searchResults: addressResults,
+  isSearching: isSearchingAddress,
+  error: addressError,
+  hasSearched: addressHasSearched,
+  searchAddress,
+  clearSearch: clearAddressSearch,
+} = useAddressSearch()
+let addressDebounceTimer = null
+const activeAddressIndex = ref(-1)
+const searchOverseasLocation = ref(false)
+const activeAddressOptionId = computed(() =>
+  activeAddressIndex.value >= 0 ? `event-location-option-${activeAddressIndex.value}` : undefined,
+)
+
+function handleLocationInput() {
+  activeAddressIndex.value = -1
+  clearTimeout(addressDebounceTimer)
+  addressDebounceTimer = setTimeout(() => {
+    searchAddress(form.location, { global: searchOverseasLocation.value })
+  }, 300)
+}
+
+function handleOverseasToggleChange() {
+  activeAddressIndex.value = -1
+  searchAddress(form.location, { global: searchOverseasLocation.value })
+}
+
+function handleLocationBlur() {
+  clearAddressSearch()
+  activeAddressIndex.value = -1
+}
+
+function handleLocationKeydown(event) {
+  const hasDropdown =
+    isSearchingAddress.value ||
+    !!addressError.value ||
+    addressHasSearched.value ||
+    addressResults.value.length > 0
+
+  // Escape 只在下拉有東西可關時攔截；否則放行讓 BaseModal 自己的 Escape
+  // 監聽器接手關掉整個表單——不攔截的話會把使用者填到一半的表單也關掉
+  if (event.key === 'Escape') {
+    if (!hasDropdown) return
+    event.preventDefault()
+    event.stopPropagation()
+    clearAddressSearch()
+    activeAddressIndex.value = -1
+    return
+  }
+
+  if (addressResults.value.length === 0) return
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault()
+    activeAddressIndex.value = (activeAddressIndex.value + 1) % addressResults.value.length
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    activeAddressIndex.value =
+      activeAddressIndex.value <= 0 ? addressResults.value.length - 1 : activeAddressIndex.value - 1
+  } else if (event.key === 'Enter' && activeAddressIndex.value >= 0) {
+    event.preventDefault()
+    selectAddress(addressResults.value[activeAddressIndex.value])
+  }
+}
+
+function selectAddress(address) {
+  form.location = address
+  clearAddressSearch()
+  activeAddressIndex.value = -1
+}
+
+onBeforeUnmount(() => clearTimeout(addressDebounceTimer))
 
 const form = reactive({
   name: '',
@@ -1023,15 +1202,37 @@ const timeModeHint = computed(() =>
   timeMode.value === 'fixed' ? '時間確定了！' : '還沒～選時段讓大家投票',
 )
 
+// 情境代號給 useEventScenarioGuide 用來分開追蹤各情境「有沒有看過介紹」
+const currentScenarioKey = computed(() => {
+  if (dateMode.value === 'fixed' && timeMode.value === 'vote') return 'b'
+  if (dateMode.value === 'range' && timeMode.value === 'fixed') return 'c'
+  if (dateMode.value === 'range' && timeMode.value === 'vote') return 'd'
+  return 'a'
+})
+const { hasSeenGuide: hasSeenScenarioGuide, startGuide: startScenarioGuide } =
+  useEventScenarioGuide(scenarioGuideUserId, currentScenarioKey, {
+    openDeadlineEditor: () => {
+      showDeadlineEditor.value = true
+    },
+  })
+
+// 彈窗開著的時候切到還沒看過介紹的情境，自動彈一次該情境的說明
+watch([modalOpen, currentScenarioKey], async ([isOpen]) => {
+  if (!isOpen || hasSeenScenarioGuide.value) return
+  await nextTick()
+  startScenarioGuide()
+})
+
 // 從行事曆日期格點進來：預設情境一（日期固定X時間固定），並把點選的日期帶入
 // 情境一的開始／結束日期，以及情境二（日期固定X時間讓大家選）的日期
 watch(
   () => props.isOpen,
   (open) => {
     if (!open || !props.initialDate) return
+    const dateValue = props.initialDate.replaceAll('-', '/')
+    if (dateValue < today) return // 過去日期不套用，維持表單預設（今天）
     dateMode.value = 'fixed'
     timeMode.value = 'fixed'
-    const dateValue = props.initialDate.replaceAll('-', '/')
     form.startDate = dateValue
     form.endDate = dateValue
     form.singleDate = dateValue
@@ -1089,6 +1290,15 @@ const uniformTime = reactive({
   endTime: null,
   allDay: false,
   endTimeUserSet: false,
+})
+
+// 切到情境三、還沒選任何候選日期時，預設把「明天」加進候選日期，讓表單一開始就有東西可以動，
+// 導覽走到報名截止步驟時也才有實際算得出來的截止時間可以顯示
+watch(currentScenarioKey, (key) => {
+  if (key !== 'c' || candidateDates.value.length > 0) return
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  candidateDates.value = [formatDateValue(tomorrow)]
 })
 
 // 情境三：整日已勾選時，「今天」不可能再是完整一天，跟情境一的 isStartDateToday 規則同理，
@@ -1154,6 +1364,27 @@ const configuredSlots = computed(() =>
       })),
   ),
 )
+
+// 切到情境四、還沒設定任何候選時段時，預設把「明天 09:00–18:00」設成候選組合，讓表單一開始
+// 就有東西可以動，導覽走到報名截止步驟時也才有截止時間可以顯示
+watch(currentScenarioKey, (key) => {
+  if (key !== 'd' || candidateSlots.value.length > 0) return
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  candidateSlots.value = [
+    {
+      date: formatDateValue(tomorrow),
+      timeSlots: [
+        {
+          id: scenario4SlotIdSeq++,
+          startTime: '上午 9:00',
+          endTime: '下午 6:00',
+          endTimeUserSet: true,
+        },
+      ],
+    },
+  ]
+})
 
 const scenario4DateCells = computed(() => {
   const todayValue = formatDateValue(new Date())
@@ -1293,15 +1524,6 @@ const visibleMonth = ref(startOfMonth(selectedDate.value ?? new Date()))
 const weekdays = ['日', '一', '二', '三', '四', '五', '六']
 const timeOptions = createTimeOptions()
 
-function parseHourFromTimeStr(timeStr) {
-  const match = timeStr?.match(/^(上午|下午)\s+(\d+):(\d+)$/)
-  if (!match) return -1
-  let hour = Number(match[2])
-  if (match[1] === '下午' && hour !== 12) hour += 12
-  if (match[1] === '上午' && hour === 12) hour = 0
-  return hour
-}
-
 // 同一天內比較：結束時間是否晚於開始時間（時段選項只到整點，比小時即可）
 function isEndAfterStart(startTime, endTime) {
   return parseHourFromTimeStr(endTime) > parseHourFromTimeStr(startTime)
@@ -1405,7 +1627,7 @@ const scheduleAnchor = computed(() => {
     // 整日時沒有確切時間，後端把整日候選時段的 deadline_at 算成當天 00:00（slot_start）——
     // 這裡要餵同樣的 00:00 錨點，不能留 null 退回 resolveDeadlineAnchor 的 23:59:59 預設值，
     // 不然前端算出的報名截止時間預設會晚於後端實際天花板，送出時被誤擋
-    return { date: latestDate, time: uniformTime.allDay ? '上午 12:00' : uniformTime.startTime }
+    return { date: latestDate, time: uniformTime.allDay ? '00:00' : uniformTime.startTime }
   }
   if (dateMode.value === 'range' && timeMode.value === 'vote') {
     const sorted = [...configuredSlots.value].sort((a, b) =>
@@ -1417,10 +1639,10 @@ const scheduleAnchor = computed(() => {
     return { date: latest?.date ?? null, time: latest?.startTime ?? null }
   }
   // 情境一整日同理：跟情境三整日一樣，餵 00:00 錨點對齊後端 buildFixedSlot 的 slot_start
-  return { date: form.startDate, time: form.allDay ? '上午 12:00' : form.startTime }
+  return { date: form.startDate, time: form.allDay ? '00:00' : form.startTime }
 })
 
-// 決策硬截止時間本身（天花板解析成實際 Date；沒有設定時間時退回當天 23:59:59，見 resolveDeadlineAnchor）
+// 決策硬截止時間本身（天花板解析成實際 Date；日期或時間還沒選完整時是 null，見 resolveDeadlineAnchor）
 const scheduleCeilingDate = computed(() =>
   resolveDeadlineAnchor(scheduleAnchor.value.date, scheduleAnchor.value.time),
 )
@@ -1462,10 +1684,14 @@ function withinSafetyBuffer(date) {
 
 // 第一行（報名截止時間）的警示判斷：本身貼近現在，或演算法已經降級到無報名緩衝——無報名緩衝
 // 時報名截止時間雖然等於天花板，但天花板本身可能還有 30~59 分鐘、不會被距今檢查直接抓到，
-// 所以額外用 selectedDeadlinePresetKey === null 撐住，跟設計文件「無報名緩衝一律警示」一致
-const isReportCutoffWarning = computed(
-  () => selectedDeadlinePresetKey.value === null || withinSafetyBuffer(voteDeadlineDate.value),
-)
+// 所以額外用 selectedDeadlinePresetKey === null 撐住，跟設計文件「無報名緩衝一律警示」一致。
+// 先擋 scheduleCeilingDate 不存在的情況（日期/時間都還沒選完）——這時候
+// computeSmartDefaultPresetKey 也會回傳 null，但那是「還沒算」不是「算出來不安全」，
+// 不能誤判成警示狀態
+const isReportCutoffWarning = computed(() => {
+  if (!scheduleCeilingDate.value) return false
+  return selectedDeadlinePresetKey.value === null || withinSafetyBuffer(voteDeadlineDate.value)
+})
 
 // 第二行（決策硬截止時間）的警示判斷，跟報名截止時間各自獨立
 const isScheduleCeilingWarning = computed(() => withinSafetyBuffer(scheduleCeilingDate.value))
@@ -1473,22 +1699,30 @@ const isScheduleCeilingWarning = computed(() => withinSafetyBuffer(scheduleCeili
 // 緊急狀態：報名截止時間或決策硬截止時間任一貼近現在就算，不再看活動本身（scheduleAnchor）
 // 距今多久——活動距今很近時兩個算出來的時間通常會同步貼近現在，但活動距今稍遠時兩者會脫鉤
 // （例如自動選中的偏移量剛好讓算出來的報名截止時間貼近現在），這種情況舊邏輯完全偵測不到
-// eslint-disable-next-line no-unused-vars -- EventPage tests assert this setup state through wrapper.vm.
+
 // 不在 template 內使用，僅供測試透過 wrapper.vm 讀取內部狀態
 // eslint-disable-next-line no-unused-vars
 const isUrgent = computed(() => isReportCutoffWarning.value || isScheduleCeilingWarning.value)
 
-// 距天花板還有幾分鐘（第二行警示文案、二次確認 modal 都要用）
+// 距天花板還有幾分鐘（二次確認 modal 用）
 const minutesUntilCeiling = computed(() => {
   if (!scheduleCeilingDate.value) return 0
   return Math.max(1, Math.ceil((scheduleCeilingDate.value.getTime() - Date.now()) / 60000))
 })
 
+// 距報名截止時間還有幾分鐘（第一行警示文案用）——跟 minutesUntilCeiling 同樣邏輯，
+// 只是基準換成 voteDeadlineDate（報名截止）而不是 scheduleCeilingDate（決策硬截止天花板）
+const minutesUntilVoteDeadline = computed(() => {
+  if (!voteDeadlineDate.value) return 0
+  return Math.max(1, Math.ceil((voteDeadlineDate.value.getTime() - Date.now()) / 60000))
+})
+
+// 報名截止提醒不顯示年份——這個提醒的時間點必然在近期（截止時間不會晚於活動本身），
+// 加年份對這個情境是多餘資訊，跟 formatDateValue（月曆、候選日期等其他地方共用）分開處理
 function formatDateTimeDisplay(date) {
-  const period = date.getHours() < 12 ? '上午' : '下午'
-  const hour = date.getHours() % 12 || 12
+  const hour = String(date.getHours()).padStart(2, '0')
   const minute = String(date.getMinutes()).padStart(2, '0')
-  return `${formatDateValue(date)} ${period} ${hour}:${minute}`
+  return `${date.getMonth() + 1}/${date.getDate()} ${hour}:${minute}`
 }
 
 const reportCutoffTimeLabel = computed(() =>
@@ -1502,40 +1736,6 @@ const reportCutoffOffsetParts = computed(() => {
   if (!preset) return { number: '', unit: '' }
   const match = preset.label.match(/^(\d+)\s*(.+)$/)
   return match ? { number: match[1], unit: match[2] } : { number: '', unit: preset.label }
-})
-
-// 第一行警示狀態文字（無報名緩衝或報名截止時間貼近現在時使用，不顯示偏移量）
-const reportCutoffWarningText = computed(() => {
-  if (!voteDeadlineDate.value) return ''
-  return `報名開放到 ${formatDateTimeDisplay(voteDeadlineDate.value)}——活動快開始了，已經沒有緩衝時間`
-})
-
-// 第二行文字：決策硬截止時間，固定值，正常/警示狀態各自的文案
-const scheduleCeilingLineText = computed(() => {
-  if (!scheduleCeilingDate.value) return ''
-  if (isScheduleCeilingWarning.value) {
-    return `只剩 ${minutesUntilCeiling.value} 分鐘了，記得手動確認成團，不然活動會被自動取消喔`
-  }
-  return `最晚 ${formatDateTimeDisplay(scheduleCeilingDate.value)} 要手動確認成團，不然活動會自動取消`
-})
-
-// 第三行：情境三／四專屬的候選日提醒，任一已選候選日期距今 ≤1 小時就顯示，純資訊提示，
-// 跟報名截止/決策硬截止的計算完全無關——新模型下天花板已經改錨定最晚候選日，其他候選日
-// 投票確實不受影響，是做得到的事實，不需要再靠這行文字硬撐一個做不到的承諾
-const candidateDateReminderText = computed(() => {
-  const isScenarioC = dateMode.value === 'range' && timeMode.value === 'fixed'
-  const isScenarioD = dateMode.value === 'range' && timeMode.value === 'vote'
-  if (!isScenarioC && !isScenarioD) return ''
-  const entries = isScenarioC
-    ? candidateDates.value.map((date) => ({ date, time: uniformTime.startTime }))
-    : configuredSlots.value.map((slot) => ({ date: slot.date, time: slot.startTime }))
-  const now = Date.now()
-  const nearTerm = entries
-    .map(({ date, time }) => ({ date, start: parseDateTimeValue(date, time) }))
-    .filter((e) => e.start && e.start.getTime() - now > 0 && e.start.getTime() - now <= 60 * 60000)
-    .sort((a, b) => a.start - b.start)
-  if (nearTerm.length === 0) return ''
-  return `${shortDate(nearTerm[0].date)} 快到了，選這天的話記得手動確認成團呦～其他候選日不受影響，照常開放投票！`
 })
 
 watch(
@@ -1594,7 +1794,7 @@ watch(
     if (!start) return
     const newEnd = new Date(start.getTime() + 60 * 60 * 1000)
     form.endDate = formatDateValue(newEnd)
-    form.endTime = formatTimeValue(newEnd)
+    form.endTime = formatHourAsTimeString(newEnd.getHours())
   },
 )
 
@@ -1604,6 +1804,8 @@ function resetForm() {
   form.type = null
   form.limit = null
   form.location = ''
+  clearAddressSearch()
+  searchOverseasLocation.value = false
   form.allDay = false
   form.startDate = todayStr
   form.startTime = null
@@ -1688,6 +1890,16 @@ async function doSubmitInternal() {
   const isScenario2 = dateMode.value === 'fixed' && timeMode.value === 'vote'
   const isScenario3 = dateMode.value === 'range' && timeMode.value === 'fixed'
   const isScenario4 = dateMode.value === 'range' && timeMode.value === 'vote'
+  const trimmedTitle = form.name.trim()
+
+  if (!trimmedTitle) {
+    submitError.value = '活動名稱為必填'
+    return
+  }
+  if (trimmedTitle.length > ACTIVITY_TITLE_MAX_LENGTH) {
+    submitError.value = `活動名稱最多 ${ACTIVITY_TITLE_MAX_LENGTH} 字`
+    return
+  }
 
   if (isScenario2) {
     // 時段範圍從選填改為必填（新截止時間模型下，情境二的決策硬截止天花板錨定在時間窗開始時間，
@@ -1748,12 +1960,12 @@ async function doSubmitInternal() {
   // 最後一道防線：即使流團設定改用預設選項（選的當下一定還在未來），送出前還是要重新驗證一次，
   // 避免選好之後過了一段時間才送出，計算出的流團時間其實已經不晚於現在
   if (!deadlineISO || new Date(deadlineISO) <= new Date()) {
-    submitError.value = '流團時間已經不在未來，請重新調整流團設定或活動時間'
+    submitError.value = '報名截止時間已經過去，請重新調整活動日期或時間'
     return
   }
 
   const commonPayload = {
-    title: form.name,
+    title: trimmedTitle,
     location: form.location || null,
     limit: limitValue,
     note: form.note || null,
@@ -1918,36 +2130,12 @@ function parseDateValue(value) {
   return date
 }
 
-function formatTimeValue(date) {
-  const period = date.getHours() < 12 ? '上午' : '下午'
-  const hour = date.getHours() % 12 || 12
-  return `${period} ${hour}:00`
-}
-
-function parseDateTimeValue(dateStr, timeStr) {
-  if (!timeStr) return null
-  const date = parseDateValue(dateStr)
-  if (!date) return null
-  const match = timeStr.match(/^(上午|下午)\s+(\d+):(\d+)$/)
-  if (!match) return null
-  let hour = Number(match[2])
-  const minute = Number(match[3])
-  if (match[1] === '下午' && hour !== 12) hour += 12
-  if (match[1] === '上午' && hour === 12) hour = 0
-  date.setHours(hour, minute, 0, 0)
-  return date
-}
-
-// 沒有指定時間的日期（情境二沒填時段範圍、allDay 等）視為「整天都有可能發生」，
-// 用當天最晚的時間點（23:59:59）當計算基準，而不是當天 00:00——
-// 用 00:00 的話同一天的活動一定會被算成「已經過期」，當天的活動反而永遠不能設定流團時間
+// 四個情境的 scheduleAnchor 現在整日狀態都會餵一個代表 00:00 的時間字串（不再留 null），
+// 所以這裡 time 是 null 只剩一種情況：使用者根本還沒選時間，還沒填完，不是「整日、故意沒有
+// 確切時間」——直接回傳 null（沒有天花板可算），不要再退回當天 23:59:59 那種假值，避免使用者
+// 什麼都還沒選就看到一個算好的報名截止提醒
 function resolveDeadlineAnchor(dateStr, timeStr) {
-  const withTime = parseDateTimeValue(dateStr, timeStr)
-  if (withTime) return withTime
-  const dateOnly = parseDateValue(dateStr)
-  if (!dateOnly) return null
-  dateOnly.setHours(23, 59, 59, 999)
-  return dateOnly
+  return parseDateTimeValue(dateStr, timeStr)
 }
 
 function isSameDate(firstDate, secondDate) {
@@ -1978,15 +2166,6 @@ function buildMonthGridCells(month) {
       isCurrentMonth: date.getMonth() === month.getMonth(),
       isToday: isSameDate(date, new Date()),
     }
-  })
-}
-
-function createTimeOptions() {
-  return Array.from({ length: 24 }, (_, hour) => {
-    const period = hour < 12 ? '上午' : '下午'
-    const displayHour = String(hour % 12 || 12)
-
-    return `${period} ${displayHour}:00`
   })
 }
 
@@ -2054,6 +2233,39 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.event-scenario-guide-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--bujo-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bujo-muted-strong);
+  font-family: var(--bujo-font-body);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.event-scenario-guide-btn:hover,
+.event-scenario-guide-btn:focus-visible {
+  border-color: var(--bujo-ink);
+  background: var(--bujo-ink);
+  color: var(--bujo-white);
+}
+
+.event-scenario-guide-btn:focus-visible {
+  outline: 2px solid var(--bujo-accent);
+  outline-offset: 2px;
+}
+
 .gui-switch {
   display: inline-flex;
   cursor: pointer;
