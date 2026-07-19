@@ -11,7 +11,10 @@
           <span class="friends-cn-tag">{{ t('friends.subtitle') }}</span>
         </div>
       </div>
-      <PixelButton @click="isModalOpen = true">{{ t('friends.addFriend') }}</PixelButton>
+
+      <PixelButton data-tour="friend-add-button" @click="isModalOpen = true">{{
+        t('friends.addFriend')
+      }}</PixelButton>
     </header>
 
     <!-- 內容區 -->

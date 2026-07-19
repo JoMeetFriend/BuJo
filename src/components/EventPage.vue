@@ -170,67 +170,87 @@
         <div
           class="col-span-full grid gap-2 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 py-3"
         >
-          <!-- Q1: 日期確定了嗎？ -->
-          <div class="px-0.5">
-            <div
-              class="grid min-h-[34px] grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-[rgb(var(--bujo-ink-rgb)/0.08)] pb-2 max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2 max-sm:gap-y-1"
-            >
-              <span class="text-[13px] font-semibold leading-5 text-[var(--bujo-ink)]">{{
-                t('event.dateDetermined')
-              }}</span>
+          <div data-tour="event-scenario-toggles" class="grid gap-2">
+            <div class="flex items-center justify-between px-0.5">
               <span
-                class="min-w-0 text-xs leading-5 text-[var(--bujo-muted)] max-sm:col-span-2 max-sm:row-start-2"
+                class="text-[11px] font-semibold uppercase tracking-wide text-[var(--bujo-muted-strong)]"
+                >{{ t('event.scenarioGuideTitle') }}</span
               >
-                {{ dateModeHint }}
-              </span>
-              <label class="gui-switch justify-self-end">
-                <input
-                  v-model="isDateFixed"
-                  class="gui-switch__input"
-                  type="checkbox"
-                  role="switch"
-                  :aria-label="t('event.dateDetermined')"
-                />
-                <span class="gui-switch__track" aria-hidden="true">
-                  <span class="gui-switch__thumb"></span>
-                </span>
-              </label>
+              <button
+                type="button"
+                data-tour="event-scenario-guide-button"
+                class="event-scenario-guide-btn"
+                :aria-label="t('event.scenarioGuideAria')"
+                :title="t('event.scenarioGuideTitle')"
+                @click="startScenarioGuide"
+              >
+                ？
+              </button>
             </div>
-          </div>
 
-          <!-- Q2: 時間確定了嗎？ -->
-          <div class="px-0.5">
-            <div
-              class="grid min-h-[34px] grid-cols-[auto_1fr_auto] items-center gap-3 py-0.5 max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2 max-sm:gap-y-1"
-            >
-              <span class="text-[13px] font-semibold leading-5 text-[var(--bujo-ink)]">{{
-                t('event.timeDetermined')
-              }}</span>
-              <span
-                class="min-w-0 text-xs leading-5 text-[var(--bujo-muted)] max-sm:col-span-2 max-sm:row-start-2"
+            <!-- Q1: 日期確定了嗎？ -->
+            <div class="px-0.5">
+              <div
+                class="grid min-h-[34px] grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-[rgb(var(--bujo-ink-rgb)/0.08)] pb-2 max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2 max-sm:gap-y-1"
               >
-                {{ timeModeHint }}
-              </span>
-              <label class="gui-switch justify-self-end">
-                <input
-                  v-model="isTimeFixed"
-                  class="gui-switch__input"
-                  type="checkbox"
-                  role="switch"
-                  :aria-label="t('event.timeDetermined')"
-                />
-                <span class="gui-switch__track" aria-hidden="true">
-                  <span class="gui-switch__thumb"></span>
+                <span class="text-[13px] font-semibold leading-5 text-[var(--bujo-ink)]">{{
+                  t('event.dateDetermined')
+                }}</span>
+                <span
+                  class="min-w-0 text-xs leading-5 text-[var(--bujo-muted)] max-sm:col-span-2 max-sm:row-start-2"
+                >
+                  {{ dateModeHint }}
                 </span>
-              </label>
+                <label class="gui-switch justify-self-end">
+                  <input
+                    v-model="isDateFixed"
+                    class="gui-switch__input"
+                    type="checkbox"
+                    role="switch"
+                    :aria-label="t('event.dateDetermined')"
+                  />
+                  <span class="gui-switch__track" aria-hidden="true">
+                    <span class="gui-switch__thumb"></span>
+                  </span>
+                </label>
+              </div>
             </div>
-          </div>
-          <!-- 情境說明 -->
-          <div
-            v-if="dateMode !== 'fixed' || timeMode !== 'fixed'"
-            class="border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 py-2 text-xs leading-5 text-[var(--bujo-muted-strong)]"
-          >
-            {{ scenarioDescription }}
+
+            <!-- Q2: 時間確定了嗎？ -->
+            <div class="px-0.5">
+              <div
+                class="grid min-h-[34px] grid-cols-[auto_1fr_auto] items-center gap-3 py-0.5 max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2 max-sm:gap-y-1"
+              >
+                <span class="text-[13px] font-semibold leading-5 text-[var(--bujo-ink)]">{{
+                  t('event.timeDetermined')
+                }}</span>
+                <span
+                  class="min-w-0 text-xs leading-5 text-[var(--bujo-muted)] max-sm:col-span-2 max-sm:row-start-2"
+                >
+                  {{ timeModeHint }}
+                </span>
+                <label class="gui-switch justify-self-end">
+                  <input
+                    v-model="isTimeFixed"
+                    class="gui-switch__input"
+                    type="checkbox"
+                    role="switch"
+                    :aria-label="t('event.timeDetermined')"
+                  />
+                  <span class="gui-switch__track" aria-hidden="true">
+                    <span class="gui-switch__thumb"></span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 情境說明 -->
+            <div
+              v-if="dateMode !== 'fixed' || timeMode !== 'fixed'"
+              class="border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 py-2 text-xs leading-5 text-[var(--bujo-muted-strong)]"
+            >
+              {{ scenarioDescription }}
+            </div>
           </div>
 
           <div
@@ -467,7 +487,7 @@
               </span>
             </div>
 
-            <div class="grid gap-2">
+            <div data-tour="event-time-window" class="grid gap-2">
               <span :class="fieldLabelClass">{{ t('event.timeSlotLabel') }}</span>
 
               <div class="grid max-w-[280px] grid-cols-[1fr_12px_1fr] items-center gap-2">
@@ -578,7 +598,7 @@
             class="grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
             @click="closePicker"
           >
-            <div class="grid gap-2">
+            <div data-tour="event-candidate-dates" class="grid gap-2">
               <span :class="fieldLabelClass">{{ t('event.candidateDates') }}</span>
 
               <div class="mb-1 flex items-center justify-between gap-2">
@@ -741,6 +761,7 @@
               :show-editor="showDeadlineEditor"
               :presets="DEADLINE_PRESETS"
               :selected-preset-key="selectedDeadlinePresetKey"
+              :candidate-reminder-text="candidateDateReminderText"
               @toggle-editor="toggleDeadlineEditor"
               @select-preset="selectedDeadlinePresetKey = $event"
             />
@@ -752,7 +773,7 @@
             class="grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
             @click="closePicker"
           >
-            <div class="grid gap-2">
+            <div data-tour="event-scenario4-dates" class="grid gap-2">
               <span :class="fieldLabelClass">{{ t('event.candidateDatesAndTimes') }}</span>
 
               <div class="mb-1 flex items-center justify-between gap-2">
@@ -937,6 +958,7 @@
               :show-editor="showDeadlineEditor"
               :presets="DEADLINE_PRESETS"
               :selected-preset-key="selectedDeadlinePresetKey"
+              :candidate-reminder-text="candidateDateReminderText"
               @toggle-editor="toggleDeadlineEditor"
               @select-preset="selectedDeadlinePresetKey = $event"
             />
@@ -1027,6 +1049,8 @@ import {
   parseHourFromTimeStr,
 } from '@/utils/timeFormat'
 import { useAddressSearch } from '@/composables/useAddressSearch'
+import { useAuthStore } from '@/stores/auth'
+import { useEventScenarioGuide } from '@/composables/useEventScenarioGuide'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -1041,6 +1065,9 @@ const router = useRouter()
 
 const isRouteComponent = computed(() => route.name === 'event-new')
 const modalOpen = computed(() => (isRouteComponent.value ? true : props.isOpen))
+
+const authStore = useAuthStore()
+const scenarioGuideUserId = computed(() => authStore.user?.id ?? authStore.user?.uid ?? '')
 
 const eventTypes = computed(() => [
   t('event.typeEat'),
@@ -1208,6 +1235,27 @@ const timeModeHint = computed(() =>
   timeMode.value === 'fixed' ? t('event.timeFixedHint') : t('event.timeVoteHint'),
 )
 
+// 情境代號給 useEventScenarioGuide 用來分開追蹤各情境「有沒有看過介紹」
+const currentScenarioKey = computed(() => {
+  if (dateMode.value === 'fixed' && timeMode.value === 'vote') return 'b'
+  if (dateMode.value === 'range' && timeMode.value === 'fixed') return 'c'
+  if (dateMode.value === 'range' && timeMode.value === 'vote') return 'd'
+  return 'a'
+})
+const { hasSeenGuide: hasSeenScenarioGuide, startGuide: startScenarioGuide } =
+  useEventScenarioGuide(scenarioGuideUserId, currentScenarioKey, {
+    openDeadlineEditor: () => {
+      showDeadlineEditor.value = true
+    },
+  })
+
+// 彈窗開著的時候切到還沒看過介紹的情境，自動彈一次該情境的說明
+watch([modalOpen, currentScenarioKey], async ([isOpen]) => {
+  if (!isOpen || hasSeenScenarioGuide.value) return
+  await nextTick()
+  startScenarioGuide()
+})
+
 // 從行事曆日期格點進來：預設情境一（日期固定X時間固定），並把點選的日期帶入
 // 情境一的開始／結束日期，以及情境二（日期固定X時間讓大家選）的日期
 watch(
@@ -1277,6 +1325,15 @@ const uniformTime = reactive({
   endTimeUserSet: false,
 })
 
+// 切到情境三、還沒選任何候選日期時，預設把「明天」加進候選日期，讓表單一開始就有東西可以動，
+// 導覽走到報名截止步驟時也才有實際算得出來的截止時間可以顯示
+watch(currentScenarioKey, (key) => {
+  if (key !== 'c' || candidateDates.value.length > 0) return
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  candidateDates.value = [formatDateValue(tomorrow)]
+})
+
 // 情境三：整日已勾選時，「今天」不可能再是完整一天，跟情境一的 isStartDateToday 規則同理，
 // 直接鎖住「今天」這一格，不讓使用者選進一個已經不成立的整日候選日
 // 情境三：已選的統一開始時間若已經不在 uniformStartTimeOptions（對今天而言已經過去），
@@ -1340,6 +1397,27 @@ const configuredSlots = computed(() =>
       })),
   ),
 )
+
+// 切到情境四、還沒設定任何候選時段時，預設把「明天 09:00–18:00」設成候選組合，讓表單一開始
+// 就有東西可以動，導覽走到報名截止步驟時也才有截止時間可以顯示
+watch(currentScenarioKey, (key) => {
+  if (key !== 'd' || candidateSlots.value.length > 0) return
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  candidateSlots.value = [
+    {
+      date: formatDateValue(tomorrow),
+      timeSlots: [
+        {
+          id: scenario4SlotIdSeq++,
+          startTime: '上午 9:00',
+          endTime: '下午 6:00',
+          endTimeUserSet: true,
+        },
+      ],
+    },
+  ]
+})
 
 const scenario4DateCells = computed(() => {
   const todayValue = formatDateValue(new Date())
@@ -2199,6 +2277,39 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.event-scenario-guide-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--bujo-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bujo-muted-strong);
+  font-family: var(--bujo-font-body);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.event-scenario-guide-btn:hover,
+.event-scenario-guide-btn:focus-visible {
+  border-color: var(--bujo-ink);
+  background: var(--bujo-ink);
+  color: var(--bujo-white);
+}
+
+.event-scenario-guide-btn:focus-visible {
+  outline: 2px solid var(--bujo-accent);
+  outline-offset: 2px;
+}
+
 .gui-switch {
   display: inline-flex;
   cursor: pointer;

@@ -1,5 +1,5 @@
 <template>
-  <div class="relative flex h-screen bg-[var(--bujo-page)] overflow-hidden text-[var(--bujo-ink)]">
+  <div class="app-shell relative flex bg-[var(--bujo-page)] overflow-hidden text-[var(--bujo-ink)]">
     <LoadingPage v-if="!authStore.initialized || !minDisplayElapsed" />
 
     <AppSidebar
@@ -7,6 +7,7 @@
       :isOpen="sidebarOpen"
       :filters="filters"
       @toggle-filter="toggleFilter"
+      @open-tour="startAppTour"
     />
 
     <SidebarToggleButton
@@ -49,8 +50,8 @@
 </template>
 
 <script setup>
-import { RouterView, useRoute } from 'vue-router'
-import { ref, computed, onMounted } from 'vue'
+import { RouterView, useRoute, useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import AppSidebar from './components/AppSidebar.vue'
 import SidebarToggleButton from './components/ui/SidebarToggleButton.vue'
 import LineNotificationOnboardingModal from './components/LineNotificationOnboardingModal.vue'
@@ -60,11 +61,14 @@ import {
   rememberLineNotificationOnboardingReturnPath,
   useLineNotificationOnboarding,
 } from './composables/useLineNotificationOnboarding'
+import { useAppTour } from './composables/useAppTour'
+import { markEventScenarioGuideSeen } from './composables/useEventScenarioGuide'
 
 // 載入畫面至少顯示這麼久，避免 authStore 初始化太快時畫面閃一下就消失
 const MIN_LOADING_DISPLAY_MS = 1600
 
 const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 const sidebarOpen = ref(true)
 const filters = ref({ joined: true, formed: true, personal: true })
@@ -97,6 +101,32 @@ const showLineNotificationOnboarding = computed(
     hasUnseenLineNotificationOnboarding.value,
 )
 
+const { hasSeenTour: hasSeenAppTour, startTour: startAppTour } = useAppTour(onboardingUserId, {
+  navigate: (path) => router.push(path),
+  // 主導覽自己開了新增活動彈窗要介紹「？」按鈕時，先標記情境一的彈窗導覽已看過，
+  // 避免彈窗一開兩邊導覽疊在一起
+  onSuppressEventScenarioGuide: () => markEventScenarioGuideSeen(onboardingUserId.value, 'a'),
+})
+// 新手導覽的預設首頁是行事曆頁（登入/註冊後的導向目標），只在那裡自動開啟一次
+const shouldAutoStartAppTour = computed(
+  () =>
+    authStore.initialized &&
+    minDisplayElapsed.value &&
+    Boolean(authStore.user) &&
+    Boolean(onboardingUserId.value) &&
+    isCalendarPage.value &&
+    !hasSeenAppTour.value,
+)
+watch(
+  shouldAutoStartAppTour,
+  async (shouldStart) => {
+    if (!shouldStart) return
+    await nextTick()
+    startAppTour()
+  },
+  { immediate: true },
+)
+
 function toggleFilter(key) {
   filters.value[key] = !filters.value[key]
 }
@@ -107,6 +137,11 @@ function rememberOnboardingReturnPath() {
 </script>
 
 <style scoped>
+.app-shell {
+  height: 100vh;
+  height: 100dvh;
+}
+
 .app-sidebar-toggle {
   position: absolute;
   top: 22px;

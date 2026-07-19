@@ -1,5 +1,8 @@
 <template>
-  <div class="flex flex-col gap-1.5 border-t border-dashed border-[var(--bujo-line-soft)] pt-2">
+  <div
+    data-tour="event-deadline-block"
+    class="flex flex-col gap-1.5 border-t border-dashed border-[var(--bujo-line-soft)] pt-2"
+  >
     <p
       class="flex items-center gap-1 text-xs leading-5"
       :class="
@@ -15,13 +18,25 @@
       <template v-else
         >報名開放到
         <strong class="text-[var(--bujo-muted-strong)]">{{ timeLabel }}</strong>
-        （<button type="button" class="-mx-1 -my-1 px-1 py-1" @click="$emit('toggle-editor')">
+        （<button
+          type="button"
+          data-tour="event-deadline-offset-button"
+          class="-mx-1 -my-1 px-1 py-1"
+          @click="$emit('toggle-editor')"
+        >
           <span class="text-[var(--bujo-accent)] underline decoration-dotted underline-offset-2">{{
             offsetParts.number
           }}</span
           >{{ offsetParts.unit }}</button
         >截止）</template
       >
+    </p>
+
+    <p
+      v-if="candidateReminderText"
+      class="text-[11px] leading-5 text-[var(--bujo-accent)]"
+    >
+      {{ candidateReminderText }}
     </p>
 
     <!-- 流團編輯器 -->
@@ -58,6 +73,10 @@ defineProps({
   showEditor: Boolean,
   presets: Array,
   selectedPresetKey: String,
+  candidateReminderText: {
+    type: String,
+    default: '',
+  },
 })
 
 defineEmits(['toggle-editor', 'select-preset'])

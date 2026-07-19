@@ -1,0 +1,112 @@
+/* BuJo 新手導覽的 driver.js 主題覆寫，統一比對 PixelButton / BaseModal 的紙感編輯風格。 */
+/* 選擇器都搭配 driver.js 本身的 class 疊加特異度，CSS import 順序不影響覆寫結果。 */
+
+.bujo-tour-popover.driver-popover {
+  border: 1px solid var(--bujo-ink);
+  border-radius: 2px;
+  box-shadow: 0 2px 0 var(--bujo-ink);
+  background-color: var(--bujo-surface);
+  padding: 18px;
+  max-width: 320px;
+}
+
+.bujo-tour-popover.driver-popover .driver-popover-title {
+  font-family: var(--bujo-font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--bujo-ink);
+}
+
+.bujo-tour-popover.driver-popover .driver-popover-description {
+  font-family: var(--bujo-font-body);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--bujo-text-body);
+}
+
+.bujo-tour-popover.driver-popover .driver-popover-close-btn {
+  color: var(--bujo-muted);
+  font-size: 16px;
+}
+
+.bujo-tour-popover.driver-popover .driver-popover-close-btn:hover,
+.bujo-tour-popover.driver-popover .driver-popover-close-btn:focus {
+  color: var(--bujo-ink);
+}
+
+.bujo-tour-popover.driver-popover .driver-popover-progress-text {
+  font-family: var(--bujo-font-meta);
+  font-size: 11px;
+  color: var(--bujo-muted-strong);
+}
+
+.bujo-tour-popover.driver-popover .driver-popover-footer-btn {
+  border: 1px solid var(--bujo-line);
+  border-radius: 0;
+  background-color: transparent;
+  padding: 6px 14px;
+  color: var(--bujo-muted-strong);
+  font-family: var(--bujo-font-body);
+  font-size: 12px;
+  font-weight: 600;
+  transition:
+    background-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.bujo-tour-popover.driver-popover .driver-popover-footer-btn:hover,
+.bujo-tour-popover.driver-popover .driver-popover-footer-btn:focus {
+  border-color: var(--bujo-ink);
+  color: var(--bujo-ink);
+  background-color: transparent;
+}
+
+.bujo-tour-popover.driver-popover .driver-popover-next-btn,
+.bujo-tour-popover.driver-popover .driver-popover-footer-btn.bujo-tour-skip-btn:last-child {
+  border-color: var(--bujo-ink);
+  background-color: var(--bujo-ink);
+  color: var(--bujo-white);
+}
+
+.bujo-tour-popover.driver-popover .driver-popover-next-btn:hover,
+.bujo-tour-popover.driver-popover .driver-popover-next-btn:focus {
+  background-color: var(--bujo-surface);
+  color: var(--bujo-ink);
+}
+
+.bujo-tour-popover.driver-popover .bujo-tour-skip-btn {
+  order: -1;
+  margin-right: auto;
+  border-color: transparent;
+  color: var(--bujo-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bujo-tour-popover.driver-popover .bujo-tour-skip-btn:hover,
+.bujo-tour-popover.driver-popover .bujo-tour-skip-btn:focus {
+  border-color: transparent;
+  background-color: transparent;
+  color: var(--bujo-ink);
+}
+
+.bujo-tour-popover.driver-popover .driver-popover-arrow {
+  border-color: var(--bujo-surface);
+}
+
+.bujo-tour-popover.driver-popover .driver-popover-arrow-side-left {
+  border-right-color: var(--bujo-surface);
+}
+
+.bujo-tour-popover.driver-popover .driver-popover-arrow-side-right {
+  border-left-color: var(--bujo-surface);
+}
+
+.bujo-tour-popover.driver-popover .driver-popover-arrow-side-top {
+  border-bottom-color: var(--bujo-surface);
+}
+
+.bujo-tour-popover.driver-popover .driver-popover-arrow-side-bottom {
+  border-top-color: var(--bujo-surface);
+}
