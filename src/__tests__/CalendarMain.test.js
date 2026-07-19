@@ -31,6 +31,11 @@ async function mountCalendarMain(user = {}) {
     global: {
       plugins: [pinia, router],
       stubs: {
+        ActivityDetailModal: true,
+        BaseModal: {
+          props: ['isOpen'],
+          template: '<div v-if="isOpen"><slot /></div>',
+        },
         DateEventsModal: true,
         EventPage: true,
         ProfileAccountModal: true,
@@ -312,7 +317,7 @@ describe('CalendarMain - UPCOMING 活動側欄', () => {
     expect(desktopCards[3].get('.calendar-upcoming-relative').text()).toBe('3 天後')
     expect(desktopCards.slice(0, 4).every((card) => card.classes().includes('is-soon'))).toBe(true)
     expect(desktopCards.slice(4).every((card) => !card.classes().includes('is-soon'))).toBe(true)
-    expect(desktopRail.get('.calendar-upcoming-hint').text()).toBe('還有 3 個活動，往下捲動查看')
+    expect(desktopRail.get('.calendar-upcoming-hint').text()).toBe('還有 2 個活動，往下捲動查看')
 
     const mobileTitles = wrapper
       .get('.calendar-mobile-pocket')
@@ -326,6 +331,9 @@ describe('CalendarMain - UPCOMING 活動側欄', () => {
       .findAll('button.calendar-upcoming-card')
     expect(mobileCards.map((card) => card.classes().includes('is-soon'))).toEqual(
       desktopCards.map((card) => card.classes().includes('is-soon')),
+    )
+    expect(wrapper.get('.calendar-mobile-pocket .calendar-upcoming-hint').text()).toBe(
+      '還有 3 個活動，左右滑動查看',
     )
 
     wrapper.unmount()
@@ -381,7 +389,7 @@ describe('CalendarMain - UPCOMING 活動側欄', () => {
     vi.useRealTimers()
   })
 
-  test('活動卡可開啟日期彈窗，並具備桌機垂直與窄版水平捲動樣式', async () => {
+  test('活動卡可直接開啟活動詳情，並具備桌機垂直與窄版水平捲動樣式', async () => {
     const originalFetch = globalThis.fetch
     vi.setSystemTime(new Date(2026, 6, 19, 12, 0, 0))
     globalThis.fetch = vi.fn(() =>
@@ -411,16 +419,28 @@ describe('CalendarMain - UPCOMING 活動側欄', () => {
     await flushPromises()
     await wrapper.get('.calendar-social-rail button.calendar-upcoming-card').trigger('click')
 
-    expect(wrapper.findComponent({ name: 'DateEventsModal' }).props('date')).toBe('2026-07-22')
+    expect(wrapper.findComponent({ name: 'DateEventsModal' }).exists()).toBe(false)
+    expect(wrapper.findComponent({ name: 'ActivityDetailModal' }).props('activityId')).toBe(
+      'clickable',
+    )
+    wrapper.findComponent({ name: 'ActivityDetailModal' }).vm.$emit('close')
+    await wrapper.vm.$nextTick()
+    await wrapper.get('.calendar-mobile-pocket button.calendar-upcoming-card').trigger('click')
+    expect(wrapper.findComponent({ name: 'ActivityDetailModal' }).props('activityId')).toBe(
+      'clickable',
+    )
     const desktopCards = wrapper
       .get('.calendar-social-rail')
       .findAll('button.calendar-upcoming-card')
     expect(desktopCards[0].classes()).toContain('is-soon')
     expect(desktopCards[1].classes()).not.toContain('is-soon')
     expect(calendarMainSource).toMatch(
-      /\.calendar-upcoming-list\s*\{[\s\S]*?max-height: 452px;[\s\S]*?overflow-y: auto;/,
+      /\.calendar-upcoming-list\s*\{[\s\S]*?max-height: 568px;[\s\S]*?overflow-y: auto;/,
     )
     expect(calendarMainSource).toContain('.calendar-upcoming-card.is-soon')
+    expect(calendarMainSource).toContain(
+      'color-mix(in srgb, var(--bujo-card-blue) 44%, var(--bujo-white))',
+    )
     expect(calendarMainSource).not.toMatch(/\.calendar-upcoming-card:nth-child\(-n \+ 2\)/)
     expect(calendarMainSource).toMatch(
       /@media \(max-width: 900px\) \{[\s\S]*?\.calendar-upcoming-list\s*\{[\s\S]*?overflow-x: auto;[\s\S]*?overflow-y: hidden;/,

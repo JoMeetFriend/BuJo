@@ -214,7 +214,7 @@
               type="button"
               class="calendar-upcoming-card"
               :class="{ 'is-soon': item.isSoon }"
-              @click="openDateModal(item.date)"
+              @click="openActivityDetail(item.id)"
             >
               <span class="calendar-upcoming-card-meta">
                 <span class="calendar-upcoming-date">
@@ -231,8 +231,8 @@
             </div>
           </div>
 
-          <p v-if="hiddenUpcomingCount > 0" class="calendar-upcoming-hint">
-            還有 {{ hiddenUpcomingCount }} 個活動，左右滑動查看
+          <p v-if="mobileHiddenUpcomingCount > 0" class="calendar-upcoming-hint">
+            還有 {{ mobileHiddenUpcomingCount }} 個活動，左右滑動查看
           </p>
         </section>
       </div>
@@ -250,7 +250,7 @@
             type="button"
             class="calendar-upcoming-card"
             :class="{ 'is-soon': item.isSoon }"
-            @click="openDateModal(item.date)"
+            @click="openActivityDetail(item.id)"
           >
             <span class="calendar-upcoming-card-meta">
               <span class="calendar-upcoming-date">
@@ -267,8 +267,8 @@
           </div>
         </div>
 
-        <p v-if="hiddenUpcomingCount > 0" class="calendar-upcoming-hint">
-          還有 {{ hiddenUpcomingCount }} 個活動，往下捲動查看
+        <p v-if="desktopHiddenUpcomingCount > 0" class="calendar-upcoming-hint">
+          還有 {{ desktopHiddenUpcomingCount }} 個活動，往下捲動查看
         </p>
       </aside>
     </section>
@@ -281,6 +281,22 @@
       @add="openEventModalFromDate"
       @refresh="fetchActivities"
     />
+
+    <BaseModal
+      v-if="selectedActivityId"
+      :is-open="true"
+      title="活動詳情"
+      bare
+      @close="closeActivityDetail"
+    >
+      <ActivityDetailModal
+        :is-open="true"
+        :activity-id="selectedActivityId"
+        closable
+        @close="closeActivityDetail"
+        @status-changed="fetchActivities"
+      />
+    </BaseModal>
   </div>
 
   <ProfileAccountModal
@@ -303,6 +319,8 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import PixelButton from './ui/PixelButton.vue'
+import BaseModal from './ui/BaseModal.vue'
+import ActivityDetailModal from './ActivityDetailModal.vue'
 import DateEventsModal from './DateEventsModal.vue'
 import ProfileAccountModal from './ProfileAccountModal.vue'
 import EventPage from './EventPage.vue'
@@ -463,6 +481,7 @@ const todayDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStar
 const currentYear = ref(today.getFullYear())
 const currentMonth = ref(today.getMonth())
 const selectedDate = ref(null)
+const selectedActivityId = ref(null)
 
 const monthNames = [
   'JANUARY',
@@ -578,6 +597,15 @@ function closeDateModal() {
   selectedDate.value = null
 }
 
+function openActivityDetail(activityId) {
+  if (!activityId) return
+  selectedActivityId.value = String(activityId)
+}
+
+function closeActivityDetail() {
+  selectedActivityId.value = null
+}
+
 function openEventModal() {
   eventModalInitialDate.value = null
   showEventModal.value = true
@@ -664,7 +692,8 @@ const upcomingItems = computed(() =>
   }),
 )
 
-const hiddenUpcomingCount = computed(() => Math.max(0, upcomingItems.value.length - 4))
+const desktopHiddenUpcomingCount = computed(() => Math.max(0, upcomingItems.value.length - 5))
+const mobileHiddenUpcomingCount = computed(() => Math.max(0, upcomingItems.value.length - 4))
 
 function isToday(date) {
   const today = new Date()
@@ -1224,7 +1253,7 @@ function isToday(date) {
 .calendar-upcoming-list {
   display: grid;
   gap: 12px;
-  max-height: 452px;
+  max-height: 568px;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   padding-right: 5px;
@@ -1262,13 +1291,17 @@ function isToday(date) {
 
 .calendar-upcoming-card.is-soon {
   border-style: solid;
-  border-color: #99bddd;
-  background: #e2f1ff;
+  border-color: rgb(var(--bujo-line-rgb) / 0.46);
+  background:
+    linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.62), transparent 48%),
+    color-mix(in srgb, var(--bujo-card-blue) 44%, var(--bujo-white));
 }
 
 .calendar-upcoming-card:hover {
-  border-color: #75a8d1;
-  background: #d7ebfc;
+  border-color: rgb(var(--bujo-ink-rgb) / 0.58);
+  background:
+    linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.5), transparent 48%),
+    color-mix(in srgb, var(--bujo-card-blue) 54%, var(--bujo-white));
 }
 
 .calendar-upcoming-card-meta {
@@ -1315,7 +1348,7 @@ function isToday(date) {
 }
 
 .calendar-upcoming-card.is-soon .calendar-upcoming-relative {
-  background: #577ea2;
+  background: #4a7fa5;
   color: var(--bujo-white);
 }
 
