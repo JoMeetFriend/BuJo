@@ -77,7 +77,7 @@
           class="w-8 h-8 object-cover shrink-0"
         />
         <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
-        <span>ME</span>
+        <span>{{ authStore.user?.display_name || 'ME' }}</span>
       </button>
     </div>
   </aside>
@@ -266,9 +266,8 @@ const navItems = [
 ]
 
 const filterItems = [
-  { key: 'joined', label: 'JOINING', color: 'var(--bujo-card-blue)' },
-  { key: 'formed', label: 'FORMED', color: 'var(--bujo-accent)' },
-  { key: 'personal', label: 'PERSONAL', color: 'var(--bujo-card-yellow)' },
+  { key: 'formedByMe', label: 'ORGANIZED', color: 'var(--bujo-accent)' },
+  { key: 'formedByOthers', label: 'ATTENDING', color: 'var(--bujo-card-blue)' },
 ]
 
 function onProfileAnimEnd() {

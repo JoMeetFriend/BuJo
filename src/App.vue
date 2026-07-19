@@ -71,7 +71,7 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const sidebarOpen = ref(true)
-const filters = ref({ joined: true, formed: true, personal: true })
+const filters = ref({ formedByMe: true, formedByOthers: true })
 const minDisplayElapsed = ref(false)
 
 onMounted(() => {

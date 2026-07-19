@@ -42,7 +42,7 @@ async function mountAppSidebar(user = {}) {
   return mount(AppSidebar, {
     props: {
       isOpen: true,
-      filters: { joined: true, formed: true, personal: true },
+      filters: { formedByMe: true, formedByOthers: true },
     },
     global: {
       plugins: [pinia, router],
