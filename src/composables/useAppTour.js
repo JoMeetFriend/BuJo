@@ -1,7 +1,7 @@
 import { driver } from 'driver.js'
 import 'driver.js/dist/driver.css'
 import '@/assets/driver-tour-theme.css'
-import { computed, ref, unref } from 'vue'
+import { computed, nextTick, ref, unref } from 'vue'
 
 export const APP_TOUR_KEY_PREFIX = 'bujo:app-tour:v1:'
 export const APP_TOUR_SEEN_VALUE = 'seen'
@@ -57,6 +57,16 @@ const TOUR_STEPS = [
       title: '朋友',
       description: '管理好友名單、傳送邀請，找到一起揪團的夥伴。',
     },
+    // 下一步的錨點在朋友頁面上，先切過去再繼續導覽
+    navigateOnNextTo: '/friends-page',
+  },
+  {
+    selector: 'friend-add-button',
+    popover: {
+      title: '加好友',
+      description: '輸入朋友的 BuJo ID 來交朋友吧！',
+    },
+    waitForElement: 1500,
   },
   {
     selector: 'nav-alerts',
@@ -74,19 +84,35 @@ const TOUR_STEPS = [
   },
 ]
 
-function buildDriveSteps() {
-  return TOUR_STEPS.map(({ selector, popover }) => ({
-    element: () => resolveTourElement(selector),
-    popover,
-    skipMissingElement: true,
-  }))
+export function buildDriveSteps(navigate) {
+  return TOUR_STEPS.map(({ selector, popover, navigateOnNextTo, waitForElement }) => {
+    const stepPopover = { ...popover }
+
+    // 下一步的目標在別的頁面上：先切頁、等畫面渲染完，再讓 driver.js 前進到下一步。
+    if (navigateOnNextTo) {
+      stepPopover.onNextClick = async (_element, _step, opts) => {
+        if (navigate) {
+          await navigate(navigateOnNextTo)
+          await nextTick()
+        }
+        opts.driver.moveNext()
+      }
+    }
+
+    return {
+      element: () => resolveTourElement(selector),
+      popover: stepPopover,
+      skipMissingElement: true,
+      ...(waitForElement ? { waitForElement } : {}),
+    }
+  })
 }
 
-function createAppTourDriver(onDestroyed) {
+function createAppTourDriver(navigate, onDestroyed) {
   let tourInstance = null
 
   tourInstance = driver({
-    steps: buildDriveSteps(),
+    steps: buildDriveSteps(navigate),
     showProgress: true,
     allowClose: true,
     overlayClickBehavior: 'close',
@@ -117,6 +143,7 @@ function createAppTourDriver(onDestroyed) {
 
 export function useAppTour(userId, options = {}) {
   const storage = Object.hasOwn(options, 'storage') ? options.storage : getBrowserStorage()
+  const navigate = options.navigate
   const revision = ref(0)
 
   const normalizedUserId = computed(() => {
@@ -155,7 +182,7 @@ export function useAppTour(userId, options = {}) {
   }
 
   function startTour() {
-    createAppTourDriver(markSeen).drive()
+    createAppTourDriver(navigate, markSeen).drive()
   }
 
   return {

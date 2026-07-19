@@ -51,7 +51,7 @@
 </template>
 
 <script setup>
-import { RouterView, useRoute } from 'vue-router'
+import { RouterView, useRoute, useRouter } from 'vue-router'
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import AppSidebar from './components/AppSidebar.vue'
 import SidebarToggleButton from './components/ui/SidebarToggleButton.vue'
@@ -69,6 +69,7 @@ import { useAppTour } from './composables/useAppTour'
 const MIN_LOADING_DISPLAY_MS = 1600
 
 const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 const sidebarOpen = ref(true)
 const filters = ref({ joined: true, formed: true, personal: true })
@@ -101,7 +102,9 @@ const showLineNotificationOnboarding = computed(
     hasUnseenLineNotificationOnboarding.value,
 )
 
-const { hasSeenTour: hasSeenAppTour, startTour: startAppTour } = useAppTour(onboardingUserId)
+const { hasSeenTour: hasSeenAppTour, startTour: startAppTour } = useAppTour(onboardingUserId, {
+  navigate: (path) => router.push(path),
+})
 // 新手導覽的預設首頁是行事曆頁（登入/註冊後的導向目標），只在那裡自動開啟一次
 const shouldAutoStartAppTour = computed(
   () =>

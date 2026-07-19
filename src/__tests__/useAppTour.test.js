@@ -1,6 +1,11 @@
 import { computed, ref } from 'vue'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { APP_TOUR_SEEN_VALUE, getAppTourKey, useAppTour } from '@/composables/useAppTour'
+import {
+  APP_TOUR_SEEN_VALUE,
+  buildDriveSteps,
+  getAppTourKey,
+  useAppTour,
+} from '@/composables/useAppTour'
 
 function createStorage(initial = {}) {
   const values = new Map(Object.entries(initial))
@@ -75,6 +80,50 @@ describe('useAppTour', () => {
     expect(() => tour.markSeen()).not.toThrow()
   })
 
+  describe('buildDriveSteps 跨頁導覽', () => {
+    test('朋友步驟的下一步會先呼叫 navigate 切到朋友頁面，再前進到下一步', async () => {
+      const navigate = vi.fn().mockResolvedValue(undefined)
+      const moveNext = vi.fn()
+      const steps = buildDriveSteps(navigate)
+      const friendsStep = steps.find((step) => step.popover.title === '朋友')
+
+      await friendsStep.popover.onNextClick(undefined, friendsStep, { driver: { moveNext } })
+
+      expect(navigate).toHaveBeenCalledWith('/friends-page')
+      expect(moveNext).toHaveBeenCalledTimes(1)
+      expect(navigate.mock.invocationCallOrder[0]).toBeLessThan(
+        moveNext.mock.invocationCallOrder[0],
+      )
+    })
+
+    test('沒有提供 navigate 時，朋友步驟仍會直接前進，不會卡住', async () => {
+      const moveNext = vi.fn()
+      const steps = buildDriveSteps()
+      const friendsStep = steps.find((step) => step.popover.title === '朋友')
+
+      await friendsStep.popover.onNextClick(undefined, friendsStep, { driver: { moveNext } })
+
+      expect(moveNext).toHaveBeenCalledTimes(1)
+    })
+
+    test('加好友步驟設定 waitForElement，等待朋友頁面渲染完成', () => {
+      const steps = buildDriveSteps()
+      const addFriendStep = steps.find((step) => step.popover.title === '加好友')
+
+      expect(addFriendStep.waitForElement).toBe(1500)
+      expect(addFriendStep.popover.description).toBe('輸入朋友的 BuJo ID 來交朋友吧！')
+    })
+
+    test('其餘步驟不會意外帶有頁面切換邏輯', () => {
+      const steps = buildDriveSteps(vi.fn())
+      const stepsWithoutNav = steps.filter((step) => step.popover.title !== '朋友')
+
+      stepsWithoutNav.forEach((step) => {
+        expect(step.popover.onNextClick).toBeUndefined()
+      })
+    })
+  })
+
   describe('startTour', () => {
     beforeEach(() => {
       ;['calendar', 'activity', 'friends', 'alerts', 'profile'].forEach((key) => {
@@ -85,6 +134,9 @@ describe('useAppTour', () => {
       const todayCell = document.createElement('div')
       todayCell.setAttribute('data-tour', 'calendar-today-cell')
       document.body.appendChild(todayCell)
+      const addFriendButton = document.createElement('button')
+      addFriendButton.setAttribute('data-tour', 'friend-add-button')
+      document.body.appendChild(addFriendButton)
     })
 
     test('五大區塊與行事曆成團說明都有對應錨點時可以正常啟動導覽', () => {
@@ -95,10 +147,16 @@ describe('useAppTour', () => {
     })
 
     test('找不到任何錨點時不拋錯', () => {
+      vi.useFakeTimers()
       document.body.innerHTML = ''
       const tour = useAppTour(ref('user-123'), { storage: createStorage() })
 
       expect(() => tour.startTour()).not.toThrow()
+
+      // 加好友步驟設有 waitForElement，找不到錨點時會等待後才放棄；把時間快轉完，
+      // 避免遺留的 setTimeout 在測試結束、jsdom 環境清掉後才觸發而噴出例外。
+      vi.advanceTimersByTime(1600)
+      vi.useRealTimers()
     })
   })
 })
