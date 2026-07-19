@@ -155,6 +155,24 @@ describe('useEventScenarioGuide', () => {
       expect(document.body.classList.contains('driver-active')).toBe(true)
     })
 
+    test('有對應錨點時可以正常啟動說明（情境四，含候選日期與時段錨點）', () => {
+      ;[
+        'event-scenario-toggles',
+        'event-scenario4-dates',
+        'event-deadline-block',
+        'event-deadline-offset-button',
+      ].forEach((selector) => {
+        const anchor = document.createElement('button')
+        anchor.setAttribute('data-tour', selector)
+        document.body.appendChild(anchor)
+      })
+
+      const guide = useEventScenarioGuide(ref('user-123'), ref('d'), { storage: createStorage() })
+
+      expect(() => guide.startGuide()).not.toThrow()
+      expect(document.body.classList.contains('driver-active')).toBe(true)
+    })
+
     test('找不到錨點時不拋錯', () => {
       const guide = useEventScenarioGuide(ref('user-123'), ref('a'), { storage: createStorage() })
 
@@ -176,19 +194,22 @@ describe('useEventScenarioGuide', () => {
   })
 
   describe('buildGuideSteps', () => {
-    test('情境一只講開關區塊，情境二多了可投票時段、情境三多了候選日期', () => {
+    test('每個情境的開場步驟只講自己專屬的內容，不會混到其他情境的步驟', () => {
       const scenarioASteps = buildGuideSteps('a')
       const scenarioBSteps = buildGuideSteps('b')
       const scenarioCSteps = buildGuideSteps('c')
+      const scenarioDSteps = buildGuideSteps('d')
 
       expect(scenarioASteps.some((step) => step.popover.title === '可投票時段')).toBe(false)
       expect(scenarioBSteps.some((step) => step.popover.title === '可投票時段')).toBe(true)
       expect(scenarioCSteps.some((step) => step.popover.title === '候選日期')).toBe(true)
       expect(scenarioCSteps.some((step) => step.popover.title === '可投票時段')).toBe(false)
+      expect(scenarioDSteps.some((step) => step.popover.title === '候選日期與時段')).toBe(true)
+      expect(scenarioDSteps.some((step) => step.popover.title === '候選日期')).toBe(false)
     })
 
     test('報名截止與成團確認、報名截止時間這兩步，所有情境都共用', () => {
-      ;['a', 'b', 'c'].forEach((scenarioKey) => {
+      ;['a', 'b', 'c', 'd'].forEach((scenarioKey) => {
         const steps = buildGuideSteps(scenarioKey)
         const titles = steps.map((step) => step.popover.title)
 

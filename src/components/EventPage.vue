@@ -716,7 +716,7 @@
             class="grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
             @click="closePicker"
           >
-            <div class="grid gap-2">
+            <div data-tour="event-scenario4-dates" class="grid gap-2">
               <span :class="fieldLabelClass">候選日期與時段</span>
 
               <div class="mb-1 flex items-center justify-between gap-2">
@@ -1361,6 +1361,27 @@ const configuredSlots = computed(() =>
       })),
   ),
 )
+
+// 切到情境四、還沒設定任何候選時段時，預設把「明天 09:00–18:00」設成候選組合，讓表單一開始
+// 就有東西可以動，導覽走到報名截止步驟時也才有截止時間可以顯示
+watch(currentScenarioKey, (key) => {
+  if (key !== 'd' || candidateSlots.value.length > 0) return
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  candidateSlots.value = [
+    {
+      date: formatDateValue(tomorrow),
+      timeSlots: [
+        {
+          id: scenario4SlotIdSeq++,
+          startTime: '上午 9:00',
+          endTime: '下午 6:00',
+          endTimeUserSet: true,
+        },
+      ],
+    },
+  ]
+})
 
 const scenario4DateCells = computed(() => {
   const todayValue = formatDateValue(new Date())
