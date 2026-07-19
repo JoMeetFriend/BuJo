@@ -175,6 +175,9 @@ function createAppTourDriver(navigate, onSuppressEventScenarioGuide, onDestroyed
     },
     onDestroyed: () => {
       onDestroyed?.()
+      // 導覽結束（完成或跳過）不管走到哪一步，都帶使用者回跟目錄——登入後的跟目錄就是行事曆頁，
+      // 見 router/index.js 對 '/' 的重導向規則
+      Promise.resolve(navigate?.('/calendar')).catch(() => {})
     },
   })
 

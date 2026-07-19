@@ -197,6 +197,32 @@ describe('useAppTour', () => {
       expect(document.body.classList.contains('driver-active')).toBe(true)
     })
 
+    test('導覽結束（跳過或完成）都會導回跟目錄', () => {
+      // driver.js 預設有 400ms 的框選動畫，動畫跑完前 destroy() 不會觸發 onDestroyed；
+      // 用 fake timers 把動畫時間跑完，模擬使用者實際點擊時的時間點
+      vi.useFakeTimers()
+      const navigate = vi.fn().mockResolvedValue(undefined)
+      const tour = useAppTour(ref('user-123'), { storage: createStorage(), navigate })
+
+      tour.startTour()
+      vi.advanceTimersByTime(500)
+      document.querySelector('.bujo-tour-skip-btn').click()
+
+      expect(navigate).toHaveBeenCalledWith('/calendar')
+      vi.useRealTimers()
+    })
+
+    test('沒有提供 navigate 時，導覽結束不會拋錯', () => {
+      vi.useFakeTimers()
+      const tour = useAppTour(ref('user-123'), { storage: createStorage() })
+
+      tour.startTour()
+      vi.advanceTimersByTime(500)
+
+      expect(() => document.querySelector('.bujo-tour-skip-btn').click()).not.toThrow()
+      vi.useRealTimers()
+    })
+
     test('找不到任何錨點時不拋錯', () => {
       vi.useFakeTimers()
       document.body.innerHTML = ''
