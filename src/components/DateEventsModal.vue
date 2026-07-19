@@ -4,7 +4,7 @@
       <button
         type="button"
         class="grid h-7 w-7 place-items-center text-lg leading-none text-[var(--bujo-muted-strong)] transition-colors duration-150 hover:text-[var(--bujo-ink)] active:translate-x-px active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bujo-accent)]"
-        aria-label="新增行程"
+        :aria-label="t('dateEvents.addEventAria')"
         @click="emit('add', props.date)"
       >
         +
@@ -20,16 +20,24 @@
             class="flex min-h-[60px] items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-2 text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)] md:px-3 cursor-pointer"
             @click="goToDetail(event.id)"
           >
-            <svg
-              class="mr-2 h-7 w-7 shrink-0 md:mr-3 md:h-9 md:w-9"
-              viewBox="0 0 36 36"
-              aria-hidden="true"
+            <div
+              class="mr-2 h-7 w-7 shrink-0 overflow-hidden rounded-full bg-[var(--bujo-surface-muted)] md:mr-3 md:h-9 md:w-9"
             >
-              <path
-                d="M4 28h28v4H4zM4 24h4v4H4zM8 20h4v4H8zM12 16h4v4h-4zM16 12h4v4h-4zM20 16h4v4h-4zM24 20h4v4h-4zM28 24h4v4h-4zM12 24h4v4h-4z"
-                fill="currentColor"
+              <img
+                v-if="event.creator?.avatar_url && !event._avatarError"
+                :src="toAvatarSrc(event.creator.avatar_url)"
+                @error="event._avatarError = true"
+                alt=""
+                class="h-full w-full object-cover"
               />
-            </svg>
+
+              <svg v-else class="h-full w-full p-1.5 md:p-2" viewBox="0 0 36 36" aria-hidden="true">
+                <path
+                  d="M4 28h28v4H4zM4 24h4v4H4zM8 20h4v4H8zM12 16h4v4h-4zM16 12h4v4h-4zM20 16h4v4h-4zM24 20h4v4h-4zM28 24h4v4h-4zM12 24h4v4h-4z"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
 
             <div class="min-w-0 flex-1">
               <h3 class="font-[plex-sans-tc] text-[15px] font-bold leading-tight">
@@ -38,7 +46,7 @@
               <p
                 class="mt-1 truncate font-[space-mono] text-[10px] text-[var(--bujo-muted-strong)] md:text-[12px]"
               >
-                {{ event.time || '未設定時間' }}
+                {{ event.time ? translateTime(event.time) : t('dateEvents.timeNotSet') }}
                 <span v-if="event.location"> ・ {{ event.location }}</span>
               </p>
             </div>
@@ -47,7 +55,7 @@
               class="ml-2 shrink-0 border border-[var(--bujo-ink)] px-1.5 py-1 font-[space-mono] text-[11px] text-[var(--bujo-ink)] md:ml-3 md:px-2 md:text-[12px]"
               :class="statusClass[event.status] || statusClass.formed"
             >
-              {{ statusLabel[event.status] || '已成團' }}
+              {{ statusLabel[event.status] || t('dateEvents.statusFormed') }}
             </span>
           </article>
         </div>
@@ -56,12 +64,14 @@
           v-else
           class="flex min-h-[82px] items-center justify-center gap-2 text-center text-[var(--bujo-muted-strong)]"
         >
-          <p class="font-[plex-sans-tc] text-[15px]">{{ isPastDate ? '這天沒有行程' : '這天還沒有行程' }}</p>
+          <p class="font-[plex-sans-tc] text-[15px]">
+            {{ isPastDate ? t('dateEvents.noEventsPast') : t('dateEvents.noEventsToday') }}
+          </p>
           <button
             v-if="!isPastDate"
             type="button"
             class="grid h-8 w-8 place-items-center text-lg leading-none text-[var(--bujo-muted-strong)] transition-transform duration-150 hover:scale-125 hover:text-[var(--bujo-ink)] active:translate-x-px active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--bujo-accent)]"
-            aria-label="新增行程"
+            :aria-label="t('dateEvents.addEventAria')"
             @click="emit('add', props.date)"
           >
             +
@@ -71,7 +81,12 @@
     </template>
   </BaseModal>
 
-  <BaseModal :isOpen="isModalOpen" title="活動詳情" bare @close="isModalOpen = false">
+  <BaseModal
+    :isOpen="isModalOpen"
+    :title="t('dateEvents.activityDetails')"
+    bare
+    @close="isModalOpen = false"
+  >
     <ActivityDetailModal
       :is-open="isModalOpen"
       :activity-id="selectedActivityId"
@@ -84,8 +99,17 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import BaseModal from './ui/BaseModal.vue'
 import ActivityDetailModal from './ActivityDetailModal.vue'
+import { toAvatarSrc } from '@/utils/avatar'
+
+const { t } = useI18n()
+
+function translateTime(timeStr) {
+  if (!timeStr) return ''
+  return timeStr.replaceAll('上午', t('common.am')).replaceAll('下午', t('common.pm'))
+}
 
 const isModalOpen = ref(false)
 const selectedActivityId = ref(null)
@@ -122,14 +146,14 @@ const formattedDate = computed(() => {
   }
 
   const [, month, day] = parts
-  return `${Number(month)} 月 ${Number(day)} 日`
+  return t('dateEvents.dateDisplay', { month: Number(month), day: Number(day) })
 })
 
-const statusLabel = {
-  formedByMe: '已成團',
-  formedByOthers: '已成團',
-  recruiting: '招募中',
-}
+const statusLabel = computed(() => ({
+  formedByMe: t('dateEvents.statusFormedByMe'),
+  formedByOthers: t('dateEvents.statusFormedByOthers'),
+  recruiting: t('dateEvents.statusRecruiting'),
+}))
 
 const statusClass = {
   formedByMe: 'bg-[var(--bujo-accent)]',

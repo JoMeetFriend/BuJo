@@ -6,6 +6,7 @@ import axios from 'axios'
 import AppSidebar from '@/components/AppSidebar.vue'
 import appSidebarSource from '@/components/AppSidebar.vue?raw'
 import { useAuthStore } from '@/stores/auth'
+import { createTestI18n } from './testUtils'
 
 vi.mock('axios', () => {
   const apiClient = { get: vi.fn().mockResolvedValue({ data: { unreadCount: 0 } }) }
@@ -45,7 +46,7 @@ async function mountAppSidebar(user = {}) {
       filters: { formedByMe: true, formedByOthers: true },
     },
     global: {
-      plugins: [pinia, router],
+      plugins: [pinia, router, createTestI18n()],
       stubs: {
         ProfileAccountModal: true,
       },

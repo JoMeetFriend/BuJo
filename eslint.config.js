@@ -4,6 +4,7 @@ import js from '@eslint/js'
 import pluginVue from 'eslint-plugin-vue'
 import pluginOxlint from 'eslint-plugin-oxlint'
 import skipFormatting from 'eslint-config-prettier/flat'
+import pluginVueI18n from '@intlify/eslint-plugin-vue-i18n'
 
 export default defineConfig([
   {
@@ -11,7 +12,7 @@ export default defineConfig([
     files: ['**/*.{vue,js,mjs,jsx}'],
   },
 
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**', '**/.vite/**']),
 
   {
     languageOptions: {
@@ -32,6 +33,23 @@ export default defineConfig([
 
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
+
+  {
+    name: 'app/i18n-checks',
+    files: ['src/**/*.{vue,js}'],
+    plugins: {
+      '@intlify/vue-i18n': pluginVueI18n,
+    },
+    settings: {
+      'vue-i18n': {
+        localeDir: './src/locales/*.{json,yaml,yml}',
+        messageSyntaxVersion: '^9.0.0',
+      },
+    },
+    rules: {
+      '@intlify/vue-i18n/no-missing-keys': 'error',
+    },
+  },
 
   {
     rules: {

@@ -16,10 +16,10 @@
       <template v-if="isLineConnected">
         <div class="grid gap-2">
           <p class="text-sm leading-6 text-[var(--bujo-text-body)]">
-            你的 BuJo 已經連上 LINE 囉！再加入 BuJo LINE 官方帳號，就能收到揪團提醒。
+            {{ t('lineOnboarding.descConnected') }}
           </p>
           <p class="text-xs leading-5 text-[var(--bujo-muted-strong)]">
-            這次先略過也沒關係，之後可到個人編輯頁面掃 QR Code。
+            {{ t('lineOnboarding.descSkipHint') }}
           </p>
         </div>
         <LineOfficialAccountEntry
@@ -31,11 +31,11 @@
 
       <template v-else>
         <p class="text-sm leading-6 text-[var(--bujo-text-body)]">
-          想在 LINE 收到揪團提醒嗎？先把 BuJo 跟 LINE 連起來，再加入官方帳號就完成囉！
+          {{ t('lineOnboarding.descNotConnected') }}
         </p>
-        <ol class="line-onboarding-steps" aria-label="開啟 LINE 通知步驟">
-          <li><span>01</span>先把 BuJo 帳號連上 LINE</li>
-          <li><span>02</span>加入 BuJo LINE 官方帳號</li>
+        <ol class="line-onboarding-steps" :aria-label="t('lineOnboarding.ariaSteps')">
+          <li><span>01</span>{{ t('lineOnboarding.step1') }}</li>
+          <li><span>02</span>{{ t('lineOnboarding.step2') }}</li>
         </ol>
         <LineOfficialAccountEntry
           :addFriendUrl="addFriendUrl"
@@ -43,21 +43,23 @@
           @activate="finishOnboarding"
         />
         <p class="text-xs leading-5 text-[var(--bujo-muted-strong)]">
-          這次先略過也沒關係，之後可以到個人編輯頁面繼續設定。
+          {{ t('lineOnboarding.descSkipLater') }}
         </p>
       </template>
     </div>
 
     <template #footer>
-      <PixelButton type="button" variant="white" @click="finishOnboarding"> 稍後再說 </PixelButton>
+      <PixelButton type="button" variant="white" @click="finishOnboarding">
+        {{ t('lineOnboarding.skipButton') }}
+      </PixelButton>
       <a
         v-if="!isLineConnected"
         :href="lineLinkUrl"
         class="line-onboarding-primary"
-        aria-label="連接 LINE 並開啟通知設定"
+        :aria-label="t('lineOnboarding.ariaConnectLine')"
         @click="beginLineLink"
       >
-        先連接 LINE
+        {{ t('lineOnboarding.connectButton') }}
       </a>
     </template>
   </BaseModal>
@@ -65,9 +67,12 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
 import LineOfficialAccountEntry from './LineOfficialAccountEntry.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
   user: {
@@ -96,7 +101,9 @@ const isLineConnected = computed(
     props.user.identities.some((identity) => identity?.provider === 'line'),
 )
 const modalTitle = computed(() =>
-  isLineConnected.value ? 'LINE 提醒就差一步' : '用 LINE 收到揪團提醒',
+  isLineConnected.value
+    ? t('lineOnboarding.titleConnected')
+    : t('lineOnboarding.titleNotConnected'),
 )
 const lineLinkUrl = computed(() => {
   const baseUrl = props.apiBaseUrl.trim().replace(/\/+$/, '')

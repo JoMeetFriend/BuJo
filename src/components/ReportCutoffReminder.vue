@@ -5,18 +5,16 @@
   >
     <p
       class="flex items-center gap-1 text-xs leading-5"
-      :class="
-        isWarning ? 'font-semibold text-[var(--bujo-warning)]' : 'text-[var(--bujo-muted)]'
-      "
+      :class="isWarning ? 'font-semibold text-[var(--bujo-warning)]' : 'text-[var(--bujo-muted)]'"
     >
       <template v-if="isWarning">
         <ClockIcon class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        距離報名截止僅剩
+        {{ t('reportCutoff.warningPrefix') }}
         <strong class="font-[var(--bujo-font-meta)]">{{ remainingMinutes }}</strong>
-        分鐘！
+        {{ t('reportCutoff.warningSuffix') }}
       </template>
       <template v-else
-        >報名開放到
+        >{{ t('reportCutoff.openUntilPrefix') }}
         <strong class="text-[var(--bujo-muted-strong)]">{{ timeLabel }}</strong>
         （<button
           type="button"
@@ -28,14 +26,11 @@
             offsetParts.number
           }}</span
           >{{ offsetParts.unit }}</button
-        >截止）</template
+        >{{ t('reportCutoff.deadlineSuffix') }}</template
       >
     </p>
 
-    <p
-      v-if="candidateReminderText"
-      class="text-[11px] leading-5 text-[var(--bujo-accent)]"
-    >
+    <p v-if="candidateReminderText" class="text-[11px] leading-5 text-[var(--bujo-accent)]">
       {{ candidateReminderText }}
     </p>
 
@@ -63,7 +58,10 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { ClockIcon } from '@heroicons/vue/24/outline'
+
+const { t } = useI18n()
 
 defineProps({
   isWarning: Boolean,

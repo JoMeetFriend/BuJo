@@ -2,10 +2,10 @@
   <div class="activity-gallery-page">
     <header class="activity-gallery-header">
       <div class="activity-heading">
-        <p class="activity-eyebrow">SOCIAL ACTIVITY INDEX</p>
-        <h1>BuJo Activity</h1>
+        <p class="activity-eyebrow">{{ t('activity.socialIndex') }}</p>
+        <h1>{{ t('activity.activityLabel') }}</h1>
         <div class="activity-filter-row">
-          <div class="activity-filter-scroller" aria-label="activity filters">
+          <div class="activity-filter-scroller" :aria-label="t('activity.ariaFilters')">
             <button
               v-for="item in filters"
               :key="item.key"
@@ -20,13 +20,13 @@
           </div>
 
           <PixelButton type="button" class="activity-create-button" @click="showCreateModal = true">
-            + CREATE
+            {{ t('activity.createButton') }}
           </PixelButton>
         </div>
       </div>
     </header>
 
-    <section v-if="loading" class="activity-state-message">載入中...</section>
+    <section v-if="loading" class="activity-state-message">{{ t('activity.loading') }}</section>
     <section v-else-if="fetchError" class="activity-state-message activity-state-message--error">
       {{ fetchError }}
     </section>
@@ -35,7 +35,7 @@
       <section class="activity-stage">
         <span class="activity-stage-sheet activity-stage-sheet--back" aria-hidden="true"></span>
         <span class="activity-stage-sheet activity-stage-sheet--middle" aria-hidden="true"></span>
-        <div v-if="focusMissing" class="activity-state-message">此活動已結束或不存在</div>
+        <div v-if="focusMissing" class="activity-state-message">{{ t('activity.notFound') }}</div>
         <ActivityDetailModal
           v-else
           :is-open="true"
@@ -44,7 +44,7 @@
         />
       </section>
 
-      <section class="activity-card-rail" aria-label="activities">
+      <section class="activity-card-rail" :aria-label="t('activity.ariaActivities')">
         <ul class="activity-strip">
           <li
             v-for="activity in filteredActivities"
@@ -68,7 +68,7 @@
       </section>
     </template>
 
-    <div v-else class="activity-empty">目前沒有相關活動</div>
+    <div v-else class="activity-empty">{{ t('activity.noActivities') }}</div>
 
     <EventPage
       :is-open="showCreateModal"
@@ -81,19 +81,21 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import ActivityDetailModal from './ActivityDetailModal.vue'
 import EventPage from './EventPage.vue'
 import PixelButton from './ui/PixelButton.vue'
 
 const route = useRoute()
+const { t } = useI18n()
 
-const filters = [
-  { key: 'recruiting', text: 'RECRUITING' },
-  { key: 'joined', text: 'JOINED' },
-  { key: 'confirmed', text: 'CONFIRMED' },
-  { key: 'mine', text: 'HOSTING' },
-  { key: 'all', text: 'ALL' },
-]
+const filters = computed(() => [
+  { key: 'recruiting', text: t('activity.filterRecruiting') },
+  { key: 'joined', text: t('activity.filterJoined') },
+  { key: 'confirmed', text: t('activity.filterConfirmed') },
+  { key: 'mine', text: t('activity.filterHosting') },
+  { key: 'all', text: t('activity.filterAll') },
+])
 
 const activities = ref([])
 const loading = ref(false)
@@ -177,13 +179,13 @@ async function fetchActivities() {
       credentials: 'include',
     })
     if (!res.ok) {
-      fetchError.value = '無法載入活動'
+      fetchError.value = t('activity.loadFailed')
       return
     }
     const data = await res.json()
     activities.value = data.activities
   } catch {
-    fetchError.value = '無法連線到伺服器'
+    fetchError.value = t('activity.connectFailed')
   } finally {
     loading.value = false
   }
@@ -263,6 +265,7 @@ onMounted(() => {
 
 .activity-eyebrow {
   margin-bottom: 2px;
+  padding-bottom: 6px;
 }
 
 .activity-heading h1 {

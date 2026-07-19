@@ -5,6 +5,7 @@ import { describe, expect, test, vi } from 'vitest'
 import CalendarMain from '@/components/CalendarMain.vue'
 import calendarMainSource from '@/components/CalendarMain.vue?raw'
 import { useAuthStore } from '@/stores/auth'
+import { createTestI18n } from './testUtils'
 
 async function mountCalendarMain(user = {}) {
   const pinia = createPinia()
@@ -29,7 +30,7 @@ async function mountCalendarMain(user = {}) {
 
   return mount(CalendarMain, {
     global: {
-      plugins: [pinia, router],
+      plugins: [pinia, router, createTestI18n()],
       stubs: {
         ActivityDetailModal: true,
         BaseModal: {
@@ -154,11 +155,11 @@ describe('CalendarMain - 行事曆只依 date_iso 決定是否顯示活動', () 
 
     // 驗證建立者 (MINE)
     expect(chips[0].classes()).toContain('calendar-event-chip--formed')
-    expect(chips[0].text()).toContain('MINE')
+    expect(chips[0].text()).toContain('我創建')
 
     // 驗證參與者 (JOINED)
     expect(chips[1].classes()).toContain('calendar-event-chip--joined')
-    expect(chips[1].text()).toContain('JOINED')
+    expect(chips[1].text()).toContain('已參加')
 
     global.fetch = originalFetch
   })

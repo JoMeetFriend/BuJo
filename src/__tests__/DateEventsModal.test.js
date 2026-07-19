@@ -1,6 +1,7 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, expect, test, vi, afterEach, beforeEach } from 'vitest'
 import DateEventsModal from '@/components/DateEventsModal.vue'
+import { createTestI18n } from './testUtils'
 
 // BaseModal 用 <Teleport to="body">，實際 DOM 掛在 document.body 底下
 function queryBody(selector) {
@@ -57,6 +58,9 @@ const activityDetail = {
 function mountModal() {
   return mount(DateEventsModal, {
     props: { date: '2026-07-10', events },
+    global: {
+      plugins: [createTestI18n()],
+    },
     attachTo: document.body,
   })
 }
@@ -127,6 +131,7 @@ describe('DateEventsModal - 過去日期不顯示新增行程的「+」', () => 
   test('過去日期且已有行程時，header 的「+」不存在，行程清單跟關閉按鈕仍正常顯示', () => {
     const wrapper = mount(DateEventsModal, {
       props: { date: '2026-07-09', events },
+      global: { plugins: [createTestI18n()] },
       attachTo: document.body,
     })
 
@@ -140,6 +145,7 @@ describe('DateEventsModal - 過去日期不顯示新增行程的「+」', () => 
   test('過去日期且沒有行程時，空狀態不顯示「+」，文字是「這天沒有行程」', () => {
     const wrapper = mount(DateEventsModal, {
       props: { date: '2026-07-09', events: [] },
+      global: { plugins: [createTestI18n()] },
       attachTo: document.body,
     })
 
@@ -153,6 +159,7 @@ describe('DateEventsModal - 過去日期不顯示新增行程的「+」', () => 
   test('今天且有行程時，header 的「+」正常存在並能 emit add', async () => {
     const wrapper = mount(DateEventsModal, {
       props: { date: '2026-07-10', events },
+      global: { plugins: [createTestI18n()] },
       attachTo: document.body,
     })
 
@@ -170,6 +177,7 @@ describe('DateEventsModal - 過去日期不顯示新增行程的「+」', () => 
   test('未來日期且沒有行程時，空狀態「+」存在，文字是「這天還沒有行程」', async () => {
     const wrapper = mount(DateEventsModal, {
       props: { date: '2026-07-15', events: [] },
+      global: { plugins: [createTestI18n()] },
       attachTo: document.body,
     })
 

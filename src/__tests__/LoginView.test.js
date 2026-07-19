@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import LoginView from '@/components/LoginView.vue'
+import { createTestI18n } from './testUtils'
 
 globalThis.fetch = vi.fn()
 
@@ -18,7 +19,7 @@ function mountLoginView() {
   })
 
   return mount(LoginView, {
-    global: { plugins: [createPinia(), router] },
+    global: { plugins: [createPinia(), router, createTestI18n()] },
   })
 }
 

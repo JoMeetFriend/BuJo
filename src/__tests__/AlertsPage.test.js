@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 import AlertsPage from '@/components/AlertsPage.vue'
 import alertsPageSource from '@/components/AlertsPage.vue?raw'
 import { useNotificationStore } from '@/stores/notificationStore'
+import { createTestI18n } from './testUtils'
 
 const api = vi.hoisted(() => ({
   get: vi.fn(),
@@ -57,7 +58,7 @@ async function mountAlerts() {
   await router.isReady()
   return mount(AlertsPage, {
     global: {
-      plugins: [pinia, router],
+      plugins: [pinia, router, createTestI18n()],
       stubs: {
         PixelButton: {
           props: ['disabled'],

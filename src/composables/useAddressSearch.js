@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import axios from 'axios'
+import i18n from '@/i18n'
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -48,7 +49,7 @@ export function useAddressSearch() {
         return
       }
       console.error('地址搜尋失敗:', err)
-      error.value = '地址搜尋發生錯誤'
+      error.value = i18n.global.t('composable.addressSearchError')
       searchResults.value = []
       hasSearched.value = true
     } finally {

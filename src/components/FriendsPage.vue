@@ -5,24 +5,29 @@
       class="friends-header sticky top-0 z-10 flex items-center justify-between bg-[var(--bujo-page)] px-5 pt-8 pb-4 md:px-14"
     >
       <div>
-        <p class="friends-eyebrow">SOCIAL COLLECTION</p>
+        <p class="friends-eyebrow">{{ t('friends.eyebrow') }}</p>
         <div class="friends-title-line">
-          <h1>FRIENDS</h1>
-          <span class="friends-cn-tag">好友</span>
+          <h1>{{ t('friends.pageTitle') }}</h1>
+          <span class="friends-cn-tag">{{ t('friends.subtitle') }}</span>
         </div>
       </div>
-      <PixelButton data-tour="friend-add-button" @click="isModalOpen = true"
-        >＋ 新增好友</PixelButton
-      >
+
+      <PixelButton data-tour="friend-add-button" @click="isModalOpen = true">{{
+        t('friends.addFriend')
+      }}</PixelButton>
     </header>
 
     <!-- 內容區 -->
     <div class="flex flex-col gap-4 px-5 pt-2 pb-4 md:px-14 md:py-4">
-      <div v-if="isLoading" class="text-sm text-[var(--bujo-muted-strong)]">資料讀取中...</div>
-      <div v-else-if="error" class="text-sm text-[var(--bujo-danger)]">發生錯誤：{{ error }}</div>
+      <div v-if="isLoading" class="text-sm text-[var(--bujo-muted-strong)]">
+        {{ t('friends.loading') }}
+      </div>
+      <div v-else-if="error" class="text-sm text-[var(--bujo-danger)]">
+        {{ t('friends.error', { message: error }) }}
+      </div>
 
       <div v-else>
-        <div v-if="friends?.length === 0" class="friends-empty">目前還沒有好友喔！</div>
+        <div v-if="friends?.length === 0" class="friends-empty">{{ t('friends.empty') }}</div>
 
         <!-- 好友列表 -->
         <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
@@ -37,7 +42,7 @@
             <button
               class="friend-stamp-delete-btn"
               @click="handleDelete(friend)"
-              aria-label="移除好友"
+              :aria-label="t('friends.removeFriend')"
             >
               <span class="default-mark"></span>
               <span class="hover-cross">×</span>
@@ -46,7 +51,7 @@
               <img
                 v-if="friend.avatar_url && !brokenImages.has(friend.id)"
                 :src="friend.avatar_url"
-                alt="好友頭像"
+                :alt="t('friends.friendAvatar')"
                 @error="handleImageError(friend.id)"
                 class="h-full w-full object-cover"
               />
@@ -62,7 +67,7 @@
               :class="{ 'is-expanded': activeFriendId === friend.id }"
             >
               <p class="friend-bio-text">
-                {{ friend.bio || '這個人很神祕，還沒有寫簡介...' }}
+                {{ friend.bio || t('friends.noBio') }}
               </p>
             </div>
           </div>
@@ -77,6 +82,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import { useFriendStore } from '@/stores/friendStore'
 import FriendAddModal from './FriendAddModal.vue'
 import PixelButton from './ui/PixelButton.vue'
@@ -86,6 +92,7 @@ defineProps({
   filters: Object,
 })
 
+const { t } = useI18n()
 const friendStore = useFriendStore()
 const { friends, isLoading, error } = storeToRefs(friendStore)
 
@@ -111,7 +118,7 @@ const handleImageError = (id) => {
 }
 
 const handleDelete = async (friend) => {
-  const isConfirmed = window.confirm(`確定要將 ${friend.display_name} 從好友名單中移除嗎？`)
+  const isConfirmed = window.confirm(t('friends.confirmRemove', { name: friend.display_name }))
 
   if (!isConfirmed) return
 
@@ -158,6 +165,7 @@ onMounted(() => {
 <style scoped>
 .friends-eyebrow {
   margin: 0 0 2px;
+  padding-bottom: 6px;
   color: var(--bujo-muted-strong);
   font-family: 'Space Mono', monospace;
   font-size: 11px;

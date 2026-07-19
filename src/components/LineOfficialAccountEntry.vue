@@ -3,13 +3,15 @@
     <div v-if="showQrCode" class="line-official-entry__qr" data-testid="line-official-account-qr">
       <img
         :src="normalizedQrCodeUrl"
-        alt="BuJo LINE 官方帳號加入好友 QR Code"
+        :alt="t('lineOfficial.qrAlt')"
         class="h-32 w-32 border border-[var(--bujo-line)] bg-white p-2"
         @error="handleQrError"
       />
       <p class="text-xs leading-5 text-[var(--bujo-muted-strong)]">
-        <strong class="text-sm font-semibold text-[var(--bujo-ink)]">拿手機 LINE 掃一下</strong
-        ><br />就能加入 BuJo 官方帳號
+        <strong class="text-sm font-semibold text-[var(--bujo-ink)]">{{
+          t('lineOfficial.qrScanHint')
+        }}</strong
+        ><br />{{ t('lineOfficial.qrJoinHint') }}
       </p>
     </div>
 
@@ -27,10 +29,10 @@
       target="_blank"
       rel="noopener noreferrer"
       class="line-official-entry__link"
-      aria-label="開啟 BuJo LINE 官方帳號加入好友頁面"
+      :aria-label="t('lineOfficial.ariaAddFriend')"
       @click="emit('activate')"
     >
-      加入 BuJo 官方 LINE
+      {{ t('lineOfficial.addFriendButton') }}
       <span aria-hidden="true">↗</span>
     </a>
     <p
@@ -38,14 +40,17 @@
       class="border border-dashed border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] px-3 py-2 text-xs leading-5 text-[var(--bujo-muted-strong)]"
       role="status"
     >
-      LINE 官方帳號連結暫時打不開，晚點再試試看。
+      {{ t('lineOfficial.unavailableMessage') }}
     </p>
   </div>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import bundledQrCodeUrl from '@/assets/line-gain-friends-qrcode.png'
+
+const { t } = useI18n()
 
 const props = defineProps({
   addFriendUrl: {
@@ -66,7 +71,7 @@ const normalizedQrCodeUrl = computed(() => props.qrCodeUrl.trim() || bundledQrCo
 const showQrCode = computed(() => Boolean(normalizedQrCodeUrl.value) && !qrLoadFailed.value)
 const qrUnavailableMessage = computed(() => {
   if (qrLoadFailed.value && normalizedAddFriendUrl.value) {
-    return 'QR Code 沒有載入成功，點下面的連結也可以加入。'
+    return t('lineOfficial.qrFailedMessage')
   }
   return ''
 })

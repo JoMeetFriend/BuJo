@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 import ProfileEditPage from '@/components/ProfileEditPage.vue'
 import { useAuthStore } from '@/stores/auth'
 import profileEditPageSource from '@/components/ProfileEditPage.vue?raw'
+import { createTestI18n } from './testUtils'
 
 const baseUser = {
   display_name: 'Test A',
@@ -57,7 +58,7 @@ async function mountProfileEditPage(user = {}, path = '/profile/edit') {
 
   const wrapper = mount(ProfileEditPage, {
     global: {
-      plugins: [pinia, router],
+      plugins: [pinia, router, createTestI18n()],
     },
   })
   await flushPromises()

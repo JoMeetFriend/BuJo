@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import { afterEach, describe, expect, test } from 'vitest'
 import LineNotificationOnboardingModal from '@/components/LineNotificationOnboardingModal.vue'
 import onboardingModalSource from '@/components/LineNotificationOnboardingModal.vue?raw'
+import { createTestI18n } from './testUtils'
 
 const BaseModalStub = {
   props: {
@@ -28,6 +29,7 @@ function mountModal(user) {
       qrCodeUrl: 'https://example.com/bujo-line-qr.png',
     },
     global: {
+      plugins: [createTestI18n()],
       stubs: { BaseModal: BaseModalStub },
     },
     attachTo: document.body,

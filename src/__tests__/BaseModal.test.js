@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, test } from 'vitest'
 import BaseModal from '@/components/ui/BaseModal.vue'
+import { createTestI18n } from './testUtils'
 
 // BaseModal 用 <Teleport to="body">，實際 DOM 掛在 document.body 底下，
 // 不在 wrapper 自己的節點內，所以要直接查 document 才找得到內容
@@ -12,6 +13,7 @@ function mountModal(props = {}) {
   return mount(BaseModal, {
     props: { isOpen: true, title: '活動詳情', ...props },
     slots: { default: '<div class="test-content">內容</div>' },
+    global: { plugins: [createTestI18n()] },
     attachTo: document.body,
   })
 }

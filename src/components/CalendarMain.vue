@@ -28,7 +28,7 @@
       @click="toggleDotsAnimation"
       class="calendar-arrow-button calendar-toggle-dots-mobile"
       :class="{ 'is-active': showDots }"
-      aria-label="切換背景動畫"
+      :aria-label="t('calendar.toggleAnimation')"
     >
       <span class="calendar-square-toggle" aria-hidden="true"></span>
     </button>
@@ -38,7 +38,7 @@
       class="calendar-profile-button calendar-page-profile-button hidden md:flex"
       :class="{ 'btn-bounce-green': profileBtnBouncing }"
       @animationend="profileBtnBouncing = false"
-      aria-label="開啟個人帳號"
+      :aria-label="t('calendar.openAccountMenu')"
       @click="openProfileModal"
     >
       <img
@@ -49,15 +49,12 @@
       />
       <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
     </button>
-    <p
-      class="calendar-mood-line"
-      aria-label="BuJo catches the little plans, keeps your people close, and nudges the day into motion."
-    >
+    <p class="calendar-mood-line" :aria-label="t('calendar.moodLineAria')">
       <strong>BuJo</strong>
       <span class="calendar-mood-divider"></span>
-      <span>catches the little plans</span>
-      <span>, keeps your people close</span>
-      <span>, and nudges the day into motion</span>
+      <span>{{ t('calendar.moodLinePart1') }}</span>
+      <span>{{ t('calendar.moodLinePart2') }}</span>
+      <span>{{ t('calendar.moodLinePart3') }}</span>
       <span>.</span>
       <span class="calendar-mood-flag" aria-hidden="true"></span>
     </p>
@@ -75,12 +72,12 @@
         <section class="calendar-hero-composition">
           <div class="calendar-hero-copy" :class="{ 'md:pl-[50px]': !sidebarOpen }">
             <div>
-              <p class="calendar-eyebrow">SOCIAL INBOX CALENDAR</p>
+              <p class="calendar-eyebrow">{{ t('calendar.eyebrow') }}</p>
               <div class="calendar-title-line">
                 <h1>{{ monthNames[currentMonth] }}</h1>
                 <span class="calendar-year-mark">{{ currentYear }}</span>
               </div>
-              <p class="calendar-exhibition-caption">( social index / small plans )</p>
+              <p class="calendar-exhibition-caption">{{ t('calendar.caption') }}</p>
             </div>
           </div>
 
@@ -90,14 +87,14 @@
               @click="toggleDotsAnimation"
               class="calendar-arrow-button"
               :class="{ 'is-active': showDots }"
-              aria-label="切換背景動畫"
+              :aria-label="t('calendar.toggleAnimation')"
             >
               <span class="calendar-square-toggle" aria-hidden="true"></span>
             </button>
             <button
               @click="prevMonth"
               class="calendar-arrow-button calendar-arrow-button--prev"
-              aria-label="上一個月"
+              :aria-label="t('calendar.prevMonth')"
             >
               &lt;
               <svg
@@ -114,7 +111,7 @@
             <button
               @click="nextMonth"
               class="calendar-arrow-button calendar-arrow-button--next"
-              aria-label="下一個月"
+              :aria-label="t('calendar.nextMonth')"
             >
               &gt;
               <svg
@@ -136,7 +133,7 @@
               @click="openEventModal"
             >
               <span class="calendar-create-plus">＋</span
-              ><span class="hidden md:inline">CREATE</span>
+              ><span class="hidden md:inline">{{ t('calendar.createBtn') }}</span>
             </PixelButton>
           </div>
         </section>
@@ -206,9 +203,9 @@
           </div>
         </div>
 
-        <section class="calendar-mobile-pocket" aria-label="Mobile social pocket">
+        <section class="calendar-mobile-pocket" :aria-label="t('calendar.ariaMobilePocket')">
           <div class="calendar-mobile-pocket-header">
-            <span>UPCOMING</span>
+            <span>{{ t('calendar.upcoming') }}</span>
             <strong>{{ upcomingItems.length }}</strong>
           </div>
 
@@ -232,19 +229,21 @@
             </button>
 
             <div v-if="upcomingItems.length === 0" class="calendar-upcoming-card is-empty">
-              <span class="calendar-upcoming-empty-title">本月沒有即將開始的活動</span>
+              <span class="calendar-upcoming-empty-title">{{
+                t('calendar.noUpcomingThisMonth')
+              }}</span>
             </div>
           </div>
 
           <p v-if="mobileHiddenUpcomingCount > 0" class="calendar-upcoming-hint">
-            還有 {{ mobileHiddenUpcomingCount }} 個活動，左右滑動查看
+            {{ t('calendar.mobileHiddenCount', { count: mobileHiddenUpcomingCount }) }}
           </p>
         </section>
       </div>
 
-      <aside class="calendar-social-rail" aria-label="即將開始的活動">
+      <aside class="calendar-social-rail" :aria-label="t('calendar.ariaSocialRail')">
         <div class="calendar-rail-heading">
-          <span>UPCOMING</span>
+          <span>{{ t('calendar.upcoming') }}</span>
           <strong>{{ upcomingItems.length }}</strong>
         </div>
 
@@ -268,12 +267,14 @@
           </button>
 
           <div v-if="upcomingItems.length === 0" class="calendar-upcoming-card is-empty">
-            <span class="calendar-upcoming-empty-title">本月沒有即將開始的活動</span>
+            <span class="calendar-upcoming-empty-title">{{
+              t('calendar.noUpcomingThisMonth')
+            }}</span>
           </div>
         </div>
 
         <p v-if="desktopHiddenUpcomingCount > 0" class="calendar-upcoming-hint">
-          還有 {{ desktopHiddenUpcomingCount }} 個活動，往下捲動查看
+          {{ t('calendar.desktopHiddenCount', { count: desktopHiddenUpcomingCount }) }}
         </p>
       </aside>
     </section>
@@ -290,7 +291,7 @@
     <BaseModal
       v-if="selectedActivityId"
       :is-open="true"
-      title="活動詳情"
+      :title="t('activityDetail.title')"
       bare
       @close="closeActivityDetail"
     >
@@ -321,6 +322,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import PixelButton from './ui/PixelButton.vue'
@@ -337,6 +339,7 @@ const eventModalInitialDate = ref(null)
 const profileBtnBouncing = ref(false)
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const currentUser = computed(() => authStore.user)
 const currentUserAvatarSrc = computed(() => toAvatarSrc(currentUser.value?.avatar_url))
@@ -488,35 +491,40 @@ const currentMonth = ref(today.getMonth())
 const selectedDate = ref(null)
 const selectedActivityId = ref(null)
 
-const monthNames = [
-  'JANUARY',
-  'FEBRUARY',
-  'MARCH',
-  'APRIL',
-  'MAY',
-  'JUNE',
-  'JULY',
-  'AUGUST',
-  'SEPTEMBER',
-  'OCTOBER',
-  'NOVEMBER',
-  'DECEMBER',
+const monthKeys = [
+  'monthJanuary',
+  'monthFebruary',
+  'monthMarch',
+  'monthApril',
+  'monthMay',
+  'monthJune',
+  'monthJuly',
+  'monthAugust',
+  'monthSeptember',
+  'monthOctober',
+  'monthNovember',
+  'monthDecember',
 ]
-const monthShortNames = [
-  'JAN',
-  'FEB',
-  'MAR',
-  'APR',
-  'MAY',
-  'JUN',
-  'JUL',
-  'AUG',
-  'SEP',
-  'OCT',
-  'NOV',
-  'DEC',
+const monthNames = computed(() => monthKeys.map((key) => t(`calendar.${key}`)))
+
+const monthShortKeys = [
+  'monthShortJanuary',
+  'monthShortFebruary',
+  'monthShortMarch',
+  'monthShortApril',
+  'monthShortMay',
+  'monthShortJune',
+  'monthShortJuly',
+  'monthShortAugust',
+  'monthShortSeptember',
+  'monthShortOctober',
+  'monthShortNovember',
+  'monthShortDecember',
 ]
-const weekDays = ['一', '二', '三', '四', '五', '六', '日']
+const monthShortNames = computed(() => monthShortKeys.map((key) => t(`calendar.${key}`)))
+
+const weekDayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+const weekDays = computed(() => weekDayKeys.map((key) => t(`calendar.${key}`)))
 
 const activities = ref([])
 
@@ -537,6 +545,7 @@ const events = computed(() =>
       title: activity.title,
       status: toCalendarStatus(activity),
       is_creator: activity.is_creator,
+      creator: activity.creator,
       time: activity.time,
       location: activity.location,
       sortTime: activity.confirmed_start ?? activity.date_iso,
@@ -553,7 +562,7 @@ async function fetchActivities() {
     })
     if (!res.ok) {
       console.error('fetchActivities 失敗：', res.status)
-      activitiesFetchError.value = '活動載入失敗，顯示的可能是舊資料'
+      activitiesFetchError.value = t('calendar.loadActivitiesError')
       return
     }
     const data = await res.json()
@@ -561,7 +570,7 @@ async function fetchActivities() {
     activitiesFetchError.value = ''
   } catch (err) {
     console.error('fetchActivities 失敗：', err)
-    activitiesFetchError.value = '無法連線到伺服器，顯示的可能是舊資料'
+    activitiesFetchError.value = t('calendar.loadActivitiesNetworkError')
   }
 }
 
@@ -572,13 +581,13 @@ const statusStyle = {
   none: 'calendar-event-chip--none',
 }
 
-const statusMeta = {
-  formedByMe: 'MINE',
-  formedByOthers: 'JOINED',
-  personal: 'SOLO',
-  recruiting: 'OPEN',
-  none: '',
-}
+const statusMeta = computed(() => ({
+  formedByMe: t('calendar.statusFormedByMe'),
+  formedByOthers: t('calendar.statusFormedByOthers'),
+  personal: t('calendar.statusPersonal'),
+  recruiting: t('calendar.statusRecruiting'),
+  none: t('calendar.statusNone'),
+}))
 
 function prevMonth() {
   if (currentMonth.value === 0) {
@@ -689,8 +698,9 @@ const upcomingItems = computed(() =>
     return {
       ...event,
       monthShort: monthShortNames[monthIndex] || month,
-      dayNumber: day,
-      relativeLabel: daysUntil === 0 ? '今天' : `${daysUntil} 天後`,
+      dayNumber: Number(day),
+      relativeLabel:
+        daysUntil === 0 ? t('calendar.today') : t('calendar.daysLater', { days: daysUntil }),
       isSoon: daysUntil <= 3,
     }
   }),
@@ -745,6 +755,7 @@ function isToday(date) {
 
 .calendar-eyebrow {
   margin-bottom: 2px;
+  padding-bottom: 6px;
   color: var(--bujo-text-muted);
   font-size: 11px;
   font-weight: 700;

@@ -7,6 +7,37 @@ import {
   useAppTour,
 } from '@/composables/useAppTour'
 
+const tourLabels = {
+  'tour.calendarTitle': '行事曆',
+  'tour.calendarDesc': '在這裡查看所有揪團跟活動的時間安排，一眼掌握你的行程。',
+  'tour.todayCellTitle': '只顯示已成團的活動',
+  'tour.todayCellDesc':
+    '行事曆只顯示已成團的活動——招募中／投票中的活動即使有候選日期，也不會出現在月曆上，必須由建立者手動確認成團。',
+  'tour.activityTitle': '活動',
+  'tour.activityDesc': '瀏覽你發起或參加的活動列表，掌握每個活動的最新狀態。',
+  'tour.createButtonTitle': '新增活動',
+  'tour.createButtonDesc':
+    '點這裡新增活動。<br>點行事曆格子新增活動會自動帶入日期。<br>活動頁也一樣的入口可以新增活動。',
+  'tour.scenarioGuideTitle': '活動情境說明',
+  'tour.scenarioGuideDesc': '建立活動有四種情境：選擇日期 × 時段後，點「？」可以查看相關導覽。',
+  'tour.friendsTitle': '朋友',
+  'tour.friendsDesc': '管理好友名單、傳送邀請，找到一起揪團的夥伴。',
+  'tour.addFriendTitle': '加好友',
+  'tour.addFriendDesc': '輸入朋友的 BuJo ID 來交朋友吧！',
+  'tour.alertsTitle': '通知',
+  'tour.alertsDesc': '加好友、揪團邀請、活動更新都會出現在這裡，別錯過重要訊息。',
+  'tour.profileTitle': '個人設定',
+  'tour.profileDesc': '編輯顯示名稱、大頭貼，還可以連動 LINE 通知。',
+  'tour.prevBtn': '上一步',
+  'tour.nextBtn': '下一步',
+  'tour.doneBtn': '完成',
+  'tour.skipBtn': '跳過導覽',
+  'tour.progress': '{current} / {total}',
+}
+function mockT(key) {
+  return tourLabels[key] ?? key
+}
+
 function createStorage(initial = {}) {
   const values = new Map(Object.entries(initial))
   return {
@@ -84,7 +115,7 @@ describe('useAppTour', () => {
     test('朋友步驟的下一步會先呼叫 navigate 切到朋友頁面，再前進到下一步', async () => {
       const navigate = vi.fn().mockResolvedValue(undefined)
       const moveNext = vi.fn()
-      const steps = buildDriveSteps(navigate)
+      const steps = buildDriveSteps(mockT, navigate)
       const friendsStep = steps.find((step) => step.popover.title === '朋友')
 
       await friendsStep.popover.onNextClick(undefined, friendsStep, { driver: { moveNext } })
@@ -98,7 +129,7 @@ describe('useAppTour', () => {
 
     test('沒有提供 navigate 時，朋友步驟仍會直接前進，不會卡住', async () => {
       const moveNext = vi.fn()
-      const steps = buildDriveSteps()
+      const steps = buildDriveSteps(mockT)
       const friendsStep = steps.find((step) => step.popover.title === '朋友')
 
       await friendsStep.popover.onNextClick(undefined, friendsStep, { driver: { moveNext } })
@@ -107,7 +138,7 @@ describe('useAppTour', () => {
     })
 
     test('加好友步驟設定 waitForElement，等待朋友頁面渲染完成', () => {
-      const steps = buildDriveSteps()
+      const steps = buildDriveSteps(mockT)
       const addFriendStep = steps.find((step) => step.popover.title === '加好友')
 
       expect(addFriendStep.waitForElement).toBe(1500)
@@ -115,7 +146,7 @@ describe('useAppTour', () => {
     })
 
     test('其餘步驟不會意外帶有頁面切換邏輯', () => {
-      const steps = buildDriveSteps(vi.fn())
+      const steps = buildDriveSteps(mockT, vi.fn())
       const stepsWithoutNav = steps.filter(
         (step) => !['朋友', '新增活動'].includes(step.popover.title),
       )
@@ -131,7 +162,7 @@ describe('useAppTour', () => {
       const onSuppressEventScenarioGuide = vi.fn()
       const moveNext = vi.fn()
       const element = { click: vi.fn() }
-      const steps = buildDriveSteps(undefined, onSuppressEventScenarioGuide)
+      const steps = buildDriveSteps(mockT, undefined, onSuppressEventScenarioGuide)
       const createStep = steps.find((step) => step.popover.title === '新增活動')
 
       await createStep.popover.onNextClick(element, createStep, { driver: { moveNext } })
@@ -147,7 +178,7 @@ describe('useAppTour', () => {
     test('沒有提供 onSuppressEventScenarioGuide 時，新增活動步驟仍會正常點擊並前進', async () => {
       const moveNext = vi.fn()
       const element = { click: vi.fn() }
-      const steps = buildDriveSteps()
+      const steps = buildDriveSteps(mockT)
       const createStep = steps.find((step) => step.popover.title === '新增活動')
 
       await expect(
@@ -159,7 +190,7 @@ describe('useAppTour', () => {
     })
 
     test('活動情境說明步驟設定 waitForElement，等待彈窗渲染完成', () => {
-      const steps = buildDriveSteps()
+      const steps = buildDriveSteps(mockT)
       const guideStep = steps.find((step) => step.popover.title === '活動情境說明')
 
       expect(guideStep.waitForElement).toBe(1500)

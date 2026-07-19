@@ -37,103 +37,95 @@ function resolveGuideElement(selector) {
   return document.querySelector(`[data-tour="${selector}"]`)
 }
 
-// 每個情境開頭專屬的說明步驟；「怎麼喬時間？」開關區塊四個情境共用同一個錨點，
-// 只是文字依目前選的情境而不同。
-const SCENARIO_INTRO_STEPS = {
-  a: [
-    {
-      selector: 'event-scenario-toggles',
-      popover: {
-        title: '怎麼喬時間？',
-        description:
-          '預設是「都確定」：日期和時間都直接約好，適合已經講好時間的揪團——大家打開活動就能直接報名，不用等投票。',
+function buildIntroSteps(t) {
+  return {
+    a: [
+      {
+        selector: 'event-scenario-toggles',
+        popover: {
+          title: t('guide.scenarioA0Title'),
+          description: t('guide.scenarioA0Desc'),
+        },
       },
-    },
-  ],
-  b: [
-    {
-      selector: 'event-scenario-toggles',
-      popover: {
-        title: '怎麼喬時間？',
-        description:
-          '現在是「時間開放」：日期已經定了，時間留給大家投票——你只要抓一個時間範圍，大家會在範圍內回報自己方便的時段。',
+    ],
+    b: [
+      {
+        selector: 'event-scenario-toggles',
+        popover: {
+          title: t('guide.scenarioB0Title'),
+          description: t('guide.scenarioB0Desc'),
+        },
       },
-    },
-    {
-      selector: 'event-time-window',
-      popover: {
-        title: '可投票時段',
-        description:
-          '設定大家可以回報的時間範圍（例如 09:00–18:00），參加者只能在這個範圍內選時間，你之後再從回報結果挑一個時間確定。',
+      {
+        selector: 'event-time-window',
+        popover: {
+          title: t('guide.scenarioB1Title'),
+          description: t('guide.scenarioB1Desc'),
+        },
       },
-    },
-  ],
-  c: [
-    {
-      selector: 'event-scenario-toggles',
-      popover: {
-        title: '怎麼喬時間？',
-        description:
-          '現在是「日期開放」：時間已經定了，日期留給大家投票——你可以勾選多個候選日期，大家會投票選出可以的日子。',
+    ],
+    c: [
+      {
+        selector: 'event-scenario-toggles',
+        popover: {
+          title: t('guide.scenarioC0Title'),
+          description: t('guide.scenarioC0Desc'),
+        },
       },
-    },
-    {
-      selector: 'event-candidate-dates',
-      popover: {
-        title: '候選日期',
-        description:
-          '點選多個候選日期讓大家投票；時間統一套用到所有候選日，不能每天喬不同時間，之後你再從投票結果挑一天確定成團。',
+      {
+        selector: 'event-candidate-dates',
+        popover: {
+          title: t('guide.scenarioC1Title'),
+          description: t('guide.scenarioC1Desc'),
+        },
       },
-    },
-  ],
-  d: [
-    {
-      selector: 'event-scenario-toggles',
-      popover: {
-        title: '怎麼喬時間？',
-        description:
-          '現在是「都開放」：日期和時間都留給大家投票——你可以設定多個候選日期，每個日期還能各自安排不同的時段。',
+    ],
+    d: [
+      {
+        selector: 'event-scenario-toggles',
+        popover: {
+          title: t('guide.scenarioD0Title'),
+          description: t('guide.scenarioD0Desc'),
+        },
       },
-    },
-    {
-      selector: 'event-scenario4-dates',
-      popover: {
-        title: '候選日期與時段',
-        description:
-          '點選候選日期後，下面會打開該日的時段編輯——跟情境三不同，這裡每個候選日可以各自設定不同時段，之後再從投票結果挑一組確定成團。',
+      {
+        selector: 'event-scenario4-dates',
+        popover: {
+          title: t('guide.scenarioD1Title'),
+          description: t('guide.scenarioD1Desc'),
+        },
       },
-    },
-  ],
+    ],
+  }
 }
 
-// 報名截止／成團確認這兩步是所有情境共用的規則，不管日期時間怎麼喬都適用，
-// 所以獨立在情境專屬的開場步驟之後，每個情境都會走到。
-const SHARED_TRAILING_STEPS = [
-  {
-    selector: 'event-deadline-block',
-    popover: {
-      title: '報名截止與成團確認',
-      description: '報名有名額和截止時間限制，成團最後仍要由你手動確認才會上行事曆。',
+function buildSharedSteps(t) {
+  return [
+    {
+      selector: 'event-deadline-block',
+      popover: {
+        title: t('guide.shared0Title'),
+        description: t('guide.shared0Desc'),
+      },
     },
-  },
-  {
-    selector: 'event-deadline-offset-button',
-    popover: {
-      title: '報名截止時間',
-      description: '可以手動修改報名開放時間。',
+    {
+      selector: 'event-deadline-offset-button',
+      popover: {
+        title: t('guide.shared1Title'),
+        description: t('guide.shared1Desc'),
+      },
+      openDeadlineEditorOnHighlight: true,
     },
-    // 這步顯示前先展開下面的截止時間選單，讓使用者直接看到可以選哪些選項
-    openDeadlineEditorOnHighlight: true,
-  },
-]
-
-function getStepDefinitionsForScenario(scenarioKey) {
-  const introSteps = SCENARIO_INTRO_STEPS[scenarioKey] ?? SCENARIO_INTRO_STEPS.a
-  return [...introSteps, ...SHARED_TRAILING_STEPS]
+  ]
 }
 
-export function buildGuideSteps(scenarioKey, openDeadlineEditor) {
-  return getStepDefinitionsForScenario(scenarioKey).map(
+function getStepDefinitionsForScenario(t, scenarioKey) {
+  const introSteps = buildIntroSteps(t)[scenarioKey] ?? buildIntroSteps(t).a
+  return [...introSteps, ...buildSharedSteps(t)]
+}
+
+export function buildGuideSteps(t, scenarioKey, openDeadlineEditor) {
+  return getStepDefinitionsForScenario(t, scenarioKey).map(
     ({ selector, popover, openDeadlineEditorOnHighlight }) => {
       const step = {
         element: () => resolveGuideElement(selector),
@@ -150,11 +142,11 @@ export function buildGuideSteps(scenarioKey, openDeadlineEditor) {
   )
 }
 
-function createGuideDriver(scenarioKey, openDeadlineEditor, onDestroyed) {
+function createGuideDriver(t, scenarioKey, openDeadlineEditor, onDestroyed) {
   return driver({
-    steps: buildGuideSteps(scenarioKey, openDeadlineEditor),
+    steps: buildGuideSteps(t, scenarioKey, openDeadlineEditor),
     showProgress: true,
-    progressText: '{{current}} / {{total}}',
+    progressText: t('guide.progress'),
     allowClose: true,
     overlayClickBehavior: 'close',
     overlayColor: 'rgb(var(--bujo-ink-rgb))',
@@ -162,9 +154,9 @@ function createGuideDriver(scenarioKey, openDeadlineEditor, onDestroyed) {
     stagePadding: 6,
     stageRadius: 3,
     popoverClass: 'bujo-tour-popover',
-    prevBtnText: '上一步',
-    nextBtnText: '下一步',
-    doneBtnText: '知道了',
+    prevBtnText: t('guide.prevBtn'),
+    nextBtnText: t('guide.nextBtn'),
+    doneBtnText: t('guide.doneBtn'),
     onDestroyed: () => {
       onDestroyed?.()
     },
@@ -174,6 +166,7 @@ function createGuideDriver(scenarioKey, openDeadlineEditor, onDestroyed) {
 export function useEventScenarioGuide(userId, scenarioKey, options = {}) {
   const storage = Object.hasOwn(options, 'storage') ? options.storage : getBrowserStorage()
   const openDeadlineEditor = options.openDeadlineEditor
+  const t = options.t ?? ((key) => key)
   const revision = ref(0)
 
   const normalizedUserId = computed(() => {
@@ -220,7 +213,7 @@ export function useEventScenarioGuide(userId, scenarioKey, options = {}) {
   function startGuide() {
     // 情境切換得夠快時，前一個情境的說明可能還開著；先關掉再開新的，避免疊出兩層 popover。
     activeDriver?.destroy()
-    activeDriver = createGuideDriver(normalizedScenarioKey.value, openDeadlineEditor, markSeen)
+    activeDriver = createGuideDriver(t, normalizedScenarioKey.value, openDeadlineEditor, markSeen)
     activeDriver.drive()
   }
 

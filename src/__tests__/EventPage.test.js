@@ -3,6 +3,7 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 import { createPinia } from 'pinia'
 import { describe, expect, test, beforeEach, afterEach, vi } from 'vitest'
 import EventPage from '@/components/EventPage.vue'
+import { createTestI18n } from './testUtils'
 
 // EventPage 用 <Teleport to="body">，實際 DOM 會掛在 document.body 底下，
 // 不在 wrapper 自己的節點內，所以要直接查 document 才找得到內容
@@ -29,7 +30,7 @@ async function mountEventPage() {
 
   return mount(EventPage, {
     props: { isOpen: true },
-    global: { plugins: [createPinia(), router] },
+    global: { plugins: [createPinia(), router, createTestI18n()] },
     attachTo: document.body,
   })
 }
@@ -1432,7 +1433,7 @@ describe('EventPage - initialDate prop 對過去日期不套用（防禦性第�
     // watch(() => props.isOpen, ...)——mount 時就直接給 isOpen: true 不會觸發非 immediate 的 watcher
     const wrapper = mount(EventPage, {
       props: { isOpen: false, initialDate },
-      global: { plugins: [router] },
+      global: { plugins: [createPinia(), router, createTestI18n()] },
       attachTo: document.body,
     })
     await wrapper.setProps({ isOpen: true })

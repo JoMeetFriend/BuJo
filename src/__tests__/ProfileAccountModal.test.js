@@ -1,6 +1,8 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { createPinia } from 'pinia'
 import ProfileAccountModal from '@/components/ProfileAccountModal.vue'
+import { createTestI18n } from './testUtils'
 
 const baseUser = {
   display_name: 'Test A',
@@ -16,6 +18,7 @@ function mountModal(user = {}) {
       },
     },
     global: {
+      plugins: [createPinia(), createTestI18n()],
       stubs: {
         BaseModal: {
           template: `

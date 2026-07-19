@@ -15,36 +15,40 @@
     <span class="loader" aria-hidden="true"></span>
     <Transition name="caption-fade" mode="out-in">
       <p :key="captionIndex" class="font-nunito text-sm text-[var(--bujo-muted-strong)]">
-        {{ captions[captionIndex] }}
+        {{ currentCaption }}
       </p>
     </Transition>
   </div>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const captions = [
-  '快好了，再等一下下...',
-  '小書正在喚醒BuJo日曆',
-  '再翻一頁就好...',
-  '不揪喔~說完你就揪到了～',
-  '小書翻得有點認真…',
-  '墨水還沒乾，再等等～',
-  '正在整理你的 BuJo…',
-  'BuJo 正在暖機中…',
-  '嘿咻嘿咻，努力搬書中…',
-  'BuJo正在衝刺中！',
+const { t } = useI18n()
+
+const captionKeys = [
+  'loading.default',
+  'loading.wakingUp',
+  'loading.oneMorePage',
+  'loading.gotcha',
+  'loading.seriously',
+  'loading.inkNotDry',
+  'loading.organizing',
+  'loading.warmingUp',
+  'loading.hauling',
+  'loading.sprinting',
 ]
 
 const CAPTION_INTERVAL_MS = 1600
 
 const captionIndex = ref(0)
+const currentCaption = computed(() => t(captionKeys[captionIndex.value]))
 let captionTimer = null
 
 onMounted(() => {
   captionTimer = setInterval(() => {
-    captionIndex.value = (captionIndex.value + 1) % captions.length
+    captionIndex.value = (captionIndex.value + 1) % captionKeys.length
   }, CAPTION_INTERVAL_MS)
 })
 
