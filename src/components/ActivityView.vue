@@ -58,7 +58,7 @@
             ]"
             @click="selectActivity(activity.id)"
           >
-            <h2>{{ activity.title }}</h2>
+            <h2 :title="activity.title">{{ activity.title }}</h2>
             <div class="activity-mini-bottom">
               <span>{{ activity.date }}</span>
               <span class="activity-mini-dot"></span>
@@ -487,6 +487,12 @@ onMounted(() => {
   font-size: 16px;
   line-height: 1.08;
   font-weight: 700;
+  display: -webkit-box;
+  max-height: 2.16em;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .activity-mini-bottom {

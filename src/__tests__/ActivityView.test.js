@@ -174,6 +174,15 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
 })
 
 describe('ActivityView - focus query 聚焦指定活動', () => {
+  test('底部活動小卡保留完整 title 屬性供 hover 或輔助工具讀取', async () => {
+    const longTitle = '嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨'
+    stubFetch([makeActivity({ title: longTitle })])
+    const wrapper = await mountActivityView()
+    await flushPromises()
+
+    expect(wrapper.find('.activity-mini-card h2').attributes('title')).toBe(longTitle)
+  })
+
   test('掛載於 /activity?focus=<id> 時 featured 為該活動且 modal 收到正確 activity-id', async () => {
     const activities = [
       makeActivity({ id: 'act-1' }),

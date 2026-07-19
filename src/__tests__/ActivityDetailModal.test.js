@@ -72,6 +72,20 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
+describe('ActivityDetailModal - 活動標題顯示保護', () => {
+  test('長標題仍保留完整 title 屬性供 hover 或輔助工具讀取', async () => {
+    const longTitle = '嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨'
+    stubFetch(makeActivity({ title: longTitle }))
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.find('.activity-detail-header h2').attributes('title')).toBe(longTitle)
+  })
+})
+
 describe('ActivityDetailModal - 地點外部地圖連結', () => {
   test('有地點時顯示可點擊的 Google Maps 搜尋連結', async () => {
     const activity = makeActivity({ location: '台北車站' })
@@ -319,8 +333,8 @@ describe('ActivityDetailModal - 標題日期顯示候選時段的完整日期區
   })
 })
 
-describe('ActivityDetailModal - 有人數上限時顯示還缺多少人成團', () => {
-  test('recruiting 狀態下且未達標時，顯示「還差 N 人」', async () => {
+describe('ActivityDetailModal - 人數上限顯示精簡', () => {
+  test('recruiting 狀態下且未達標時，不顯示人數上限提示與還差提示', async () => {
     const activity = makeActivity({
       participant_target: 5,
       current_count: 2,
@@ -334,7 +348,8 @@ describe('ActivityDetailModal - 有人數上限時顯示還缺多少人成團', 
     await flushPromises()
 
     expect(wrapper.find('.activity-detail-count').text()).toBe('2 / 5 人')
-    expect(wrapper.text()).toContain('還差 3 人')
+    expect(wrapper.text()).not.toContain('人數上限 5 人')
+    expect(wrapper.text()).not.toContain('還差 3 人')
   })
 
   test('沒有設定人數上限時，不顯示人數上限提示，已報名人數顯示 ∞', async () => {
@@ -353,7 +368,7 @@ describe('ActivityDetailModal - 有人數上限時顯示還缺多少人成團', 
     expect(wrapper.find('.activity-detail-infinity').exists()).toBe(true)
   })
 
-  test('有設定人數上限時，不顯示「沒有限制報名人數」', async () => {
+  test('有設定人數上限時，不顯示額外人數說明，只保留計數', async () => {
     const activity = makeActivity({ participant_target: 5, current_count: 2 })
     stubFetch(activity)
 
@@ -363,7 +378,9 @@ describe('ActivityDetailModal - 有人數上限時顯示還缺多少人成團', 
     await flushPromises()
 
     expect(wrapper.text()).not.toContain('沒有限制報名人數')
-    expect(wrapper.text()).toContain('人數上限 5 人')
+    expect(wrapper.text()).not.toContain('人數上限 5 人')
+    expect(wrapper.text()).not.toContain('還差')
+    expect(wrapper.find('.activity-detail-count').text()).toBe('2 / 5 人')
   })
 })
 

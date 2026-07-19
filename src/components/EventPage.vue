@@ -13,8 +13,13 @@
             :class="inputClass"
             type="text"
             required
+            :maxlength="ACTIVITY_TITLE_MAX_LENGTH"
+            aria-describedby="event-name-hint"
             placeholder="想揪什麼？"
           />
+          <span id="event-name-hint" class="text-xs font-medium text-[var(--bujo-muted-strong)]">
+            最多 {{ ACTIVITY_TITLE_MAX_LENGTH }} 字
+          </span>
         </label>
 
         <div class="grid grid-cols-2 gap-5 max-sm:gap-2">
@@ -1037,6 +1042,7 @@ const scheduleRows = [
 ]
 
 const today = formatDateValue(new Date())
+const ACTIVITY_TITLE_MAX_LENGTH = 15
 
 const {
   searchResults: addressResults,
@@ -1807,6 +1813,16 @@ async function doSubmitInternal() {
   const isScenario2 = dateMode.value === 'fixed' && timeMode.value === 'vote'
   const isScenario3 = dateMode.value === 'range' && timeMode.value === 'fixed'
   const isScenario4 = dateMode.value === 'range' && timeMode.value === 'vote'
+  const trimmedTitle = form.name.trim()
+
+  if (!trimmedTitle) {
+    submitError.value = '活動名稱為必填'
+    return
+  }
+  if (trimmedTitle.length > ACTIVITY_TITLE_MAX_LENGTH) {
+    submitError.value = `活動名稱最多 ${ACTIVITY_TITLE_MAX_LENGTH} 字`
+    return
+  }
 
   if (isScenario2) {
     // 時段範圍從選填改為必填（新截止時間模型下，情境二的決策硬截止天花板錨定在時間窗開始時間，
@@ -1872,7 +1888,7 @@ async function doSubmitInternal() {
   }
 
   const commonPayload = {
-    title: form.name,
+    title: trimmedTitle,
     location: form.location || null,
     limit: limitValue,
     note: form.note || null,

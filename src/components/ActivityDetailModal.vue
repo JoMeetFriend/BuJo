@@ -32,7 +32,7 @@
           </div>
           <span>{{ activity.creator.display_name }}</span>
         </div>
-        <h2>{{ activity?.title || '活動詳情' }}</h2>
+        <h2 :title="activity?.title || '活動詳情'">{{ activity?.title || '活動詳情' }}</h2>
         <div v-if="activity" class="activity-detail-date">{{ panelDate }}</div>
       </div>
     </header>
@@ -129,12 +129,6 @@
           </div>
         </div>
 
-        <div v-if="activity.participant_target" class="activity-detail-capacity-row">
-          <span class="activity-detail-capacity">
-            人數上限 {{ activity.participant_target }} 人
-          </span>
-        </div>
-
         <div class="activity-detail-join">
           <div class="activity-detail-participants">
             <div
@@ -181,16 +175,6 @@
               <span v-if="activity.participant_target">{{ activity.participant_target }}</span>
               <span v-else class="activity-detail-infinity">∞</span>
               人
-            </span>
-            <span
-              v-if="
-                activity.status === 'recruiting' &&
-                activity.participant_target &&
-                activity.participant_target - activity.current_count > 0
-              "
-              class="activity-detail-needed"
-            >
-              還差 {{ activity.participant_target - activity.current_count }} 人
             </span>
           </div>
         </div>
@@ -1547,8 +1531,14 @@ function formatTime(date) {
   min-width: 0;
   color: var(--bujo-ink);
   font-size: clamp(24px, 2.35vw, 32px);
-  line-height: 1.05;
+  line-height: 1.12;
   font-weight: 700;
+  display: -webkit-box;
+  max-height: 2.24em;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .activity-detail-header-right {
@@ -1711,12 +1701,7 @@ function formatTime(date) {
   flex-wrap: wrap;
 }
 
-.activity-detail-capacity-row {
-  margin-top: 14px;
-}
-
-.activity-detail-badge,
-.activity-detail-needed {
+.activity-detail-badge {
   border: 1px solid var(--bujo-ink);
   padding: 3px 8px;
   background: var(--bujo-white);
@@ -1740,12 +1725,6 @@ function formatTime(date) {
 .activity-detail-badge--cancelled {
   background: #e5e7eb;
   color: #6b7280;
-}
-
-.activity-detail-capacity {
-  color: rgba(var(--bujo-ink-rgb), 0.68);
-  font-size: 12px;
-  font-weight: 600;
 }
 
 .activity-detail-join {
