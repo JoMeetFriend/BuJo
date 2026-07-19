@@ -940,7 +940,8 @@
           v-if="submitError"
           class="col-span-full flex items-start gap-2 border border-[#dc2626] bg-[var(--bujo-surface)] px-3 py-2 text-xs text-[#dc2626]"
         >
-          ⚠️ {{ submitError }}
+          <ExclamationTriangleIcon class="h-3.5 w-3.5 shrink-0 mt-0.5" aria-hidden="true" />
+          {{ submitError }}
         </div>
       </form>
     </template>
@@ -986,6 +987,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
 import ReportCutoffReminder from './ReportCutoffReminder.vue'
@@ -1174,9 +1176,10 @@ watch(
   () => props.isOpen,
   (open) => {
     if (!open || !props.initialDate) return
+    const dateValue = props.initialDate.replaceAll('-', '/')
+    if (dateValue < today) return // 過去日期不套用，維持表單預設（今天）
     dateMode.value = 'fixed'
     timeMode.value = 'fixed'
-    const dateValue = props.initialDate.replaceAll('-', '/')
     form.startDate = dateValue
     form.endDate = dateValue
     form.singleDate = dateValue
@@ -1864,7 +1867,7 @@ async function doSubmitInternal() {
   // 最後一道防線：即使流團設定改用預設選項（選的當下一定還在未來），送出前還是要重新驗證一次，
   // 避免選好之後過了一段時間才送出，計算出的流團時間其實已經不晚於現在
   if (!deadlineISO || new Date(deadlineISO) <= new Date()) {
-    submitError.value = '流團時間已經不在未來，請重新調整流團設定或活動時間'
+    submitError.value = '報名截止時間已經過去，請重新調整活動日期或時間'
     return
   }
 
