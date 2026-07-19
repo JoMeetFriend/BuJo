@@ -1,8 +1,19 @@
 <template>
   <article v-if="isOpen" class="activity-detail-panel" :class="focusCardClass">
     <header class="activity-detail-header">
-      <div>
+      <div class="activity-detail-header-content">
         <div class="activity-detail-kicker">ACTIVITY ROOM</div>
+        <div v-if="activity" class="activity-detail-creator">
+          <div class="activity-detail-avatar">
+            <img
+              v-if="activity.creator.avatar_url"
+              :src="toAvatarSrc(activity.creator.avatar_url)"
+              alt=""
+            />
+            <UserIcon v-else class="h-4 w-4" aria-hidden="true" />
+          </div>
+          <span>{{ activity.creator.display_name }}</span>
+        </div>
         <h2>{{ activity?.title || '活動詳情' }}</h2>
       </div>
       <div class="activity-detail-header-right">
@@ -15,6 +26,11 @@
         >
           ×
         </button>
+        <div v-if="activity" class="activity-detail-badges">
+          <span class="activity-detail-badge" :class="statusBadgeClass">
+            {{ statusText }}
+          </span>
+        </div>
         <span v-if="activity" class="activity-detail-date">{{ panelDate }}</span>
       </div>
     </header>
@@ -26,18 +42,6 @@
       </div>
 
       <template v-else-if="activity">
-        <div class="activity-detail-creator">
-          <div class="activity-detail-avatar">
-            <img
-              v-if="activity.creator.avatar_url"
-              :src="toAvatarSrc(activity.creator.avatar_url)"
-              alt=""
-            />
-            <UserIcon v-else class="h-4 w-4" aria-hidden="true" />
-          </div>
-          <span>{{ activity.creator.display_name }} 發起</span>
-        </div>
-
         <div v-if="showCandidateChips && isScenarioDMode" class="activity-detail-info">
           <div class="activity-detail-label">
             日期、時段投票中（{{ candidateChipsForCard.length }}）
@@ -110,7 +114,8 @@
                 target="_blank"
                 rel="noopener noreferrer"
                 class="underline decoration-dotted underline-offset-2 hover:decoration-solid"
-                ><MapPinIcon class="inline h-4 w-4 shrink-0" aria-hidden="true" /> {{ activity.location }}</a
+                ><MapPinIcon class="inline h-4 w-4 shrink-0" aria-hidden="true" />
+                {{ activity.location }}</a
               >
             </div>
           </div>
@@ -122,14 +127,10 @@
           </div>
         </div>
 
-        <div class="activity-detail-badges">
-          <span class="activity-detail-badge" :class="statusBadgeClass">
-            {{ statusText }}
-          </span>
-          <span v-if="activity.participant_target" class="activity-detail-capacity">
+        <div v-if="activity.participant_target" class="activity-detail-capacity-row">
+          <span class="activity-detail-capacity">
             人數上限 {{ activity.participant_target }} 人
           </span>
-          <span v-else class="activity-detail-capacity">沒有限制報名人數</span>
         </div>
 
         <div class="activity-detail-join">
@@ -492,7 +493,9 @@
 
     <footer v-if="activity" class="activity-detail-footer">
       <div v-if="successMessage" class="activity-detail-success">
-        <DocumentCheckIcon class="h-4 w-4 shrink-0" aria-hidden="true" /><span>{{ successMessage }}</span>
+        <DocumentCheckIcon class="h-4 w-4 shrink-0" aria-hidden="true" /><span>{{
+          successMessage
+        }}</span>
       </div>
 
       <template v-else>
@@ -1498,6 +1501,11 @@ function formatTime(date) {
   flex: 0 0 auto;
 }
 
+.activity-detail-header-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .activity-detail-kicker {
   margin-bottom: 7px;
   font-family: 'Space Mono', monospace;
@@ -1519,7 +1527,7 @@ function formatTime(date) {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 6px;
 }
 
 .activity-detail-date {
@@ -1583,7 +1591,7 @@ function formatTime(date) {
 }
 
 .activity-detail-creator {
-  margin-bottom: 14px;
+  margin-bottom: 8px;
   font-size: 14px;
   font-weight: 600;
 }
@@ -1650,8 +1658,13 @@ function formatTime(date) {
 }
 
 .activity-detail-badges {
-  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
   flex-wrap: wrap;
+}
+
+.activity-detail-capacity-row {
+  margin-top: 14px;
 }
 
 .activity-detail-badge,
