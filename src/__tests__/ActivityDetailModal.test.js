@@ -548,6 +548,32 @@ function makeScenarioCActivity(overrides = {}) {
 }
 
 describe('ActivityDetailModal - Scenario C 日期-only 報名流程', () => {
+  test('已報名但沒有已選日期資料時，不顯示「尚未選擇日期」', async () => {
+    const activity = makeScenarioCActivity({ has_joined: true })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('你報名的日期')
+    expect(wrapper.text()).not.toContain('尚未選擇日期')
+  })
+
+  test('voting 狀態已報名但沒有已選日期資料時，不顯示「尚未選擇日期」', async () => {
+    const activity = makeScenarioCActivity({ has_joined: true, status: 'voting' })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('你報名的日期')
+    expect(wrapper.text()).not.toContain('尚未選擇日期')
+  })
+
   test('Scenario C join uses a date-only availability picker', async () => {
     const activity = makeScenarioCActivity()
     stubFetch(activity)
@@ -1906,6 +1932,38 @@ describe('ActivityDetailModal - 情境一（fixed，免投票）已報名人數/
     expect(wrapper.find('.activity-detail-avatars img').attributes('src')).toBe(
       'http://localhost:3000/uploads/avatars/p1.png',
     )
+  })
+
+  test('已報名人數超過 5 人時，用圓形 + 展開與收合參與者頭像', async () => {
+    const participants = Array.from({ length: 7 }, (_, index) => ({
+      id: `p-${index + 1}`,
+      display_name: `P${index + 1}`,
+      avatar_url: '',
+    }))
+    const activity = makeActivity({
+      requires_voting: false,
+      schedule_variant: 'fixed',
+      current_count: 7,
+      participants,
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, { props: { isOpen: true, activityId: 'act-1' } })
+    await flushPromises()
+
+    expect(wrapper.findAll('.activity-detail-participant-avatar')).toHaveLength(5)
+    const toggle = wrapper.find('.activity-detail-avatar-toggle')
+    expect(toggle.exists()).toBe(true)
+    expect(toggle.text()).toBe('+')
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+
+    await toggle.trigger('click')
+    expect(wrapper.findAll('.activity-detail-participant-avatar')).toHaveLength(7)
+    expect(wrapper.find('.activity-detail-avatar-toggle').attributes('aria-expanded')).toBe('true')
+
+    await wrapper.find('.activity-detail-avatar-toggle').trigger('click')
+    expect(wrapper.findAll('.activity-detail-participant-avatar')).toHaveLength(5)
+    expect(wrapper.find('.activity-detail-avatar-toggle').attributes('aria-expanded')).toBe('false')
   })
 
   test('hover 已報名參與者頭像顯示姓名清單', async () => {

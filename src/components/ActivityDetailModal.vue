@@ -45,34 +45,36 @@
 
       <template v-else-if="activity">
         <div v-if="showCandidateChips && isScenarioDMode" class="activity-detail-info">
-          <div class="activity-detail-label">日期、時段投票中</div>
-          <div class="activity-detail-date-list">
-            <button
-              v-for="chip in visibleCandidateChips"
-              :key="chip.key"
-              type="button"
-              class="activity-detail-chip"
-              :class="{
-                'activity-detail-chip--mine': chip.isMine,
-                'activity-detail-chip--active': openChipDate === chip.key,
-              }"
-              @click="toggleChipDate(chip.key)"
-              @mouseenter="openChipDate = chip.key"
-              @mouseleave="openChipDate === chip.key && (openChipDate = null)"
-            >
-              {{ chip.chip }}
-              <span v-if="openChipDate === chip.key" class="activity-detail-chip-popover">{{
-                chip.timeLabel
-              }}</span>
-            </button>
-            <button
-              v-if="hiddenCandidateChipsCount > 0"
-              type="button"
-              class="activity-detail-chip activity-detail-chip--more"
-              @click="candidateChipsExpanded = !candidateChipsExpanded"
-            >
-              {{ candidateChipsExpanded ? '−' : `+${hiddenCandidateChipsCount}` }}
-            </button>
+          <div class="activity-detail-list-block">
+            <div class="activity-detail-label">日期、時段投票中</div>
+            <div class="activity-detail-date-list">
+              <button
+                v-for="chip in visibleCandidateChips"
+                :key="chip.key"
+                type="button"
+                class="activity-detail-chip"
+                :class="{
+                  'activity-detail-chip--mine': chip.isMine,
+                  'activity-detail-chip--active': openChipDate === chip.key,
+                }"
+                @click="toggleChipDate(chip.key)"
+                @mouseenter="openChipDate = chip.key"
+                @mouseleave="openChipDate === chip.key && (openChipDate = null)"
+              >
+                {{ chip.chip }}
+                <span v-if="openChipDate === chip.key" class="activity-detail-chip-popover">{{
+                  chip.timeLabel
+                }}</span>
+              </button>
+              <button
+                v-if="hiddenCandidateChipsCount > 0"
+                type="button"
+                class="activity-detail-chip activity-detail-chip--more"
+                @click="candidateChipsExpanded = !candidateChipsExpanded"
+              >
+                {{ candidateChipsExpanded ? '−' : `+${hiddenCandidateChipsCount}` }}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -143,23 +145,30 @@
               @touchend="handleAvatarTouchEnd"
               @touchmove="handleAvatarTouchEnd"
             >
-              <template v-for="p in activity.participants.slice(0, 5)" :key="p.id">
+              <template v-for="p in visibleParticipants" :key="p.id">
                 <img
                   v-if="p.avatar_url"
-                  class="activity-detail-avatar"
+                  class="activity-detail-avatar activity-detail-participant-avatar"
                   :src="toAvatarSrc(p.avatar_url)"
                   alt=""
                 />
-                <div v-else class="activity-detail-avatar activity-detail-avatar--text">
+                <div
+                  v-else
+                  class="activity-detail-avatar activity-detail-avatar--text activity-detail-participant-avatar"
+                >
                   {{ p.display_name?.slice(0, 2) ?? '?' }}
                 </div>
               </template>
-              <span
-                v-if="activity.current_count > 5"
-                class="activity-detail-avatar activity-detail-avatar--text"
+              <button
+                v-if="hasExpandableParticipants"
+                type="button"
+                class="activity-detail-avatar activity-detail-avatar--text activity-detail-avatar-toggle"
+                :aria-label="participantsExpanded ? '收合參與者頭像' : '展開所有參與者頭像'"
+                :aria-expanded="participantsExpanded"
+                @click.stop="participantsExpanded = !participantsExpanded"
               >
-                +{{ activity.current_count - 5 }}
-              </span>
+                +
+              </button>
               <span
                 v-if="openSupportersKey === 'participants' && activity.participants.length"
                 class="activity-detail-chip-popover"
@@ -193,42 +202,43 @@
           class="activity-detail-options"
         >
           <template v-if="isScenarioCMode">
-            <template v-if="activity.has_joined">
-              <div class="activity-detail-label">你報名的日期</div>
-              <div v-if="selectedScenarioCSlots.length" class="activity-detail-date-list">
-                <span
-                  v-for="slot in selectedScenarioCSlots"
-                  :key="slot.id"
-                  class="activity-detail-selection-entry"
-                >
-                  {{ formatDateKey(toLocalDateKey(slot.slot_start)) }}
+            <template v-if="activity.has_joined && selectedScenarioCSlots.length">
+              <div class="activity-detail-list-block">
+                <div class="activity-detail-label">你報名的日期</div>
+                <div class="activity-detail-date-list">
                   <span
-                    v-if="slot.co_participants && slot.co_participants.length"
-                    class="activity-detail-supporters"
-                    @mouseenter="openSupporters(`c-${slot.id}`)"
-                    @mouseleave="closeSupporters(`c-${slot.id}`)"
-                    @touchstart="handleAvatarTouchStart(`c-${slot.id}`)"
-                    @touchend="handleAvatarTouchEnd"
-                    @touchmove="handleAvatarTouchEnd"
+                    v-for="slot in selectedScenarioCSlots"
+                    :key="slot.id"
+                    class="activity-detail-selection-entry"
                   >
+                    {{ formatDateKey(toLocalDateKey(slot.slot_start)) }}
                     <span
-                      v-for="p in slot.co_participants"
-                      :key="p.user_id"
-                      class="activity-detail-avatar"
+                      v-if="slot.co_participants && slot.co_participants.length"
+                      class="activity-detail-supporters"
+                      @mouseenter="openSupporters(`c-${slot.id}`)"
+                      @mouseleave="closeSupporters(`c-${slot.id}`)"
+                      @touchstart="handleAvatarTouchStart(`c-${slot.id}`)"
+                      @touchend="handleAvatarTouchEnd"
+                      @touchmove="handleAvatarTouchEnd"
                     >
-                      <img v-if="p.avatar_url" :src="toAvatarSrc(p.avatar_url)" alt="" />
-                      <span v-else>{{ p.display_name?.slice(0, 1) ?? '?' }}</span>
-                    </span>
-                    <span
-                      v-if="openSupportersKey === `c-${slot.id}`"
-                      class="activity-detail-chip-popover"
-                    >
-                      {{ slot.co_participants.map((p) => p.display_name).join('、') }}
+                      <span
+                        v-for="p in slot.co_participants"
+                        :key="p.user_id"
+                        class="activity-detail-avatar"
+                      >
+                        <img v-if="p.avatar_url" :src="toAvatarSrc(p.avatar_url)" alt="" />
+                        <span v-else>{{ p.display_name?.slice(0, 1) ?? '?' }}</span>
+                      </span>
+                      <span
+                        v-if="openSupportersKey === `c-${slot.id}`"
+                        class="activity-detail-chip-popover"
+                      >
+                        {{ slot.co_participants.map((p) => p.display_name).join('、') }}
+                      </span>
                     </span>
                   </span>
-                </span>
+                </div>
               </div>
-              <div v-else class="activity-detail-muted">尚未選擇日期</div>
             </template>
           </template>
           <template v-else-if="isScenarioDMode">
@@ -333,12 +343,13 @@
           v-if="
             isScenarioCMode &&
             activity.has_joined &&
+            selectedScenarioCSlots.length &&
             (activity.status === 'voting' || activity.status === 'confirmed')
           "
           class="activity-detail-options"
         >
           <div class="activity-detail-label">你報名的日期</div>
-          <div v-if="selectedScenarioCSlots.length" class="activity-detail-date-list">
+          <div class="activity-detail-date-list">
             <span
               v-for="slot in selectedScenarioCSlots"
               :key="slot.id"
@@ -371,7 +382,6 @@
               </span>
             </span>
           </div>
-          <div v-else class="activity-detail-muted">尚未選擇日期</div>
         </div>
 
         <div
@@ -663,6 +673,7 @@ const successMessage = ref(null)
 const selectedJoinSlotIds = ref([])
 const selectedDecisionSlotId = ref(null)
 const showAvailabilityPicker = ref(false)
+const participantsExpanded = ref(false)
 
 const isRangeMode = computed(() => activity.value?.availability_mode === 'range')
 const isScenarioCMode = computed(() => activity.value?.schedule_variant === 'find_date')
@@ -959,6 +970,12 @@ function ratioText(count) {
   return votingDenominator.value > 0 ? `${count}/${votingDenominator.value}人` : `${count}人`
 }
 
+const hasExpandableParticipants = computed(() => (activity.value?.current_count ?? 0) > 5)
+const visibleParticipants = computed(() => {
+  const participants = activity.value?.participants ?? []
+  return participantsExpanded.value ? participants : participants.slice(0, 5)
+})
+
 // 決選清單獨立追蹤目前展開到第幾筆，預設 3 筆。「顯示更多」每次多展開 3 筆；
 // 全部展開後控制鈕改成「收合」，讓使用者能回到精簡清單
 const DEFAULT_VISIBLE_COUNT = 3
@@ -1178,6 +1195,7 @@ async function fetchActivity(id) {
   openChipDate.value = null
   resetVisibleCounts()
   openSupportersKey.value = null
+  participantsExpanded.value = false
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities/${id}`, {
       credentials: 'include',
@@ -1417,6 +1435,7 @@ function resetPanel() {
   openChipDate.value = null
   resetVisibleCounts()
   openSupportersKey.value = null
+  participantsExpanded.value = false
 }
 
 function formatDateTime(date) {
@@ -1610,6 +1629,7 @@ function formatTime(date) {
   width: 25px;
   height: 25px;
   border: 1px solid var(--bujo-ink);
+  border-radius: 999px;
   background: var(--bujo-white);
   display: inline-flex;
   align-items: center;
@@ -1619,6 +1639,21 @@ function formatTime(date) {
   font-size: 9px;
   font-weight: 700;
   overflow: hidden;
+}
+
+.activity-detail-creator .activity-detail-avatar {
+  width: 30px;
+  height: 30px;
+}
+
+.activity-detail-avatar-toggle {
+  cursor: pointer;
+  padding: 0;
+}
+
+.activity-detail-avatar-toggle:hover,
+.activity-detail-avatar-toggle:focus-visible {
+  background: var(--bujo-white);
 }
 
 .activity-detail-avatar img {
@@ -1642,6 +1677,10 @@ function formatTime(date) {
   margin-top: 12px;
 }
 
+.activity-detail-list-block {
+  display: block;
+}
+
 .activity-detail-label {
   margin-bottom: 5px;
   color: rgba(var(--bujo-ink-rgb), 0.62);
@@ -1653,7 +1692,7 @@ function formatTime(date) {
 
 .activity-detail-infinity {
   display: inline-block;
-  font-size: 1em;
+  font-size: 1.25em;
   font-weight: 400;
   line-height: 1;
   vertical-align: baseline;
@@ -1743,6 +1782,11 @@ function formatTime(date) {
   gap: 6px;
 }
 
+.activity-detail-info > .activity-detail-label + .activity-detail-date-list,
+.activity-detail-options > .activity-detail-label + .activity-detail-date-list {
+  margin-top: -12px;
+}
+
 /* 用 > 限定直接子層，避免這條規則吃到巢狀在裡面的支持者頭像 span（例如 co_participants 頭像列） */
 .activity-detail-date-list > span,
 .activity-detail-date-list .activity-detail-chip {
@@ -1779,9 +1823,9 @@ function formatTime(date) {
 
 .activity-detail-chip-popover {
   position: absolute;
-  top: calc(100% + 4px);
+  bottom: calc(100% + 4px);
   left: 0;
-  z-index: 1;
+  z-index: 6;
   border: none;
   border-radius: 2px;
   background: var(--bujo-white);
