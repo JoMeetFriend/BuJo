@@ -1,5 +1,6 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { createRouter, createMemoryHistory } from 'vue-router'
+import { createPinia } from 'pinia'
 import { describe, expect, test, beforeEach, afterEach, vi } from 'vitest'
 import EventPage from '@/components/EventPage.vue'
 
@@ -28,7 +29,7 @@ async function mountEventPage() {
 
   return mount(EventPage, {
     props: { isOpen: true },
-    global: { plugins: [router] },
+    global: { plugins: [createPinia(), router] },
     attachTo: document.body,
   })
 }

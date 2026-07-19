@@ -161,8 +161,25 @@
         </div>
 
         <div
+          data-tour="event-scenario-block"
           class="col-span-full grid gap-2 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 py-3"
         >
+          <div class="flex items-center justify-between px-0.5">
+            <span
+              class="text-[11px] font-semibold uppercase tracking-wide text-[var(--bujo-muted-strong)]"
+              >怎麼喬時間？</span
+            >
+            <button
+              type="button"
+              class="event-scenario-guide-btn"
+              aria-label="說明：怎麼喬時間？"
+              title="怎麼喬時間？"
+              @click="startScenarioGuide"
+            >
+              ？
+            </button>
+          </div>
+
           <!-- Q1: 日期確定了嗎？ -->
           <div class="px-0.5">
             <div
@@ -1000,6 +1017,8 @@ import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
 import partyDanceUrl from '@/assets/party-dance.png'
 import { useAddressSearch } from '@/composables/useAddressSearch'
+import { useAuthStore } from '@/stores/auth'
+import { useEventScenarioGuide } from '@/composables/useEventScenarioGuide'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -1012,6 +1031,17 @@ const route = useRoute()
 const router = useRouter()
 const isRouteComponent = computed(() => route.name === 'event-new')
 const modalOpen = computed(() => (isRouteComponent.value ? true : props.isOpen))
+
+const authStore = useAuthStore()
+const scenarioGuideUserId = computed(() => authStore.user?.id ?? authStore.user?.uid ?? '')
+const { hasSeenGuide: hasSeenScenarioGuide, startGuide: startScenarioGuide } =
+  useEventScenarioGuide(scenarioGuideUserId)
+
+watch(modalOpen, async (isOpen) => {
+  if (!isOpen || hasSeenScenarioGuide.value) return
+  await nextTick()
+  startScenarioGuide()
+})
 
 const eventTypes = ['吃飯', '運動', '讀書', '逛街', '看展', '其他']
 const dateFields = ['startDate', 'endDate', 'singleDate']
@@ -2204,6 +2234,39 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.event-scenario-guide-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--bujo-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bujo-muted-strong);
+  font-family: var(--bujo-font-body);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.event-scenario-guide-btn:hover,
+.event-scenario-guide-btn:focus-visible {
+  border-color: var(--bujo-ink);
+  background: var(--bujo-ink);
+  color: var(--bujo-white);
+}
+
+.event-scenario-guide-btn:focus-visible {
+  outline: 2px solid var(--bujo-accent);
+  outline-offset: 2px;
+}
+
 .gui-switch {
   display: inline-flex;
   cursor: pointer;
