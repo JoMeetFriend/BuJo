@@ -1,20 +1,9 @@
 import { mount } from '@vue/test-utils'
-import { createI18n } from 'vue-i18n'
 import { describe, expect, test } from 'vitest'
 import LineOfficialAccountEntry from '@/components/LineOfficialAccountEntry.vue'
 import officialAccountEntrySource from '@/components/LineOfficialAccountEntry.vue?raw'
 import bundledQrCodeUrl from '@/assets/line-gain-friends-qrcode.png'
-import en from '@/locales/en.json'
-import zhTW from '@/locales/zh-TW.json'
-
-function createTestI18n() {
-  return createI18n({
-    legacy: false,
-    locale: 'zh-TW',
-    fallbackLocale: 'en',
-    messages: { en, 'zh-TW': zhTW },
-  })
-}
+import { createTestI18n } from './testUtils'
 
 const addFriendUrl = 'https://line.me/R/ti/p/@bujo'
 const qrCodeUrl = 'https://example.com/bujo-line-qr.png'

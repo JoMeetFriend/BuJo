@@ -2,18 +2,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { describe, expect, test, it, vi, beforeEach, afterEach } from 'vitest'
 import ActivityDetailModal from '@/components/ActivityDetailModal.vue'
 import AvailabilityPickerModal from '@/components/AvailabilityPickerModal.vue'
-import { createI18n } from 'vue-i18n'
-import en from '@/locales/en.json'
-import zhTW from '@/locales/zh-TW.json'
-
-function createTestI18n() {
-  return createI18n({
-    legacy: false,
-    locale: 'zh-TW',
-    fallbackLocale: 'en',
-    messages: { en, 'zh-TW': zhTW },
-  })
-}
+import { createTestI18n } from './testUtils'
 
 // 決選候選清單現在會依 slot_start 判斷過期，多數既有測試把候選時段固定寫死在 2026-07-10~11，
 // 全域固定一個早於這些日期的「現在」，避免這些寫死的固定日期隨著真實時間推進變成「已過期」

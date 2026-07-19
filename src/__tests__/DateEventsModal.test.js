@@ -1,18 +1,7 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, expect, test, vi, afterEach } from 'vitest'
 import DateEventsModal from '@/components/DateEventsModal.vue'
-import { createI18n } from 'vue-i18n'
-import en from '@/locales/en.json'
-import zhTW from '@/locales/zh-TW.json'
-
-function createTestI18n() {
-  return createI18n({
-    legacy: false,
-    locale: 'zh-TW',
-    fallbackLocale: 'en',
-    messages: { en, 'zh-TW': zhTW },
-  })
-}
+import { createTestI18n } from './testUtils'
 
 // BaseModal 用 <Teleport to="body">，實際 DOM 掛在 document.body 底下
 function queryBody(selector) {

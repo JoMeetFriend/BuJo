@@ -1,18 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, test, afterEach, vi } from 'vitest'
 import AvailabilityPickerModal from '@/components/AvailabilityPickerModal.vue'
-import { createI18n } from 'vue-i18n'
-import en from '@/locales/en.json'
-import zhTW from '@/locales/zh-TW.json'
-
-function createTestI18n() {
-  return createI18n({
-    legacy: false,
-    locale: 'zh-TW',
-    fallbackLocale: 'en',
-    messages: { en, 'zh-TW': zhTW },
-  })
-}
+import { createTestI18n } from './testUtils'
 
 describe('AvailabilityPickerModal', () => {
   test('可以正常掛載報名時間選取彈窗', () => {

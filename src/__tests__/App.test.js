@@ -1,21 +1,10 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { createI18n } from 'vue-i18n'
 import { beforeEach, describe, expect, test } from 'vitest'
 import App from '@/App.vue'
 import { useAuthStore } from '@/stores/auth'
-import en from '@/locales/en.json'
-import zhTW from '@/locales/zh-TW.json'
-
-function createTestI18n() {
-  return createI18n({
-    legacy: false,
-    locale: 'zh-TW',
-    fallbackLocale: 'en',
-    messages: { en, 'zh-TW': zhTW },
-  })
-}
+import { createTestI18n } from './testUtils'
 
 const user = {
   id: 'user-123',

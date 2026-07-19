@@ -2,18 +2,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { createPinia } from 'pinia'
 import ProfileAccountModal from '@/components/ProfileAccountModal.vue'
-import { createI18n } from 'vue-i18n'
-import en from '@/locales/en.json'
-import zhTW from '@/locales/zh-TW.json'
-
-function createTestI18n() {
-  return createI18n({
-    legacy: false,
-    locale: 'zh-TW',
-    fallbackLocale: 'en',
-    messages: { en, 'zh-TW': zhTW },
-  })
-}
+import { createTestI18n } from './testUtils'
 
 const baseUser = {
   display_name: 'Test A',
