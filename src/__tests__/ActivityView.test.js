@@ -180,7 +180,9 @@ describe('ActivityView - focus query 聚焦指定活動', () => {
     const wrapper = await mountActivityView()
     await flushPromises()
 
-    expect(wrapper.find('.activity-mini-card h2').attributes('title')).toBe(longTitle)
+    const title = wrapper.find('.activity-mini-card h2')
+    expect(title.attributes('title')).toBe(longTitle)
+    expect(title.text()).toBe('嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨...')
   })
 
   test('掛載於 /activity?focus=<id> 時 featured 為該活動且 modal 收到正確 activity-id', async () => {

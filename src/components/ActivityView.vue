@@ -58,7 +58,7 @@
             ]"
             @click="selectActivity(activity.id)"
           >
-            <h2 :title="activity.title">{{ activity.title }}</h2>
+            <h2 :title="activity.title">{{ miniCardTitle(activity.title) }}</h2>
             <div class="activity-mini-bottom">
               <span>{{ activity.date }}</span>
               <span class="activity-mini-dot"></span>
@@ -162,6 +162,11 @@ function cardStatus(activity) {
 
 function miniCardClass(activity) {
   return `activity-mini-card--${cardStatus(activity)}`
+}
+
+function miniCardTitle(title) {
+  const text = String(title ?? '')
+  return text.length > 13 ? `${text.slice(0, 13)}...` : text
 }
 
 async function fetchActivities() {
@@ -485,14 +490,12 @@ onMounted(() => {
   margin: 0;
   color: var(--activity-ink);
   font-size: 16px;
-  line-height: 1.08;
+  line-height: 1.12;
   font-weight: 700;
-  display: -webkit-box;
-  max-height: 2.16em;
+  max-height: 2.24em;
+  contain: paint;
   overflow: hidden;
   overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 .activity-mini-bottom {

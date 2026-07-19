@@ -417,7 +417,8 @@
           v-if="
             activity.is_creator &&
             activity.requires_voting &&
-            (activity.status === 'recruiting' || activity.status === 'voting')
+            (activity.status === 'recruiting' || activity.status === 'voting') &&
+            hasDecisionVotes
           "
           class="activity-detail-options"
         >
@@ -930,6 +931,12 @@ const normalizedDecisionEntries = computed(() => {
     : candidates.map(normalizeSegment)
   return [...flat].sort(compareDecisionEntries)
 })
+
+const hasDecisionVotes = computed(() =>
+  normalizedDecisionEntries.value.some(
+    (entry) => Number(entry.count) > 0 || entry.supporters.length > 0,
+  ),
+)
 
 // confirmFormation 送出候選時段時，情境四還需要候選時段本身的 id（candidateSlotId），
 // 這裡只保留這個用途需要的形狀，不再附帶顯示用的日期標籤（決選清單模板已經改用
@@ -1753,17 +1760,13 @@ function formatTime(date) {
 
 .activity-detail-options {
   margin-top: 16px;
+  gap: 8px;
 }
 
 .activity-detail-date-list {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-}
-
-.activity-detail-info > .activity-detail-label + .activity-detail-date-list,
-.activity-detail-options > .activity-detail-label + .activity-detail-date-list {
-  margin-top: -12px;
 }
 
 /* 用 > 限定直接子層，避免這條規則吃到巢狀在裡面的支持者頭像 span（例如 co_participants 頭像列） */
