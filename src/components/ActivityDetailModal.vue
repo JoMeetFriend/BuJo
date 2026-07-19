@@ -1500,7 +1500,7 @@ function formatTime(date) {
 }
 
 .activity-detail-header {
-  padding: 17px 20px 9px;
+  padding: 19px 22px 12px;
   flex: 0 0 auto;
 }
 
@@ -1516,7 +1516,7 @@ function formatTime(date) {
 
 .activity-detail-top-row {
   align-items: flex-start;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .activity-detail-top-actions {
@@ -1530,14 +1530,14 @@ function formatTime(date) {
   font-size: 10px;
   font-weight: 400;
   letter-spacing: 0.08em;
-  opacity: 0.65;
+  opacity: 0.52;
 }
 
 .activity-detail-header h2 {
   margin: 0;
   min-width: 0;
-  color: var(--bujo-ink);
-  font-size: clamp(24px, 2.35vw, 32px);
+  color: rgba(var(--bujo-ink-rgb), 0.88);
+  font-size: clamp(23px, 2.15vw, 30px);
   line-height: 1.12;
   font-weight: 700;
   display: -webkit-box;
@@ -1556,12 +1556,12 @@ function formatTime(date) {
 }
 
 .activity-detail-date {
-  margin-top: 6px;
-  color: rgba(var(--bujo-ink-rgb), 0.72);
+  margin-top: 8px;
+  color: rgba(var(--bujo-ink-rgb), 0.54);
   font-family: 'Space Mono', monospace;
-  font-size: 25px;
+  font-size: 22px;
   line-height: 1;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -1588,7 +1588,7 @@ function formatTime(date) {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 12px 20px 14px;
+  padding: 16px 22px 18px;
   scrollbar-width: none;
 }
 
@@ -1617,7 +1617,7 @@ function formatTime(date) {
 }
 
 .activity-detail-creator {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   font-size: 14px;
   font-weight: 600;
 }
@@ -1625,9 +1625,10 @@ function formatTime(date) {
 .activity-detail-avatar {
   width: 25px;
   height: 25px;
-  border: 1px solid var(--bujo-ink);
+  border: 1px solid rgba(var(--bujo-white-rgb), 0.9);
   border-radius: 999px;
   background: var(--bujo-white);
+  box-shadow: 0 0 0 1px rgba(var(--bujo-ink-rgb), 0.18);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1662,7 +1663,7 @@ function formatTime(date) {
 .activity-detail-info,
 .activity-detail-options {
   display: grid;
-  gap: 12px;
+  gap: 16px;
   font-size: 13px;
   line-height: 1.42;
   font-weight: 600;
@@ -1671,19 +1672,19 @@ function formatTime(date) {
 /* 情境四會有兩個 .activity-detail-info 疊在一起（候選時段 chip 清單＋地點/備註），
    兩個 div 之間本來沒有間距，緊貼著看起來很擠，補上跟區塊內部一致的間距 */
 .activity-detail-info + .activity-detail-info {
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 .activity-detail-list-block {
-  display: block;
+  display: grid;
+  gap: 7px;
 }
 
 .activity-detail-label {
-  margin-bottom: 5px;
-  color: rgba(var(--bujo-ink-rgb), 0.62);
+  color: rgba(var(--bujo-ink-rgb), 0.5);
   font-family: 'Space Mono', monospace;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -1710,49 +1711,49 @@ function formatTime(date) {
 
 .activity-detail-badge {
   border: 0;
-  border-radius: 999px;
-  padding: 6px 10px;
-  background: rgba(var(--bujo-white-rgb), 0.78);
-  color: rgba(var(--bujo-ink-rgb), 0.72);
-  font-size: 12px;
+  border-radius: 6px;
+  padding: 7px 11px;
+  background: rgba(var(--bujo-white-rgb), 0.62);
+  color: rgba(var(--bujo-ink-rgb), 0.64);
+  font-size: 11px;
   font-weight: 700;
   line-height: 1;
 }
 
 .activity-focus-card--mine-recruiting .activity-detail-badge--recruiting {
-  background: #f6edf2;
-  color: #7f6079;
+  background: rgba(248, 239, 245, 0.74);
+  color: #75616f;
 }
 
 .activity-focus-card--recruiting .activity-detail-badge--recruiting {
-  background: #edf6ee;
-  color: #58755e;
+  background: rgba(238, 247, 239, 0.72);
+  color: #5f7462;
 }
 
 .activity-detail-badge--confirmed {
-  background: #f5f1dc;
-  color: #776f4b;
+  background: rgba(247, 243, 224, 0.76);
+  color: #746e53;
 }
 
 .activity-focus-card--joined .activity-detail-badge,
 .activity-focus-card--mine-confirmed .activity-detail-badge {
-  background: #edf4f3;
-  color: #587575;
+  background: rgba(239, 247, 246, 0.72);
+  color: #607777;
 }
 
 .activity-detail-badge--light {
-  background: rgba(var(--bujo-white-rgb), 0.78);
-  color: rgba(var(--bujo-ink-rgb), 0.66);
+  background: rgba(var(--bujo-white-rgb), 0.56);
+  color: rgba(var(--bujo-ink-rgb), 0.58);
 }
 
 .activity-detail-badge--cancelled {
-  background: #f0f1ee;
-  color: #676f64;
+  background: rgba(241, 242, 238, 0.78);
+  color: #697066;
 }
 
 .activity-detail-join {
-  margin-top: 14px;
-  padding-bottom: 2px;
+  margin-top: 22px;
+  padding-bottom: 6px;
 }
 
 .activity-detail-count {
@@ -1775,25 +1776,28 @@ function formatTime(date) {
 }
 
 .activity-detail-options {
-  margin-top: 16px;
+  margin-top: 20px;
   gap: 8px;
 }
 
 .activity-detail-date-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 7px 8px;
 }
 
 /* 用 > 限定直接子層，避免這條規則吃到巢狀在裡面的支持者頭像 span（例如 co_participants 頭像列） */
 .activity-detail-date-list > span,
 .activity-detail-date-list .activity-detail-chip {
-  border: none;
-  background: var(--bujo-white);
-  color: var(--bujo-ink);
-  padding: 5px 10px;
+  border: 1px solid rgb(var(--bujo-white-rgb) / 0.64);
+  border-radius: 2px;
+  background: rgb(var(--bujo-white-rgb) / 0.56);
+  color: rgb(var(--bujo-ink-rgb) / 0.74);
+  box-shadow: none;
+  padding: 5px 8px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
+  line-height: 1.12;
 }
 
 .activity-detail-date-list .activity-detail-chip {
@@ -1802,20 +1806,26 @@ function formatTime(date) {
   font-family: inherit;
 }
 
-/* 「這是我自己選的」用底部一條 accent 色線標示，不用滿版黃底、也不加外框 */
+/* 所有候選日期保留 chip；已選日期在 chip 裡加同色系底線作為狀態標記 */
 .activity-detail-date-list .activity-detail-chip--mine {
-  box-shadow: inset 0 -2px 0 var(--bujo-accent);
+  border-color: rgb(var(--bujo-white-rgb) / 0.7);
+  background: rgb(var(--bujo-white-rgb) / 0.58);
+  color: rgb(var(--bujo-ink-rgb) / 0.82);
+  box-shadow: inset 0 -2px 0 rgba(72, 124, 121, 0.48);
 }
 
 .activity-detail-date-list .activity-detail-chip--active {
-  box-shadow: 0 1px 4px rgb(var(--bujo-ink-rgb) / 0.25);
+  border-color: rgb(var(--bujo-ink-rgb) / 0.22);
+  background: rgb(var(--bujo-white-rgb) / 0.62);
 }
 
 .activity-detail-date-list .activity-detail-chip--more {
   align-self: flex-end;
-  padding: 2px 5px;
+  border-color: rgb(var(--bujo-white-rgb) / 0.64);
+  background: rgb(var(--bujo-white-rgb) / 0.52);
+  padding: 4px 6px;
   font-size: 11px;
-  color: rgba(var(--bujo-ink-rgb), 0.72);
+  color: rgb(var(--bujo-ink-rgb) / 0.72);
   cursor: pointer;
 }
 
@@ -1844,7 +1854,9 @@ function formatTime(date) {
 .activity-detail-selection-entry {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  background: rgba(var(--bujo-white-rgb), 0.32);
+  box-shadow: none;
 }
 
 .activity-detail-option,
@@ -1927,7 +1939,7 @@ function formatTime(date) {
 .activity-detail-footer {
   flex: 0 0 auto;
   border-top: 1px solid rgba(var(--bujo-ink-rgb), 0.3);
-  padding: 12px 20px 16px;
+  padding: 12px 22px 16px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
