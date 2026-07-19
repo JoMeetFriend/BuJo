@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://bujo-backend.onrender.com/api/$1" },
+    { "source": "/api/:path*", "destination": "https://bujobackend-bkef.onrender.com/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
