@@ -11,7 +11,9 @@
           <span class="friends-cn-tag">好友</span>
         </div>
       </div>
-      <PixelButton @click="isModalOpen = true">＋ 新增好友</PixelButton>
+      <PixelButton data-tour="friend-add-button" @click="isModalOpen = true"
+        >＋ 新增好友</PixelButton
+      >
     </header>
 
     <!-- 內容區 -->

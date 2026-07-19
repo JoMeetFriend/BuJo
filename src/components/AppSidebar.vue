@@ -16,6 +16,7 @@
           v-for="item in navItems"
           :key="item.label"
           :to="item.to"
+          :data-tour="`nav-${item.key}`"
           class="bujo-sidebar-link group"
           :class="{
             'is-active': route.path === item.to,
@@ -41,6 +42,11 @@
 
     <!-- 下半：篩選 + 用戶 -->
     <div class="flex flex-col gap-5">
+      <!-- 新手導覽問號：固定在 CALENDAR FILTER 那條線上面，靠左對齊 -->
+      <div class="flex justify-start">
+        <AppTourHelpButton @click="emit('open-tour')" />
+      </div>
+
       <!-- 篩選按鈕 -->
       <div v-if="isCalendarPage" class="bujo-sidebar-filter whitespace-nowrap">
         <div class="bujo-sidebar-filter-title">CALENDAR FILTER</div>
@@ -60,6 +66,7 @@
       <button
         type="button"
         class="bujo-sidebar-profile whitespace-nowrap"
+        data-tour="nav-profile"
         aria-label="開啟側邊欄個人帳號"
         @click="showProfileModal = true"
       >
@@ -77,6 +84,8 @@
 
   <!-- 手機版底部導覽列 + 篩選抽屜 -->
   <div class="md:hidden">
+    <!-- 新手導覽問號：手機版沒有側邊欄可以嵌，浮在畫面右上角 -->
+    <AppTourHelpButton floating @click="emit('open-tour')" />
     <!-- 篩選抽屜 -->
     <div v-if="isCalendarPage && drawerOpen" class="bujo-mobile-filter-tray">
       <div class="bujo-mobile-filter-header">
@@ -121,6 +130,7 @@
         v-for="item in navItems"
         :key="item.label"
         :to="item.to"
+        :data-tour="`nav-${item.key}`"
         class="bujo-mobile-nav-link"
         :class="{ 'is-active': route.path === item.to }"
         @click="drawerOpen = false"
@@ -143,6 +153,7 @@
       <button
         type="button"
         class="bujo-mobile-profile"
+        data-tour="nav-profile"
         :class="{ 'btn-bounce-green': profileBtnBouncing }"
         @click="profileBtnBouncing = true"
         @animationend="onProfileAnimEnd"
@@ -180,9 +191,10 @@ import { useNotificationStore } from '@/stores/notificationStore'
 import bujoLogoUrl from '@/assets/bujo-logo.svg'
 import { toAvatarSrc } from '@/utils/avatar'
 import ProfileAccountModal from './ProfileAccountModal.vue'
+import AppTourHelpButton from './AppTourHelpButton.vue'
 
 defineProps({ isOpen: Boolean, filters: Object })
-const emit = defineEmits(['toggle-filter'])
+const emit = defineEmits(['toggle-filter', 'open-tour'])
 
 const route = useRoute()
 const router = useRouter()

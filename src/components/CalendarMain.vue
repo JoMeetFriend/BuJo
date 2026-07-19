@@ -130,7 +130,11 @@
             </button>
 
             <!-- 揪一團按鈕 -->
-            <PixelButton class="calendar-create-button" @click="openEventModal">
+            <PixelButton
+              class="calendar-create-button"
+              data-tour="calendar-create-button"
+              @click="openEventModal"
+            >
               <span class="calendar-create-plus">＋</span
               ><span class="hidden md:inline">CREATE</span>
             </PixelButton>
@@ -158,6 +162,7 @@
               :key="index"
               class="calendar-cell flex flex-col overflow-hidden justify-start relative pb-2"
               :class="[cell.date && isToday(cell.date) ? 'is-today' : cell.faded ? 'is-faded' : '']"
+              :data-tour="cell.date && isToday(cell.date) ? 'calendar-today-cell' : undefined"
               :role="cell.date ? 'button' : undefined"
               :tabindex="cell.date ? 0 : undefined"
               :aria-current="cell.date && isToday(cell.date) ? 'date' : undefined"
