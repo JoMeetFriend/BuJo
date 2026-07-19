@@ -297,7 +297,10 @@ describe('ActivityDetailModal - 標題日期顯示候選時段的完整日期區
     })
     await flushPromises()
 
-    expect(wrapper.find('.activity-detail-date').text()).toBe('7/15 ~ 7/17')
+    const date = wrapper.find('.activity-detail-date')
+    expect(date.attributes('aria-label')).toBe('7/15 ~ 7/17')
+    expect(date.text()).toBe('7/15~7/17')
+    expect(wrapper.find('.activity-detail-date-separator').text()).toBe('~')
   })
 
   test('候選時段都在同一天時，標題只顯示單一日期', async () => {
@@ -332,7 +335,7 @@ describe('ActivityDetailModal - 有人數上限時顯示還缺多少人成團', 
     })
     await flushPromises()
 
-    expect(wrapper.text()).toContain('已報名 2 / 5 人')
+    expect(wrapper.find('.activity-detail-count').text()).toBe('2 / 5 人')
     expect(wrapper.text()).toContain('還差 3 人')
   })
 
@@ -348,7 +351,7 @@ describe('ActivityDetailModal - 有人數上限時顯示還缺多少人成團', 
     expect(wrapper.text()).not.toContain('還差')
     expect(wrapper.text()).not.toContain('人數上限')
     expect(wrapper.text()).not.toContain('沒有限制報名人數')
-    expect(wrapper.text()).toContain('已報名 2 / ∞ 人')
+    expect(wrapper.find('.activity-detail-count').text()).toBe('2 / ∞ 人')
     expect(wrapper.find('.activity-detail-infinity').exists()).toBe(true)
   })
 
@@ -1897,7 +1900,7 @@ describe('ActivityDetailModal - 情境一（fixed，免投票）已報名人數/
     const wrapper = mount(ActivityDetailModal, { props: { isOpen: true, activityId: 'act-1' } })
     await flushPromises()
 
-    expect(wrapper.text()).toContain('已報名 2 /')
+    expect(wrapper.find('.activity-detail-count').text()).toContain('2 /')
     expect(wrapper.findAll('.activity-detail-avatars .activity-detail-avatar')).toHaveLength(2)
     expect(wrapper.find('.activity-detail-avatars img').attributes('src')).toBe(
       'http://localhost:3000/uploads/avatars/p1.png',

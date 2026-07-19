@@ -1,8 +1,26 @@
 <template>
   <article v-if="isOpen" class="activity-detail-panel" :class="focusCardClass">
     <header class="activity-detail-header">
-      <div class="activity-detail-header-content">
+      <div class="activity-detail-top-row">
         <div class="activity-detail-kicker">ACTIVITY ROOM</div>
+        <div class="activity-detail-top-actions">
+          <div v-if="activity" class="activity-detail-badges">
+            <span class="activity-detail-badge" :class="statusBadgeClass">
+              {{ statusText }}
+            </span>
+          </div>
+          <button
+            v-if="closable"
+            type="button"
+            class="activity-detail-close"
+            aria-label="關閉活動詳情"
+            @click="emit('close')"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      <div class="activity-detail-header-content">
         <div v-if="activity" class="activity-detail-creator">
           <div class="activity-detail-avatar">
             <img
@@ -14,24 +32,14 @@
           </div>
           <span>{{ activity.creator.display_name }}</span>
         </div>
-        <h2>{{ activity?.title || '活動詳情' }}</h2>
-      </div>
-      <div class="activity-detail-header-right">
-        <button
-          v-if="closable"
-          type="button"
-          class="activity-detail-close"
-          aria-label="關閉活動詳情"
-          @click="emit('close')"
-        >
-          ×
-        </button>
-        <div v-if="activity" class="activity-detail-badges">
-          <span class="activity-detail-badge" :class="statusBadgeClass">
-            {{ statusText }}
+        <div class="activity-detail-title-row">
+          <h2>{{ activity?.title || '活動詳情' }}</h2>
+          <span v-if="activity" class="activity-detail-date" :aria-label="panelDate">
+            <span>{{ panelDateParts.start }}</span>
+            <span v-if="panelDateParts.end" class="activity-detail-date-separator">~</span>
+            <span v-if="panelDateParts.end">{{ panelDateParts.end }}</span>
           </span>
         </div>
-        <span v-if="activity" class="activity-detail-date">{{ panelDate }}</span>
       </div>
     </header>
 
@@ -134,12 +142,6 @@
         </div>
 
         <div class="activity-detail-join">
-          <div class="activity-detail-label">
-            已報名 {{ activity.current_count }} /
-            <span v-if="activity.participant_target">{{ activity.participant_target }}</span>
-            <span v-else class="activity-detail-infinity">∞</span>
-            人
-          </div>
           <div class="activity-detail-participants">
             <div
               class="activity-detail-avatars"
@@ -173,6 +175,12 @@
                 {{ activity.participants.map((p) => p.display_name).join('、') }}
               </span>
             </div>
+            <span class="activity-detail-count">
+              {{ activity.current_count }} /
+              <span v-if="activity.participant_target">{{ activity.participant_target }}</span>
+              <span v-else class="activity-detail-infinity">∞</span>
+              人
+            </span>
             <span
               v-if="
                 activity.status === 'recruiting' &&
@@ -1043,6 +1051,11 @@ const panelDate = computed(() => {
   return ''
 })
 
+const panelDateParts = computed(() => {
+  const [start, end] = panelDate.value.split(' ~ ')
+  return { start: start || '', end: end || '' }
+})
+
 // 卡片改成「日期」「時間」兩個獨立標籤欄位，各自依情境顯示實際值或「投票/回報中」狀態，
 // 不再把兩者的資訊混在同一個「時間」欄位裡（例如 Mode C 的時間欄位曾經要同時塞固定時間
 // 又附註日期投票中，Mode B 完全沒有欄位顯示日期）
@@ -1494,20 +1507,33 @@ function formatTime(date) {
 }
 
 .activity-detail-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
   padding: 17px 20px 9px;
   flex: 0 0 auto;
 }
 
 .activity-detail-header-content {
-  flex: 1 1 auto;
   min-width: 0;
 }
 
+.activity-detail-top-row,
+.activity-detail-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.activity-detail-top-row {
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.activity-detail-top-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
 .activity-detail-kicker {
-  margin-bottom: 7px;
   font-family: 'Space Mono', monospace;
   font-size: 10px;
   font-weight: 400;
@@ -1517,10 +1543,15 @@ function formatTime(date) {
 
 .activity-detail-header h2 {
   margin: 0;
+  min-width: 0;
   color: var(--bujo-ink);
   font-size: clamp(24px, 2.35vw, 32px);
   line-height: 1.05;
   font-weight: 700;
+}
+
+.activity-detail-title-row {
+  align-items: flex-start;
 }
 
 .activity-detail-header-right {
@@ -1531,12 +1562,21 @@ function formatTime(date) {
 }
 
 .activity-detail-date {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
   color: rgba(var(--bujo-ink-rgb), 0.72);
   font-family: 'Space Mono', monospace;
   font-size: 25px;
-  line-height: 1;
+  line-height: 0.92;
   font-weight: 700;
+  text-align: center;
   white-space: nowrap;
+}
+
+.activity-detail-date-separator {
+  line-height: 0.85;
 }
 
 .activity-detail-close {
@@ -1643,11 +1683,10 @@ function formatTime(date) {
 
 .activity-detail-infinity {
   display: inline-block;
-  font-size: 2em;
+  font-size: 1em;
   font-weight: 400;
   line-height: 1;
-  vertical-align: middle;
-  transform: translateY(-3px);
+  vertical-align: baseline;
 }
 
 .activity-detail-description {
@@ -1703,6 +1742,14 @@ function formatTime(date) {
 .activity-detail-join {
   margin-top: 14px;
   padding-bottom: 2px;
+}
+
+.activity-detail-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(var(--bujo-ink-rgb), 0.78);
+  white-space: nowrap;
 }
 
 .activity-detail-avatars {
