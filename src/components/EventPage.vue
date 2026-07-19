@@ -459,7 +459,7 @@
               </span>
             </div>
 
-            <div class="grid gap-2">
+            <div data-tour="event-time-window" class="grid gap-2">
               <span :class="fieldLabelClass">可投票時段</span>
 
               <div class="grid max-w-[280px] grid-cols-[1fr_12px_1fr] items-center gap-2">
@@ -1040,18 +1040,6 @@ const modalOpen = computed(() => (isRouteComponent.value ? true : props.isOpen))
 
 const authStore = useAuthStore()
 const scenarioGuideUserId = computed(() => authStore.user?.id ?? authStore.user?.uid ?? '')
-const { hasSeenGuide: hasSeenScenarioGuide, startGuide: startScenarioGuide } =
-  useEventScenarioGuide(scenarioGuideUserId, {
-    openDeadlineEditor: () => {
-      showDeadlineEditor.value = true
-    },
-  })
-
-watch(modalOpen, async (isOpen) => {
-  if (!isOpen || hasSeenScenarioGuide.value) return
-  await nextTick()
-  startScenarioGuide()
-})
 
 const eventTypes = ['吃飯', '運動', '讀書', '逛街', '看展', '其他']
 const dateFields = ['startDate', 'endDate', 'singleDate']
@@ -1210,6 +1198,27 @@ const dateModeHint = computed(() =>
 const timeModeHint = computed(() =>
   timeMode.value === 'fixed' ? '時間確定了！' : '還沒～選時段讓大家投票',
 )
+
+// 情境代號給 useEventScenarioGuide 用來分開追蹤各情境「有沒有看過介紹」
+const currentScenarioKey = computed(() => {
+  if (dateMode.value === 'fixed' && timeMode.value === 'vote') return 'b'
+  if (dateMode.value === 'range' && timeMode.value === 'fixed') return 'c'
+  if (dateMode.value === 'range' && timeMode.value === 'vote') return 'd'
+  return 'a'
+})
+const { hasSeenGuide: hasSeenScenarioGuide, startGuide: startScenarioGuide } =
+  useEventScenarioGuide(scenarioGuideUserId, currentScenarioKey, {
+    openDeadlineEditor: () => {
+      showDeadlineEditor.value = true
+    },
+  })
+
+// 彈窗開著的時候切到還沒看過介紹的情境，自動彈一次該情境的說明
+watch([modalOpen, currentScenarioKey], async ([isOpen]) => {
+  if (!isOpen || hasSeenScenarioGuide.value) return
+  await nextTick()
+  startScenarioGuide()
+})
 
 // 從行事曆日期格點進來：預設情境一（日期固定X時間固定），並把點選的日期帶入
 // 情境一的開始／結束日期，以及情境二（日期固定X時間讓大家選）的日期
