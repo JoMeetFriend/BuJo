@@ -16,6 +16,7 @@
           v-for="item in navItems"
           :key="item.label"
           :to="item.to"
+          :data-tour="`nav-${item.key}`"
           class="bujo-sidebar-link group"
           :class="{
             'is-active': route.path === item.to,
@@ -60,6 +61,7 @@
       <button
         type="button"
         class="bujo-sidebar-profile whitespace-nowrap"
+        data-tour="nav-profile"
         aria-label="開啟側邊欄個人帳號"
         @click="showProfileModal = true"
       >
@@ -121,6 +123,7 @@
         v-for="item in navItems"
         :key="item.label"
         :to="item.to"
+        :data-tour="`nav-${item.key}`"
         class="bujo-mobile-nav-link"
         :class="{ 'is-active': route.path === item.to }"
         @click="drawerOpen = false"
@@ -143,6 +146,7 @@
       <button
         type="button"
         class="bujo-mobile-profile"
+        data-tour="nav-profile"
         :class="{ 'btn-bounce-green': profileBtnBouncing }"
         @click="profileBtnBouncing = true"
         @animationend="onProfileAnimEnd"
