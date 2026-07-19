@@ -161,86 +161,87 @@
         </div>
 
         <div
-          data-tour="event-scenario-block"
           class="col-span-full grid gap-2 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 py-3"
         >
-          <div class="flex items-center justify-between px-0.5">
-            <span
-              class="text-[11px] font-semibold uppercase tracking-wide text-[var(--bujo-muted-strong)]"
-              >怎麼喬時間？</span
-            >
-            <button
-              type="button"
-              class="event-scenario-guide-btn"
-              aria-label="說明：怎麼喬時間？"
-              title="怎麼喬時間？"
-              @click="startScenarioGuide"
-            >
-              ？
-            </button>
-          </div>
-
-          <!-- Q1: 日期確定了嗎？ -->
-          <div class="px-0.5">
-            <div
-              class="grid min-h-[34px] grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-[rgb(var(--bujo-ink-rgb)/0.08)] pb-2 max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2 max-sm:gap-y-1"
-            >
-              <span class="text-[13px] font-semibold leading-5 text-[var(--bujo-ink)]"
-                >日期確定了嗎？</span
-              >
+          <div data-tour="event-scenario-toggles" class="grid gap-2">
+            <div class="flex items-center justify-between px-0.5">
               <span
-                class="min-w-0 text-xs leading-5 text-[var(--bujo-muted)] max-sm:col-span-2 max-sm:row-start-2"
+                class="text-[11px] font-semibold uppercase tracking-wide text-[var(--bujo-muted-strong)]"
+                >怎麼喬時間？</span
               >
-                {{ dateModeHint }}
-              </span>
-              <label class="gui-switch justify-self-end">
-                <input
-                  v-model="isDateFixed"
-                  class="gui-switch__input"
-                  type="checkbox"
-                  role="switch"
-                  aria-label="日期確定了嗎？"
-                />
-                <span class="gui-switch__track" aria-hidden="true">
-                  <span class="gui-switch__thumb"></span>
-                </span>
-              </label>
+              <button
+                type="button"
+                class="event-scenario-guide-btn"
+                aria-label="說明：怎麼喬時間？"
+                title="怎麼喬時間？"
+                @click="startScenarioGuide"
+              >
+                ？
+              </button>
             </div>
-          </div>
 
-          <!-- Q2: 時間確定了嗎？ -->
-          <div class="px-0.5">
-            <div
-              class="grid min-h-[34px] grid-cols-[auto_1fr_auto] items-center gap-3 py-0.5 max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2 max-sm:gap-y-1"
-            >
-              <span class="text-[13px] font-semibold leading-5 text-[var(--bujo-ink)]"
-                >時間確定了嗎？</span
+            <!-- Q1: 日期確定了嗎？ -->
+            <div class="px-0.5">
+              <div
+                class="grid min-h-[34px] grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-[rgb(var(--bujo-ink-rgb)/0.08)] pb-2 max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2 max-sm:gap-y-1"
               >
-              <span
-                class="min-w-0 text-xs leading-5 text-[var(--bujo-muted)] max-sm:col-span-2 max-sm:row-start-2"
-              >
-                {{ timeModeHint }}
-              </span>
-              <label class="gui-switch justify-self-end">
-                <input
-                  v-model="isTimeFixed"
-                  class="gui-switch__input"
-                  type="checkbox"
-                  role="switch"
-                  aria-label="時間確定了嗎？"
-                />
-                <span class="gui-switch__track" aria-hidden="true">
-                  <span class="gui-switch__thumb"></span>
+                <span class="text-[13px] font-semibold leading-5 text-[var(--bujo-ink)]"
+                  >日期確定了嗎？</span
+                >
+                <span
+                  class="min-w-0 text-xs leading-5 text-[var(--bujo-muted)] max-sm:col-span-2 max-sm:row-start-2"
+                >
+                  {{ dateModeHint }}
                 </span>
-              </label>
+                <label class="gui-switch justify-self-end">
+                  <input
+                    v-model="isDateFixed"
+                    class="gui-switch__input"
+                    type="checkbox"
+                    role="switch"
+                    aria-label="日期確定了嗎？"
+                  />
+                  <span class="gui-switch__track" aria-hidden="true">
+                    <span class="gui-switch__thumb"></span>
+                  </span>
+                </label>
+              </div>
             </div>
-          </div>
-          <!-- 情境說明 -->
-          <div
-            v-if="dateMode !== 'fixed' || timeMode !== 'fixed'"
-            class="border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 py-2 text-xs leading-5 text-[var(--bujo-muted-strong)]"
-          >
-            {{ scenarioDescription }}
+
+            <!-- Q2: 時間確定了嗎？ -->
+            <div class="px-0.5">
+              <div
+                class="grid min-h-[34px] grid-cols-[auto_1fr_auto] items-center gap-3 py-0.5 max-sm:grid-cols-[1fr_auto] max-sm:gap-x-2 max-sm:gap-y-1"
+              >
+                <span class="text-[13px] font-semibold leading-5 text-[var(--bujo-ink)]"
+                  >時間確定了嗎？</span
+                >
+                <span
+                  class="min-w-0 text-xs leading-5 text-[var(--bujo-muted)] max-sm:col-span-2 max-sm:row-start-2"
+                >
+                  {{ timeModeHint }}
+                </span>
+                <label class="gui-switch justify-self-end">
+                  <input
+                    v-model="isTimeFixed"
+                    class="gui-switch__input"
+                    type="checkbox"
+                    role="switch"
+                    aria-label="時間確定了嗎？"
+                  />
+                  <span class="gui-switch__track" aria-hidden="true">
+                    <span class="gui-switch__thumb"></span>
+                  </span>
+                </label>
+              </div>
+            </div>
+            <!-- 情境說明 -->
+            <div
+              v-if="dateMode !== 'fixed' || timeMode !== 'fixed'"
+              class="border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 py-2 text-xs leading-5 text-[var(--bujo-muted-strong)]"
+            >
+              {{ scenarioDescription }}
+            </div>
           </div>
 
           <div
@@ -556,7 +557,7 @@
             class="grid gap-3 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-2 max-sm:py-1.5"
             @click="closePicker"
           >
-            <div class="grid gap-2">
+            <div data-tour="event-candidate-dates" class="grid gap-2">
               <span :class="fieldLabelClass">候選日期</span>
 
               <div class="mb-1 flex items-center justify-between gap-2">
@@ -1286,6 +1287,15 @@ const uniformTime = reactive({
   endTime: null,
   allDay: false,
   endTimeUserSet: false,
+})
+
+// 切到情境三、還沒選任何候選日期時，預設把「明天」加進候選日期，讓表單一開始就有東西可以動，
+// 導覽走到報名截止步驟時也才有實際算得出來的截止時間可以顯示
+watch(currentScenarioKey, (key) => {
+  if (key !== 'c' || candidateDates.value.length > 0) return
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  candidateDates.value = [formatDateValue(tomorrow)]
 })
 
 // 情境三：整日已勾選時，「今天」不可能再是完整一天，跟情境一的 isStartDateToday 規則同理，

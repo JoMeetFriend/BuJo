@@ -105,7 +105,7 @@ describe('useEventScenarioGuide', () => {
 
   describe('startGuide', () => {
     test('有對應錨點時可以正常啟動說明（情境一）', () => {
-      ;['event-scenario-block', 'event-deadline-block', 'event-deadline-offset-button'].forEach(
+      ;['event-scenario-toggles', 'event-deadline-block', 'event-deadline-offset-button'].forEach(
         (selector) => {
           const anchor = document.createElement('button')
           anchor.setAttribute('data-tour', selector)
@@ -121,7 +121,7 @@ describe('useEventScenarioGuide', () => {
 
     test('有對應錨點時可以正常啟動說明（情境二，含可投票時段錨點）', () => {
       ;[
-        'event-scenario-block',
+        'event-scenario-toggles',
         'event-time-window',
         'event-deadline-block',
         'event-deadline-offset-button',
@@ -137,6 +137,24 @@ describe('useEventScenarioGuide', () => {
       expect(document.body.classList.contains('driver-active')).toBe(true)
     })
 
+    test('有對應錨點時可以正常啟動說明（情境三，含候選日期錨點）', () => {
+      ;[
+        'event-scenario-toggles',
+        'event-candidate-dates',
+        'event-deadline-block',
+        'event-deadline-offset-button',
+      ].forEach((selector) => {
+        const anchor = document.createElement('button')
+        anchor.setAttribute('data-tour', selector)
+        document.body.appendChild(anchor)
+      })
+
+      const guide = useEventScenarioGuide(ref('user-123'), ref('c'), { storage: createStorage() })
+
+      expect(() => guide.startGuide()).not.toThrow()
+      expect(document.body.classList.contains('driver-active')).toBe(true)
+    })
+
     test('找不到錨點時不拋錯', () => {
       const guide = useEventScenarioGuide(ref('user-123'), ref('a'), { storage: createStorage() })
 
@@ -145,7 +163,7 @@ describe('useEventScenarioGuide', () => {
 
     test('連續呼叫 startGuide 會先關掉前一個，不會疊出兩層 popover', () => {
       const anchor = document.createElement('button')
-      anchor.setAttribute('data-tour', 'event-scenario-block')
+      anchor.setAttribute('data-tour', 'event-scenario-toggles')
       document.body.appendChild(anchor)
 
       const guide = useEventScenarioGuide(ref('user-123'), ref('a'), { storage: createStorage() })
@@ -158,16 +176,19 @@ describe('useEventScenarioGuide', () => {
   })
 
   describe('buildGuideSteps', () => {
-    test('情境一只講開關區塊，情境二多了可投票時段那一步', () => {
+    test('情境一只講開關區塊，情境二多了可投票時段、情境三多了候選日期', () => {
       const scenarioASteps = buildGuideSteps('a')
       const scenarioBSteps = buildGuideSteps('b')
+      const scenarioCSteps = buildGuideSteps('c')
 
       expect(scenarioASteps.some((step) => step.popover.title === '可投票時段')).toBe(false)
       expect(scenarioBSteps.some((step) => step.popover.title === '可投票時段')).toBe(true)
+      expect(scenarioCSteps.some((step) => step.popover.title === '候選日期')).toBe(true)
+      expect(scenarioCSteps.some((step) => step.popover.title === '可投票時段')).toBe(false)
     })
 
     test('報名截止與成團確認、報名截止時間這兩步，所有情境都共用', () => {
-      ;['a', 'b'].forEach((scenarioKey) => {
+      ;['a', 'b', 'c'].forEach((scenarioKey) => {
         const steps = buildGuideSteps(scenarioKey)
         const titles = steps.map((step) => step.popover.title)
 

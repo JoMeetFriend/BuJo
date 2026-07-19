@@ -25,11 +25,11 @@ function resolveGuideElement(selector) {
 }
 
 // 每個情境開頭專屬的說明步驟；「怎麼喬時間？」開關區塊四個情境共用同一個錨點，
-// 只是文字依目前選的情境而不同。情境三、四文案定稿後再補進 SCENARIO_INTRO_STEPS。
+// 只是文字依目前選的情境而不同。情境四文案定稿後再補進 SCENARIO_INTRO_STEPS。
 const SCENARIO_INTRO_STEPS = {
   a: [
     {
-      selector: 'event-scenario-block',
+      selector: 'event-scenario-toggles',
       popover: {
         title: '怎麼喬時間？',
         description:
@@ -39,7 +39,7 @@ const SCENARIO_INTRO_STEPS = {
   ],
   b: [
     {
-      selector: 'event-scenario-block',
+      selector: 'event-scenario-toggles',
       popover: {
         title: '怎麼喬時間？',
         description:
@@ -52,6 +52,24 @@ const SCENARIO_INTRO_STEPS = {
         title: '可投票時段',
         description:
           '設定大家可以回報的時間範圍（例如 09:00–18:00），參加者只能在這個範圍內選時間，你之後再從回報結果挑一個時間確定。',
+      },
+    },
+  ],
+  c: [
+    {
+      selector: 'event-scenario-toggles',
+      popover: {
+        title: '怎麼喬時間？',
+        description:
+          '現在是「日期開放」：時間已經定了，日期留給大家投票——你可以勾選多個候選日期，大家會投票選出可以的日子。',
+      },
+    },
+    {
+      selector: 'event-candidate-dates',
+      popover: {
+        title: '候選日期',
+        description:
+          '點選多個候選日期讓大家投票；時間統一套用到所有候選日，不能每天喬不同時間，之後你再從投票結果挑一天確定成團。',
       },
     },
   ],
