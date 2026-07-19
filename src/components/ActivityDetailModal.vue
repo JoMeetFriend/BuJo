@@ -140,12 +140,19 @@
 
         <div class="activity-detail-join">
           <div class="activity-detail-label">
-            {{
-              t('activityDetail.signedUpCount', {
-                current: activity.current_count,
-                total: activity.participant_target || '∞',
-              })
-            }}
+            <template v-if="activity.participant_target">
+              {{
+                t('activityDetail.signedUpCount', {
+                  current: activity.current_count,
+                  total: activity.participant_target,
+                })
+              }}
+            </template>
+            <template v-else>
+              {{ t('activityDetail.signedUpCountPrefix', { current: activity.current_count })
+              }}<span class="activity-detail-infinity">∞</span
+              >{{ t('activityDetail.signedUpCountSuffix') }}
+            </template>
           </div>
           <div class="activity-detail-participants">
             <div

@@ -55,12 +55,57 @@ beforeEach(() => {
 })
 
 describe('RegisterViews - 前端驗證', () => {
-  test('欄位未填寫完整時顯示錯誤，不呼叫 API', async () => {
+  test('全部未填時顯示暱稱為空錯誤', async () => {
     const wrapper = mountRegisterViews()
 
     await wrapper.find('form').trigger('submit.prevent')
 
-    expect(wrapper.text()).toContain('請填寫所有欄位')
+    expect(wrapper.text()).toContain('暱稱不可為空白')
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  test('暱稱為空時顯示錯誤', async () => {
+    const wrapper = mountRegisterViews()
+    await fillForm(wrapper, { name: '' })
+
+    await wrapper.find('form').trigger('submit.prevent')
+
+    expect(wrapper.text()).toContain('暱稱不可為空白')
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  test('email 為空時顯示錯誤', async () => {
+    const wrapper = mountRegisterViews()
+    await fillForm(wrapper, { name: '小明', email: '' })
+
+    await wrapper.find('form').trigger('submit.prevent')
+
+    expect(wrapper.text()).toContain('電子郵件不可為空白')
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  test('密碼為空時顯示錯誤', async () => {
+    const wrapper = mountRegisterViews()
+    await fillForm(wrapper, { name: '小明', email: 'a@b.com', password: '' })
+
+    await wrapper.find('form').trigger('submit.prevent')
+
+    expect(wrapper.text()).toContain('密碼不可為空白')
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  test('確認密碼為空時顯示錯誤', async () => {
+    const wrapper = mountRegisterViews()
+    await fillForm(wrapper, {
+      name: '小明',
+      email: 'a@b.com',
+      password: 'password123',
+      confirmPassword: '',
+    })
+
+    await wrapper.find('form').trigger('submit.prevent')
+
+    expect(wrapper.text()).toContain('密碼不可為空白')
     expect(fetch).not.toHaveBeenCalled()
   })
 

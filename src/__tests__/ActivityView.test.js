@@ -1,8 +1,20 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import { createI18n } from 'vue-i18n'
 import { describe, expect, test, vi, afterEach } from 'vitest'
 import ActivityView from '@/components/ActivityView.vue'
 import ActivityDetailModal from '@/components/ActivityDetailModal.vue'
+import en from '@/locales/en.json'
+import zhTW from '@/locales/zh-TW.json'
+
+function createTestI18n() {
+  return createI18n({
+    legacy: false,
+    locale: 'zh-TW',
+    fallbackLocale: 'en',
+    messages: { en, 'zh-TW': zhTW },
+  })
+}
 
 function makeActivity(overrides = {}) {
   return {
@@ -39,7 +51,7 @@ async function mountActivityView(path = '/activity') {
   await router.isReady()
   return mount(ActivityView, {
     global: {
-      plugins: [router],
+      plugins: [router, createTestI18n()],
       stubs: { ActivityDetailModal: true, EventPage: true },
     },
   })

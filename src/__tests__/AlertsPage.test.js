@@ -2,10 +2,22 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import { createI18n } from 'vue-i18n'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import AlertsPage from '@/components/AlertsPage.vue'
 import alertsPageSource from '@/components/AlertsPage.vue?raw'
 import { useNotificationStore } from '@/stores/notificationStore'
+import en from '@/locales/en.json'
+import zhTW from '@/locales/zh-TW.json'
+
+function createTestI18n() {
+  return createI18n({
+    legacy: false,
+    locale: 'zh-TW',
+    fallbackLocale: 'en',
+    messages: { en, 'zh-TW': zhTW },
+  })
+}
 
 const api = vi.hoisted(() => ({
   get: vi.fn(),
@@ -57,7 +69,7 @@ async function mountAlerts() {
   await router.isReady()
   return mount(AlertsPage, {
     global: {
-      plugins: [pinia, router],
+      plugins: [pinia, router, createTestI18n()],
       stubs: {
         PixelButton: {
           props: ['disabled'],
