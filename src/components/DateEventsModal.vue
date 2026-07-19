@@ -20,16 +20,22 @@
             class="flex min-h-[60px] items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-2 text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)] md:px-3 cursor-pointer"
             @click="goToDetail(event.id)"
           >
-            <svg
-              class="mr-2 h-7 w-7 shrink-0 md:mr-3 md:h-9 md:w-9"
-              viewBox="0 0 36 36"
-              aria-hidden="true"
+            <div
+              class="mr-2 h-7 w-7 shrink-0 overflow-hidden rounded-full bg-[var(--bujo-surface-muted)] md:mr-3 md:h-9 md:w-9"
             >
-              <path
-                d="M4 28h28v4H4zM4 24h4v4H4zM8 20h4v4H8zM12 16h4v4h-4zM16 12h4v4h-4zM20 16h4v4h-4zM24 20h4v4h-4zM28 24h4v4h-4zM12 24h4v4h-4z"
-                fill="currentColor"
+              <img
+                v-if="event.creator?.avatar_url"
+                :src="toAvatarSrc(event.creator.avatar_url)"
+                alt=""
+                class="h-full w-full object-cover"
               />
-            </svg>
+              <svg v-else class="h-full w-full p-1.5 md:p-2" viewBox="0 0 36 36" aria-hidden="true">
+                <path
+                  d="M4 28h28v4H4zM4 24h4v4H4zM8 20h4v4H8zM12 16h4v4h-4zM16 12h4v4h-4zM20 16h4v4h-4zM24 20h4v4h-4zM28 24h4v4h-4zM12 24h4v4h-4z"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
 
             <div class="min-w-0 flex-1">
               <h3 class="font-[plex-sans-tc] text-[15px] font-bold leading-tight">
@@ -94,6 +100,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from './ui/BaseModal.vue'
 import ActivityDetailModal from './ActivityDetailModal.vue'
+import { toAvatarSrc } from '@/utils/avatar'
 
 const { t } = useI18n()
 

@@ -545,6 +545,7 @@ const events = computed(() =>
       title: activity.title,
       status: toCalendarStatus(activity),
       is_creator: activity.is_creator,
+      creator: activity.creator,
       time: activity.time,
       location: activity.location,
       sortTime: activity.confirmed_start ?? activity.date_iso,
