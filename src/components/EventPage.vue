@@ -171,6 +171,7 @@
               >
               <button
                 type="button"
+                data-tour="event-scenario-guide-button"
                 class="event-scenario-guide-btn"
                 aria-label="說明：怎麼喬時間？"
                 title="怎麼喬時間？"

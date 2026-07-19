@@ -116,11 +116,56 @@ describe('useAppTour', () => {
 
     test('其餘步驟不會意外帶有頁面切換邏輯', () => {
       const steps = buildDriveSteps(vi.fn())
-      const stepsWithoutNav = steps.filter((step) => step.popover.title !== '朋友')
+      const stepsWithoutNav = steps.filter(
+        (step) => !['朋友', '新增活動'].includes(step.popover.title),
+      )
 
       stepsWithoutNav.forEach((step) => {
         expect(step.popover.onNextClick).toBeUndefined()
       })
+    })
+  })
+
+  describe('buildDriveSteps 新增活動彈窗', () => {
+    test('新增活動步驟的下一步會點擊當前元素開啟彈窗，並先標記情境一導覽已看過', async () => {
+      const onSuppressEventScenarioGuide = vi.fn()
+      const moveNext = vi.fn()
+      const element = { click: vi.fn() }
+      const steps = buildDriveSteps(undefined, onSuppressEventScenarioGuide)
+      const createStep = steps.find((step) => step.popover.title === '新增活動')
+
+      await createStep.popover.onNextClick(element, createStep, { driver: { moveNext } })
+
+      expect(onSuppressEventScenarioGuide).toHaveBeenCalledTimes(1)
+      expect(element.click).toHaveBeenCalledTimes(1)
+      expect(moveNext).toHaveBeenCalledTimes(1)
+      expect(onSuppressEventScenarioGuide.mock.invocationCallOrder[0]).toBeLessThan(
+        element.click.mock.invocationCallOrder[0],
+      )
+    })
+
+    test('沒有提供 onSuppressEventScenarioGuide 時，新增活動步驟仍會正常點擊並前進', async () => {
+      const moveNext = vi.fn()
+      const element = { click: vi.fn() }
+      const steps = buildDriveSteps()
+      const createStep = steps.find((step) => step.popover.title === '新增活動')
+
+      await expect(
+        createStep.popover.onNextClick(element, createStep, { driver: { moveNext } }),
+      ).resolves.toBeUndefined()
+
+      expect(element.click).toHaveBeenCalledTimes(1)
+      expect(moveNext).toHaveBeenCalledTimes(1)
+    })
+
+    test('活動情境說明步驟設定 waitForElement，等待彈窗渲染完成', () => {
+      const steps = buildDriveSteps()
+      const guideStep = steps.find((step) => step.popover.title === '活動情境說明')
+
+      expect(guideStep.waitForElement).toBe(1500)
+      expect(guideStep.popover.description).toBe(
+        '建立活動有四種情境：選擇日期 × 時段後，點「？」可以查看相關導覽。',
+      )
     })
   })
 
@@ -137,6 +182,9 @@ describe('useAppTour', () => {
       const createButton = document.createElement('button')
       createButton.setAttribute('data-tour', 'calendar-create-button')
       document.body.appendChild(createButton)
+      const scenarioGuideButton = document.createElement('button')
+      scenarioGuideButton.setAttribute('data-tour', 'event-scenario-guide-button')
+      document.body.appendChild(scenarioGuideButton)
       const addFriendButton = document.createElement('button')
       addFriendButton.setAttribute('data-tour', 'friend-add-button')
       document.body.appendChild(addFriendButton)
@@ -156,9 +204,9 @@ describe('useAppTour', () => {
 
       expect(() => tour.startTour()).not.toThrow()
 
-      // 加好友步驟設有 waitForElement，找不到錨點時會等待後才放棄；把時間快轉完，
-      // 避免遺留的 setTimeout 在測試結束、jsdom 環境清掉後才觸發而噴出例外。
-      vi.advanceTimersByTime(1600)
+      // 活動情境說明、加好友這兩步都設有 waitForElement，找不到錨點時會依序各等待一輪才放棄；
+      // 把時間快轉完，避免遺留的 setTimeout 在測試結束、jsdom 環境清掉後才觸發而噴出例外。
+      vi.advanceTimersByTime(3200)
       vi.useRealTimers()
     })
   })

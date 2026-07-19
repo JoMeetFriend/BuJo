@@ -2,6 +2,7 @@
   <button
     type="button"
     class="bujo-tour-help-btn"
+    :class="floating ? 'bujo-tour-help-btn--floating' : 'bujo-tour-help-btn--inline'"
     aria-label="重新開啟新手導覽"
     title="新手導覽"
     @click="emit('click')"
@@ -11,26 +12,28 @@
 </template>
 
 <script setup>
+defineProps({
+  // 桌機版嵌在側邊欄 CALENDAR FILTER 那條線上面，跟著版面走；
+  // 手機版沒有側邊欄可以嵌，改成浮在畫面右上角
+  floating: {
+    type: Boolean,
+    default: false,
+  },
+})
+
 const emit = defineEmits(['click'])
 </script>
 
 <style scoped>
 .bujo-tour-help-btn {
-  position: fixed;
-  right: 20px;
-  bottom: 88px;
-  z-index: 70;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
   border: 1px solid var(--bujo-ink);
   border-radius: 999px;
   background: var(--bujo-surface);
   color: var(--bujo-ink);
   font-family: var(--bujo-font-body);
-  font-size: 18px;
   font-weight: 700;
   line-height: 1;
   box-shadow: 0 2px 0 var(--bujo-ink);
@@ -56,9 +59,19 @@ const emit = defineEmits(['click'])
   outline-offset: 2px;
 }
 
-@media (min-width: 768px) {
-  .bujo-tour-help-btn {
-    bottom: 24px;
-  }
+.bujo-tour-help-btn--inline {
+  width: 26px;
+  height: 26px;
+  font-size: 13px;
+}
+
+.bujo-tour-help-btn--floating {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 70;
+  width: 26px;
+  height: 26px;
+  font-size: 12px;
 }
 </style>

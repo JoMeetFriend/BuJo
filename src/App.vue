@@ -7,6 +7,7 @@
       :isOpen="sidebarOpen"
       :filters="filters"
       @toggle-filter="toggleFilter"
+      @open-tour="startAppTour"
     />
 
     <SidebarToggleButton
@@ -45,8 +46,6 @@
       @link-start="rememberOnboardingReturnPath"
       @complete="markLineNotificationOnboardingSeen"
     />
-
-    <AppTourHelpButton v-if="showAppTourHelpButton" @click="startAppTour" />
   </div>
 </template>
 
@@ -56,7 +55,6 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import AppSidebar from './components/AppSidebar.vue'
 import SidebarToggleButton from './components/ui/SidebarToggleButton.vue'
 import LineNotificationOnboardingModal from './components/LineNotificationOnboardingModal.vue'
-import AppTourHelpButton from './components/AppTourHelpButton.vue'
 import LoadingPage from './components/ui/LoadingPage.vue'
 import { useAuthStore } from './stores/auth'
 import {
@@ -64,6 +62,7 @@ import {
   useLineNotificationOnboarding,
 } from './composables/useLineNotificationOnboarding'
 import { useAppTour } from './composables/useAppTour'
+import { markEventScenarioGuideSeen } from './composables/useEventScenarioGuide'
 
 // 載入畫面至少顯示這麼久，避免 authStore 初始化太快時畫面閃一下就消失
 const MIN_LOADING_DISPLAY_MS = 1600
@@ -104,6 +103,9 @@ const showLineNotificationOnboarding = computed(
 
 const { hasSeenTour: hasSeenAppTour, startTour: startAppTour } = useAppTour(onboardingUserId, {
   navigate: (path) => router.push(path),
+  // 主導覽自己開了新增活動彈窗要介紹「？」按鈕時，先標記情境一的彈窗導覽已看過，
+  // 避免彈窗一開兩邊導覽疊在一起
+  onSuppressEventScenarioGuide: () => markEventScenarioGuideSeen(onboardingUserId.value, 'a'),
 })
 // 新手導覽的預設首頁是行事曆頁（登入/註冊後的導向目標），只在那裡自動開啟一次
 const shouldAutoStartAppTour = computed(
@@ -115,10 +117,6 @@ const shouldAutoStartAppTour = computed(
     isCalendarPage.value &&
     !hasSeenAppTour.value,
 )
-const showAppTourHelpButton = computed(
-  () => authStore.initialized && Boolean(authStore.user) && showSidebar.value,
-)
-
 watch(
   shouldAutoStartAppTour,
   async (shouldStart) => {

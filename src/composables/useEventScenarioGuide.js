@@ -20,6 +20,19 @@ function getBrowserStorage() {
   }
 }
 
+// 給主導覽用：主導覽帶使用者打開新增活動彈窗、直接框「？」按鈕介紹情境說明時，
+// 順便把情境一標記成已看過，避免這個彈窗自己的情境導覽也同時跳出來疊在一起。
+export function markEventScenarioGuideSeen(userId, scenarioKey, storage = getBrowserStorage()) {
+  const id = userId ? String(userId) : ''
+  if (!id) return
+
+  try {
+    storage?.setItem(getEventScenarioGuideKey(id, scenarioKey), EVENT_SCENARIO_GUIDE_SEEN_VALUE)
+  } catch {
+    // 跟 markSeen 一樣的容錯策略：寫入失敗就算了，不影響主導覽繼續走下去。
+  }
+}
+
 function resolveGuideElement(selector) {
   return document.querySelector(`[data-tour="${selector}"]`)
 }

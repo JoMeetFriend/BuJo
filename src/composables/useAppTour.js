@@ -58,6 +58,18 @@ const TOUR_STEPS = [
       description:
         '點這裡新增活動。<br>點行事曆格子新增活動會自動帶入日期。<br>活動頁也有一樣的入口可以新增活動。',
     },
+    // 下一步的錨點在新增活動彈窗裡：先點開彈窗，並標記彈窗自己的情境一導覽已看過，
+    // 避免彈窗一開，那邊的導覽也自動跳出來跟這裡疊在一起
+    clickSelfOnNext: true,
+    suppressEventScenarioGuideOnClick: true,
+  },
+  {
+    selector: 'event-scenario-guide-button',
+    popover: {
+      title: '活動情境說明',
+      description: '建立活動有四種情境：選擇日期 × 時段後，點「？」可以查看相關導覽。',
+    },
+    waitForElement: 1500,
   },
   {
     selector: 'nav-friends',
@@ -92,35 +104,55 @@ const TOUR_STEPS = [
   },
 ]
 
-export function buildDriveSteps(navigate) {
-  return TOUR_STEPS.map(({ selector, popover, navigateOnNextTo, waitForElement }) => {
-    const stepPopover = { ...popover }
+export function buildDriveSteps(navigate, onSuppressEventScenarioGuide) {
+  return TOUR_STEPS.map(
+    ({
+      selector,
+      popover,
+      navigateOnNextTo,
+      waitForElement,
+      clickSelfOnNext,
+      suppressEventScenarioGuideOnClick,
+    }) => {
+      const stepPopover = { ...popover }
 
-    // 下一步的目標在別的頁面上：先切頁、等畫面渲染完，再讓 driver.js 前進到下一步。
-    if (navigateOnNextTo) {
-      stepPopover.onNextClick = async (_element, _step, opts) => {
-        if (navigate) {
-          await navigate(navigateOnNextTo)
-          await nextTick()
+      // 下一步的目標在別的頁面上：先切頁、等畫面渲染完，再讓 driver.js 前進到下一步。
+      if (navigateOnNextTo) {
+        stepPopover.onNextClick = async (_element, _step, opts) => {
+          if (navigate) {
+            await navigate(navigateOnNextTo)
+            await nextTick()
+          }
+          opts.driver.moveNext()
         }
-        opts.driver.moveNext()
       }
-    }
 
-    return {
-      element: () => resolveTourElement(selector),
-      popover: stepPopover,
-      skipMissingElement: true,
-      ...(waitForElement ? { waitForElement } : {}),
-    }
-  })
+      // 下一步的目標藏在這步自己點開的東西裡（例如彈窗）：直接點擊當前這個高亮元素，
+      // 等畫面渲染完再前進
+      if (clickSelfOnNext) {
+        stepPopover.onNextClick = async (element, _step, opts) => {
+          if (suppressEventScenarioGuideOnClick) onSuppressEventScenarioGuide?.()
+          element?.click()
+          await nextTick()
+          opts.driver.moveNext()
+        }
+      }
+
+      return {
+        element: () => resolveTourElement(selector),
+        popover: stepPopover,
+        skipMissingElement: true,
+        ...(waitForElement ? { waitForElement } : {}),
+      }
+    },
+  )
 }
 
-function createAppTourDriver(navigate, onDestroyed) {
+function createAppTourDriver(navigate, onSuppressEventScenarioGuide, onDestroyed) {
   let tourInstance = null
 
   tourInstance = driver({
-    steps: buildDriveSteps(navigate),
+    steps: buildDriveSteps(navigate, onSuppressEventScenarioGuide),
     showProgress: true,
     allowClose: true,
     overlayClickBehavior: 'close',
@@ -152,6 +184,7 @@ function createAppTourDriver(navigate, onDestroyed) {
 export function useAppTour(userId, options = {}) {
   const storage = Object.hasOwn(options, 'storage') ? options.storage : getBrowserStorage()
   const navigate = options.navigate
+  const onSuppressEventScenarioGuide = options.onSuppressEventScenarioGuide
   const revision = ref(0)
 
   const normalizedUserId = computed(() => {
@@ -190,7 +223,7 @@ export function useAppTour(userId, options = {}) {
   }
 
   function startTour() {
-    createAppTourDriver(navigate, markSeen).drive()
+    createAppTourDriver(navigate, onSuppressEventScenarioGuide, markSeen).drive()
   }
 
   return {

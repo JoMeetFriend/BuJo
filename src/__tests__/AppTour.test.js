@@ -43,6 +43,11 @@ const routes = [
   },
 ]
 
+const AppSidebarStub = {
+  emits: ['toggle-filter', 'open-tour'],
+  template: '<button data-testid="app-sidebar-open-tour" @click="$emit(\'open-tour\')" />',
+}
+
 async function mountApp({ path = '/calendar', currentUser = user, initialized = true } = {}) {
   const pinia = createPinia()
   setActivePinia(pinia)
@@ -58,7 +63,7 @@ async function mountApp({ path = '/calendar', currentUser = user, initialized = 
     global: {
       plugins: [pinia, router],
       stubs: {
-        AppSidebar: true,
+        AppSidebar: AppSidebarStub,
         SidebarToggleButton: true,
         LineNotificationOnboardingModal: true,
       },
@@ -109,28 +114,14 @@ describe('App 新手導覽觸發與問號球', () => {
     expect(startTourMock).not.toHaveBeenCalled()
   })
 
-  test('已登入的主要頁面會顯示浮動問號球，點擊可重新開啟導覽', async () => {
+  test('側邊欄觸發 open-tour 時會呼叫 startTour（問號按鈕實際渲染在 AppSidebar 裡）', async () => {
     hasSeenTourRef.value = true
     const { wrapper } = await mountApp({ path: '/friends-page' })
     await vi.advanceTimersByTimeAsync(1600)
     await wrapper.vm.$nextTick()
 
-    const helpButton = wrapper.find('[aria-label="重新開啟新手導覽"]')
-    expect(helpButton.exists()).toBe(true)
+    await wrapper.get('[data-testid="app-sidebar-open-tour"]').trigger('click')
 
-    await helpButton.trigger('click')
     expect(startTourMock).toHaveBeenCalledTimes(1)
-  })
-
-  test.each([
-    { label: 'landing page', path: '/', currentUser: user },
-    { label: 'login page', path: '/login', currentUser: user },
-    { label: '未登入', path: '/friends-page', currentUser: null },
-  ])('$label 不顯示浮動問號球', async ({ path, currentUser }) => {
-    const { wrapper } = await mountApp({ path, currentUser })
-    await vi.advanceTimersByTimeAsync(1600)
-    await wrapper.vm.$nextTick()
-
-    expect(wrapper.find('[aria-label="重新開啟新手導覽"]').exists()).toBe(false)
   })
 })
