@@ -45,21 +45,25 @@
       @link-start="rememberOnboardingReturnPath"
       @complete="markLineNotificationOnboardingSeen"
     />
+
+    <AppTourHelpButton v-if="showAppTourHelpButton" @click="startAppTour" />
   </div>
 </template>
 
 <script setup>
 import { RouterView, useRoute } from 'vue-router'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import AppSidebar from './components/AppSidebar.vue'
 import SidebarToggleButton from './components/ui/SidebarToggleButton.vue'
 import LineNotificationOnboardingModal from './components/LineNotificationOnboardingModal.vue'
+import AppTourHelpButton from './components/AppTourHelpButton.vue'
 import LoadingPage from './components/ui/LoadingPage.vue'
 import { useAuthStore } from './stores/auth'
 import {
   rememberLineNotificationOnboardingReturnPath,
   useLineNotificationOnboarding,
 } from './composables/useLineNotificationOnboarding'
+import { useAppTour } from './composables/useAppTour'
 
 // 載入畫面至少顯示這麼久，避免 authStore 初始化太快時畫面閃一下就消失
 const MIN_LOADING_DISPLAY_MS = 1600
@@ -95,6 +99,31 @@ const showLineNotificationOnboarding = computed(
     Boolean(onboardingUserId.value) &&
     Boolean(route.meta.requiresAuth) &&
     hasUnseenLineNotificationOnboarding.value,
+)
+
+const { hasSeenTour: hasSeenAppTour, startTour: startAppTour } = useAppTour(onboardingUserId)
+// 新手導覽的預設首頁是行事曆頁（登入/註冊後的導向目標），只在那裡自動開啟一次
+const shouldAutoStartAppTour = computed(
+  () =>
+    authStore.initialized &&
+    minDisplayElapsed.value &&
+    Boolean(authStore.user) &&
+    Boolean(onboardingUserId.value) &&
+    isCalendarPage.value &&
+    !hasSeenAppTour.value,
+)
+const showAppTourHelpButton = computed(
+  () => authStore.initialized && Boolean(authStore.user) && showSidebar.value,
+)
+
+watch(
+  shouldAutoStartAppTour,
+  async (shouldStart) => {
+    if (!shouldStart) return
+    await nextTick()
+    startAppTour()
+  },
+  { immediate: true },
 )
 
 function toggleFilter(key) {
