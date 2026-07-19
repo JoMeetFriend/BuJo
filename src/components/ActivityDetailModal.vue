@@ -1709,29 +1709,45 @@ function formatTime(date) {
 }
 
 .activity-detail-badge {
-  border: 1px solid var(--bujo-ink);
-  padding: 3px 8px;
-  background: var(--bujo-white);
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(var(--bujo-white-rgb), 0.78);
+  color: rgba(var(--bujo-ink-rgb), 0.72);
   font-size: 12px;
   font-weight: 700;
+  line-height: 1;
 }
 
-.activity-detail-badge--recruiting {
-  background: #fff;
+.activity-focus-card--mine-recruiting .activity-detail-badge--recruiting {
+  background: #f6edf2;
+  color: #7f6079;
+}
+
+.activity-focus-card--recruiting .activity-detail-badge--recruiting {
+  background: #edf6ee;
+  color: #58755e;
 }
 
 .activity-detail-badge--confirmed {
-  background: var(--bujo-ink);
-  color: var(--bujo-white);
+  background: #f5f1dc;
+  color: #776f4b;
+}
+
+.activity-focus-card--joined .activity-detail-badge,
+.activity-focus-card--mine-confirmed .activity-detail-badge {
+  background: #edf4f3;
+  color: #587575;
 }
 
 .activity-detail-badge--light {
-  background: rgba(251, 251, 248, 0.72);
+  background: rgba(var(--bujo-white-rgb), 0.78);
+  color: rgba(var(--bujo-ink-rgb), 0.66);
 }
 
 .activity-detail-badge--cancelled {
-  background: #e5e7eb;
-  color: #6b7280;
+  background: #f0f1ee;
+  color: #676f64;
 }
 
 .activity-detail-join {
