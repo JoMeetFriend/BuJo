@@ -32,14 +32,8 @@
           </div>
           <span>{{ activity.creator.display_name }}</span>
         </div>
-        <div class="activity-detail-title-row">
-          <h2>{{ activity?.title || '活動詳情' }}</h2>
-          <span v-if="activity" class="activity-detail-date" :aria-label="panelDate">
-            <span>{{ panelDateParts.start }}</span>
-            <span v-if="panelDateParts.end" class="activity-detail-date-separator">~</span>
-            <span v-if="panelDateParts.end">{{ panelDateParts.end }}</span>
-          </span>
-        </div>
+        <h2>{{ activity?.title || '活動詳情' }}</h2>
+        <div v-if="activity" class="activity-detail-date">{{ panelDate }}</div>
       </div>
     </header>
 
@@ -200,7 +194,7 @@
         >
           <template v-if="isScenarioCMode">
             <template v-if="activity.has_joined">
-              <div class="activity-detail-label">你已選擇的日期</div>
+              <div class="activity-detail-label">你報名的日期</div>
               <div v-if="selectedScenarioCSlots.length" class="activity-detail-date-list">
                 <span
                   v-for="slot in selectedScenarioCSlots"
@@ -236,8 +230,6 @@
               </div>
               <div v-else class="activity-detail-muted">尚未選擇日期</div>
             </template>
-            <!-- 未報名時，標籤跟說明文字作用重疊（都在講「要選日期」），合併成一行淺色提示就好 -->
-            <div v-else class="activity-detail-muted">點擊「報名參加」選取你方便的日期</div>
           </template>
           <template v-else-if="isScenarioDMode">
             <template v-if="activity.has_joined">
@@ -277,11 +269,10 @@
               </div>
               <div v-else class="activity-detail-muted">尚未選擇候選時段</div>
             </template>
-            <div v-else class="activity-detail-muted">點擊「報名參加」選取你方便的時段</div>
           </template>
           <template v-else-if="isRangeMode">
             <template v-if="activity.has_joined">
-              <div class="activity-detail-label">你已回報的時間</div>
+              <div class="activity-detail-label">你報名的時段</div>
               <div v-if="myRangesEntries.length" class="activity-detail-date-list">
                 <span
                   v-for="entry in myRangesEntries"
@@ -317,7 +308,6 @@
               </div>
               <div v-else class="activity-detail-muted">尚未回報時間</div>
             </template>
-            <div v-else class="activity-detail-muted">點擊「報名參加」選取你方便的時間</div>
           </template>
           <template v-else>
             <div class="activity-detail-label">
@@ -347,7 +337,7 @@
           "
           class="activity-detail-options"
         >
-          <div class="activity-detail-label">你已選擇的日期</div>
+          <div class="activity-detail-label">你報名的日期</div>
           <div v-if="selectedScenarioCSlots.length" class="activity-detail-date-list">
             <span
               v-for="slot in selectedScenarioCSlots"
@@ -1044,14 +1034,9 @@ const panelDate = computed(() => {
     const starts = a.candidate_slots.map((slot) => new Date(slot.slot_start).getTime())
     const minText = formatShortDate(new Date(Math.min(...starts)))
     const maxText = formatShortDate(new Date(Math.max(...starts)))
-    return minText === maxText ? minText : `${minText} ~ ${maxText}`
+    return minText === maxText ? minText : `${minText}~${maxText}`
   }
   return ''
-})
-
-const panelDateParts = computed(() => {
-  const [start, end] = panelDate.value.split(' ~ ')
-  return { start: start || '', end: end || '' }
 })
 
 // 卡片改成「日期」「時間」兩個獨立標籤欄位，各自依情境顯示實際值或「投票/回報中」狀態，
@@ -1513,8 +1498,7 @@ function formatTime(date) {
   min-width: 0;
 }
 
-.activity-detail-top-row,
-.activity-detail-title-row {
+.activity-detail-top-row {
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -1548,10 +1532,6 @@ function formatTime(date) {
   font-weight: 700;
 }
 
-.activity-detail-title-row {
-  align-items: flex-start;
-}
-
 .activity-detail-header-right {
   display: flex;
   flex-direction: column;
@@ -1560,21 +1540,13 @@ function formatTime(date) {
 }
 
 .activity-detail-date {
-  display: inline-flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  align-items: center;
+  margin-top: 6px;
   color: rgba(var(--bujo-ink-rgb), 0.72);
   font-family: 'Space Mono', monospace;
   font-size: 25px;
-  line-height: 0.92;
+  line-height: 1;
   font-weight: 700;
-  text-align: center;
   white-space: nowrap;
-}
-
-.activity-detail-date-separator {
-  line-height: 0.85;
 }
 
 .activity-detail-close {
