@@ -4,6 +4,7 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 import { describe, expect, test, vi } from 'vitest'
 import axios from 'axios'
 import AppSidebar from '@/components/AppSidebar.vue'
+import appSidebarSource from '@/components/AppSidebar.vue?raw'
 import { useAuthStore } from '@/stores/auth'
 
 vi.mock('axios', () => {
@@ -53,6 +54,10 @@ async function mountAppSidebar(user = {}) {
 }
 
 describe('AppSidebar', () => {
+  test('手機月曆篩選按鈕往導覽列內收，避免貼住活動卡片', () => {
+    expect(appSidebarSource).toContain('bottom: calc(100% - 13px);')
+  })
+
   test('側欄下方個人入口會顯示正規化後的使用者頭像', async () => {
     const wrapper = await mountAppSidebar({
       avatar_url: '/uploads/avatars/avatar-user.png',

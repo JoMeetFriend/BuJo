@@ -480,7 +480,7 @@ async function handleLogout() {
 
 .bujo-mobile-filter-toggle {
   position: absolute;
-  bottom: calc(100% - 1px);
+  bottom: calc(100% - 13px);
   left: 50%;
   display: grid;
   width: 30px;

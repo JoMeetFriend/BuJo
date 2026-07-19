@@ -1,5 +1,5 @@
 <template>
-  <div class="relative flex h-screen bg-[var(--bujo-page)] overflow-hidden text-[var(--bujo-ink)]">
+  <div class="app-shell relative flex bg-[var(--bujo-page)] overflow-hidden text-[var(--bujo-ink)]">
     <LoadingPage v-if="!authStore.initialized || !minDisplayElapsed" />
 
     <AppSidebar
@@ -137,6 +137,11 @@ function rememberOnboardingReturnPath() {
 </script>
 
 <style scoped>
+.app-shell {
+  height: 100vh;
+  height: 100dvh;
+}
+
 .app-sidebar-toggle {
   position: absolute;
   top: 22px;

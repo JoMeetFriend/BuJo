@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[var(--bujo-page)] pb-24 text-[var(--bujo-ink)]">
+  <div class="min-h-screen bg-[var(--bujo-page)] text-[var(--bujo-ink)]">
     <header class="alerts-header sticky top-0 z-10 bg-[var(--bujo-page)] px-5 pt-8 pb-4 md:px-14">
       <p class="alerts-eyebrow">SOCIAL INBOX</p>
       <div class="alerts-title-line">
@@ -161,6 +161,8 @@
           </div>
         </li>
       </ul>
+
+      <div class="alerts-bottom-spacer md:hidden" aria-hidden="true"></div>
     </main>
   </div>
 </template>
@@ -564,6 +566,10 @@ function setActionBusy(notificationId, isBusy) {
 </script>
 
 <style scoped>
+.alerts-bottom-spacer {
+  height: calc(5rem + env(safe-area-inset-bottom, 0px));
+}
+
 .alerts-eyebrow {
   margin: 0 0 2px;
   color: var(--bujo-muted-strong);
