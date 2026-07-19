@@ -201,7 +201,7 @@ const handleRegister = async () => {
     return
   }
   if (!form.confirmPassword) {
-    _errorMsg.value = { key: 'register.errorPasswordEmpty' }
+    _errorMsg.value = { key: 'register.errorConfirmPasswordEmpty' }
     return
   }
   if (form.password !== form.confirmPassword) {

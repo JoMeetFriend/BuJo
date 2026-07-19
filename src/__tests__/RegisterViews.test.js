@@ -94,7 +94,7 @@ describe('RegisterViews - 前端驗證', () => {
 
     await wrapper.find('form').trigger('submit.prevent')
 
-    expect(wrapper.text()).toContain('密碼不可為空白')
+    expect(wrapper.text()).toContain('確認密碼不可為空白')
     expect(fetch).not.toHaveBeenCalled()
   })
 

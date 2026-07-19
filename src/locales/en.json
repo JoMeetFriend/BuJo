@@ -102,6 +102,7 @@
     "errorNicknameEmpty": "Nickname cannot be empty.",
     "errorEmailEmpty": "Email cannot be empty.",
     "errorPasswordEmpty": "Password cannot be empty.",
+    "errorConfirmPasswordEmpty": "Confirm password cannot be empty.",
     "errorPasswordMismatch": "Passwords do not match",
     "errorPasswordTooShort": "Password must be at least 8 characters",
     "errorEmailInvalid": "Invalid email format.",

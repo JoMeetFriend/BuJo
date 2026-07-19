@@ -102,6 +102,7 @@
     "errorNicknameEmpty": "暱稱不可為空白。",
     "errorEmailEmpty": "電子郵件不可為空白。",
     "errorPasswordEmpty": "密碼不可為空白。",
+    "errorConfirmPasswordEmpty": "確認密碼不可為空白。",
     "errorPasswordMismatch": "兩次輸入的密碼不一致",
     "errorPasswordTooShort": "密碼至少需要 8 個字元",
     "errorEmailInvalid": "電子郵件格式不正確。",
