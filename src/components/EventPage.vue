@@ -123,7 +123,7 @@
               >
                 搜尋中...
               </p>
-              <p v-else-if="addressError" class="px-3 py-2 text-sm text-[#dc2626]">
+              <p v-else-if="addressError" class="px-3 py-2 text-sm text-[var(--bujo-danger)]">
                 {{ addressError }}
               </p>
               <p
@@ -326,7 +326,7 @@
                     :class="[
                       pickerButtonClass,
                       'w-full',
-                      row.timeField === 'startTime' && timeError ? 'border-[#dc2626]' : '',
+                      row.timeField === 'startTime' && timeError ? 'border-[var(--bujo-danger)]' : '',
                     ]"
                     type="button"
                     :data-time-field="row.timeField"
@@ -338,7 +338,7 @@
                   </button>
                   <p
                     v-if="row.timeField === 'startTime' && timeError"
-                    class="mt-1 flex items-center gap-1 text-xs text-[#dc2626]"
+                    class="mt-1 flex items-center gap-1 text-xs text-[var(--bujo-danger)]"
                   >
                     <span>⚠</span> {{ timeError }}
                   </p>
@@ -540,7 +540,7 @@
                 </span>
               </div>
 
-              <p v-if="timeError" class="flex items-center gap-1 text-xs text-[#dc2626]">
+              <p v-if="timeError" class="flex items-center gap-1 text-xs text-[var(--bujo-danger)]">
                 <span>⚠</span> {{ timeError }}
               </p>
             </div>
@@ -799,7 +799,7 @@
                 <span :class="fieldLabelClass">{{ shortDate(editingSlot.date) }} 的候選時段</span>
                 <button
                   type="button"
-                  class="text-xs text-[var(--bujo-muted-strong)] hover:text-[#dc2626]"
+                  class="text-xs text-[var(--bujo-muted-strong)] hover:text-[var(--bujo-danger)]"
                   @click.stop="removeCandidateSlot(editingSlot.date)"
                 >
                   移除此候選日期
@@ -938,7 +938,7 @@
         </label>
         <div
           v-if="submitError"
-          class="col-span-full flex items-start gap-2 border border-[#dc2626] bg-[var(--bujo-surface)] px-3 py-2 text-xs text-[#dc2626]"
+          class="col-span-full flex items-start gap-2 border border-[var(--bujo-danger)] bg-[var(--bujo-surface)] px-3 py-2 text-xs text-[var(--bujo-danger)]"
         >
           <ExclamationTriangleIcon class="h-3.5 w-3.5 shrink-0 mt-0.5" aria-hidden="true" />
           {{ submitError }}
