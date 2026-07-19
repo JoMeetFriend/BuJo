@@ -33,20 +33,45 @@ const GUIDE_STEPS = [
         '預設是「都確定」：日期和時間都直接約好，適合已經講好時間的揪團——大家打開活動就能直接報名，不用等投票。',
     },
   },
+  {
+    selector: 'event-deadline-block',
+    popover: {
+      title: '報名截止與成團確認',
+      description: '報名有名額和截止時間限制，成團最後仍要由你手動確認才會上行事曆。',
+    },
+  },
+  {
+    selector: 'event-deadline-offset-button',
+    popover: {
+      title: '報名截止時間',
+      description: '可以手動修改報名開放時間。',
+    },
+    // 這步顯示前先展開下面的截止時間選單，讓使用者直接看到可以選哪些選項
+    openDeadlineEditorOnHighlight: true,
+  },
 ]
 
-function buildGuideSteps() {
-  return GUIDE_STEPS.map(({ selector, popover }) => ({
-    element: () => resolveGuideElement(selector),
-    popover,
-    skipMissingElement: true,
-  }))
+export function buildGuideSteps(openDeadlineEditor) {
+  return GUIDE_STEPS.map(({ selector, popover, openDeadlineEditorOnHighlight }) => {
+    const step = {
+      element: () => resolveGuideElement(selector),
+      popover,
+      skipMissingElement: true,
+    }
+
+    if (openDeadlineEditorOnHighlight) {
+      step.onHighlightStarted = () => openDeadlineEditor?.()
+    }
+
+    return step
+  })
 }
 
-function createGuideDriver(onDestroyed) {
+function createGuideDriver(openDeadlineEditor, onDestroyed) {
   return driver({
-    steps: buildGuideSteps(),
-    showProgress: false,
+    steps: buildGuideSteps(openDeadlineEditor),
+    showProgress: true,
+    progressText: '{{current}} / {{total}}',
     allowClose: true,
     overlayClickBehavior: 'close',
     overlayColor: 'rgb(var(--bujo-ink-rgb))',
@@ -54,6 +79,8 @@ function createGuideDriver(onDestroyed) {
     stagePadding: 6,
     stageRadius: 3,
     popoverClass: 'bujo-tour-popover',
+    prevBtnText: '上一步',
+    nextBtnText: '下一步',
     doneBtnText: '知道了',
     onDestroyed: () => {
       onDestroyed?.()
@@ -63,6 +90,7 @@ function createGuideDriver(onDestroyed) {
 
 export function useEventScenarioGuide(userId, options = {}) {
   const storage = Object.hasOwn(options, 'storage') ? options.storage : getBrowserStorage()
+  const openDeadlineEditor = options.openDeadlineEditor
   const revision = ref(0)
 
   const normalizedUserId = computed(() => {
@@ -101,7 +129,7 @@ export function useEventScenarioGuide(userId, options = {}) {
   }
 
   function startGuide() {
-    createGuideDriver(markSeen).drive()
+    createGuideDriver(openDeadlineEditor, markSeen).drive()
   }
 
   return {

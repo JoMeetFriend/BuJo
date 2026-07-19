@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import {
   EVENT_SCENARIO_GUIDE_SEEN_VALUE,
+  buildGuideSteps,
   getEventScenarioGuideKey,
   useEventScenarioGuide,
 } from '@/composables/useEventScenarioGuide'
@@ -84,9 +85,13 @@ describe('useEventScenarioGuide', () => {
 
   describe('startGuide', () => {
     test('有對應錨點時可以正常啟動說明', () => {
-      const anchor = document.createElement('div')
-      anchor.setAttribute('data-tour', 'event-scenario-block')
-      document.body.appendChild(anchor)
+      ;['event-scenario-block', 'event-deadline-block', 'event-deadline-offset-button'].forEach(
+        (selector) => {
+          const anchor = document.createElement('button')
+          anchor.setAttribute('data-tour', selector)
+          document.body.appendChild(anchor)
+        },
+      )
 
       const guide = useEventScenarioGuide(ref('user-123'), { storage: createStorage() })
 
@@ -98,6 +103,35 @@ describe('useEventScenarioGuide', () => {
       const guide = useEventScenarioGuide(ref('user-123'), { storage: createStorage() })
 
       expect(() => guide.startGuide()).not.toThrow()
+    })
+  })
+
+  describe('buildGuideSteps', () => {
+    test('報名截止時間步驟會在顯示前展開截止時間選單', () => {
+      const openDeadlineEditor = vi.fn()
+      const steps = buildGuideSteps(openDeadlineEditor)
+      const offsetStep = steps.find((step) => step.popover.title === '報名截止時間')
+
+      expect(offsetStep.onHighlightStarted).toBeTypeOf('function')
+      offsetStep.onHighlightStarted()
+
+      expect(openDeadlineEditor).toHaveBeenCalledTimes(1)
+    })
+
+    test('沒有提供 openDeadlineEditor 時不會拋錯', () => {
+      const steps = buildGuideSteps()
+      const offsetStep = steps.find((step) => step.popover.title === '報名截止時間')
+
+      expect(() => offsetStep.onHighlightStarted()).not.toThrow()
+    })
+
+    test('其餘步驟不會意外帶有展開選單的邏輯', () => {
+      const steps = buildGuideSteps(vi.fn())
+      const otherSteps = steps.filter((step) => step.popover.title !== '報名截止時間')
+
+      otherSteps.forEach((step) => {
+        expect(step.onHighlightStarted).toBeUndefined()
+      })
     })
   })
 })

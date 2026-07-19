@@ -903,6 +903,7 @@
 
           <!-- 截止時間常駐顯示：兩行永遠都在，各自獨立判斷是否套用警示樣式，不再跟緊急狀態互斥 -->
           <div
+            data-tour="event-deadline-block"
             class="flex flex-col gap-1.5 border-t border-dashed border-[var(--bujo-line-soft)] pt-2"
           >
             <p
@@ -915,7 +916,12 @@
               <template v-else
                 >報名開放到
                 <strong class="text-[var(--bujo-muted-strong)]">{{ reportCutoffTimeLabel }}</strong>
-                （<button type="button" class="-mx-1 -my-1 px-1 py-1" @click="toggleDeadlineEditor">
+                （<button
+                  type="button"
+                  data-tour="event-deadline-offset-button"
+                  class="-mx-1 -my-1 px-1 py-1"
+                  @click="toggleDeadlineEditor"
+                >
                   <span
                     class="text-[var(--bujo-accent)] underline decoration-dotted underline-offset-2"
                     >{{ reportCutoffOffsetParts.number }}</span
@@ -1035,7 +1041,11 @@ const modalOpen = computed(() => (isRouteComponent.value ? true : props.isOpen))
 const authStore = useAuthStore()
 const scenarioGuideUserId = computed(() => authStore.user?.id ?? authStore.user?.uid ?? '')
 const { hasSeenGuide: hasSeenScenarioGuide, startGuide: startScenarioGuide } =
-  useEventScenarioGuide(scenarioGuideUserId)
+  useEventScenarioGuide(scenarioGuideUserId, {
+    openDeadlineEditor: () => {
+      showDeadlineEditor.value = true
+    },
+  })
 
 watch(modalOpen, async (isOpen) => {
   if (!isOpen || hasSeenScenarioGuide.value) return
