@@ -24,11 +24,13 @@
               class="mr-2 h-7 w-7 shrink-0 overflow-hidden rounded-full bg-[var(--bujo-surface-muted)] md:mr-3 md:h-9 md:w-9"
             >
               <img
-                v-if="event.creator?.avatar_url"
+                v-if="event.creator?.avatar_url && !event._avatarError"
                 :src="toAvatarSrc(event.creator.avatar_url)"
+                @error="event._avatarError = true"
                 alt=""
                 class="h-full w-full object-cover"
               />
+
               <svg v-else class="h-full w-full p-1.5 md:p-2" viewBox="0 0 36 36" aria-hidden="true">
                 <path
                   d="M4 28h28v4H4zM4 24h4v4H4zM8 20h4v4H8zM12 16h4v4h-4zM16 12h4v4h-4zM20 16h4v4h-4zM24 20h4v4h-4zM28 24h4v4h-4zM12 24h4v4h-4z"
