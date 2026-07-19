@@ -514,7 +514,7 @@ onMounted(() => {
 }
 
 .activity-state-message--error {
-  color: #dc2626;
+  color: var(--bujo-danger);
 }
 
 @media (max-width: 900px) {

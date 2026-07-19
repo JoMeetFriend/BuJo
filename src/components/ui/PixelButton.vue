@@ -92,7 +92,7 @@ defineProps({
 
 .bujo-btn--danger:hover:not(:disabled) {
   background: transparent;
-  border-color: #dc2626;
-  color: #dc2626;
+  border-color: var(--bujo-danger);
+  color: var(--bujo-danger);
 }
 </style>

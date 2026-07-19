@@ -603,7 +603,7 @@ function setActionBusy(notificationId, isBusy) {
 }
 
 .alerts-status-text--error {
-  color: #dc2626;
+  color: var(--bujo-danger);
 }
 
 .alerts-empty {

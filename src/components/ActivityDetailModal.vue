@@ -33,7 +33,7 @@
               :src="toAvatarSrc(activity.creator.avatar_url)"
               alt=""
             />
-            <span v-else>⭐</span>
+            <UserIcon v-else class="h-4 w-4" aria-hidden="true" />
           </div>
           <span>{{ activity.creator.display_name }} 發起</span>
         </div>
@@ -110,7 +110,7 @@
                 target="_blank"
                 rel="noopener noreferrer"
                 class="underline decoration-dotted underline-offset-2 hover:decoration-solid"
-                >📍 {{ activity.location }}</a
+                ><MapPinIcon class="inline h-4 w-4 shrink-0" aria-hidden="true" /> {{ activity.location }}</a
               >
             </div>
           </div>
@@ -492,7 +492,7 @@
 
     <footer v-if="activity" class="activity-detail-footer">
       <div v-if="successMessage" class="activity-detail-success">
-        <span>{{ successMessage }}</span>
+        <DocumentCheckIcon class="h-4 w-4 shrink-0" aria-hidden="true" /><span>{{ successMessage }}</span>
       </div>
 
       <template v-else>
@@ -640,6 +640,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
+import { UserIcon, MapPinIcon, DocumentCheckIcon } from '@heroicons/vue/24/outline'
 import PixelButton from './ui/PixelButton.vue'
 import AvailabilityPickerModal from './AvailabilityPickerModal.vue'
 import { toAvatarSrc } from '@/utils/avatar'
@@ -1268,12 +1269,12 @@ async function handleJoin() {
       actionError.value = '請選擇至少一個候選時段'
       return
     }
-    await callAction('join', 'POST', '✅ 報名成功！', {
+    await callAction('join', 'POST', '報名成功！', {
       candidateSlotIds: selectedJoinSlotIds.value,
     })
     return
   }
-  await callAction('join', 'POST', '✅ 報名成功！')
+  await callAction('join', 'POST', '報名成功！')
 }
 
 function openScenarioCPicker() {
@@ -1298,7 +1299,7 @@ async function handleAvailabilityConfirm(entries) {
       end: `${entry.date}T${r.to}:00`,
     }))
   })
-  await callAction('join', 'POST', '✅ 報名成功！', { ranges })
+  await callAction('join', 'POST', '報名成功！', { ranges })
 }
 
 async function handlePickerConfirm(entries) {
@@ -1321,7 +1322,7 @@ async function handleScenarioCDateConfirm(entries) {
     actionError.value = '請選擇至少一個候選日期'
     return
   }
-  await callAction('join', 'POST', '✅ 報名成功！', { candidateSlotIds })
+  await callAction('join', 'POST', '報名成功！', { candidateSlotIds })
 }
 
 // 情境四：把 picker 回傳的每筆 range 對照 scenarioDDateWindows 反查回它落在哪個候選時段窗口，
@@ -1348,11 +1349,11 @@ async function handleScenarioDConfirm(entries) {
     actionError.value = '請選擇至少一個候選時段'
     return
   }
-  await callAction('join', 'POST', '✅ 報名成功！', { candidateSlotIds, candidateSlotRanges })
+  await callAction('join', 'POST', '報名成功！', { candidateSlotIds, candidateSlotRanges })
 }
 
 async function handleCancelJoin() {
-  await callAction('join', 'DELETE', '✅ 已取消報名')
+  await callAction('join', 'DELETE', '已取消報名')
 }
 
 async function handleConfirmFormation() {
@@ -1365,7 +1366,7 @@ async function handleConfirmFormation() {
       (c) => c.radioId === selectedDecisionSlotId.value,
     )
     if (!candidate) return
-    await callAction('confirm-formation', 'POST', '✅ 成團成功！', {
+    await callAction('confirm-formation', 'POST', '成團成功！', {
       slotStart: candidate.slot_start,
       slotEnd: candidate.slot_end,
     })
@@ -1381,7 +1382,7 @@ async function handleConfirmFormation() {
     )
     const segment = group?.segments.find((seg) => seg.radioId === selectedDecisionSlotId.value)
     if (!group || !segment) return
-    await callAction('confirm-formation', 'POST', '✅ 成團成功！', {
+    await callAction('confirm-formation', 'POST', '成團成功！', {
       candidateSlotId: group.candidateSlotId,
       slotStart: segment.slot_start,
       slotEnd: segment.slot_end,
@@ -1393,16 +1394,16 @@ async function handleConfirmFormation() {
       actionError.value = '請選擇要確認的候選時段'
       return
     }
-    await callAction('confirm-formation', 'POST', '✅ 成團成功！', {
+    await callAction('confirm-formation', 'POST', '成團成功！', {
       candidateSlotId: selectedDecisionSlotId.value,
     })
     return
   }
-  await callAction('confirm-formation', 'POST', '✅ 成團成功！')
+  await callAction('confirm-formation', 'POST', '成團成功！')
 }
 
 async function handleCancel() {
-  await callAction('cancel', 'POST', '✅ 活動已取消')
+  await callAction('cancel', 'POST', '活動已取消')
 }
 
 function resetPanel() {
@@ -1431,11 +1432,9 @@ function formatDateKey(dateKey) {
 }
 
 function formatTime(date) {
-  const h = date.getHours()
-  const min = date.getMinutes()
-  const period = h < 12 ? '上午' : '下午'
-  const hour = h % 12 || 12
-  return `${period} ${hour}:${String(min).padStart(2, '0')}`
+  const hour = String(date.getHours()).padStart(2, '0')
+  const min = String(date.getMinutes()).padStart(2, '0')
+  return `${hour}:${min}`
 }
 </script>
 
@@ -1572,7 +1571,7 @@ function formatTime(date) {
 
 .activity-detail-state--error,
 .activity-detail-error {
-  color: #dc2626;
+  color: var(--bujo-danger);
 }
 
 .activity-detail-creator,
@@ -1881,7 +1880,7 @@ function formatTime(date) {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 10px;
   background: rgba(var(--bujo-white-rgb), 0.5);
   border: 1px solid rgba(var(--bujo-ink-rgb), 0.36);

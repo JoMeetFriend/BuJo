@@ -199,7 +199,7 @@
                   </div>
                   <button
                     @click="removeRange(i)"
-                    class="w-6 h-6 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-[var(--bujo-muted-strong)] text-[11px] font-bold flex items-center justify-center shrink-0 transition-colors duration-150 hover:border-[#dc2626] hover:text-[#dc2626]"
+                    class="w-6 h-6 border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-[var(--bujo-muted-strong)] text-[11px] font-bold flex items-center justify-center shrink-0 transition-colors duration-150 hover:border-[var(--bujo-danger)] hover:text-[var(--bujo-danger)]"
                   >
                     ✕
                   </button>
@@ -247,11 +247,11 @@
               @click="activeDate = item.date"
               class="text-[10px] md:text-[12px] font-bold px-2 py-0.5 border transition-colors duration-150"
               :class="[
-                problemDates.has(item.date) ? 'ring-1 ring-[#dc2626] ring-inset' : '',
+                problemDates.has(item.date) ? 'ring-1 ring-[var(--bujo-danger)] ring-inset' : '',
                 !dateOnly && activeDate === item.date
                   ? 'bg-[var(--bujo-ink)] text-[var(--bujo-white)] border-[var(--bujo-ink)]'
                   : problemDates.has(item.date)
-                    ? 'bg-[var(--bujo-surface)] text-[#dc2626] border-[#dc2626] hover:border-[#dc2626]'
+                    ? 'bg-[var(--bujo-surface)] text-[var(--bujo-danger)] border-[var(--bujo-danger)] hover:border-[var(--bujo-danger)]'
                     : 'bg-[var(--bujo-surface)] text-[var(--bujo-ink)] border-[var(--bujo-line)] hover:border-[var(--bujo-ink)]',
               ]"
             >
@@ -267,9 +267,9 @@
         </div>
         <div
           v-if="confirmError"
-          class="mt-1 flex items-start gap-2 border border-[#dc2626] bg-[var(--bujo-surface)] px-2 py-1.5 text-[11px] text-[#dc2626]"
+          class="mt-1 flex items-start gap-2 border border-[var(--bujo-danger)] bg-[var(--bujo-surface)] px-2 py-1.5 text-[11px] text-[var(--bujo-danger)]"
         >
-          ⚠️ {{ confirmError }}
+          <ExclamationTriangleIcon class="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {{ confirmError }}
         </div>
       </div>
     </div>
@@ -282,8 +282,10 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import PixelButton from './ui/PixelButton.vue'
 import BaseModal from './ui/BaseModal.vue'
+import { formatHourAsTimeString } from '@/utils/timeFormat'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -600,10 +602,8 @@ function resetAllDay() {
 }
 
 const allHourOptions = Array.from({ length: 24 }, (_, hour) => {
-  const period = hour < 12 ? '上午' : '下午'
-  const display = String(hour % 12 || 12)
-  const value = String(hour).padStart(2, '0') + ':00'
-  return { label: `${period} ${display}:00`, value }
+  const value = formatHourAsTimeString(hour)
+  return { label: value, value }
 })
 
 // 情境無關的窗口邊界查詢：優先看 dateWindows（情境四單一窗口），否則看全域
@@ -732,9 +732,7 @@ function closeTimePicker() {
 function toLabel(value) {
   if (!value) return ''
   const hour = parseInt(value.split(':')[0])
-  const period = hour < 12 ? '上午' : '下午'
-  const display = String(hour % 12 || 12)
-  return `${period} ${display}:00`
+  return formatHourAsTimeString(hour)
 }
 
 function openTimePicker(key, wrapEl) {
