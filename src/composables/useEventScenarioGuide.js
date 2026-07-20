@@ -6,7 +6,7 @@ import { computed, ref, unref } from 'vue'
 export const EVENT_SCENARIO_GUIDE_KEY_PREFIX = 'bujo:event-scenario-guide:v1:'
 export const EVENT_SCENARIO_GUIDE_SEEN_VALUE = 'seen'
 
-// key 帶情境代號：使用者對情境一按過「知道了」，不代表他已經看過情境二的介紹，
+// key 帶情境代號：使用者對情境一按過「完成」，不代表他已經看過情境二的介紹，
 // 兩者要分開各自追蹤「有沒有看過」。
 export function getEventScenarioGuideKey(userId, scenarioKey) {
   return `${EVENT_SCENARIO_GUIDE_KEY_PREFIX}${String(userId)}:${scenarioKey}`
@@ -146,6 +146,8 @@ function createGuideDriver(t, scenarioKey, openDeadlineEditor, onDestroyed) {
   return driver({
     steps: buildGuideSteps(t, scenarioKey, openDeadlineEditor),
     showProgress: true,
+    // driver.js 自己的 {{current}}/{{total}} 樣板語法（雙大括號），不能經過 t() 翻譯——
+    // vue-i18n 會把單大括號 {current}/{total} 當成自己的插值語法吃掉，字串傳到 driver.js 手上時數字已經不見了
     progressText: '{{current}} / {{total}}',
     allowClose: true,
     overlayClickBehavior: 'close',

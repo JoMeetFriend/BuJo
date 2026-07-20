@@ -402,7 +402,6 @@
             </div>
 
             <ReportCutoffReminder
-              v-if="scheduleCeilingDate"
               :is-warning="isReportCutoffWarning"
               :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
@@ -579,7 +578,6 @@
             </div>
 
             <ReportCutoffReminder
-              v-if="scheduleCeilingDate"
               :is-warning="isReportCutoffWarning"
               :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
@@ -753,7 +751,6 @@
             </div>
 
             <ReportCutoffReminder
-              v-if="scheduleCeilingDate"
               :is-warning="isReportCutoffWarning"
               :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
@@ -950,7 +947,6 @@
             </div>
 
             <ReportCutoffReminder
-              v-if="scheduleCeilingDate"
               :is-warning="isReportCutoffWarning"
               :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"

@@ -617,6 +617,8 @@
   "tour": {
     "helpButtonLabel": "Restart onboarding tour",
     "helpButtonTitle": "Onboarding tour",
+    "hintTitle": "Your onboarding tour is here",
+    "hintDesc": "Want to learn how BuJo works? Tap this \"?\" anytime to start the tour.",
     "calendarTitle": "Calendar",
     "calendarDesc": "View all group activities and their schedules at a glance.",
     "todayCellTitle": "Show only formed activities",
@@ -638,8 +640,7 @@
     "prevBtn": "Previous",
     "nextBtn": "Next",
     "doneBtn": "Done",
-    "skipBtn": "Skip tour",
-    "progress": "{current} / {total}"
+    "skipBtn": "Skip tour"
   },
   "guide": {
     "scenarioA0Title": "How to schedule?",
@@ -662,8 +663,7 @@
     "shared1Desc": "You can manually adjust the sign-up open duration.",
     "prevBtn": "Previous",
     "nextBtn": "Next",
-    "doneBtn": "Got it",
-    "progress": "{current} / {total}"
+    "doneBtn": "Done"
   },
   "reportCutoff": {
     "helpButtonLabel": "Restart onboarding tour",
@@ -671,7 +671,10 @@
     "warningPrefix": "Only",
     "warningSuffix": "minutes left until sign-up closes!",
     "openUntilPrefix": "Sign-up open until",
-    "deadlineSuffix": " deadline)"
+    "deadlineSuffix": " deadline)",
+    "pendingPrefix": "Once you pick a date and time, this will show your sign-up deadline. You can also ",
+    "pendingAction": "preview how to adjust it",
+    "pendingSuffix": " now."
   },
   "common": {
     "closeTitle": "Close {title}",
