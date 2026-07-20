@@ -520,6 +520,9 @@ describe('CalendarMain - UPCOMING 活動側欄', () => {
     )
     expect(calendarMainSource).toContain('flex: 0 0 min(58vw, 210px);')
     expect(calendarMainSource).toContain('min-height: 88px;')
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 640px\) \{[\s\S]*?\.calendar-mobile-pocket \.calendar-upcoming-card\s*{[^}]*flex-basis: min\(42vw, 160px\);[^}]*min-height: 72px;[^}]*gap: 5px;[^}]*padding: 9px 10px 8px;/,
+    )
     expect(calendarMainSource).not.toMatch(/\.calendar-upcoming-card:hover\s*\{[^}]*transform:/)
 
     wrapper.unmount()

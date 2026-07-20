@@ -1693,6 +1693,13 @@ function isToday(date) {
     margin-top: 8px;
   }
 
+  .calendar-mobile-pocket .calendar-upcoming-card {
+    flex-basis: min(42vw, 160px);
+    min-height: 72px;
+    gap: 5px;
+    padding: 9px 10px 8px;
+  }
+
   .calendar-stack-sheet--back {
     inset: 10px -5px -7px 8px;
   }

@@ -1,5 +1,11 @@
 <template>
-  <BaseModal :isOpen="modalOpen" :title="t('event.createTitle')" scrollable @close="closeForm">
+  <BaseModal
+    :isOpen="modalOpen"
+    :title="t('event.createTitle')"
+    scrollable
+    reserve-mobile-nav-space
+    @close="closeForm"
+  >
     <template #default>
       <form id="event-form" class="grid gap-4" @submit.prevent="submitForm">
         <label :class="[fieldClass, 'col-span-full']" for="event-name">
