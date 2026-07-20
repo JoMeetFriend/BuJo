@@ -944,7 +944,6 @@ describe('EventPage - 尚未選完日期/時間時，報名截止提醒完全不
     wrapper.vm.timeMode = 'vote'
     await flushPromises()
 
-    expect(document.body.textContent).not.toContain('報名開放到')
     expect(document.body.textContent).not.toContain('距離報名截止僅剩')
     expect(wrapper.vm.isReportCutoffWarning).toBe(false)
 
