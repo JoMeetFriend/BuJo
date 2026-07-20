@@ -195,8 +195,9 @@
           v-if="
             isScenarioCMode &&
             activity.has_joined &&
+            !activity.is_creator &&
             selectedScenarioCSlots.length &&
-            (activity.status === 'voting' || activity.status === 'confirmed')
+            activity.status === 'voting'
           "
           class="activity-detail-options"
         >
@@ -240,7 +241,8 @@
           v-if="
             isScenarioDMode &&
             activity.has_joined &&
-            (activity.status === 'voting' || activity.status === 'confirmed')
+            !activity.is_creator &&
+            activity.status === 'voting'
           "
           class="activity-detail-options"
         >

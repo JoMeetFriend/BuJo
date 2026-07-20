@@ -14,12 +14,8 @@
             type="text"
             required
             :maxlength="ACTIVITY_TITLE_MAX_LENGTH"
-            aria-describedby="event-name-hint"
             :placeholder="t('event.namePlaceholder')"
           />
-          <span id="event-name-hint" class="text-xs font-medium text-[var(--bujo-muted-strong)]">
-            {{ t('event.maxChars', { count: ACTIVITY_TITLE_MAX_LENGTH }) }}
-          </span>
         </label>
 
         <div class="grid grid-cols-2 gap-5 max-sm:gap-2">
@@ -242,14 +238,6 @@
                   </span>
                 </label>
               </div>
-            </div>
-
-            <!-- 情境說明 -->
-            <div
-              v-if="dateMode !== 'fixed' || timeMode !== 'fixed'"
-              class="border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 py-2 text-xs leading-5 text-[var(--bujo-muted-strong)]"
-            >
-              {{ scenarioDescription }}
             </div>
           </div>
 
@@ -597,8 +585,6 @@
             @click="closePicker"
           >
             <div data-tour="event-candidate-dates" class="grid gap-2">
-              <span :class="fieldLabelClass">{{ t('event.candidateDates') }}</span>
-
               <div class="mb-1 flex items-center justify-between gap-2">
                 <button
                   class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
@@ -771,8 +757,6 @@
             @click="closePicker"
           >
             <div data-tour="event-scenario4-dates" class="grid gap-2">
-              <span :class="fieldLabelClass">{{ t('event.candidateDatesAndTimes') }}</span>
-
               <div class="mb-1 flex items-center justify-between gap-2">
                 <button
                   class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
@@ -1269,19 +1253,6 @@ watch(
   },
 )
 
-const scenarioDescription = computed(() => {
-  if (dateMode.value === 'fixed' && timeMode.value === 'fixed') {
-    return t('event.dateFixedTimeFixed')
-  }
-  if (dateMode.value === 'fixed' && timeMode.value === 'vote') {
-    return t('event.dateFixedTimeVote')
-  }
-  if (dateMode.value === 'range' && timeMode.value === 'fixed') {
-    return t('event.dateVoteTimeFixed')
-  }
-  return t('event.dateVoteTimeVote')
-})
-
 // 情境二：選填的時段範圍，限制參與者可回報的時間
 const timeWindow = reactive({ startTime: null, endTime: null, endTimeUserSet: false })
 const openSlotPicker = ref(null) // `${slotId}:startTime` | `${slotId}:endTime` | null
@@ -1320,15 +1291,6 @@ const uniformTime = reactive({
   endTime: null,
   allDay: false,
   endTimeUserSet: false,
-})
-
-// 切到情境三、還沒選任何候選日期時，預設把「明天」加進候選日期，讓表單一開始就有東西可以動，
-// 導覽走到報名截止步驟時也才有實際算得出來的截止時間可以顯示
-watch(currentScenarioKey, (key) => {
-  if (key !== 'c' || candidateDates.value.length > 0) return
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  candidateDates.value = [formatDateValue(tomorrow)]
 })
 
 // 情境三：整日已勾選時，「今天」不可能再是完整一天，跟情境一的 isStartDateToday 規則同理，
@@ -1394,27 +1356,6 @@ const configuredSlots = computed(() =>
       })),
   ),
 )
-
-// 切到情境四、還沒設定任何候選時段時，預設把「明天 09:00–18:00」設成候選組合，讓表單一開始
-// 就有東西可以動，導覽走到報名截止步驟時也才有截止時間可以顯示
-watch(currentScenarioKey, (key) => {
-  if (key !== 'd' || candidateSlots.value.length > 0) return
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  candidateSlots.value = [
-    {
-      date: formatDateValue(tomorrow),
-      timeSlots: [
-        {
-          id: scenario4SlotIdSeq++,
-          startTime: '09:00',
-          endTime: '18:00',
-          endTimeUserSet: true,
-        },
-      ],
-    },
-  ]
-})
 
 const scenario4DateCells = computed(() => {
   const todayValue = formatDateValue(new Date())

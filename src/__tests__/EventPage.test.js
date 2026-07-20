@@ -128,11 +128,10 @@ describe('EventPage - 活動名稱長度限制', () => {
     vi.useRealTimers()
   })
 
-  test('活動名稱欄位顯示 15 字上限提示並設定 maxlength', async () => {
+  test('活動名稱欄位設定 maxlength', async () => {
     const wrapper = await mountEventPage()
 
     expect(queryBody('#event-name').getAttribute('maxlength')).toBe('15')
-    expect(document.body.textContent).toContain('最多 15 字')
 
     wrapper.unmount()
   })
@@ -179,16 +178,7 @@ describe('EventPage - 活動名稱長度限制', () => {
 })
 
 describe('EventPage - 日期與時間模式 switch UI', () => {
-  const modeCopy = [
-    '日期確定了！',
-    '還沒～選幾天讓大家投票',
-    '時間確定了！',
-    '還沒～選時段讓大家投票',
-    '日期、時間都確定了！大家可以直接報名參加',
-    '日期確定了，還沒決定時間，選幾個時段讓大家投票',
-    '日期還沒決定，選幾天讓大家投票，時間維持固定',
-    '日期、時間都還沒，選幾個日期＋時段讓大家投票',
-  ]
+  const modeCopy = ['日期確定了！', '還沒～選幾天讓大家投票', '時間確定了！', '還沒～選時段讓大家投票']
 
   test('預設兩個 switch 都在右側，對應 fixed/fixed，並隱藏整體說明', async () => {
     const wrapper = await mountEventPage()
@@ -213,18 +203,15 @@ describe('EventPage - 日期與時間模式 switch UI', () => {
     expect(modeSwitch('日期確定了嗎？').checked).toBe(false)
     expect(wrapper.vm.dateMode).toBe('range')
     expect(document.body.textContent).toContain('還沒～選幾天讓大家投票')
-    expect(document.body.textContent).toContain('日期還沒決定，選幾天讓大家投票，時間維持固定')
 
     await toggleModeSwitch('時間確定了嗎？')
     expect(modeSwitch('時間確定了嗎？').checked).toBe(false)
     expect(wrapper.vm.timeMode).toBe('vote')
     expect(document.body.textContent).toContain('還沒～選時段讓大家投票')
-    expect(document.body.textContent).toContain('日期、時間都還沒，選幾個日期＋時段讓大家投票')
 
     await toggleModeSwitch('日期確定了嗎？')
     expect(modeSwitch('日期確定了嗎？').checked).toBe(true)
     expect(wrapper.vm.dateMode).toBe('fixed')
-    expect(document.body.textContent).toContain('日期確定了，還沒決定時間，選幾個時段讓大家投票')
 
     await toggleModeSwitch('時間確定了嗎？')
     expect(modeSwitch('時間確定了嗎？').checked).toBe(true)
@@ -234,7 +221,7 @@ describe('EventPage - 日期與時間模式 switch UI', () => {
     wrapper.unmount()
   })
 
-  test('模式提示與整體說明文案不包含句號', async () => {
+  test('模式提示文案不包含句號', async () => {
     const wrapper = await mountEventPage()
 
     for (const copy of modeCopy) {
