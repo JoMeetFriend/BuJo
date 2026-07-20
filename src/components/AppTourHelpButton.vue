@@ -18,7 +18,7 @@ const { t } = useI18n()
 
 defineProps({
   // 桌機版嵌在側邊欄 CALENDAR FILTER 那條線上面，跟著版面走；
-  // 手機版沒有側邊欄可以嵌，改成浮在畫面右上角
+  // 手機版沒有側邊欄可以嵌，改成浮在畫面左上角
   floating: {
     type: Boolean,
     default: false,
@@ -72,7 +72,7 @@ const emit = defineEmits(['click'])
 .bujo-tour-help-btn--floating {
   position: fixed;
   top: 10px;
-  right: 10px;
+  left: 10px;
   z-index: 70;
   width: 26px;
   height: 26px;

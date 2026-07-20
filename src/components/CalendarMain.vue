@@ -1756,10 +1756,10 @@ function isToday(date) {
 
 @media (max-width: 640px) {
   .calendar-toggle-dots-mobile {
-    position: absolute;
-    top: 6px;
-    right: 14px;
-    z-index: 10;
+    position: fixed;
+    top: 5px;
+    right: 10px;
+    z-index: 70;
 
     display: grid;
     width: 36px;
