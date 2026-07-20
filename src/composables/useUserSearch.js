@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import axios from 'axios'
+import i18n from '@/i18n'
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -43,7 +44,7 @@ export function useUserSearch() {
 
       searchResults.value = (response.data || []).map((user) => ({
         id: String(user.id),
-        display_name: String(user.display_name || '未命名'),
+        display_name: String(user.display_name || i18n.global.t('common.unnamed')),
         avatar_url: /^https?:\/\//.test(user.avatar_url) ? user.avatar_url : null,
       }))
 
@@ -54,9 +55,9 @@ export function useUserSearch() {
       }
       console.error('搜尋失敗:', err)
       if (err.response?.status === 401) {
-        error.value = '登入已過期，請重新登入'
+        error.value = i18n.global.t('composable.userSearchExpired')
       } else {
-        error.value = '搜尋發生錯誤'
+        error.value = i18n.global.t('composable.userSearchError')
       }
       searchResults.value = []
       hasSearched.value = true

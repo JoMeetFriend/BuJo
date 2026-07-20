@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './auth'
+import i18n from '@/i18n'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -20,15 +21,15 @@ export const useUserStore = defineStore('userAction', () => {
 
     const trimmedName = newName.trim()
     if (!trimmedName) {
-      showError('顯示名稱不可為空白')
+      showError(i18n.global.t('userStore.nameEmpty'))
       return false
     }
     if (trimmedName.length > 50) {
-      showError('顯示名稱不可超過 50 個字元')
+      showError(i18n.global.t('userStore.nameTooLong'))
       return false
     }
     if (trimmedName === authStore.user?.display_name) {
-      showError('名稱未變更')
+      showError(i18n.global.t('userStore.nameUnchanged'))
       return false
     }
 
@@ -45,19 +46,19 @@ export const useUserStore = defineStore('userAction', () => {
       })
 
       const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.message || '名稱更新失敗')
+      if (!res.ok) throw new Error(data.message || i18n.global.t('userStore.nameUpdateFailed'))
 
       authStore.setUser({
         ...authStore.user,
         ...data.user,
       })
-      successMsg.value = '名稱更新成功'
+      successMsg.value = i18n.global.t('userStore.nameUpdateSuccess')
       return true
     } catch (err) {
       let errorMessage = err.message
 
       if (errorMessage === 'Failed to fetch' || errorMessage === 'Network request failed') {
-        errorMessage = '網路連線異常，請檢查您的網路或稍後再試。'
+        errorMessage = i18n.global.t('common.networkError')
       }
 
       errorMsg.value = errorMessage
@@ -75,7 +76,7 @@ export const useUserStore = defineStore('userAction', () => {
     const trimmedBio = newBio ? newBio.trim() : ''
 
     if (trimmedBio.length > 150) {
-      return { success: false, error: '簡介不可超過 150 個字元' }
+      return { success: false, error: i18n.global.t('userStore.bioTooLong') }
     }
 
     if (trimmedBio === (authStore.user?.bio || '')) {
@@ -91,7 +92,7 @@ export const useUserStore = defineStore('userAction', () => {
       })
 
       const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.message || '簡介更新失敗')
+      if (!res.ok) throw new Error(data.message || i18n.global.t('userStore.bioUpdateFailed'))
 
       authStore.setUser({
         ...authStore.user,
@@ -103,7 +104,7 @@ export const useUserStore = defineStore('userAction', () => {
       let errorMessage = err.message
 
       if (errorMessage === 'Failed to fetch' || errorMessage === 'Network request failed') {
-        errorMessage = '網路連線異常，請檢查您的網路或稍後再試。'
+        errorMessage = i18n.global.t('common.networkError')
       }
 
       return { success: false, error: errorMessage }

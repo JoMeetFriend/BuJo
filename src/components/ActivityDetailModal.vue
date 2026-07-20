@@ -1,72 +1,82 @@
 <template>
   <article v-if="isOpen" class="activity-detail-panel" :class="focusCardClass">
     <header class="activity-detail-header">
-      <div>
-        <div class="activity-detail-kicker">ACTIVITY ROOM</div>
-        <h2>{{ activity?.title || '活動詳情' }}</h2>
+      <div class="activity-detail-top-row">
+        <div class="activity-detail-kicker">{{ t('activityDetail.kicker') }}</div>
+        <div class="activity-detail-top-actions">
+          <div v-if="activity" class="activity-detail-badges">
+            <span class="activity-detail-badge" :class="statusBadgeClass">
+              {{ statusText }}
+            </span>
+          </div>
+          <button
+            v-if="closable"
+            type="button"
+            class="activity-detail-close"
+            :aria-label="t('activityDetail.close')"
+            @click="emit('close')"
+          >
+            ×
+          </button>
+        </div>
       </div>
-      <div class="activity-detail-header-right">
-        <button
-          v-if="closable"
-          type="button"
-          class="activity-detail-close"
-          aria-label="關閉活動詳情"
-          @click="emit('close')"
-        >
-          ×
-        </button>
-        <span v-if="activity" class="activity-detail-date">{{ panelDate }}</span>
-      </div>
-    </header>
-
-    <section class="activity-detail-body">
-      <div v-if="loading" class="activity-detail-state">載入中...</div>
-      <div v-else-if="fetchError" class="activity-detail-state activity-detail-state--error">
-        {{ fetchError }}
-      </div>
-
-      <template v-else-if="activity">
-        <div class="activity-detail-creator">
+      <div class="activity-detail-header-content">
+        <div v-if="activity" class="activity-detail-creator">
           <div class="activity-detail-avatar">
             <img
               v-if="activity.creator.avatar_url"
               :src="toAvatarSrc(activity.creator.avatar_url)"
               alt=""
             />
-            <span v-else>⭐</span>
+            <UserIcon v-else class="h-4 w-4" aria-hidden="true" />
           </div>
-          <span>{{ activity.creator.display_name }} 發起</span>
+          <span>{{ activity.creator.display_name }}</span>
         </div>
+        <h2 :title="activity?.title || t('activityDetail.title')">
+          {{ activity?.title || t('activityDetail.title') }}
+        </h2>
+        <div v-if="activity" class="activity-detail-date">{{ panelDate }}</div>
+      </div>
+    </header>
 
+    <section class="activity-detail-body">
+      <div v-if="loading" class="activity-detail-state">{{ t('activityDetail.loading') }}</div>
+      <div v-else-if="fetchError" class="activity-detail-state activity-detail-state--error">
+        {{ fetchError }}
+      </div>
+
+      <template v-else-if="activity">
         <div v-if="showCandidateChips && isScenarioDMode" class="activity-detail-info">
-          <div class="activity-detail-label">日期、時段投票中（{{ candidateChipsForCard.length }}）</div>
-          <div class="activity-detail-date-list">
-            <button
-              v-for="chip in visibleCandidateChips"
-              :key="chip.key"
-              type="button"
-              class="activity-detail-chip"
-              :class="{
-                'activity-detail-chip--mine': chip.isMine,
-                'activity-detail-chip--active': openChipDate === chip.key,
-              }"
-              @click="toggleChipDate(chip.key)"
-              @mouseenter="openChipDate = chip.key"
-              @mouseleave="openChipDate === chip.key && (openChipDate = null)"
-            >
-              {{ chip.chip }}
-              <span v-if="openChipDate === chip.key" class="activity-detail-chip-popover">{{
-                chip.timeLabel
-              }}</span>
-            </button>
-            <button
-              v-if="hiddenCandidateChipsCount > 0"
-              type="button"
-              class="activity-detail-chip activity-detail-chip--more"
-              @click="candidateChipsExpanded = !candidateChipsExpanded"
-            >
-              {{ candidateChipsExpanded ? '−' : `+${hiddenCandidateChipsCount}` }}
-            </button>
+          <div class="activity-detail-list-block">
+            <div class="activity-detail-label">日期、時段投票中</div>
+            <div class="activity-detail-date-list">
+              <button
+                v-for="chip in visibleCandidateChips"
+                :key="chip.key"
+                type="button"
+                class="activity-detail-chip"
+                :class="{
+                  'activity-detail-chip--mine': chip.isMine,
+                  'activity-detail-chip--active': openChipDate === chip.key,
+                }"
+                @click="toggleChipDate(chip.key)"
+                @mouseenter="openChipDate = chip.key"
+                @mouseleave="openChipDate === chip.key && (openChipDate = null)"
+              >
+                {{ chip.chip }}
+                <span v-if="openChipDate === chip.key" class="activity-detail-chip-popover">{{
+                  chip.timeLabel
+                }}</span>
+              </button>
+              <button
+                v-if="hiddenCandidateChipsCount > 0"
+                type="button"
+                class="activity-detail-chip activity-detail-chip--more"
+                @click="candidateChipsExpanded = !candidateChipsExpanded"
+              >
+                {{ candidateChipsExpanded ? '−' : `+${hiddenCandidateChipsCount}` }}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -91,42 +101,41 @@
             </div>
           </div>
           <div v-else-if="dateText && !(showCandidateChips && isScenarioDMode)">
-            <div class="activity-detail-label">日期</div>
+            <div class="activity-detail-label">{{ t('activityDetail.dateStatus') }}</div>
             <div>{{ dateText }}</div>
           </div>
           <div v-if="!(showCandidateChips && isScenarioDMode)">
-            <div class="activity-detail-label">{{ rangeTimeWindowText ? '時間投票中' : '時間' }}</div>
+            <div class="activity-detail-label">
+              {{
+                rangeTimeWindowText
+                  ? t('activityDetail.timeVotingStatus')
+                  : t('activityDetail.timeStatus')
+              }}
+            </div>
             <div>{{ rangeTimeWindowText || timeText }}</div>
           </div>
           <div v-if="activity.location">
-            <div class="activity-detail-label">地點</div>
-            <div>{{ activity.location }}</div>
+            <div class="activity-detail-label">{{ t('activityDetail.location') }}</div>
+            <div>
+              <a
+                :href="googleMapsSearchUrl(activity.location)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="underline decoration-dotted underline-offset-2 hover:decoration-solid"
+                ><MapPinIcon class="inline h-4 w-4 shrink-0" aria-hidden="true" />
+                {{ activity.location }}</a
+              >
+            </div>
           </div>
           <div v-if="activity.description">
-            <div class="activity-detail-label">備註</div>
+            <div class="activity-detail-label">{{ t('activityDetail.description') }}</div>
             <div class="activity-detail-description custom-scrollbar">
               {{ activity.description }}
             </div>
           </div>
         </div>
 
-        <div class="activity-detail-badges">
-          <span class="activity-detail-badge" :class="statusBadgeClass">
-            {{ statusText }}
-          </span>
-          <span v-if="activity.participant_target" class="activity-detail-capacity">
-            人數上限 {{ activity.participant_target }} 人
-          </span>
-          <span v-else class="activity-detail-capacity">沒有限制報名人數</span>
-        </div>
-
         <div class="activity-detail-join">
-          <div class="activity-detail-label">
-            已報名 {{ activity.current_count }} /
-            <span v-if="activity.participant_target">{{ activity.participant_target }}</span>
-            <span v-else class="activity-detail-infinity">∞</span>
-            人
-          </div>
           <div class="activity-detail-participants">
             <div
               class="activity-detail-avatars"
@@ -136,23 +145,30 @@
               @touchend="handleAvatarTouchEnd"
               @touchmove="handleAvatarTouchEnd"
             >
-              <template v-for="p in activity.participants.slice(0, 5)" :key="p.id">
+              <template v-for="p in visibleParticipants" :key="p.id">
                 <img
                   v-if="p.avatar_url"
-                  class="activity-detail-avatar"
+                  class="activity-detail-avatar activity-detail-participant-avatar"
                   :src="toAvatarSrc(p.avatar_url)"
                   alt=""
                 />
-                <div v-else class="activity-detail-avatar activity-detail-avatar--text">
+                <div
+                  v-else
+                  class="activity-detail-avatar activity-detail-avatar--text activity-detail-participant-avatar"
+                >
                   {{ p.display_name?.slice(0, 2) ?? '?' }}
                 </div>
               </template>
-              <span
-                v-if="activity.current_count > 5"
-                class="activity-detail-avatar activity-detail-avatar--text"
+              <button
+                v-if="hasExpandableParticipants"
+                type="button"
+                class="activity-detail-avatar activity-detail-avatar--text activity-detail-avatar-toggle"
+                :aria-label="participantsExpanded ? '收合參與者頭像' : '展開所有參與者頭像'"
+                :aria-expanded="participantsExpanded"
+                @click.stop="participantsExpanded = !participantsExpanded"
               >
-                +{{ activity.current_count - 5 }}
-              </span>
+                +
+              </button>
               <span
                 v-if="openSupportersKey === 'participants' && activity.participants.length"
                 class="activity-detail-chip-popover"
@@ -160,176 +176,26 @@
                 {{ activity.participants.map((p) => p.display_name).join('、') }}
               </span>
             </div>
-            <span
-              v-if="
-                activity.status === 'recruiting' &&
-                activity.participant_target &&
-                activity.participant_target - activity.current_count > 0
-              "
-              class="activity-detail-needed"
-            >
-              還差 {{ activity.participant_target - activity.current_count }} 人
+            <span class="activity-detail-count">
+              {{ activity.current_count }} /
+              <span v-if="activity.participant_target">{{ activity.participant_target }}</span>
+              <span v-else class="activity-detail-infinity">∞</span>
+              {{ t('common.person') }}
             </span>
           </div>
         </div>
 
         <div
           v-if="
-            activity.requires_voting && activity.status === 'recruiting' && !activity.is_creator
-          "
-          class="activity-detail-options"
-        >
-          <template v-if="isScenarioCMode">
-            <template v-if="activity.has_joined">
-              <div class="activity-detail-label">你已選擇的日期</div>
-              <div v-if="selectedScenarioCSlots.length" class="activity-detail-date-list">
-                <span
-                  v-for="slot in selectedScenarioCSlots"
-                  :key="slot.id"
-                  class="activity-detail-selection-entry"
-                >
-                  {{ formatDateKey(toLocalDateKey(slot.slot_start)) }}
-                  <span
-                    v-if="slot.co_participants && slot.co_participants.length"
-                    class="activity-detail-supporters"
-                    @mouseenter="openSupporters(`c-${slot.id}`)"
-                    @mouseleave="closeSupporters(`c-${slot.id}`)"
-                    @touchstart="handleAvatarTouchStart(`c-${slot.id}`)"
-                    @touchend="handleAvatarTouchEnd"
-                    @touchmove="handleAvatarTouchEnd"
-                  >
-                    <span
-                      v-for="p in slot.co_participants"
-                      :key="p.user_id"
-                      class="activity-detail-avatar"
-                    >
-                      <img v-if="p.avatar_url" :src="toAvatarSrc(p.avatar_url)" alt="" />
-                      <span v-else>{{ p.display_name?.slice(0, 1) ?? '?' }}</span>
-                    </span>
-                    <span
-                      v-if="openSupportersKey === `c-${slot.id}`"
-                      class="activity-detail-chip-popover"
-                    >
-                      {{ slot.co_participants.map((p) => p.display_name).join('、') }}
-                    </span>
-                  </span>
-                </span>
-              </div>
-              <div v-else class="activity-detail-muted">尚未選擇日期</div>
-            </template>
-            <!-- 未報名時，標籤跟說明文字作用重疊（都在講「要選日期」），合併成一行淺色提示就好 -->
-            <div v-else class="activity-detail-muted">點擊「報名參加」選取你方便的日期</div>
-          </template>
-          <template v-else-if="isScenarioDMode">
-            <template v-if="activity.has_joined">
-              <div class="activity-detail-label">你已選擇的候選時段</div>
-              <div v-if="selectedScenarioDSlots.length" class="activity-detail-date-list">
-                <span
-                  v-for="slot in selectedScenarioDSlots"
-                  :key="slot.id"
-                  class="activity-detail-selection-entry"
-                >
-                  {{ slotText(slot, slot.my_range) }}
-                  <span
-                    v-if="slot.co_participants && slot.co_participants.length"
-                    class="activity-detail-supporters"
-                    @mouseenter="openSupporters(`d-${slot.id}`)"
-                    @mouseleave="closeSupporters(`d-${slot.id}`)"
-                    @touchstart="handleAvatarTouchStart(`d-${slot.id}`)"
-                    @touchend="handleAvatarTouchEnd"
-                    @touchmove="handleAvatarTouchEnd"
-                  >
-                    <span
-                      v-for="p in slot.co_participants"
-                      :key="p.user_id"
-                      class="activity-detail-avatar"
-                    >
-                      <img v-if="p.avatar_url" :src="toAvatarSrc(p.avatar_url)" alt="" />
-                      <span v-else>{{ p.display_name?.slice(0, 1) ?? '?' }}</span>
-                    </span>
-                    <span
-                      v-if="openSupportersKey === `d-${slot.id}`"
-                      class="activity-detail-chip-popover"
-                    >
-                      {{ slot.co_participants.map((p) => p.display_name).join('、') }}
-                    </span>
-                  </span>
-                </span>
-              </div>
-              <div v-else class="activity-detail-muted">尚未選擇候選時段</div>
-            </template>
-            <div v-else class="activity-detail-muted">點擊「報名參加」選取你方便的時段</div>
-          </template>
-          <template v-else-if="isRangeMode">
-            <template v-if="activity.has_joined">
-              <div class="activity-detail-label">你已回報的時間</div>
-              <div v-if="myRangesEntries.length" class="activity-detail-date-list">
-                <span
-                  v-for="entry in myRangesEntries"
-                  :key="entry.start"
-                  class="activity-detail-selection-entry"
-                >
-                  {{ myRangeLabel(entry) }}
-                  <span
-                    v-if="entry.co_participants && entry.co_participants.length"
-                    class="activity-detail-supporters"
-                    @mouseenter="openSupporters(`r-${entry.start}`)"
-                    @mouseleave="closeSupporters(`r-${entry.start}`)"
-                    @touchstart="handleAvatarTouchStart(`r-${entry.start}`)"
-                    @touchend="handleAvatarTouchEnd"
-                    @touchmove="handleAvatarTouchEnd"
-                  >
-                    <span
-                      v-for="p in entry.co_participants"
-                      :key="p.user_id"
-                      class="activity-detail-avatar"
-                    >
-                      <img v-if="p.avatar_url" :src="toAvatarSrc(p.avatar_url)" alt="" />
-                      <span v-else>{{ p.display_name?.slice(0, 1) ?? '?' }}</span>
-                    </span>
-                    <span
-                      v-if="openSupportersKey === `r-${entry.start}`"
-                      class="activity-detail-chip-popover"
-                    >
-                      {{ entry.co_participants.map((p) => p.display_name).join('、') }}
-                    </span>
-                  </span>
-                </span>
-              </div>
-              <div v-else class="activity-detail-muted">尚未回報時間</div>
-            </template>
-            <div v-else class="activity-detail-muted">點擊「報名參加」選取你方便的時間</div>
-          </template>
-          <template v-else>
-            <div class="activity-detail-label">
-              {{ activity.has_joined ? '你選擇的候選時段' : '選擇你方便的候選時段（可複選）' }}
-            </div>
-            <label
-              v-for="slot in activity.candidate_slots"
-              :key="slot.id"
-              class="activity-detail-option"
-            >
-              <input
-                type="checkbox"
-                :value="slot.id"
-                v-model="selectedJoinSlotIds"
-                :disabled="activity.has_joined"
-              />
-              <span>{{ slotText(slot) }}</span>
-            </label>
-          </template>
-        </div>
-
-        <div
-          v-if="
             isScenarioCMode &&
             activity.has_joined &&
+            selectedScenarioCSlots.length &&
             (activity.status === 'voting' || activity.status === 'confirmed')
           "
           class="activity-detail-options"
         >
-          <div class="activity-detail-label">你已選擇的日期</div>
-          <div v-if="selectedScenarioCSlots.length" class="activity-detail-date-list">
+          <div class="activity-detail-label">你報名的日期</div>
+          <div class="activity-detail-date-list">
             <span
               v-for="slot in selectedScenarioCSlots"
               :key="slot.id"
@@ -362,7 +228,6 @@
               </span>
             </span>
           </div>
-          <div v-else class="activity-detail-muted">尚未選擇日期</div>
         </div>
 
         <div
@@ -373,7 +238,7 @@
           "
           class="activity-detail-options"
         >
-          <div class="activity-detail-label">你已選擇的候選時段</div>
+          <div class="activity-detail-label">已報名的時段</div>
           <div v-if="selectedScenarioDSlots.length" class="activity-detail-date-list">
             <span
               v-for="slot in selectedScenarioDSlots"
@@ -407,14 +272,15 @@
               </span>
             </span>
           </div>
-          <div v-else class="activity-detail-muted">尚未選擇候選時段</div>
+          <div v-else class="activity-detail-muted">{{ t('activityDetail.noSlotsSelected') }}</div>
         </div>
 
         <div
           v-if="
             activity.is_creator &&
             activity.requires_voting &&
-            (activity.status === 'recruiting' || activity.status === 'voting')
+            (activity.status === 'recruiting' || activity.status === 'voting') &&
+            hasDecisionVotes
           "
           class="activity-detail-options"
         >
@@ -438,7 +304,9 @@
                 v-model="selectedDecisionSlotId"
               />
               <span>{{ slotText(entry) }}</span>
-              <span v-if="isExpired(entry)" class="activity-detail-expired-label">已過期</span>
+              <span v-if="isExpired(entry)" class="activity-detail-expired-label">{{
+                t('activityDetail.expired')
+              }}</span>
             </span>
             <span class="activity-detail-option-right">
               <span
@@ -450,11 +318,7 @@
                 @touchend="handleAvatarTouchEnd"
                 @touchmove="handleAvatarTouchEnd"
               >
-                <span
-                  v-for="s in entry.supporters"
-                  :key="s.user_id"
-                  class="activity-detail-avatar"
-                >
+                <span v-for="s in entry.supporters" :key="s.user_id" class="activity-detail-avatar">
                   <img v-if="s.avatar_url" :src="toAvatarSrc(s.avatar_url)" alt="" />
                   <span v-else>{{ s.display_name?.slice(0, 1) ?? '?' }}</span>
                 </span>
@@ -484,7 +348,9 @@
 
     <footer v-if="activity" class="activity-detail-footer">
       <div v-if="successMessage" class="activity-detail-success">
-        <span>{{ successMessage }}</span>
+        <DocumentCheckIcon class="h-4 w-4 shrink-0" aria-hidden="true" /><span>{{
+          successMessage
+        }}</span>
       </div>
 
       <template v-else>
@@ -494,7 +360,7 @@
           "
         >
           <PixelButton type="button" :disabled="actionLoading" @click="handleConfirmFormation">
-            {{ actionLoading ? '處理中...' : '立即成團' }}
+            {{ actionLoading ? t('common.processing') : t('activityDetail.formNowButton') }}
           </PixelButton>
           <PixelButton
             variant="danger"
@@ -502,7 +368,7 @@
             :disabled="actionLoading"
             @click="handleCancel"
           >
-            取消活動
+            {{ t('activityDetail.cancelActivityButton') }}
           </PixelButton>
         </template>
 
@@ -516,7 +382,7 @@
             :disabled="actionLoading || !selectedDecisionSlotId"
             @click="handleConfirmFormation"
           >
-            {{ actionLoading ? '處理中...' : '提前成團' }}
+            {{ actionLoading ? t('common.processing') : t('activityDetail.earlyFormationButton') }}
           </PixelButton>
           <PixelButton
             variant="danger"
@@ -524,7 +390,7 @@
             :disabled="actionLoading"
             @click="handleCancel"
           >
-            取消活動
+            {{ t('activityDetail.cancelActivityButton') }}
           </PixelButton>
         </template>
 
@@ -536,10 +402,10 @@
           >
             {{
               actionLoading
-                ? '處理中...'
+                ? t('common.processing')
                 : activity.requires_voting
-                  ? '確認此時段成團'
-                  : '立即成團'
+                  ? t('activityDetail.confirmFormationButton')
+                  : t('activityDetail.formNowButton')
             }}
           </PixelButton>
           <PixelButton
@@ -548,7 +414,7 @@
             :disabled="actionLoading"
             @click="handleCancel"
           >
-            取消活動
+            {{ t('activityDetail.cancelActivityButton') }}
           </PixelButton>
         </template>
 
@@ -566,7 +432,7 @@
             "
             @click="handleJoin"
           >
-            {{ actionLoading ? '處理中...' : '報名參加' }}
+            {{ actionLoading ? t('common.processing') : t('activityDetail.joinButton') }}
           </PixelButton>
           <PixelButton
             v-else-if="activity.status === 'recruiting' && activity.has_joined && isScenarioCMode"
@@ -574,7 +440,7 @@
             :disabled="actionLoading"
             @click="openScenarioCPicker"
           >
-            {{ actionLoading ? '處理中...' : '修改日期' }}
+            {{ actionLoading ? t('common.processing') : t('activityDetail.modifyDatesButton') }}
           </PixelButton>
           <PixelButton
             v-else-if="activity.status === 'recruiting' && activity.has_joined && isScenarioDMode"
@@ -582,7 +448,7 @@
             :disabled="actionLoading"
             @click="openScenarioDPicker"
           >
-            {{ actionLoading ? '處理中...' : '修改報名時段' }}
+            {{ actionLoading ? t('common.processing') : t('activityDetail.modifyTimeSlotsButton') }}
           </PixelButton>
           <PixelButton
             v-else-if="activity.status === 'recruiting' && activity.has_joined && isRangeMode"
@@ -590,7 +456,7 @@
             :disabled="actionLoading"
             @click="openRangePicker"
           >
-            {{ actionLoading ? '處理中...' : '修改時間' }}
+            {{ actionLoading ? t('common.processing') : t('activityDetail.modifyTimeButton') }}
           </PixelButton>
           <PixelButton
             v-else-if="activity.status === 'recruiting' && activity.has_joined"
@@ -599,13 +465,13 @@
             :disabled="actionLoading"
             @click="handleCancelJoin"
           >
-            取消報名
+            {{ t('activityDetail.cancelJoinButton') }}
           </PixelButton>
           <span
             v-else-if="activity.status === 'voting' && activity.has_joined"
             class="activity-detail-badge"
           >
-            已報名
+            {{ t('activityDetail.alreadySignedUp') }}
           </span>
         </template>
       </template>
@@ -636,9 +502,14 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
+import { UserIcon, MapPinIcon, DocumentCheckIcon } from '@heroicons/vue/24/outline'
 import PixelButton from './ui/PixelButton.vue'
 import AvailabilityPickerModal from './AvailabilityPickerModal.vue'
 import { toAvatarSrc } from '@/utils/avatar'
+import { googleMapsSearchUrl } from '@/utils/mapLink'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   isOpen: Boolean,
@@ -658,6 +529,7 @@ const successMessage = ref(null)
 const selectedJoinSlotIds = ref([])
 const selectedDecisionSlotId = ref(null)
 const showAvailabilityPicker = ref(false)
+const participantsExpanded = ref(false)
 
 const isRangeMode = computed(() => activity.value?.availability_mode === 'range')
 const isScenarioCMode = computed(() => activity.value?.schedule_variant === 'find_date')
@@ -747,16 +619,6 @@ const myRangesInitial = computed(() =>
   }),
 )
 
-// range 模式（情境二）已報名者自己回報的時間摘要，格式跟情境三的日期 chip 呼應，
-// 例如「7/12 下午 6:00–下午 9:00」。保留完整物件（不只是文字）是因為每一筆現在還要
-// 顯示 co_participants 頭像，不能只留下轉換過的文字標籤
-function myRangeLabel(r) {
-  const start = new Date(r.start)
-  const end = new Date(r.end)
-  return `${formatDateKey(toLocalDateKey(r.start))} ${formatTime(start)}–${formatTime(end)}`
-}
-const myRangesEntries = computed(() => activity.value?.my_ranges ?? [])
-
 // 情境三已選的候選時段，保留完整物件（含 co_participants），不只是文字標籤
 const selectedScenarioCSlots = computed(() =>
   (activity.value?.candidate_slots ?? []).filter((slot) => slot.is_selected),
@@ -765,7 +627,7 @@ const selectedScenarioCSlots = computed(() =>
 const scenarioCFixedTimeLabel = computed(() => {
   const slots = activity.value?.candidate_slots ?? []
   if (!slots.length) return ''
-  if (slots.every((slot) => slot.all_day)) return '整日'
+  if (slots.every((slot) => slot.all_day)) return t('common.wholeDay')
   const start = new Date(slots[0].slot_start)
   const end = new Date(slots[0].slot_end)
   return `${formatTime(start)} – ${formatTime(end)}`
@@ -931,6 +793,12 @@ const normalizedDecisionEntries = computed(() => {
   return [...flat].sort(compareDecisionEntries)
 })
 
+const hasDecisionVotes = computed(() =>
+  normalizedDecisionEntries.value.some(
+    (entry) => Number(entry.count) > 0 || entry.supporters.length > 0,
+  ),
+)
+
 // confirmFormation 送出候選時段時，情境四還需要候選時段本身的 id（candidateSlotId），
 // 這裡只保留這個用途需要的形狀，不再附帶顯示用的日期標籤（決選清單模板已經改用
 // normalizedDecisionEntries 的全域排序結果，不再依這個分組結構渲染）
@@ -951,8 +819,16 @@ const votingDenominator = computed(() =>
   Math.max(0, (activity.value?.participants?.length ?? 0) - 1),
 )
 function ratioText(count) {
-  return votingDenominator.value > 0 ? `${count}/${votingDenominator.value}人` : `${count}人`
+  return votingDenominator.value > 0
+    ? `${count}/${votingDenominator.value}${t('common.person')}`
+    : `${count}${t('common.person')}`
 }
+
+const hasExpandableParticipants = computed(() => (activity.value?.current_count ?? 0) > 5)
+const visibleParticipants = computed(() => {
+  const participants = activity.value?.participants ?? []
+  return participantsExpanded.value ? participants : participants.slice(0, 5)
+})
 
 // 決選清單獨立追蹤目前展開到第幾筆，預設 3 筆。「顯示更多」每次多展開 3 筆；
 // 全部展開後控制鈕改成「收合」，讓使用者能回到精簡清單
@@ -972,7 +848,7 @@ function isFullyRevealed(key, total) {
   return visibleCountFor(key, total) >= total
 }
 function revealControlText(key, total) {
-  return isFullyRevealed(key, total) ? '收合' : '顯示更多'
+  return isFullyRevealed(key, total) ? t('activityDetail.collapse') : t('activityDetail.showMore')
 }
 function toggleReveal(key, total) {
   if (isFullyRevealed(key, total)) {
@@ -1029,7 +905,7 @@ const panelDate = computed(() => {
     const starts = a.candidate_slots.map((slot) => new Date(slot.slot_start).getTime())
     const minText = formatShortDate(new Date(Math.min(...starts)))
     const maxText = formatShortDate(new Date(Math.max(...starts)))
-    return minText === maxText ? minText : `${minText} ~ ${maxText}`
+    return minText === maxText ? minText : `${minText}~${maxText}`
   }
   return ''
 })
@@ -1039,7 +915,7 @@ const panelDate = computed(() => {
 // 又附註日期投票中，Mode B 完全沒有欄位顯示日期）
 function timeOnlyText(slot) {
   if (!slot) return ''
-  if (slot.all_day) return '整天'
+  if (slot.all_day) return t('common.wholeDay')
   return `${formatTime(new Date(slot.slot_start))} – ${formatTime(new Date(slot.slot_end))}`
 }
 
@@ -1050,7 +926,7 @@ const dateText = computed(() => {
   // Mode B（range 模式）的日期本來就是固定的，不會投票，直接讀 fixed_date
   if (isRangeMode.value) return a.fixed_date ? formatDateKey(a.fixed_date) : ''
   // Mode C 的日期還沒定，時間才是固定的
-  if (isScenarioCMode.value) return '日期投票中'
+  if (isScenarioCMode.value) return t('activityDetail.dateVotingStatus')
   if (a.candidate_slots?.length) {
     const starts = a.candidate_slots.map((slot) => new Date(slot.slot_start).getTime())
     const minText = formatShortDate(new Date(Math.min(...starts)))
@@ -1062,23 +938,20 @@ const dateText = computed(() => {
 
 const timeText = computed(() => {
   const a = activity.value
-  if (!a) return '時間未設定'
+  if (!a) return t('activityDetail.timeNotSet')
   if (a.confirmed_slot) return timeOnlyText(a.confirmed_slot)
-  // Mode C 的時間本來就是固定的，投票的是日期，不是時段——不能顯示「候選時段投票中」，
-  // 那句話的意思是時間還沒定，跟 Mode C 的實際狀況相反，而且會藏掉使用者最需要的固定時間資訊
-  if (isScenarioCMode.value) return scenarioCFixedTimeLabel.value || '時間未設定'
-  // range 模式（情境二）是回報一段連續可用時間，沒有離散的候選清單可以「投票」，
-  // 「候選時段投票中」的語氣會讓人誤以為有清單可以勾選；改成顯示建立者實際設定的可回報時間窗，
-  // 不然參與者不知道能回報的時間範圍是幾點到幾點，要點進 picker 才看得到
+  if (isScenarioCMode.value) return scenarioCFixedTimeLabel.value || t('activityDetail.timeNotSet')
   if (isRangeMode.value) {
     if (a.time_window_start && a.time_window_end) {
-      return `${a.time_window_start}–${a.time_window_end}區間 時間投票中`
+      return t('activityDetail.timeWindowVoting', {
+        window: `${a.time_window_start}–${a.time_window_end}`,
+      })
     }
-    return '整天皆可回報'
+    return t('activityDetail.wholeDayReportable')
   }
-  if (a.requires_voting) return '候選時段投票中'
+  if (a.requires_voting) return t('activityDetail.slotsVotingOngoing')
   if (a.candidate_slots?.[0]) return timeOnlyText(a.candidate_slots[0])
-  return '時間未設定'
+  return t('activityDetail.timeNotSet')
 })
 
 // 情境二有設定時間窗時，時間欄位要拆成「時間窗文字」+「時間投票中」淺色提示兩部分渲染，
@@ -1087,7 +960,9 @@ const rangeTimeWindowText = computed(() => {
   const a = activity.value
   if (!a || a.confirmed_slot || !isRangeMode.value) return ''
   if (!a.time_window_start || !a.time_window_end) return ''
-  return `${a.time_window_start}–${a.time_window_end}區間`
+  return t('activityDetail.timeWindowRange', {
+    window: `${a.time_window_start}–${a.time_window_end}`,
+  })
 })
 
 // subRange（可選）：情境四參與者實際選的子區間 {start, end}，優先顯示子區間而不是候選
@@ -1100,7 +975,7 @@ function slotText(slot, subRange) {
     return `${formatDateTime(start)} - ${formatTime(end)}`
   }
   const start = new Date(slot.slot_start)
-  if (slot.all_day) return `${start.getMonth() + 1}/${start.getDate()} 整天`
+  if (slot.all_day) return `${start.getMonth() + 1}/${start.getDate()} ${t('common.wholeDay')}`
   const end = new Date(slot.slot_end)
   return `${formatDateTime(start)} - ${formatTime(end)}`
 }
@@ -1117,21 +992,23 @@ function soleLeaderId(candidates) {
 const statusText = computed(() => {
   const a = activity.value
   if (!a) return ''
-  // 已報名的非建立者在活動還沒有結果之前（揪團中/建立者決選中），看到的是自己的報名狀態，
-  // 不是活動整體的生命週期敘述——「建立者決選中」這種語氣是描述建立者在做什麼，跟報名者無關；
-  // 已成團/已取消是最終結果，不分角色都要看到同一句話
   const inProgress = a.status === 'recruiting' || a.status === 'voting'
   if (!a.is_creator && a.has_joined && inProgress) {
-    return '已報名'
+    return t('activityDetail.signedUpStatus')
   }
-  const map = { recruiting: '揪團中', voting: '建立者決選中', confirmed: '已成團', cancelled: '已取消' }
+  const map = {
+    recruiting: t('activityDetail.recruiting'),
+    voting: t('activityDetail.decisionPending'),
+    confirmed: t('activityDetail.formed'),
+    cancelled: t('activityDetail.cancelled'),
+  }
   return map[a.status] ?? a.status
 })
 
 // 這個區塊只在 recruiting/voting 狀態渲染（見外層 v-if），不需要依狀態分支文案——
 // 「候選時段」「可提前手動成團」「由建立者自由選擇」都是多餘資訊：清單本身內容一看就是時段列表，
 // 提前成團有獨立按鈕可以按，「建立者在選」上方狀態徽章已經講過，不用標題再講一次
-const decisionSectionLabel = '目前票數'
+const decisionSectionLabel = t('activityDetail.currentVotes')
 
 const statusBadgeClass = computed(() => {
   const map = {
@@ -1168,13 +1045,15 @@ async function fetchActivity(id) {
   openChipDate.value = null
   resetVisibleCounts()
   openSupportersKey.value = null
+  participantsExpanded.value = false
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities/${id}`, {
       credentials: 'include',
       signal: controller.signal,
     })
     if (!res.ok) {
-      fetchError.value = res.status === 404 ? '找不到此活動' : '載入失敗'
+      fetchError.value =
+        res.status === 404 ? t('activityDetail.notFound') : t('activityDetail.loadFailed')
       return
     }
     const data = await res.json()
@@ -1194,7 +1073,7 @@ async function fetchActivity(id) {
         : null
   } catch (err) {
     if (err.name === 'AbortError') return
-    fetchError.value = '無法連線到伺服器'
+    fetchError.value = t('activityDetail.serverError')
   } finally {
     if (controller === activeFetchController) {
       loading.value = false
@@ -1218,7 +1097,7 @@ async function callAction(path, method = 'POST', successMsg = '', body = undefin
     )
     const data = await res.json().catch(() => ({}))
     if (!res.ok) {
-      actionError.value = data.message || '操作失敗'
+      actionError.value = data.message || t('activityDetail.operationFailed')
       return false
     }
     if (successMsg) {
@@ -1233,7 +1112,7 @@ async function callAction(path, method = 'POST', successMsg = '', body = undefin
     }
     return true
   } catch {
-    actionError.value = '無法連線到伺服器'
+    actionError.value = t('activityDetail.serverError')
     return false
   } finally {
     actionLoading.value = false
@@ -1255,15 +1134,15 @@ async function handleJoin() {
   }
   if (activity.value?.requires_voting) {
     if (selectedJoinSlotIds.value.length === 0) {
-      actionError.value = '請選擇至少一個候選時段'
+      actionError.value = t('activityDetail.pleaseSelectSlot')
       return
     }
-    await callAction('join', 'POST', '✅ 報名成功！', {
+    await callAction('join', 'POST', t('activityDetail.joinSuccess'), {
       candidateSlotIds: selectedJoinSlotIds.value,
     })
     return
   }
-  await callAction('join', 'POST', '✅ 報名成功！')
+  await callAction('join', 'POST', t('activityDetail.joinSuccess'))
 }
 
 function openScenarioCPicker() {
@@ -1288,7 +1167,7 @@ async function handleAvailabilityConfirm(entries) {
       end: `${entry.date}T${r.to}:00`,
     }))
   })
-  await callAction('join', 'POST', '✅ 報名成功！', { ranges })
+  await callAction('join', 'POST', t('activityDetail.joinSuccess'), { ranges })
 }
 
 async function handlePickerConfirm(entries) {
@@ -1308,21 +1187,17 @@ async function handleScenarioCDateConfirm(entries) {
     .map((entry) => scenarioCSlotByDate.value.get(entry.date))
     .filter(Boolean)
   if (candidateSlotIds.length === 0) {
-    actionError.value = '請選擇至少一個候選日期'
+    actionError.value = t('activityDetail.pleaseSelectDate')
     return
   }
-  await callAction('join', 'POST', '✅ 報名成功！', { candidateSlotIds })
+  await callAction('join', 'POST', t('activityDetail.joinSuccess'), { candidateSlotIds })
 }
 
-// 情境四：把 picker 回傳的每筆 range 對照 scenarioDDateWindows 反查回它落在哪個候選時段窗口，
-// 組成 candidateSlotIds（既有欄位）連同 candidateSlotRanges（子區間細節）一起送出。
-// 欄位名稱要跟後端 join API 的 contract 一致：candidateSlotId/rangeStart/rangeEnd（不是 slotId/start/end）
 async function handleScenarioDConfirm(entries) {
   const candidateSlotIds = []
   const candidateSlotRanges = []
   for (const entry of entries) {
     const window = scenarioDDateWindows.value[entry.date]
-    // 理論上不會發生：picker 的可選時間本來就被 hourOptions 限制在窗口內
     if (!window) continue
     for (const range of entry.timeRanges) {
       if (!(range.from >= window.start && range.to <= window.end)) continue
@@ -1335,27 +1210,30 @@ async function handleScenarioDConfirm(entries) {
     }
   }
   if (candidateSlotIds.length === 0) {
-    actionError.value = '請選擇至少一個候選時段'
+    actionError.value = t('activityDetail.pleaseSelectSlot')
     return
   }
-  await callAction('join', 'POST', '✅ 報名成功！', { candidateSlotIds, candidateSlotRanges })
+  await callAction('join', 'POST', t('activityDetail.joinSuccess'), {
+    candidateSlotIds,
+    candidateSlotRanges,
+  })
 }
 
 async function handleCancelJoin() {
-  await callAction('join', 'DELETE', '✅ 已取消報名')
+  await callAction('join', 'DELETE', t('activityDetail.cancelJoinSuccess'))
 }
 
 async function handleConfirmFormation() {
   if (isRangeMode.value) {
     if (!selectedDecisionSlotId.value) {
-      actionError.value = '請選擇要確認的候選時段'
+      actionError.value = t('activityDetail.pleaseSelectSlotToConfirm')
       return
     }
     const candidate = normalizedDecisionEntries.value.find(
       (c) => c.radioId === selectedDecisionSlotId.value,
     )
     if (!candidate) return
-    await callAction('confirm-formation', 'POST', '✅ 成團成功！', {
+    await callAction('confirm-formation', 'POST', t('activityDetail.confirmFormationSuccess'), {
       slotStart: candidate.slot_start,
       slotEnd: candidate.slot_end,
     })
@@ -1363,7 +1241,7 @@ async function handleConfirmFormation() {
   }
   if (isScenarioDMode.value) {
     if (!selectedDecisionSlotId.value) {
-      actionError.value = '請選擇要確認的候選時段'
+      actionError.value = t('activityDetail.pleaseSelectSlotToConfirm')
       return
     }
     const group = scenarioDCandidateGroups.value.find((g) =>
@@ -1371,7 +1249,7 @@ async function handleConfirmFormation() {
     )
     const segment = group?.segments.find((seg) => seg.radioId === selectedDecisionSlotId.value)
     if (!group || !segment) return
-    await callAction('confirm-formation', 'POST', '✅ 成團成功！', {
+    await callAction('confirm-formation', 'POST', t('activityDetail.confirmFormationSuccess'), {
       candidateSlotId: group.candidateSlotId,
       slotStart: segment.slot_start,
       slotEnd: segment.slot_end,
@@ -1380,19 +1258,19 @@ async function handleConfirmFormation() {
   }
   if (activity.value?.requires_voting) {
     if (!selectedDecisionSlotId.value) {
-      actionError.value = '請選擇要確認的候選時段'
+      actionError.value = t('activityDetail.pleaseSelectSlotToConfirm')
       return
     }
-    await callAction('confirm-formation', 'POST', '✅ 成團成功！', {
+    await callAction('confirm-formation', 'POST', t('activityDetail.confirmFormationSuccess'), {
       candidateSlotId: selectedDecisionSlotId.value,
     })
     return
   }
-  await callAction('confirm-formation', 'POST', '✅ 成團成功！')
+  await callAction('confirm-formation', 'POST', t('activityDetail.confirmFormationSuccess'))
 }
 
 async function handleCancel() {
-  await callAction('cancel', 'POST', '✅ 活動已取消')
+  await callAction('cancel', 'POST', t('activityDetail.cancelActivitySuccess'))
 }
 
 function resetPanel() {
@@ -1407,6 +1285,7 @@ function resetPanel() {
   openChipDate.value = null
   resetVisibleCounts()
   openSupportersKey.value = null
+  participantsExpanded.value = false
 }
 
 function formatDateTime(date) {
@@ -1421,11 +1300,9 @@ function formatDateKey(dateKey) {
 }
 
 function formatTime(date) {
-  const h = date.getHours()
-  const min = date.getMinutes()
-  const period = h < 12 ? '上午' : '下午'
-  const hour = h % 12 || 12
-  return `${period} ${hour}:${String(min).padStart(2, '0')}`
+  const hour = String(date.getHours()).padStart(2, '0')
+  const min = String(date.getMinutes()).padStart(2, '0')
+  return `${hour}:${min}`
 }
 </script>
 
@@ -1482,43 +1359,69 @@ function formatTime(date) {
 }
 
 .activity-detail-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 17px 20px 9px;
+  padding: 19px 22px 12px;
   flex: 0 0 auto;
 }
 
+.activity-detail-header-content {
+  min-width: 0;
+}
+
+.activity-detail-top-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.activity-detail-top-row {
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.activity-detail-top-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
 .activity-detail-kicker {
-  margin-bottom: 7px;
   font-family: 'Space Mono', monospace;
   font-size: 10px;
   font-weight: 400;
   letter-spacing: 0.08em;
-  opacity: 0.65;
+  opacity: 0.52;
 }
 
 .activity-detail-header h2 {
   margin: 0;
-  color: var(--bujo-ink);
-  font-size: clamp(24px, 2.35vw, 32px);
-  line-height: 1.05;
+  min-width: 0;
+  color: rgba(var(--bujo-ink-rgb), 0.88);
+  font-size: clamp(23px, 2.15vw, 30px);
+  line-height: 1.12;
   font-weight: 700;
+  display: -webkit-box;
+  max-height: 2.24em;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .activity-detail-header-right {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 6px;
 }
 
 .activity-detail-date {
-  color: rgba(var(--bujo-ink-rgb), 0.72);
+  margin-top: 8px;
+  color: rgba(var(--bujo-ink-rgb), 0.54);
   font-family: 'Space Mono', monospace;
-  font-size: 25px;
+  font-size: 22px;
   line-height: 1;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -1545,7 +1448,7 @@ function formatTime(date) {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 12px 20px 14px;
+  padding: 16px 22px 18px;
   scrollbar-width: none;
 }
 
@@ -1562,7 +1465,7 @@ function formatTime(date) {
 
 .activity-detail-state--error,
 .activity-detail-error {
-  color: #dc2626;
+  color: var(--bujo-danger);
 }
 
 .activity-detail-creator,
@@ -1574,7 +1477,7 @@ function formatTime(date) {
 }
 
 .activity-detail-creator {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   font-size: 14px;
   font-weight: 600;
 }
@@ -1582,8 +1485,10 @@ function formatTime(date) {
 .activity-detail-avatar {
   width: 25px;
   height: 25px;
-  border: 1px solid var(--bujo-ink);
+  border: 1px solid rgba(var(--bujo-white-rgb), 0.9);
+  border-radius: 999px;
   background: var(--bujo-white);
+  box-shadow: 0 0 0 1px rgba(var(--bujo-ink-rgb), 0.18);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1592,6 +1497,21 @@ function formatTime(date) {
   font-size: 9px;
   font-weight: 700;
   overflow: hidden;
+}
+
+.activity-detail-creator .activity-detail-avatar {
+  width: 30px;
+  height: 30px;
+}
+
+.activity-detail-avatar-toggle {
+  cursor: pointer;
+  padding: 0;
+}
+
+.activity-detail-avatar-toggle:hover,
+.activity-detail-avatar-toggle:focus-visible {
+  background: var(--bujo-white);
 }
 
 .activity-detail-avatar img {
@@ -1603,7 +1523,7 @@ function formatTime(date) {
 .activity-detail-info,
 .activity-detail-options {
   display: grid;
-  gap: 12px;
+  gap: 16px;
   font-size: 13px;
   line-height: 1.42;
   font-weight: 600;
@@ -1612,25 +1532,28 @@ function formatTime(date) {
 /* 情境四會有兩個 .activity-detail-info 疊在一起（候選時段 chip 清單＋地點/備註），
    兩個 div 之間本來沒有間距，緊貼著看起來很擠，補上跟區塊內部一致的間距 */
 .activity-detail-info + .activity-detail-info {
-  margin-top: 12px;
+  margin-top: 16px;
+}
+
+.activity-detail-list-block {
+  display: grid;
+  gap: 7px;
 }
 
 .activity-detail-label {
-  margin-bottom: 5px;
-  color: rgba(var(--bujo-ink-rgb), 0.62);
+  color: rgba(var(--bujo-ink-rgb), 0.5);
   font-family: 'Space Mono', monospace;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
 .activity-detail-infinity {
   display: inline-block;
-  font-size: 2em;
+  font-size: 1.25em;
   font-weight: 400;
   line-height: 1;
-  vertical-align: middle;
-  transform: translateY(-3px);
+  vertical-align: baseline;
 }
 
 .activity-detail-description {
@@ -1641,46 +1564,64 @@ function formatTime(date) {
 }
 
 .activity-detail-badges {
-  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
   flex-wrap: wrap;
 }
 
-.activity-detail-badge,
-.activity-detail-needed {
-  border: 1px solid var(--bujo-ink);
-  padding: 3px 8px;
-  background: var(--bujo-white);
-  font-size: 12px;
+.activity-detail-badge {
+  border: 0;
+  border-radius: 6px;
+  padding: 7px 11px;
+  background: rgba(var(--bujo-white-rgb), 0.62);
+  color: rgba(var(--bujo-ink-rgb), 0.64);
+  font-size: 11px;
   font-weight: 700;
+  line-height: 1;
 }
 
-.activity-detail-badge--recruiting {
-  background: #fff;
+.activity-focus-card--mine-recruiting .activity-detail-badge--recruiting {
+  background: rgba(248, 239, 245, 0.74);
+  color: #75616f;
+}
+
+.activity-focus-card--recruiting .activity-detail-badge--recruiting {
+  background: rgba(238, 247, 239, 0.72);
+  color: #5f7462;
 }
 
 .activity-detail-badge--confirmed {
-  background: var(--bujo-ink);
-  color: var(--bujo-white);
+  background: rgba(247, 243, 224, 0.76);
+  color: #746e53;
+}
+
+.activity-focus-card--joined .activity-detail-badge,
+.activity-focus-card--mine-confirmed .activity-detail-badge {
+  background: rgba(239, 247, 246, 0.72);
+  color: #607777;
 }
 
 .activity-detail-badge--light {
-  background: rgba(251, 251, 248, 0.72);
+  background: rgba(var(--bujo-white-rgb), 0.56);
+  color: rgba(var(--bujo-ink-rgb), 0.58);
 }
 
 .activity-detail-badge--cancelled {
-  background: #e5e7eb;
-  color: #6b7280;
-}
-
-.activity-detail-capacity {
-  color: rgba(var(--bujo-ink-rgb), 0.68);
-  font-size: 12px;
-  font-weight: 600;
+  background: rgba(241, 242, 238, 0.78);
+  color: #697066;
 }
 
 .activity-detail-join {
-  margin-top: 14px;
-  padding-bottom: 2px;
+  margin-top: 22px;
+  padding-bottom: 6px;
+}
+
+.activity-detail-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(var(--bujo-ink-rgb), 0.78);
+  white-space: nowrap;
 }
 
 .activity-detail-avatars {
@@ -1695,24 +1636,28 @@ function formatTime(date) {
 }
 
 .activity-detail-options {
-  margin-top: 16px;
+  margin-top: 20px;
+  gap: 8px;
 }
 
 .activity-detail-date-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 7px 8px;
 }
 
 /* 用 > 限定直接子層，避免這條規則吃到巢狀在裡面的支持者頭像 span（例如 co_participants 頭像列） */
 .activity-detail-date-list > span,
 .activity-detail-date-list .activity-detail-chip {
-  border: none;
-  background: var(--bujo-white);
-  color: var(--bujo-ink);
-  padding: 5px 10px;
+  border: 1px solid rgb(var(--bujo-white-rgb) / 0.64);
+  border-radius: 2px;
+  background: rgb(var(--bujo-white-rgb) / 0.56);
+  color: rgb(var(--bujo-ink-rgb) / 0.74);
+  box-shadow: none;
+  padding: 5px 8px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
+  line-height: 1.12;
 }
 
 .activity-detail-date-list .activity-detail-chip {
@@ -1721,28 +1666,34 @@ function formatTime(date) {
   font-family: inherit;
 }
 
-/* 「這是我自己選的」用底部一條 accent 色線標示，不用滿版黃底、也不加外框 */
+/* 所有候選日期保留 chip；已選日期在 chip 裡加同色系底線作為狀態標記 */
 .activity-detail-date-list .activity-detail-chip--mine {
-  box-shadow: inset 0 -2px 0 var(--bujo-accent);
+  border-color: rgb(var(--bujo-white-rgb) / 0.7);
+  background: rgb(var(--bujo-white-rgb) / 0.58);
+  color: rgb(var(--bujo-ink-rgb) / 0.82);
+  box-shadow: inset 0 -2px 0 rgba(72, 124, 121, 0.48);
 }
 
 .activity-detail-date-list .activity-detail-chip--active {
-  box-shadow: 0 1px 4px rgb(var(--bujo-ink-rgb) / 0.25);
+  border-color: rgb(var(--bujo-ink-rgb) / 0.22);
+  background: rgb(var(--bujo-white-rgb) / 0.62);
 }
 
 .activity-detail-date-list .activity-detail-chip--more {
   align-self: flex-end;
-  padding: 2px 5px;
+  border-color: rgb(var(--bujo-white-rgb) / 0.64);
+  background: rgb(var(--bujo-white-rgb) / 0.52);
+  padding: 4px 6px;
   font-size: 11px;
-  color: rgba(var(--bujo-ink-rgb), 0.72);
+  color: rgb(var(--bujo-ink-rgb) / 0.72);
   cursor: pointer;
 }
 
 .activity-detail-chip-popover {
   position: absolute;
-  top: calc(100% + 4px);
+  bottom: calc(100% + 4px);
   left: 0;
-  z-index: 1;
+  z-index: 6;
   border: none;
   border-radius: 2px;
   background: var(--bujo-white);
@@ -1763,7 +1714,9 @@ function formatTime(date) {
 .activity-detail-selection-entry {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  background: rgba(var(--bujo-white-rgb), 0.32);
+  box-shadow: none;
 }
 
 .activity-detail-option,
@@ -1846,7 +1799,7 @@ function formatTime(date) {
 .activity-detail-footer {
   flex: 0 0 auto;
   border-top: 1px solid rgba(var(--bujo-ink-rgb), 0.3);
-  padding: 12px 20px 16px;
+  padding: 12px 22px 16px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -1871,7 +1824,7 @@ function formatTime(date) {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 10px;
   background: rgba(var(--bujo-white-rgb), 0.5);
   border: 1px solid rgba(var(--bujo-ink-rgb), 0.36);

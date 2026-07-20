@@ -3,6 +3,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { describe, expect, test, vi, afterEach } from 'vitest'
 import ActivityView from '@/components/ActivityView.vue'
 import ActivityDetailModal from '@/components/ActivityDetailModal.vue'
+import { createTestI18n } from './testUtils'
 
 function makeActivity(overrides = {}) {
   return {
@@ -39,7 +40,7 @@ async function mountActivityView(path = '/activity') {
   await router.isReady()
   return mount(ActivityView, {
     global: {
-      plugins: [router],
+      plugins: [router, createTestI18n()],
       stubs: { ActivityDetailModal: true, EventPage: true },
     },
   })
@@ -76,10 +77,10 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
     const wrapper = await mountActivityView()
     await flushPromises()
 
-    await clickFilter(wrapper, 'RECRUITING')
+    await clickFilter(wrapper, '揪團中')
     expect(wrapper.text()).toContain('2')
 
-    await clickFilter(wrapper, 'HOSTING')
+    await clickFilter(wrapper, '我建立的')
     expect(wrapper.findAll('.activity-mini-card')).toHaveLength(1)
   })
 
@@ -109,7 +110,7 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
     const wrapper = await mountActivityView()
     await flushPromises()
 
-    await clickFilter(wrapper, 'JOINED')
+    await clickFilter(wrapper, '已報名')
     const cards = wrapper.findAll('.activity-mini-card')
     expect(cards).toHaveLength(2)
   })
@@ -139,7 +140,7 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
     const wrapper = await mountActivityView()
     await flushPromises()
 
-    await clickFilter(wrapper, 'CONFIRMED')
+    await clickFilter(wrapper, '已成團')
     expect(wrapper.findAll('.activity-mini-card')).toHaveLength(2)
   })
 
@@ -168,12 +169,23 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
     const wrapper = await mountActivityView()
     await flushPromises()
 
-    await clickFilter(wrapper, 'HOSTING')
+    await clickFilter(wrapper, '我建立的')
     expect(wrapper.findAll('.activity-mini-card')).toHaveLength(2)
   })
 })
 
 describe('ActivityView - focus query 聚焦指定活動', () => {
+  test('底部活動小卡保留完整 title 屬性供 hover 或輔助工具讀取', async () => {
+    const longTitle = '嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨'
+    stubFetch([makeActivity({ title: longTitle })])
+    const wrapper = await mountActivityView()
+    await flushPromises()
+
+    const title = wrapper.find('.activity-mini-card h2')
+    expect(title.attributes('title')).toBe(longTitle)
+    expect(title.text()).toBe('嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨...')
+  })
+
   test('掛載於 /activity?focus=<id> 時 featured 為該活動且 modal 收到正確 activity-id', async () => {
     const activities = [
       makeActivity({ id: 'act-1' }),

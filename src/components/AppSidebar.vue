@@ -16,6 +16,7 @@
           v-for="item in navItems"
           :key="item.label"
           :to="item.to"
+          :data-tour="`nav-${item.key}`"
           class="bujo-sidebar-link group"
           :class="{
             'is-active': route.path === item.to,
@@ -29,7 +30,7 @@
             <span
               v-if="item.key === 'alerts' && notificationStore.unreadCount > 0"
               class="bujo-nav-badge"
-              aria-label="未讀通知數"
+              :aria-label="t('sidebar.ariaUnreadCount')"
             >
               {{ alertBadgeText }}
             </span>
@@ -41,9 +42,14 @@
 
     <!-- 下半：篩選 + 用戶 -->
     <div class="flex flex-col gap-5">
+      <!-- 新手導覽問號：固定在 CALENDAR FILTER 那條線上面，靠左對齊 -->
+      <div class="flex justify-start">
+        <AppTourHelpButton @click="emit('open-tour')" />
+      </div>
+
       <!-- 篩選按鈕 -->
       <div v-if="isCalendarPage" class="bujo-sidebar-filter whitespace-nowrap">
-        <div class="bujo-sidebar-filter-title">CALENDAR FILTER</div>
+        <div class="bujo-sidebar-filter-title">{{ t('sidebar.filterTitle') }}</div>
         <button
           v-for="item in filterItems"
           :key="item.key"
@@ -60,32 +66,35 @@
       <button
         type="button"
         class="bujo-sidebar-profile whitespace-nowrap"
-        aria-label="開啟側邊欄個人帳號"
+        data-tour="nav-profile"
+        :aria-label="t('sidebar.ariaOpenProfile')"
         @click="showProfileModal = true"
       >
         <img
           v-if="userAvatarSrc"
           :src="userAvatarSrc"
-          :alt="authStore.user?.display_name || 'Me'"
+          :alt="authStore.user?.display_name || t('sidebar.meFallback')"
           class="w-8 h-8 object-cover shrink-0"
         />
         <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
-        <span>ME</span>
+        <span>{{ authStore.user?.display_name || 'ME' }}</span>
       </button>
     </div>
   </aside>
 
   <!-- 手機版底部導覽列 + 篩選抽屜 -->
   <div class="md:hidden">
+    <!-- 新手導覽問號：手機版沒有側邊欄可以嵌，浮在畫面右上角 -->
+    <AppTourHelpButton floating @click="emit('open-tour')" />
     <!-- 篩選抽屜 -->
     <div v-if="isCalendarPage && drawerOpen" class="bujo-mobile-filter-tray">
       <div class="bujo-mobile-filter-header">
-        <span>CALENDAR FILTER</span>
+        <span>{{ t('sidebar.filterTitle') }}</span>
         <button
           type="button"
           class="bujo-mobile-filter-close"
           @click="drawerOpen = false"
-          aria-label="收合篩選"
+          :aria-label="t('sidebar.ariaCloseFilter')"
         >
           ▾
         </button>
@@ -112,7 +121,7 @@
         @click="drawerOpen = !drawerOpen"
         class="bujo-mobile-filter-toggle"
         :class="{ 'is-open': drawerOpen }"
-        :aria-label="drawerOpen ? '收合篩選' : '展開篩選'"
+        :aria-label="drawerOpen ? t('sidebar.ariaCloseFilter') : t('sidebar.ariaOpenFilter')"
       >
         {{ drawerOpen ? '▾' : '▴' }}
       </button>
@@ -121,6 +130,7 @@
         v-for="item in navItems"
         :key="item.label"
         :to="item.to"
+        :data-tour="`nav-${item.key}`"
         class="bujo-mobile-nav-link"
         :class="{ 'is-active': route.path === item.to }"
         @click="drawerOpen = false"
@@ -133,7 +143,7 @@
           <span
             v-if="item.key === 'alerts' && notificationStore.unreadCount > 0"
             class="bujo-nav-badge"
-            aria-label="未讀通知數"
+            :aria-label="t('sidebar.ariaUnreadCount')"
           >
             {{ alertBadgeText }}
           </span>
@@ -143,15 +153,16 @@
       <button
         type="button"
         class="bujo-mobile-profile"
+        data-tour="nav-profile"
         :class="{ 'btn-bounce-green': profileBtnBouncing }"
         @click="profileBtnBouncing = true"
         @animationend="onProfileAnimEnd"
-        aria-label="開啟個人帳號"
+        :aria-label="t('sidebar.ariaMobileProfile')"
       >
         <img
           v-if="userAvatarSrc"
           :src="userAvatarSrc"
-          :alt="authStore.user?.display_name || 'Me'"
+          :alt="authStore.user?.display_name || t('sidebar.meFallback')"
           class="w-full h-full object-cover"
         />
         <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
@@ -168,6 +179,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import {
   CalendarDaysIcon,
@@ -180,14 +192,16 @@ import { useNotificationStore } from '@/stores/notificationStore'
 import bujoLogoUrl from '@/assets/bujo-logo.svg'
 import { toAvatarSrc } from '@/utils/avatar'
 import ProfileAccountModal from './ProfileAccountModal.vue'
+import AppTourHelpButton from './AppTourHelpButton.vue'
 
 defineProps({ isOpen: Boolean, filters: Object })
-const emit = defineEmits(['toggle-filter'])
+const emit = defineEmits(['toggle-filter', 'open-tour'])
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
+const { t } = useI18n()
 const isCalendarPage = computed(() => route.path === '/calendar')
 const userAvatarSrc = computed(() => toAvatarSrc(authStore.user?.avatar_url))
 
@@ -222,42 +236,45 @@ const drawerOpen = ref(false)
 const profileBtnBouncing = ref(false)
 const showProfileModal = ref(false)
 
-const navItems = [
+const navItems = computed(() => [
   {
     key: 'calendar',
-    label: 'CALENDAR',
+    label: t('sidebar.calendar'),
     to: '/calendar',
     icon: CalendarDaysIcon,
     color: 'var(--bujo-card-pink)',
   },
   {
     key: 'activity',
-    label: 'ACTIVITY',
+    label: t('sidebar.activity'),
     to: '/activity',
     icon: PencilSquareIcon,
     color: 'var(--bujo-card-blue)',
   },
   {
     key: 'friends',
-    label: 'FRIENDS',
+    label: t('sidebar.friends'),
     to: '/friends-page',
     icon: UserGroupIcon,
     color: '#c9b8e8',
   },
   {
     key: 'alerts',
-    label: 'ALERTS',
+    label: t('sidebar.navAlerts'),
     to: '/alerts',
     icon: BellAlertIcon,
     color: 'var(--bujo-accent)',
   },
-]
+])
 
-const filterItems = [
-  { key: 'joined', label: 'JOINING', color: 'var(--bujo-card-blue)' },
-  { key: 'formed', label: 'FORMED', color: 'var(--bujo-accent)' },
-  { key: 'personal', label: 'PERSONAL', color: 'var(--bujo-card-yellow)' },
-]
+const filterItems = computed(() => [
+  { key: 'formedByMe', label: t('sidebar.filterFormedByMe'), color: 'var(--bujo-accent)' },
+  {
+    key: 'formedByOthers',
+    label: t('sidebar.filterFormedByOthers'),
+    color: 'var(--bujo-card-blue)',
+  },
+])
 
 function onProfileAnimEnd() {
   profileBtnBouncing.value = false
@@ -468,7 +485,7 @@ async function handleLogout() {
 
 .bujo-mobile-filter-toggle {
   position: absolute;
-  bottom: calc(100% - 1px);
+  bottom: calc(100% - 13px);
   left: 50%;
   display: grid;
   width: 30px;

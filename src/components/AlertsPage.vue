@@ -1,41 +1,45 @@
 <template>
-  <div class="min-h-screen bg-[var(--bujo-page)] pb-24 text-[var(--bujo-ink)]">
+  <div class="min-h-screen bg-[var(--bujo-page)] text-[var(--bujo-ink)]">
     <header class="alerts-header sticky top-0 z-10 bg-[var(--bujo-page)] px-5 pt-8 pb-4 md:px-14">
-      <p class="alerts-eyebrow">SOCIAL INBOX</p>
+      <p class="alerts-eyebrow">{{ t('alerts.eyebrow') }}</p>
       <div class="alerts-title-line">
-        <h1>ALERTS</h1>
-        <span class="alerts-cn-tag">通知</span>
+        <h1>{{ t('alerts.pageTitle') }}</h1>
+        <span class="alerts-cn-tag">{{ t('alerts.subtitle') }}</span>
       </div>
     </header>
 
     <main class="px-5 pt-2 md:px-14 md:py-4">
       <div class="mb-4 flex items-center justify-between gap-3">
-        <p v-if="isLoading" class="alerts-status-text">通知讀取中...</p>
+        <p v-if="isLoading" class="alerts-status-text">{{ t('alerts.loading') }}</p>
         <p v-else-if="error" class="alerts-status-text alerts-status-text--error">{{ error }}</p>
         <p v-else class="alerts-status-text">{{ summaryText }}</p>
 
         <PixelButton type="button" :disabled="!hasUnread || isLoading" @click="markAllAsRead">
-          全部已讀
+          {{ t('alerts.markAllRead') }}
         </PixelButton>
       </div>
 
-      <div v-if="!isLoading && notifications.length === 0" class="alerts-empty">目前沒有通知</div>
+      <div v-if="!isLoading && notifications.length === 0" class="alerts-empty">
+        {{ t('alerts.empty') }}
+      </div>
 
-      <ul v-else class="flex flex-col gap-3">
+      <ul v-else class="flex flex-col">
         <li
-          v-for="notification in notifications"
+          v-for="(notification, index) in notifications"
           :key="notification.id"
           class="alerts-swipe-shell"
           :class="{
             'alerts-swipe-shell--dismissing': swipeState(notification.id)?.collapsing,
+            'alerts-swipe-shell--entering': initialEntryNotificationIds.has(notification.id),
           }"
+          :style="notificationEntryStyle(notification.id, index)"
           :data-notification-id="notification.id"
         >
           <div
             class="alerts-dismiss-affordance"
             :style="dismissAffordanceStyle(notification.id)"
             role="img"
-            aria-label="移除通知"
+            :aria-label="t('alerts.remove')"
           >
             <div class="alerts-dismiss-icon-wrap">
               <svg
@@ -56,7 +60,7 @@
             </div>
           </div>
 
-          <div class="flex min-w-0 flex-1 flex-col gap-2">
+          <div class="alerts-swipe-content flex min-w-0 flex-1 flex-col gap-2">
             <div
               class="alerts-item"
               :class="{
@@ -67,15 +71,24 @@
               :style="notificationSwipeStyle(notification.id)"
               role="button"
               tabindex="0"
-              @click="handleNotificationClick(notification)"
-              @keydown.enter.prevent="handleNotificationClick(notification)"
-              @keydown.space.prevent="handleNotificationClick(notification)"
+              @click="handleNotificationClick(notification, 'pointer')"
+              @keydown.enter.prevent="handleNotificationClick(notification, 'keyboard')"
+              @keydown.space.prevent="handleNotificationClick(notification, 'keyboard')"
               @pointerdown="startSwipe(notification, $event)"
               @pointermove="moveSwipe(notification, $event)"
               @pointerup="finishSwipe(notification, $event)"
               @pointercancel="cancelSwipe(notification, $event)"
             >
+              <img
+                v-if="notificationAvatarSrc(notification)"
+                class="notification-avatar mt-1"
+                :src="notificationAvatarSrc(notification)"
+                alt=""
+                aria-hidden="true"
+                @error="handleNotificationAvatarError(notification.id)"
+              />
               <div
+                v-else
                 class="notification-icon mt-1"
                 :class="[
                   `notification-icon--${notification.category}`,
@@ -108,7 +121,7 @@
                     :disabled="isActionBusy(notification.id)"
                     @click="handleFriendshipAction(notification, 'accept')"
                   >
-                    接受
+                    {{ t('alerts.accept') }}
                   </button>
                   <button
                     v-if="notification.actions.includes('reject')"
@@ -117,14 +130,41 @@
                     :disabled="isActionBusy(notification.id)"
                     @click="handleFriendshipAction(notification, 'reject')"
                   >
-                    拒絕
+                    {{ t('alerts.reject') }}
                   </button>
                 </div>
               </div>
+
+              <span
+                v-if="!notification.isRead"
+                class="alerts-unread-indicator"
+                aria-hidden="true"
+              ></span>
+
+              <button
+                v-if="canHoverDismiss(notification)"
+                type="button"
+                class="alerts-hover-dismiss"
+                :aria-label="t('alerts.remove')"
+                @pointerdown.stop
+                @keydown.stop
+                @click.stop="dismissNotificationFromButton(notification, $event)"
+              >
+                <svg viewBox="0 0 14 14" fill="none" aria-hidden="true" focusable="false">
+                  <path
+                    d="M3 3l8 8M11 3l-8 8"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
         </li>
       </ul>
+
+      <div class="alerts-bottom-spacer md:hidden" aria-hidden="true"></div>
     </main>
   </div>
 </template>
@@ -134,8 +174,12 @@ import axios from 'axios'
 import { TrashIcon } from '@heroicons/vue/24/outline'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import PixelButton from './ui/PixelButton.vue'
 import { useNotificationStore } from '@/stores/notificationStore'
+import { toAvatarSrc } from '@/utils/avatar'
+
+const { t } = useI18n()
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -150,19 +194,29 @@ const notifications = ref([])
 const isLoading = ref(false)
 const error = ref(null)
 const busyNotificationIds = ref(new Set())
+const initialEntryNotificationIds = ref(new Set())
+const hasLoadedInitialNotifications = ref(false)
+const failedAvatarNotificationIds = ref(new Set())
 const swipeStates = reactive({})
 const activeSwipeId = ref(null)
 
 const SWIPE_LOCK_DISTANCE = 10
 const SWIPE_AXIS_RATIO = 1.25
 const SWIPE_DISMISS_RATIO = 0.65
-const SWIPE_ANIMATION_MS = 220
+const SWIPE_ANIMATION_MS = 540
+const ENTRY_STAGGER_MS = 60
+const ENTRY_STAGGER_MAX_INDEX = 7
+const ACTOR_AVATAR_NOTIFICATION_TYPES = new Set([
+  'friend_request_created',
+  'friend_request_accepted',
+  'activity_created',
+])
 
 const hasUnread = computed(() => notifications.value.some((notification) => !notification.isRead))
 const summaryText = computed(() => {
-  if (notifications.value.length === 0) return '0 則通知'
+  if (notifications.value.length === 0) return t('alerts.notificationCount', { count: 0 })
   const unreadCount = notifications.value.filter((notification) => !notification.isRead).length
-  return unreadCount > 0 ? `${unreadCount} 則未讀` : '已全部讀取'
+  return unreadCount > 0 ? t('alerts.unreadCount', { count: unreadCount }) : t('alerts.allRead')
 })
 
 onMounted(() => {
@@ -175,12 +229,22 @@ async function fetchNotifications() {
 
   try {
     const response = await apiClient.get('/api/notifications')
-    notifications.value = Array.isArray(response.data?.notifications)
+    const nextNotifications = Array.isArray(response.data?.notifications)
       ? response.data.notifications.map(normalizeNotification)
       : []
+    notifications.value = nextNotifications
+
+    if (hasLoadedInitialNotifications.value) {
+      initialEntryNotificationIds.value = new Set()
+    } else {
+      initialEntryNotificationIds.value = new Set(
+        nextNotifications.map((notification) => notification.id),
+      )
+      hasLoadedInitialNotifications.value = true
+    }
   } catch (err) {
     console.error('取得通知失敗:', err)
-    error.value = err.response?.data?.message || '無法取得通知'
+    error.value = err.response?.data?.message || t('alerts.unableToFetch')
     notifications.value = []
   } finally {
     isLoading.value = false
@@ -199,13 +263,17 @@ async function markAsRead(notification) {
     notificationStore.setUnreadCount(notificationStore.unreadCount - 1)
   } catch (err) {
     console.error('標記通知已讀失敗:', err)
-    error.value = err.response?.data?.message || '無法標記已讀'
+    error.value = err.response?.data?.message || t('alerts.unableToMarkRead')
   }
 }
 
-async function handleNotificationClick(notification) {
+async function handleNotificationClick(notification, activationSource) {
   const state = swipeState(notification.id)
-  if (state?.dismissing || (state?.suppressClickUntil || 0) >= performance.now()) return
+  if (state?.dismissing) return
+  if (activationSource === 'pointer' && state?.suppressNextPointerClick) {
+    state.suppressNextPointerClick = false
+    return
+  }
   // markAsRead 自行吞錯（只設 error.value），失敗不阻擋導頁
   await markAsRead(notification)
   const reference = notification.reference
@@ -219,6 +287,10 @@ function canDismiss(notification) {
   return !notification.actions?.some((action) => action === 'accept' || action === 'reject')
 }
 
+function canHoverDismiss(notification) {
+  return Boolean(notification?.isRead && canDismiss(notification))
+}
+
 function swipeState(notificationId) {
   return swipeStates[notificationId]
 }
@@ -226,6 +298,7 @@ function swipeState(notificationId) {
 function createSwipeState() {
   return {
     pointerId: null,
+    pointerType: '',
     startX: 0,
     startY: 0,
     width: 0,
@@ -234,7 +307,7 @@ function createSwipeState() {
     dragging: false,
     dismissing: false,
     collapsing: false,
-    suppressClickUntil: 0,
+    suppressNextPointerClick: false,
   }
 }
 
@@ -244,18 +317,16 @@ function ensureSwipeState(notificationId) {
 }
 
 function startSwipe(notification, event) {
-  if (
-    !canDismiss(notification) ||
-    event.button !== 0 ||
-    (activeSwipeId.value && activeSwipeId.value !== notification.id)
-  ) {
+  if (event.button !== 0 || (activeSwipeId.value && activeSwipeId.value !== notification.id)) {
     return
   }
 
   const state = ensureSwipeState(notification.id)
-  if (state.dismissing) return
+  state.suppressNextPointerClick = false
+  if (!canDismiss(notification) || state.dismissing) return
 
   state.pointerId = event.pointerId
+  state.pointerType = event.pointerType || ''
   state.startX = event.clientX
   state.startY = event.clientY
   state.width = event.currentTarget.clientWidth
@@ -281,7 +352,7 @@ function moveSwipe(notification, event) {
     if (absoluteX >= absoluteY * SWIPE_AXIS_RATIO) {
       state.axis = 'horizontal'
       state.dragging = true
-      state.suppressClickUntil = performance.now() + 250
+      state.suppressNextPointerClick = true
     } else {
       state.axis = 'vertical'
       state.offset = 0
@@ -292,6 +363,10 @@ function moveSwipe(notification, event) {
   if (state.axis !== 'horizontal') return
 
   event.preventDefault()
+  if (state.pointerType !== 'touch') {
+    state.offset = 0
+    return
+  }
   state.offset = Math.max(-state.width, Math.min(0, deltaX))
 }
 
@@ -303,8 +378,12 @@ function finishSwipe(notification, event) {
   state.pointerId = null
   activeSwipeId.value = null
 
-  if (state.axis === 'horizontal' && Math.abs(state.offset) >= state.width * SWIPE_DISMISS_RATIO) {
-    void dismissNotification(notification, state)
+  if (
+    state.pointerType === 'touch' &&
+    state.axis === 'horizontal' &&
+    Math.abs(state.offset) >= state.width * SWIPE_DISMISS_RATIO
+  ) {
+    void dismissNotification(notification, state, 'swipe')
     return
   }
 
@@ -322,6 +401,7 @@ function cancelSwipe(notification, event) {
 
 function resetSwipeState(state) {
   state.pointerId = null
+  state.pointerType = ''
   state.offset = 0
   state.axis = 'pending'
   state.dragging = false
@@ -332,6 +412,14 @@ function resetSwipeState(state) {
 function notificationSwipeStyle(notificationId) {
   const state = swipeState(notificationId)
   return { transform: `translateX(${state?.offset || 0}px)` }
+}
+
+function notificationEntryStyle(notificationId, index) {
+  if (!initialEntryNotificationIds.value.has(notificationId)) return undefined
+
+  return {
+    '--alerts-enter-delay': `${Math.min(index, ENTRY_STAGGER_MAX_INDEX) * ENTRY_STAGGER_MS}ms`,
+  }
 }
 
 function dismissAffordanceStyle(notificationId) {
@@ -349,11 +437,11 @@ function dismissProgress(notificationId) {
   return dismissDistance > 0 ? Math.min(1, Math.abs(state?.offset || 0) / dismissDistance) : 0
 }
 
-async function dismissNotification(notification, state) {
+async function dismissNotification(notification, state, visualMode) {
   state.dragging = false
   state.dismissing = true
   state.collapsing = true
-  state.offset = -state.width
+  state.offset = visualMode === 'swipe' ? -state.width : 0
   error.value = null
 
   try {
@@ -369,8 +457,18 @@ async function dismissNotification(notification, state) {
   } catch (err) {
     console.error('移除通知失敗:', err)
     resetSwipeState(state)
-    error.value = '無法移除通知'
+    error.value = t('alerts.unableToDismiss')
   }
+}
+
+function dismissNotificationFromButton(notification, event) {
+  if (!canHoverDismiss(notification)) return
+
+  const state = ensureSwipeState(notification.id)
+  if (state.dismissing) return
+
+  state.width = event.currentTarget.closest('.alerts-item')?.clientWidth || 0
+  void dismissNotification(notification, state, 'collapse')
 }
 
 function waitForSwipeAnimation() {
@@ -389,7 +487,7 @@ async function markAllAsRead() {
     notificationStore.setUnreadCount(0)
   } catch (err) {
     console.error('全部已讀失敗:', err)
-    error.value = err.response?.data?.message || '無法全部已讀'
+    error.value = err.response?.data?.message || t('alerts.unableToMarkAllRead')
   }
 }
 
@@ -406,7 +504,7 @@ async function handleFriendshipAction(notification, action) {
     await fetchNotifications()
   } catch (err) {
     console.error('處理好友邀請失敗:', err)
-    error.value = err.response?.data?.message || '無法處理好友邀請'
+    error.value = err.response?.data?.message || t('alerts.unableToProcessInvite')
   } finally {
     setActionBusy(notification.id, false)
   }
@@ -417,13 +515,44 @@ function normalizeNotification(notification) {
     id: String(notification.id),
     type: String(notification.type || ''),
     category: notification.category || 'general',
-    message: notification.message || '你有一則新通知',
+    message: notification.message || t('alerts.newNotification'),
     timeText: notification.timeText || '',
     isRead: Boolean(notification.isRead),
     createdAt: notification.createdAt || null,
     reference: notification.reference || null,
     actions: Array.isArray(notification.actions) ? notification.actions : [],
+    actor: normalizeNotificationActor(notification.actor),
   }
+}
+
+function normalizeNotificationActor(actor) {
+  if (
+    !actor ||
+    typeof actor !== 'object' ||
+    Array.isArray(actor) ||
+    typeof actor.id !== 'string' ||
+    typeof actor.displayName !== 'string'
+  ) {
+    return null
+  }
+
+  return {
+    id: actor.id,
+    displayName: actor.displayName,
+    avatarUrl: typeof actor.avatarUrl === 'string' ? actor.avatarUrl : null,
+  }
+}
+
+function notificationAvatarSrc(notification) {
+  if (!ACTOR_AVATAR_NOTIFICATION_TYPES.has(notification.type)) return ''
+  if (failedAvatarNotificationIds.value.has(notification.id)) return ''
+  return toAvatarSrc(notification.actor?.avatarUrl)
+}
+
+function handleNotificationAvatarError(notificationId) {
+  const next = new Set(failedAvatarNotificationIds.value)
+  next.add(notificationId)
+  failedAvatarNotificationIds.value = next
 }
 
 function isActionBusy(notificationId) {
@@ -442,8 +571,13 @@ function setActionBusy(notificationId, isBusy) {
 </script>
 
 <style scoped>
+.alerts-bottom-spacer {
+  height: calc(5rem + env(safe-area-inset-bottom, 0px));
+}
+
 .alerts-eyebrow {
   margin: 0 0 2px;
+  padding-bottom: 6px;
   color: var(--bujo-muted-strong);
   font-family: 'Space Mono', monospace;
   font-size: 11px;
@@ -481,7 +615,7 @@ function setActionBusy(notificationId, isBusy) {
 }
 
 .alerts-status-text--error {
-  color: #dc2626;
+  color: var(--bujo-danger);
 }
 
 .alerts-empty {
@@ -498,11 +632,12 @@ function setActionBusy(notificationId, isBusy) {
   align-items: flex-start;
   gap: 12px;
   border: 1px solid var(--bujo-line);
+  border-radius: 0;
   background: var(--bujo-surface);
   padding: 12px;
   transition:
-    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    border-color 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .alerts-item:has(.alerts-inline-btn) {
@@ -511,13 +646,44 @@ function setActionBusy(notificationId, isBusy) {
 
 .alerts-swipe-shell {
   position: relative;
-  max-height: 320px;
+  display: grid;
+  grid-template-rows: 1fr;
+  margin-bottom: 12px;
   overflow: hidden;
-  transition: max-height 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition:
+    grid-template-rows 500ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    margin-bottom 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.alerts-swipe-shell:last-child {
+  margin-bottom: 0;
+}
+
+.alerts-swipe-content {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .alerts-swipe-shell--dismissing {
-  max-height: 0;
+  grid-template-rows: 0fr;
+  margin-bottom: 0;
+}
+
+.alerts-swipe-shell--entering {
+  animation: alerts-notification-enter 400ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--alerts-enter-delay, 0ms);
+}
+
+@keyframes alerts-notification-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .alerts-dismiss-affordance {
@@ -584,17 +750,32 @@ function setActionBusy(notificationId, isBusy) {
 }
 
 .alerts-item--unread {
+  border-color: color-mix(in srgb, var(--bujo-accent) 70%, var(--bujo-line));
   border-left: 3px solid var(--bujo-accent);
+  background: color-mix(in srgb, var(--bujo-accent) 18%, var(--bujo-surface));
   padding-left: 10px;
+}
+
+.alerts-item--unread:hover {
+  border-color: var(--bujo-accent);
+  background: color-mix(in srgb, var(--bujo-accent) 24%, var(--bujo-surface));
 }
 
 .alerts-message {
   margin: 0;
-  color: var(--bujo-ink);
+  color: var(--bujo-muted-strong);
   font-family: var(--bujo-font-body);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.4;
+  transition:
+    color 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    font-weight 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.alerts-item--unread .alerts-message {
+  color: var(--bujo-ink);
+  font-weight: 700;
 }
 
 .alerts-time {
@@ -647,6 +828,20 @@ function setActionBusy(notificationId, isBusy) {
   border: 1px solid var(--bujo-line);
   background: var(--bujo-surface-muted);
   color: var(--bujo-ink);
+  transition:
+    border-color 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.notification-avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border: 1px solid var(--bujo-line);
+  border-radius: 0;
+  background: var(--bujo-surface-muted);
+  object-fit: cover;
 }
 
 .notification-icon::before {
@@ -677,9 +872,98 @@ function setActionBusy(notificationId, isBusy) {
   border-color: var(--bujo-line-soft);
 }
 
+.alerts-item--unread .notification-icon {
+  border-color: var(--bujo-accent);
+  background: color-mix(in srgb, var(--bujo-accent) 24%, var(--bujo-surface));
+  color: color-mix(in srgb, var(--bujo-accent), var(--bujo-ink) 45%);
+}
+
+.alerts-unread-indicator {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  align-self: center;
+  margin-right: 8px;
+  border-radius: 0;
+  background: var(--bujo-accent);
+  animation: alerts-unread-pulse 2.4s ease-in-out infinite;
+}
+
+.alerts-hover-dismiss {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .alerts-hover-dismiss {
+    display: flex;
+    width: 32px;
+    height: 32px;
+    flex: none;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #98968a;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease,
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+
+  .alerts-hover-dismiss svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .alerts-item:hover .alerts-hover-dismiss,
+  .alerts-item:focus-within .alerts-hover-dismiss,
+  .alerts-hover-dismiss:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .alerts-hover-dismiss:hover,
+  .alerts-hover-dismiss:focus-visible {
+    background: rgba(196, 64, 52, 0.12);
+    color: #c44034;
+  }
+}
+
+@keyframes alerts-unread-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .alerts-swipe-shell--entering {
+    animation: none;
+  }
+
   .alerts-swipe-shell,
   .alerts-item {
+    transition-duration: 1ms;
+  }
+
+  .alerts-unread-indicator {
+    animation: none;
+  }
+
+  .alerts-hover-dismiss {
+    transform: none;
     transition-duration: 1ms;
   }
 }

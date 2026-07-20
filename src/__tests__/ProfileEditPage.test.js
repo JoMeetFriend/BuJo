@@ -4,6 +4,8 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import ProfileEditPage from '@/components/ProfileEditPage.vue'
 import { useAuthStore } from '@/stores/auth'
+import profileEditPageSource from '@/components/ProfileEditPage.vue?raw'
+import { createTestI18n } from './testUtils'
 
 const baseUser = {
   display_name: 'Test A',
@@ -34,7 +36,7 @@ async function selectAvatarFile(wrapper, file) {
   await flushPromises()
 }
 
-async function mountProfileEditPage(user = {}) {
+async function mountProfileEditPage(user = {}, path = '/profile/edit') {
   const pinia = createPinia()
   setActivePinia(pinia)
   const authStore = useAuthStore()
@@ -46,16 +48,17 @@ async function mountProfileEditPage(user = {}) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
-      { path: '/profile/edit', component: ProfileEditPage },
+      { path: '/profile/edit', name: 'profile-edit', component: ProfileEditPage },
+      { path: '/calendar', component: { template: '<div>Calendar</div>' } },
       { path: '/login', component: { template: '<div>Login</div>' } },
     ],
   })
-  await router.push('/profile/edit')
+  await router.push(path)
   await router.isReady()
 
   const wrapper = mount(ProfileEditPage, {
     global: {
-      plugins: [pinia, router],
+      plugins: [pinia, router, createTestI18n()],
     },
   })
   await flushPromises()
@@ -64,6 +67,8 @@ async function mountProfileEditPage(user = {}) {
 
 beforeEach(() => {
   vi.restoreAllMocks()
+  localStorage.clear()
+  sessionStorage.clear()
   globalThis.fetch = vi.fn()
   stubClipboard()
   window.google = {
@@ -89,6 +94,13 @@ describe('ProfileEditPage', () => {
     expect(wrapper.text()).toContain('儲存變更')
     expect(wrapper.text()).toContain('已連接的登入方式')
     expect(wrapper.get('[aria-label="登出目前帳號"]').text()).toBe('登出')
+  })
+
+  test('一般登入沒有頭像時顯示預設像素頭像', async () => {
+    const wrapper = await mountProfileEditPage({ avatar_url: '' })
+
+    expect(wrapper.find('img[alt="使用者頭像"]').exists()).toBe(false)
+    expect(wrapper.get('[aria-label="預設使用者頭像"]').classes()).toContain('profile-edit-face')
   })
 
   test('優先使用 uid 後五碼，沒有 uid 時 fallback 到 id 後五碼', async () => {
@@ -135,6 +147,121 @@ describe('ProfileEditPage', () => {
     expect(wrapper.text()).toContain('test@example.com')
   })
 
+  test('未連接 LINE 時同時提供唯一綁定入口與官方帳號 QR Code', async () => {
+    const wrapper = await mountProfileEditPage()
+    const settings = wrapper.get('[data-testid="line-notification-settings"]')
+    const sectionHeadings = wrapper.findAll('h2').map((heading) => heading.text())
+
+    expect(sectionHeadings).not.toContain('LINE 通知')
+    expect(settings.text()).toContain('尚未連接 LINE 帳號')
+    expect(settings.text()).toContain('接收 LINE 揪團提醒')
+    expect(settings.text()).toContain(
+      '先連接上方的 LINE 帳號，再掃 QR Code 加入 BuJo LINE 官方帳號，就能收到揪團提醒',
+    )
+    expect(settings.find('[data-testid="line-official-account-entry"]').exists()).toBe(true)
+    expect(settings.find('[data-testid="line-official-account-qr"]').exists()).toBe(true)
+    expect(settings.findAll('[aria-label="連接 LINE"]')).toHaveLength(1)
+    expect(settings.get('[aria-label="連接 LINE"]').text()).toBe('連接')
+    expect(profileEditPageSource).toContain('/api/auth/line/link')
+  })
+
+  test('已連接 LINE 時同一區塊提供解除連接與官方帳號入口', async () => {
+    const wrapper = await mountProfileEditPage({
+      identities: [...baseUser.identities, { provider: 'line', email: null }],
+    })
+    const settings = wrapper.get('[data-testid="line-notification-settings"]')
+
+    expect(settings.text()).toContain('已連接')
+    expect(settings.text()).toContain('接收 LINE 揪團提醒')
+    expect(settings.text()).toContain('加入或解除封鎖 BuJo LINE 官方帳號')
+    expect(settings.find('[aria-label="連接 LINE"]').exists()).toBe(false)
+    expect(settings.get('[aria-label="解除 LINE 連接"]').text()).toBe('解除連接')
+    expect(settings.find('[data-testid="line-official-account-entry"]').exists()).toBe(true)
+    expect(settings.text()).not.toContain('已加入官方帳號')
+    expect(settings.text()).not.toContain('推播已開啟')
+  })
+
+  test('onboarding 已看過仍保留 LINE 通知設定入口', async () => {
+    localStorage.setItem('bujo:line-notification-guide:v1:legacy-11111', 'seen')
+
+    const wrapper = await mountProfileEditPage()
+
+    expect(wrapper.find('[data-testid="line-notification-settings"]').exists()).toBe(true)
+  })
+
+  test('onboarding 的 LINE callback 成功後回到原頁，讓完成步驟繼續顯示', async () => {
+    sessionStorage.setItem('bujo:line-notification-guide:return-path', '/calendar')
+    fetch.mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({
+        user: {
+          ...baseUser,
+          identities: [...baseUser.identities, { provider: 'line', email: null }],
+        },
+      }),
+    })
+
+    const wrapper = await mountProfileEditPage({}, '/profile/edit?linked=line')
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/auth/me'),
+      expect.objectContaining({
+        credentials: 'include',
+        signal: expect.any(AbortSignal),
+      }),
+    )
+    expect(wrapper.vm.$router.currentRoute.value.path).toBe('/calendar')
+    expect(sessionStorage.getItem('bujo:line-notification-guide:return-path')).toBeNull()
+    expect(localStorage.getItem('bujo:line-notification-guide:v1:legacy-11111')).toBeNull()
+  })
+
+  test('LINE callback 回到個人編輯頁時仍初始化 Google 連接功能', async () => {
+    sessionStorage.setItem('bujo:line-notification-guide:return-path', '/profile/edit')
+    fetch.mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({
+        user: {
+          ...baseUser,
+          identities: [...baseUser.identities, { provider: 'line', email: null }],
+        },
+      }),
+    })
+
+    const wrapper = await mountProfileEditPage({}, '/profile/edit?linked=line')
+
+    expect(wrapper.vm.$router.currentRoute.value.fullPath).toBe('/profile/edit')
+    expect(window.google.accounts.id.initialize).toHaveBeenCalledTimes(1)
+    expect(sessionStorage.getItem('bujo:line-notification-guide:return-path')).toBeNull()
+  })
+
+  test.each(['line_link_cancelled', 'line_link_failed'])(
+    'LINE callback 回傳 %s 時清除暫存路徑並回到原頁',
+    async (error) => {
+      sessionStorage.setItem('bujo:line-notification-guide:return-path', '/calendar')
+
+      const wrapper = await mountProfileEditPage({}, `/profile/edit?error=${error}`)
+
+      expect(wrapper.vm.$router.currentRoute.value.path).toBe('/calendar')
+      expect(sessionStorage.getItem('bujo:line-notification-guide:return-path')).toBeNull()
+      expect(fetch).not.toHaveBeenCalled()
+    },
+  )
+
+  test('整合後的 LINE 設定沿用方角線框與鍵盤 focus 樣式', async () => {
+    const wrapper = await mountProfileEditPage()
+    const linkButton = wrapper.get('[aria-label="連接 LINE"]')
+
+    expect(linkButton.attributes('type')).toBe('button')
+    document.body.appendChild(wrapper.element)
+    linkButton.element.focus()
+    expect(document.activeElement).toBe(linkButton.element)
+    expect(profileEditPageSource).toContain('.profile-line-account__notification')
+    expect(profileEditPageSource).toContain('border-top: 1px solid var(--bujo-line-soft)')
+    expect(profileEditPageSource).toContain('.profile-link-btn:focus-visible')
+
+    wrapper.unmount()
+  })
+
   test('初始相對頭像路徑會補上 API base URL', async () => {
     const wrapper = await mountProfileEditPage({
       avatar_url: '/uploads/avatars/avatar-user.png',
@@ -143,6 +270,7 @@ describe('ProfileEditPage', () => {
     expect(wrapper.get('img[alt="使用者頭像"]').attributes('src')).toBe(
       'http://localhost:3000/uploads/avatars/avatar-user.png',
     )
+    expect(wrapper.find('[aria-label="預設使用者頭像"]').exists()).toBe(false)
   })
 
   test('更換頭像會用 FormData 上傳並更新目前登入者頭像', async () => {
@@ -177,6 +305,7 @@ describe('ProfileEditPage', () => {
     expect(wrapper.find('img[alt="使用者頭像"]').attributes('src')).toContain(
       '/uploads/avatars/avatar-user-1.png',
     )
+    expect(wrapper.find('[aria-label="預設使用者頭像"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('頭像已更新')
   })
 

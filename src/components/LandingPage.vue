@@ -27,8 +27,13 @@
           <img :src="bujoLogoUrl" alt="BuJo" class="landing-topbar-logo" />
         </div>
         <nav class="landing-topbar-actions">
-          <RouterLink to="/login" class="landing-link">登入</RouterLink>
-          <RouterLink to="/register" class="landing-cta-pill">免費註冊</RouterLink>
+          <button class="landing-lang-toggle" @click="toggleLanguage">
+            {{ locale === 'zh-TW' ? t('common.langEn') : t('common.langZhTw') }}
+          </button>
+          <RouterLink to="/login" class="landing-link">{{ t('landing.navLogin') }}</RouterLink>
+          <RouterLink to="/register" class="landing-cta-pill">{{
+            t('landing.navRegister')
+          }}</RouterLink>
         </nav>
       </div>
     </header>
@@ -37,18 +42,17 @@
       <!-- Hero -->
       <section class="landing-hero">
         <div class="landing-hero-copy">
-          <p class="landing-eyebrow">WELCOME TO BUJO</p>
+          <p class="landing-eyebrow">{{ t('landing.heroEyebrow') }}</p>
           <h1 class="landing-title">BuJo</h1>
           <p class="landing-tagline">
-            把在乎的人留在身邊，<br />
-            輕輕推一把，讓今天動起來 <span aria-hidden="true">▶</span>
+            {{ t('landing.heroTagline') }} <span aria-hidden="true">▶</span>
           </p>
           <div class="landing-hero-actions">
             <RouterLink to="/register" class="landing-btn landing-btn--primary">
-              開始使用 <span aria-hidden="true">→</span>
+              {{ t('landing.ctaStart') }} <span aria-hidden="true">→</span>
             </RouterLink>
             <RouterLink to="/login" class="landing-btn landing-btn--outline">
-              探索行事曆
+              {{ t('landing.ctaLearnMore') }}
             </RouterLink>
           </div>
         </div>
@@ -83,10 +87,12 @@
       </section>
 
       <!-- Bento grid -->
-      <section class="landing-bento" aria-label="BuJo 功能一覽">
+      <section class="landing-bento" :aria-label="t('landing.bentoAria')">
         <article class="landing-card landing-card--note landing-card--green">
           <span class="landing-tape landing-tape--top"></span>
-          <p class="landing-card-title">BUJO IS FOR <span aria-hidden="true">♥</span></p>
+          <p class="landing-card-title">
+            {{ t('landing.bentoBujoIsFor') }} <span aria-hidden="true">♥</span>
+          </p>
           <ul class="landing-checklist">
             <li v-for="item in bujoIsFor" :key="item">
               <span aria-hidden="true">☐</span>{{ item }}
@@ -101,22 +107,22 @@
           <div class="landing-cal-paper">
             <div class="landing-cal-header">
               <div class="landing-cal-heading">
-                <p class="landing-cal-eyebrow">SOCIAL INBOX CALENDAR</p>
+                <p class="landing-cal-eyebrow">{{ t('landing.bentoCalendarEyebrow') }}</p>
                 <div class="landing-cal-title-line">
                   <h3>{{ monthNameUpper }}</h3>
                   <span class="landing-cal-year">{{ currentYear }}</span>
                 </div>
-                <p class="landing-cal-caption">( social index / small plans )</p>
+                <p class="landing-cal-caption">{{ t('landing.bentoCalendarCaption') }}</p>
               </div>
               <div class="landing-cal-actions" aria-hidden="true">
                 <span class="landing-cal-arrow">&lt;</span>
                 <span class="landing-cal-arrow">&gt;</span>
-                <span class="landing-cal-create">＋ CREATE</span>
+                <span class="landing-cal-create">{{ t('landing.bentoCalendarCreate') }}</span>
               </div>
             </div>
 
             <div class="landing-cal-weekrow">
-              <span v-for="wd in weekdayLabelsZh" :key="wd">{{ wd }}</span>
+              <span v-for="wd in weekdayLabels" :key="wd">{{ wd }}</span>
             </div>
 
             <div class="landing-cal-grid">
@@ -146,19 +152,19 @@
         </article>
 
         <article class="landing-card landing-card--note landing-card--blue">
-          <p class="landing-card-title">TODAY'S NUDGE</p>
-          <p class="landing-nudge-text">你跟 Bob 約了晚上 7 點的計畫，別忘了邀請 Alice！</p>
+          <p class="landing-card-title">{{ t('landing.bentoTodaysNudge') }}</p>
+          <p class="landing-nudge-text">{{ t('landing.bentoNudge') }}</p>
           <span class="landing-nudge-icon" aria-hidden="true">✦</span>
         </article>
 
         <article class="landing-card landing-card--photo landing-card--photo-dusk">
           <span class="landing-photo-grain" aria-hidden="true"></span>
-          <span class="landing-photo-caption">slow afternoon</span>
+          <span class="landing-photo-caption">{{ t('landing.bentoPhotoDusk') }}</span>
         </article>
 
         <article class="landing-card landing-card--note landing-card--tan">
           <span class="landing-tape landing-tape--top"></span>
-          <p class="landing-card-title">CREATE IN SECONDS</p>
+          <p class="landing-card-title">{{ t('landing.bentoCreateInSecondsTitle') }}</p>
           <ul class="landing-checklist">
             <li v-for="item in createInSeconds" :key="item">
               <span aria-hidden="true">☐</span>{{ item }}
@@ -167,16 +173,15 @@
         </article>
 
         <article class="landing-card landing-card--note landing-card--purple">
-          <p class="landing-card-title">WHY BUJO?</p>
+          <p class="landing-card-title">{{ t('landing.bentoWhyBujoTitle') }}</p>
           <p class="landing-nudge-text">
-            因為最好的時光，<br />
-            是有人一起才更有意義。
+            {{ t('landing.bentoWhyBujo') }}
           </p>
         </article>
 
         <article class="landing-card landing-card--photo landing-card--photo-coffee">
           <span class="landing-photo-grain" aria-hidden="true"></span>
-          <span class="landing-photo-caption">coffee &amp; plans</span>
+          <span class="landing-photo-caption">{{ t('landing.bentoPhotoCoffee') }}</span>
         </article>
       </section>
 
@@ -195,7 +200,7 @@
       <!-- Quote banner -->
       <section class="landing-quote">
         <span class="landing-quote-mark" aria-hidden="true">&ldquo;</span>
-        <p class="landing-quote-text">不揪喔～說完，你就揪到了 <span aria-hidden="true">♥</span></p>
+        <p class="landing-quote-text">{{ t('landing.quote') }} <span aria-hidden="true">♥</span></p>
       </section>
     </main>
 
@@ -203,7 +208,9 @@
       <div class="landing-footer-brand">
         <img :src="bujoMarkUrl" alt="" class="landing-brand-mark landing-brand-mark--small" />
         <img :src="bujoLogoUrl" alt="BuJo" class="landing-footer-logo" />
-        <p class="landing-footer-copy">&copy; {{ currentYear }} BuJo.揪團啦~。</p>
+        <p class="landing-footer-copy">
+          {{ t('landing.footerCopyright', { year: currentYear }) }}
+        </p>
       </div>
 
       <a
@@ -212,9 +219,9 @@
         rel="noopener noreferrer"
         class="landing-footer-line"
       >
-        <img :src="lineQrUrl" alt="掃描加入 BuJo LINE 官方帳號" class="landing-footer-qr" />
+        <img :src="lineQrUrl" :alt="t('landing.qrAlt')" class="landing-footer-qr" />
         <span class="landing-footer-line-text">
-          <strong>加入官方 LINE</strong>
+          <strong>{{ t('landing.footerLineCta') }}</strong>
           <span>@626mzgfu</span>
         </span>
       </a>
@@ -225,6 +232,8 @@
 <script setup>
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { useLocaleStore } from '@/stores/locale'
 import {
   CalendarDaysIcon,
   BellAlertIcon,
@@ -234,6 +243,14 @@ import {
 import bujoLogoUrl from '@/assets/bujo-logo.svg'
 import bujoMarkUrl from '@/assets/bujo-mark.png'
 import lineQrUrl from '@/assets/line-qrcode.svg'
+
+const { t, locale } = useI18n()
+const localeStore = useLocaleStore()
+
+function toggleLanguage() {
+  const newLocale = locale.value === 'zh-TW' ? 'en' : 'zh-TW'
+  localeStore.setLocale(newLocale, { global: { locale } })
+}
 
 const lineOfficialUrl = 'https://line.me/R/ti/p/@626mzgfu?ts=07131855&oat_content=url'
 
@@ -258,37 +275,56 @@ const confetti = [
   { type: 'dot', top: '96%', left: '40%', size: 6, color: 'green' },
 ]
 
-const weekdayLabelsZh = ['一', '二', '三', '四', '五', '六', '日']
+const weekdayLabels = computed(() => [
+  t('landing.weekdayMon'),
+  t('landing.weekdayTue'),
+  t('landing.weekdayWed'),
+  t('landing.weekdayThu'),
+  t('landing.weekdayFri'),
+  t('landing.weekdaySat'),
+  t('landing.weekdaySun'),
+])
 
-const bujoIsFor = ['small plans', 'social calendar', 'reminders', 'close friends', 'easy creation']
-const createInSeconds = ['選時間', '選地點', '邀朋友', '完成！']
+const bujoIsFor = computed(() => [
+  t('landing.bujoIsForItems.0'),
+  t('landing.bujoIsForItems.1'),
+  t('landing.bujoIsForItems.2'),
+  t('landing.bujoIsForItems.3'),
+  t('landing.bujoIsForItems.4'),
+])
+const createInSeconds = computed(() => [
+  t('landing.bentoCreateInSeconds.pickTime'),
+  t('landing.bentoCreateInSeconds.pickPlace'),
+  t('landing.bentoCreateInSeconds.inviteFriends'),
+  t('landing.bentoCreateInSeconds.done'),
+])
 
-const features = [
+const features = computed(() => [
   {
-    title: 'CALENDAR',
-    desc: '行事曆一眼看清所有的揪團活動。',
+    title: t('landing.featureCalendarLabel'),
+    desc: t('landing.featureCalendarTitle'),
     icon: CalendarDaysIcon,
     color: 'var(--bujo-card-pink)',
   },
   {
-    title: 'ACTIVITY',
-    desc: '花幾分鐘揪團，邀請好友加入。',
+    title: t('landing.featureActivityLabel'),
+    desc: t('landing.featureActivityTitle'),
     icon: PencilSquareIcon,
     color: 'var(--bujo-card-blue)',
   },
   {
-    title: 'FRIENDS',
-    desc: '跟在乎的人一起把日子過得更好。',
+    title: t('landing.featureFriendsLabel'),
+    desc: t('landing.featureFriendsTitle'),
     icon: UserGroupIcon,
     color: 'var(--landing-purple)',
   },
   {
-    title: 'ALERTS',
-    desc: '溫馨提醒，準時參與心儀的活動。',
+    title: t('landing.featureAlertsLabel'),
+    desc: t('landing.featureAlertsTitle'),
     icon: BellAlertIcon,
     color: 'var(--bujo-accent)',
   },
-]
+])
 
 const today = new Date()
 const currentYear = today.getFullYear()
@@ -313,8 +349,8 @@ const calendarWeeks = computed(() => {
 
 const sampleEvents = computed(() => {
   const events = {}
-  if (todayDate + 2 <= daysInMonth) events[todayDate + 2] = '吃晚餐'
-  if (todayDate + 4 <= daysInMonth) events[todayDate + 4] = 'Bob 的看電影'
+  if (todayDate + 2 <= daysInMonth) events[todayDate + 2] = t('landing.sampleDinner')
+  if (todayDate + 4 <= daysInMonth) events[todayDate + 4] = t('landing.sampleMovie')
   return events
 })
 </script>
@@ -323,6 +359,7 @@ const sampleEvents = computed(() => {
 .landing-page {
   --landing-bg: #f6f1e6;
   --landing-ink: #21201b;
+  --landing-ink-dim: #8a857a;
   --landing-muted: #6b6560;
   --landing-border: #ddd6c8;
   --landing-surface: #fdfbf5;
@@ -421,6 +458,22 @@ const sampleEvents = computed(() => {
   display: flex;
   align-items: center;
   gap: 18px;
+}
+
+.landing-lang-toggle {
+  color: var(--landing-ink-dim);
+  font-family: var(--bujo-font-meta);
+  font-size: 13px;
+  font-weight: 600;
+  background: none;
+  border: 1px solid var(--landing-ink-dim);
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+.landing-lang-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .landing-link {
@@ -786,6 +839,7 @@ const sampleEvents = computed(() => {
 
 .landing-cal-eyebrow {
   margin: 0 0 2px;
+  padding-bottom: 4px;
   color: var(--landing-muted);
   font-family: var(--bujo-font-meta);
   font-size: 10px;

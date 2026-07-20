@@ -1,8 +1,10 @@
 <template>
-  <BaseModal :isOpen="isOpen" title="新增好友" @close="handleClose">
+  <BaseModal :isOpen="isOpen" :title="t('friendAdd.title')" @close="handleClose">
     <div class="grid gap-4">
       <label class="grid gap-2" for="friend-search">
-        <span class="text-sm font-semibold text-[var(--bujo-ink)]">搜尋好友</span>
+        <span class="text-sm font-semibold text-[var(--bujo-ink)]">{{
+          t('friendAdd.searchLabel')
+        }}</span>
 
         <input
           id="friend-search"
@@ -10,19 +12,19 @@
           @input="handleInput"
           class="min-h-[44px] w-full border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-4 text-sm leading-none text-[var(--bujo-ink)] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-[var(--bujo-muted)] focus:border-[var(--bujo-accent)] focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
           type="search"
-          placeholder="輸入 BuJo ID 後五碼"
+          :placeholder="t('friendAdd.inputPlaceholder')"
           maxlength="5"
         />
       </label>
 
       <div class="grid gap-2">
         <p class="m-0 text-xs leading-none text-[var(--bujo-muted-strong)]">
-          <span v-if="isSearching">搜尋中...</span>
-          <span v-else-if="error" class="text-[#dc2626]">{{ error }}</span>
-          <span v-else-if="hasSearched && searchResults.length === 0"
-            >查無此人，請確認 ID 是否正確</span
-          >
-          <span v-else-if="searchResults.length > 0">搜尋結果</span>
+          <span v-if="isSearching">{{ t('friendAdd.searching') }}</span>
+          <span v-else-if="error" class="text-[var(--bujo-danger)]">{{ error }}</span>
+          <span v-else-if="hasSearched && searchResults.length === 0">{{
+            t('friendAdd.notFound')
+          }}</span>
+          <span v-else-if="searchResults.length > 0">{{ t('friendAdd.searchResult') }}</span>
         </p>
 
         <article
@@ -58,9 +60,11 @@
             class="max-sm:col-span-2 max-sm:w-full"
             @click="handleAddFriend(user.id)"
           >
-            <span v-if="actionStatus[user.id] === 'loading'">處理中...</span>
-            <span v-else-if="actionStatus[user.id] === 'success'">已送出</span>
-            <span v-else>＋ 加好友</span>
+            <span v-if="actionStatus[user.id] === 'loading'">{{ t('friendAdd.processing') }}</span>
+            <span v-else-if="actionStatus[user.id] === 'success'">{{
+              t('friendAdd.inviteSent')
+            }}</span>
+            <span v-else>{{ t('friendAdd.sendInvite') }}</span>
           </PixelButton>
         </article>
       </div>
@@ -70,6 +74,7 @@
 
 <script setup>
 import { ref, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import BaseModal from './ui/BaseModal.vue'
 import PixelButton from './ui/PixelButton.vue'
 import { useUserSearch } from '@/composables/useUserSearch'
@@ -77,6 +82,8 @@ import { useFriendStore } from '@/stores/friendStore'
 
 defineProps({ isOpen: Boolean })
 const emit = defineEmits(['close'])
+
+const { t } = useI18n()
 
 const { searchResults, isSearching, error, hasSearched, searchUsers, clearSearch } = useUserSearch()
 const friendStore = useFriendStore()

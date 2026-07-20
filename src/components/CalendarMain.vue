@@ -3,6 +3,7 @@
     class="calendar-main-shell flex flex-col flex-1 min-h-0 px-4 pb-8 md:px-16 md:pt-6 md:pb-16 relative isolate"
   >
     <div
+      v-show="showDots"
       ref="overlayRef"
       class="absolute left-0 right-0 top-0 pointer-events-none"
       style="z-index: -1; bottom: -5rem"
@@ -21,12 +22,23 @@
         }"
       />
     </div>
+
+    <button
+      v-if="isMobile"
+      @click="toggleDotsAnimation"
+      class="calendar-arrow-button calendar-toggle-dots-mobile"
+      :class="{ 'is-active': showDots }"
+      :aria-label="t('calendar.toggleAnimation')"
+    >
+      <span class="calendar-square-toggle" aria-hidden="true"></span>
+    </button>
+
     <button
       type="button"
       class="calendar-profile-button calendar-page-profile-button hidden md:flex"
       :class="{ 'btn-bounce-green': profileBtnBouncing }"
       @animationend="profileBtnBouncing = false"
-      aria-label="開啟個人帳號"
+      :aria-label="t('calendar.openAccountMenu')"
       @click="openProfileModal"
     >
       <img
@@ -37,15 +49,12 @@
       />
       <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
     </button>
-    <p
-      class="calendar-mood-line"
-      aria-label="BuJo catches the little plans, keeps your people close, and nudges the day into motion."
-    >
+    <p class="calendar-mood-line" :aria-label="t('calendar.moodLineAria')">
       <strong>BuJo</strong>
       <span class="calendar-mood-divider"></span>
-      <span>catches the little plans</span>
-      <span>, keeps your people close</span>
-      <span>, and nudges the day into motion</span>
+      <span>{{ t('calendar.moodLinePart1') }}</span>
+      <span>{{ t('calendar.moodLinePart2') }}</span>
+      <span>{{ t('calendar.moodLinePart3') }}</span>
       <span>.</span>
       <span class="calendar-mood-flag" aria-hidden="true"></span>
     </p>
@@ -63,20 +72,29 @@
         <section class="calendar-hero-composition">
           <div class="calendar-hero-copy" :class="{ 'md:pl-[50px]': !sidebarOpen }">
             <div>
-              <p class="calendar-eyebrow">SOCIAL INBOX CALENDAR</p>
+              <p class="calendar-eyebrow">{{ t('calendar.eyebrow') }}</p>
               <div class="calendar-title-line">
                 <h1>{{ monthNames[currentMonth] }}</h1>
                 <span class="calendar-year-mark">{{ currentYear }}</span>
               </div>
-              <p class="calendar-exhibition-caption">( social index / small plans )</p>
+              <p class="calendar-exhibition-caption">{{ t('calendar.caption') }}</p>
             </div>
           </div>
 
           <div class="calendar-hero-actions">
             <button
+              v-if="!isMobile"
+              @click="toggleDotsAnimation"
+              class="calendar-arrow-button"
+              :class="{ 'is-active': showDots }"
+              :aria-label="t('calendar.toggleAnimation')"
+            >
+              <span class="calendar-square-toggle" aria-hidden="true"></span>
+            </button>
+            <button
               @click="prevMonth"
               class="calendar-arrow-button calendar-arrow-button--prev"
-              aria-label="上一個月"
+              :aria-label="t('calendar.prevMonth')"
             >
               &lt;
               <svg
@@ -93,7 +111,7 @@
             <button
               @click="nextMonth"
               class="calendar-arrow-button calendar-arrow-button--next"
-              aria-label="下一個月"
+              :aria-label="t('calendar.nextMonth')"
             >
               &gt;
               <svg
@@ -109,9 +127,13 @@
             </button>
 
             <!-- 揪一團按鈕 -->
-            <PixelButton class="calendar-create-button" @click="openEventModal">
+            <PixelButton
+              class="calendar-create-button"
+              data-tour="calendar-create-button"
+              @click="openEventModal"
+            >
               <span class="calendar-create-plus">＋</span
-              ><span class="hidden md:inline">CREATE</span>
+              ><span class="hidden md:inline">{{ t('calendar.createBtn') }}</span>
             </PixelButton>
           </div>
         </section>
@@ -137,6 +159,7 @@
               :key="index"
               class="calendar-cell flex flex-col overflow-hidden justify-start relative pb-2"
               :class="[cell.date && isToday(cell.date) ? 'is-today' : cell.faded ? 'is-faded' : '']"
+              :data-tour="cell.date && isToday(cell.date) ? 'calendar-today-cell' : undefined"
               :role="cell.date ? 'button' : undefined"
               :tabindex="cell.date ? 0 : undefined"
               :aria-current="cell.date && isToday(cell.date) ? 'date' : undefined"
@@ -180,88 +203,79 @@
           </div>
         </div>
 
-        <section class="calendar-mobile-pocket" aria-label="Mobile social pocket">
+        <section class="calendar-mobile-pocket" :aria-label="t('calendar.ariaMobilePocket')">
           <div class="calendar-mobile-pocket-header">
-            <span>KEEPSAKE POCKET</span>
-            <strong>{{ visibleEvents.length }}</strong>
+            <span>{{ t('calendar.upcoming') }}</span>
+            <strong>{{ upcomingItems.length }}</strong>
           </div>
 
-          <div class="calendar-mobile-pocket-strip">
+          <div class="calendar-upcoming-list calendar-upcoming-list--mobile">
             <button
-              v-for="item in mobilePocketItems"
+              v-for="item in upcomingItems"
               :key="item.id"
               type="button"
-              class="calendar-mobile-ticket"
-              @click="openDateModal(item.date)"
+              class="calendar-upcoming-card"
+              :class="{ 'is-soon': item.isSoon }"
+              @click="openActivityDetail(item.id)"
             >
-              <span class="calendar-mobile-ticket-date">
-                <strong>{{ item.dayNumber }}</strong>
-                <em>{{ item.monthShort }}</em>
+              <span class="calendar-upcoming-card-meta">
+                <span class="calendar-upcoming-date">
+                  <strong>{{ item.dayNumber }}</strong>
+                  <em>{{ item.monthShort }}</em>
+                </span>
+                <span class="calendar-upcoming-relative">{{ item.relativeLabel }}</span>
               </span>
-              <span class="calendar-mobile-ticket-title">{{ item.title }}</span>
-              <small>{{ item.statusLabel }}</small>
+              <span class="calendar-upcoming-title">{{ item.title }}</span>
             </button>
 
-            <div v-if="mobilePocketItems.length === 0" class="calendar-mobile-ticket is-empty">
-              <span class="calendar-mobile-ticket-date">
-                <strong>{{ currentMonth + 1 }}</strong>
-                <em>{{ currentYear }}</em>
-              </span>
-              <span class="calendar-mobile-ticket-title">no saved plans yet</span>
-              <small>room notes</small>
+            <div v-if="upcomingItems.length === 0" class="calendar-upcoming-card is-empty">
+              <span class="calendar-upcoming-empty-title">{{
+                t('calendar.noUpcomingThisMonth')
+              }}</span>
             </div>
           </div>
 
-          <p class="calendar-mobile-pocket-note">little plans, kept close.</p>
+          <p v-if="mobileHiddenUpcomingCount > 0" class="calendar-upcoming-hint">
+            {{ t('calendar.mobileHiddenCount', { count: mobileHiddenUpcomingCount }) }}
+          </p>
         </section>
       </div>
 
-      <aside class="calendar-social-rail" aria-label="Social rail">
+      <aside class="calendar-social-rail" :aria-label="t('calendar.ariaSocialRail')">
         <div class="calendar-rail-heading">
-          <span>SOCIAL RAIL</span>
-          <strong>{{ visibleEvents.length }}</strong>
+          <span>{{ t('calendar.upcoming') }}</span>
+          <strong>{{ upcomingItems.length }}</strong>
         </div>
 
-        <div class="calendar-rail-section">
-          <p>MUST SEE</p>
+        <div class="calendar-upcoming-list">
           <button
-            v-for="item in socialRailItems.mustSee"
+            v-for="item in upcomingItems"
             :key="item.id"
             type="button"
-            class="calendar-rail-item"
-            @click="openDateModal(item.date)"
+            class="calendar-upcoming-card"
+            :class="{ 'is-soon': item.isSoon }"
+            @click="openActivityDetail(item.id)"
           >
-            <span class="calendar-rail-date">
-              <strong>{{ item.dayNumber }}</strong>
-              <em>{{ item.monthShort }}</em>
+            <span class="calendar-upcoming-card-meta">
+              <span class="calendar-upcoming-date">
+                <strong>{{ item.dayNumber }}</strong>
+                <em>{{ item.monthShort }}</em>
+              </span>
+              <span class="calendar-upcoming-relative">{{ item.relativeLabel }}</span>
             </span>
-            <span class="calendar-rail-title">{{ item.title }}</span>
-            <small>{{ item.statusLabel }}</small>
+            <span class="calendar-upcoming-title">{{ item.title }}</span>
           </button>
+
+          <div v-if="upcomingItems.length === 0" class="calendar-upcoming-card is-empty">
+            <span class="calendar-upcoming-empty-title">{{
+              t('calendar.noUpcomingThisMonth')
+            }}</span>
+          </div>
         </div>
 
-        <div class="calendar-rail-section">
-          <p>FYI</p>
-          <button
-            v-for="item in socialRailItems.fyi"
-            :key="item.id"
-            type="button"
-            class="calendar-rail-item is-quiet"
-            @click="openDateModal(item.date)"
-          >
-            <span class="calendar-rail-date">
-              <strong>{{ item.dayNumber }}</strong>
-              <em>{{ item.monthShort }}</em>
-            </span>
-            <span class="calendar-rail-title">{{ item.title }}</span>
-            <small>{{ item.statusLabel }}</small>
-          </button>
-        </div>
-
-        <div class="calendar-rail-note">
-          <span>room notes</span>
-          <p>small plans are becoming visible.</p>
-        </div>
+        <p v-if="desktopHiddenUpcomingCount > 0" class="calendar-upcoming-hint">
+          {{ t('calendar.desktopHiddenCount', { count: desktopHiddenUpcomingCount }) }}
+        </p>
       </aside>
     </section>
 
@@ -273,6 +287,22 @@
       @add="openEventModalFromDate"
       @refresh="fetchActivities"
     />
+
+    <BaseModal
+      v-if="selectedActivityId"
+      :is-open="true"
+      :title="t('activityDetail.title')"
+      bare
+      @close="closeActivityDetail"
+    >
+      <ActivityDetailModal
+        :is-open="true"
+        :activity-id="selectedActivityId"
+        closable
+        @close="closeActivityDetail"
+        @status-changed="fetchActivities"
+      />
+    </BaseModal>
   </div>
 
   <ProfileAccountModal
@@ -291,20 +321,25 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import PixelButton from './ui/PixelButton.vue'
+import BaseModal from './ui/BaseModal.vue'
+import ActivityDetailModal from './ActivityDetailModal.vue'
 import DateEventsModal from './DateEventsModal.vue'
 import ProfileAccountModal from './ProfileAccountModal.vue'
 import EventPage from './EventPage.vue'
 import { toAvatarSrc } from '@/utils/avatar'
 
+const showDots = ref(true)
 const showEventModal = ref(false)
 const eventModalInitialDate = ref(null)
 const profileBtnBouncing = ref(false)
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const currentUser = computed(() => authStore.user)
 const currentUserAvatarSrc = computed(() => toAvatarSrc(currentUser.value?.avatar_url))
@@ -324,7 +359,7 @@ const props = defineProps({
   sidebarOpen: Boolean,
   filters: {
     type: Object,
-    default: () => ({ joined: true, formed: true, personal: true }),
+    default: () => ({ formedByMe: true, formedByOthers: true }),
   },
 })
 
@@ -383,6 +418,8 @@ function hitsCalendar(x, y, size, cal) {
 }
 
 function tickDots() {
+  if (!showDots.value) return
+
   const W = overlayRef.value?.clientWidth
   const H = overlayRef.value?.clientHeight
   if (!W || !H) return
@@ -419,6 +456,22 @@ function tickDots() {
   dotAnimId = requestAnimationFrame(tickDots)
 }
 
+async function toggleDotsAnimation() {
+  showDots.value = !showDots.value
+
+  if (showDots.value) {
+    await nextTick()
+
+    initDots()
+    dotAnimId = requestAnimationFrame(tickDots)
+  } else {
+    if (dotAnimId) {
+      cancelAnimationFrame(dotAnimId)
+      dotAnimId = null
+    }
+  }
+}
+
 onMounted(() => {
   window.addEventListener('resize', handleResize)
   initDots()
@@ -430,48 +483,57 @@ onUnmounted(() => {
   if (dotAnimId) cancelAnimationFrame(dotAnimId)
 })
 const today = new Date()
+const todayDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(
+  today.getDate(),
+).padStart(2, '0')}`
 const currentYear = ref(today.getFullYear())
 const currentMonth = ref(today.getMonth())
 const selectedDate = ref(null)
+const selectedActivityId = ref(null)
 
-const monthNames = [
-  'JANUARY',
-  'FEBRUARY',
-  'MARCH',
-  'APRIL',
-  'MAY',
-  'JUNE',
-  'JULY',
-  'AUGUST',
-  'SEPTEMBER',
-  'OCTOBER',
-  'NOVEMBER',
-  'DECEMBER',
+const monthKeys = [
+  'monthJanuary',
+  'monthFebruary',
+  'monthMarch',
+  'monthApril',
+  'monthMay',
+  'monthJune',
+  'monthJuly',
+  'monthAugust',
+  'monthSeptember',
+  'monthOctober',
+  'monthNovember',
+  'monthDecember',
 ]
-const monthShortNames = [
-  'JAN',
-  'FEB',
-  'MAR',
-  'APR',
-  'MAY',
-  'JUN',
-  'JUL',
-  'AUG',
-  'SEP',
-  'OCT',
-  'NOV',
-  'DEC',
+const monthNames = computed(() => monthKeys.map((key) => t(`calendar.${key}`)))
+
+const monthShortKeys = [
+  'monthShortJanuary',
+  'monthShortFebruary',
+  'monthShortMarch',
+  'monthShortApril',
+  'monthShortMay',
+  'monthShortJune',
+  'monthShortJuly',
+  'monthShortAugust',
+  'monthShortSeptember',
+  'monthShortOctober',
+  'monthShortNovember',
+  'monthShortDecember',
 ]
-const weekDays = ['一', '二', '三', '四', '五', '六', '日']
+const monthShortNames = computed(() => monthShortKeys.map((key) => t(`calendar.${key}`)))
+
+const weekDayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+const weekDays = computed(() => weekDayKeys.map((key) => t(`calendar.${key}`)))
 
 const activities = ref([])
 
 // 後端保證 date_iso 只有在 status === 'confirmed' 時才非 null，行事曆只依這個欄位
 // 決定要不要畫進去，不需要另外判斷情境（免投票/單選/複選日期/各自時段）。
-// 已成團的活動一律歸類為 formed，不分建立者或參與者身分。
+// 已成團的活動會依據 is_creator，拆分為 formedByMe (建立者) 與 formedByOthers (參與者)。
 function toCalendarStatus(activity) {
   if (!activity.date_iso) return null
-  return 'formed'
+  return activity.is_creator ? 'formedByMe' : 'formedByOthers'
 }
 
 const events = computed(() =>
@@ -482,6 +544,8 @@ const events = computed(() =>
       date: activity.date_iso,
       title: activity.title,
       status: toCalendarStatus(activity),
+      is_creator: activity.is_creator,
+      creator: activity.creator,
       time: activity.time,
       location: activity.location,
       sortTime: activity.confirmed_start ?? activity.date_iso,
@@ -498,7 +562,7 @@ async function fetchActivities() {
     })
     if (!res.ok) {
       console.error('fetchActivities 失敗：', res.status)
-      activitiesFetchError.value = '活動載入失敗，顯示的可能是舊資料'
+      activitiesFetchError.value = t('calendar.loadActivitiesError')
       return
     }
     const data = await res.json()
@@ -506,25 +570,24 @@ async function fetchActivities() {
     activitiesFetchError.value = ''
   } catch (err) {
     console.error('fetchActivities 失敗：', err)
-    activitiesFetchError.value = '無法連線到伺服器，顯示的可能是舊資料'
+    activitiesFetchError.value = t('calendar.loadActivitiesNetworkError')
   }
 }
 
 const statusStyle = {
-  joined: 'calendar-event-chip--joined',
-  formed: 'calendar-event-chip--formed',
-  personal: 'calendar-event-chip--personal',
+  formedByMe: 'calendar-event-chip--formed',
+  formedByOthers: 'calendar-event-chip--joined',
   recruiting: 'calendar-event-chip--recruiting',
   none: 'calendar-event-chip--none',
 }
 
-const statusMeta = {
-  joined: 'JOIN',
-  formed: 'LIVE',
-  personal: 'SOLO',
-  recruiting: 'OPEN',
-  none: '',
-}
+const statusMeta = computed(() => ({
+  formedByMe: t('calendar.statusFormedByMe'),
+  formedByOthers: t('calendar.statusFormedByOthers'),
+  personal: t('calendar.statusPersonal'),
+  recruiting: t('calendar.statusRecruiting'),
+  none: t('calendar.statusNone'),
+}))
 
 function prevMonth() {
   if (currentMonth.value === 0) {
@@ -546,6 +609,15 @@ function openDateModal(date) {
 
 function closeDateModal() {
   selectedDate.value = null
+}
+
+function openActivityDetail(activityId) {
+  if (!activityId) return
+  selectedActivityId.value = String(activityId)
+}
+
+function closeActivityDetail() {
+  selectedActivityId.value = null
 }
 
 function openEventModal() {
@@ -592,45 +664,50 @@ function getEvents(date) {
   if (!date) return []
   return events.value.filter((e) => {
     if (e.date !== date) return false
-    if (e.status === 'joined' && !props.filters.joined) return false
-    if (e.status === 'formed' && !props.filters.formed) return false
-    if (e.status === 'personal' && !props.filters.personal) return false
+    if (e.status === 'formedByMe' && !props.filters.formedByMe) return false
+    if (e.status === 'formedByOthers' && !props.filters.formedByOthers) return false
     return true
   })
 }
 
 const selectedDateEvents = computed(() => getEvents(selectedDate.value))
-const visibleEvents = computed(() => {
+const upcomingEvents = computed(() => {
   const monthDates = new Set(calendarDays.value.filter((d) => d.date).map((d) => d.date))
   return events.value.filter(
     (event) =>
       monthDates.has(event.date) &&
+      event.date >= todayDate &&
       getEvents(event.date).some((visible) => visible.id === event.id),
   )
 })
 
-const socialRailItems = computed(() => {
-  const items = visibleEvents.value.map((event) => {
+function daysFromToday(date) {
+  const [todayYear, todayMonth, todayDay] = todayDate.split('-').map(Number)
+  const [eventYear, eventMonth, eventDay] = date.split('-').map(Number)
+  const todayUtc = Date.UTC(todayYear, todayMonth - 1, todayDay)
+  const eventUtc = Date.UTC(eventYear, eventMonth - 1, eventDay)
+  return Math.round((eventUtc - todayUtc) / 86_400_000)
+}
+
+const upcomingItems = computed(() =>
+  upcomingEvents.value.map((event) => {
     const [, month, day] = event.date.split('-')
     const monthIndex = Number(month) - 1
+    const daysUntil = daysFromToday(event.date)
+
     return {
       ...event,
       monthShort: monthShortNames[monthIndex] || month,
       dayNumber: Number(day),
-      statusLabel: statusMeta[event.status] || 'ROOM',
-      meta: `${Number(month)}/${Number(day)} · ${statusMeta[event.status] || 'ROOM'}`,
+      relativeLabel:
+        daysUntil === 0 ? t('calendar.today') : t('calendar.daysLater', { days: daysUntil }),
+      isSoon: daysUntil <= 3,
     }
-  })
-
-  return {
-    mustSee: items.slice(0, 2),
-    fyi: items.slice(2, 4),
-  }
-})
-
-const mobilePocketItems = computed(() =>
-  [...socialRailItems.value.mustSee, ...socialRailItems.value.fyi].slice(0, 3),
+  }),
 )
+
+const desktopHiddenUpcomingCount = computed(() => Math.max(0, upcomingItems.value.length - 5))
+const mobileHiddenUpcomingCount = computed(() => Math.max(0, upcomingItems.value.length - 4))
 
 function isToday(date) {
   const today = new Date()
@@ -678,6 +755,7 @@ function isToday(date) {
 
 .calendar-eyebrow {
   margin-bottom: 2px;
+  padding-bottom: 6px;
   color: var(--bujo-text-muted);
   font-size: 11px;
   font-weight: 700;
@@ -852,7 +930,7 @@ function isToday(date) {
   position: relative;
   z-index: 8;
   margin: 0 0 8px;
-  color: #dc2626;
+  color: var(--bujo-danger);
   font-family: var(--bujo-font-meta);
   font-size: 12px;
   font-weight: 700;
@@ -1160,7 +1238,7 @@ function isToday(date) {
 .calendar-social-rail {
   display: flex;
   flex-direction: column;
-  gap: 17px;
+  gap: 14px;
   border-left: 1px solid rgb(var(--bujo-line-rgb) / 0.32);
   padding: 10px 0 0 20px;
 }
@@ -1174,80 +1252,89 @@ function isToday(date) {
 }
 
 .calendar-rail-heading span,
-.calendar-rail-section p,
-.calendar-rail-note span {
+.calendar-mobile-pocket-header span {
   font-family: var(--bujo-font-meta);
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.28em;
 }
 
 .calendar-rail-heading strong {
-  color: var(--bujo-accent);
+  color: var(--bujo-deco-blue);
   font-family: var(--bujo-font-meta);
   font-size: 18px;
 }
 
-.calendar-rail-section {
+.calendar-upcoming-list {
   display: grid;
-  gap: 8px;
+  gap: 12px;
+  max-height: 568px;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding-right: 5px;
+  scrollbar-color: rgb(var(--bujo-ink-rgb) / 0.28) transparent;
+  scrollbar-width: thin;
 }
 
-.calendar-rail-section p {
-  color: var(--bujo-text-faint);
+.calendar-upcoming-list::-webkit-scrollbar {
+  width: 5px;
 }
 
-.calendar-rail-item {
+.calendar-upcoming-list::-webkit-scrollbar-thumb {
+  background: rgb(var(--bujo-ink-rgb) / 0.28);
+}
+
+.calendar-upcoming-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.calendar-upcoming-card {
   position: relative;
   display: grid;
-  gap: 7px;
+  gap: 12px;
   width: 100%;
-  border: 1px solid rgb(var(--bujo-line-rgb) / 0.46);
-  background:
-    linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.64), transparent 48%),
-    rgb(var(--bujo-white-rgb) / 0.72);
-  padding: 12px 12px 11px;
+  min-height: 104px;
+  border: 1px dashed rgb(var(--bujo-line-rgb) / 0.72);
+  background: rgb(var(--bujo-white-rgb) / 0.5);
+  padding: 15px 16px 14px;
+  color: var(--bujo-text-primary);
   text-align: left;
-  box-shadow: 3px 4px 0 rgb(var(--bujo-ink-rgb) / 0.028);
   transition:
     background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.calendar-rail-item:hover {
-  border-color: rgb(var(--bujo-ink-rgb) / 0.58);
-  background: linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.72), transparent 48%), #fffefa;
-  transform: translateY(-1px);
-}
-
-.calendar-rail-item:nth-of-type(2n) {
-  background:
-    linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.5), transparent 48%),
-    color-mix(in srgb, var(--bujo-card-yellow) 44%, var(--bujo-white));
-}
-
-.calendar-rail-section:not(:first-of-type) .calendar-rail-item {
+.calendar-upcoming-card.is-soon {
+  border-style: solid;
+  border-color: rgb(var(--bujo-line-rgb) / 0.46);
   background:
     linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.62), transparent 48%),
-    rgb(var(--bujo-white-rgb) / 0.54);
-}
-
-.calendar-rail-section:not(:first-of-type) .calendar-rail-item:nth-of-type(2n) {
-  background:
-    linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.48), transparent 48%),
     color-mix(in srgb, var(--bujo-card-blue) 44%, var(--bujo-white));
 }
 
-.calendar-rail-date {
+.calendar-upcoming-card:hover {
+  border-color: rgb(var(--bujo-ink-rgb) / 0.58);
+  background:
+    linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.5), transparent 48%),
+    color-mix(in srgb, var(--bujo-card-blue) 54%, var(--bujo-white));
+}
+
+.calendar-upcoming-card-meta {
   display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.calendar-upcoming-date {
+  display: inline-flex;
   align-items: baseline;
   gap: 8px;
   color: var(--bujo-text-primary);
   line-height: 0.8;
 }
 
-.calendar-rail-date strong {
+.calendar-upcoming-date strong {
   font-family: var(--bujo-font-deco);
   font-size: 34px;
   font-weight: 700;
@@ -1255,7 +1342,7 @@ function isToday(date) {
   line-height: 0.76;
 }
 
-.calendar-rail-date em {
+.calendar-upcoming-date em {
   color: var(--bujo-text-muted);
   font-family: var(--bujo-font-meta);
   font-size: 11px;
@@ -1264,34 +1351,57 @@ function isToday(date) {
   letter-spacing: 0.04em;
 }
 
-.calendar-rail-title {
-  color: var(--bujo-text-primary);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.25;
-}
-
-.calendar-rail-item small {
+.calendar-upcoming-relative {
+  flex: 0 0 auto;
+  background: rgb(var(--bujo-line-rgb) / 0.12);
   color: var(--bujo-text-muted);
   font-family: var(--bujo-font-meta);
   font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.04em;
+  font-weight: 700;
+  line-height: 1;
+  padding: 5px 7px;
 }
 
-.calendar-rail-item.is-quiet {
+.calendar-upcoming-card.is-soon .calendar-upcoming-relative {
+  background: #4a7fa5;
+  color: var(--bujo-white);
+}
+
+.calendar-upcoming-title {
+  overflow: hidden;
+  color: var(--bujo-text-primary);
+  font-family: var(--bujo-font-body);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-upcoming-card.is-empty {
+  place-items: center;
   border-style: dashed;
+  background: rgb(var(--bujo-white-rgb) / 0.36);
+  cursor: default;
 }
 
-.calendar-rail-note {
-  margin-top: auto;
+.calendar-upcoming-card.is-empty:hover {
+  border-color: rgb(var(--bujo-line-rgb) / 0.72);
+  background: rgb(var(--bujo-white-rgb) / 0.36);
+}
+
+.calendar-upcoming-empty-title {
   color: var(--bujo-text-muted);
   font-size: 13px;
-  line-height: 1.45;
+  font-weight: 500;
+  text-align: center;
 }
 
-.calendar-rail-note p {
-  margin-top: 5px;
+.calendar-upcoming-hint {
+  color: var(--bujo-text-muted);
+  font-family: var(--bujo-font-meta);
+  font-size: 10px;
+  line-height: 1.4;
 }
 
 .calendar-mobile-pocket {
@@ -1305,137 +1415,15 @@ function isToday(date) {
   gap: 10px;
 }
 
-.calendar-mobile-pocket-header span {
-  color: var(--bujo-text-faint);
-  font-family: var(--bujo-font-meta);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
-
 .calendar-mobile-pocket-header strong {
-  color: var(--bujo-accent);
+  color: var(--bujo-deco-blue);
   font-family: var(--bujo-font-meta);
   font-size: 16px;
   font-weight: 700;
 }
 
-.calendar-mobile-pocket-strip {
-  display: flex;
-  gap: 8px;
+.calendar-mobile-pocket .calendar-upcoming-hint {
   margin-top: 8px;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-}
-
-.calendar-mobile-pocket-strip::-webkit-scrollbar {
-  display: none;
-}
-
-.calendar-mobile-ticket {
-  position: relative;
-  display: grid;
-  flex: 0 0 118px;
-  min-height: 74px;
-  gap: 5px;
-  border: 1px solid rgb(var(--bujo-line-rgb) / 0.58);
-  background:
-    linear-gradient(145deg, rgb(var(--bujo-white-rgb) / 0.62), transparent 44%), var(--bujo-surface);
-  padding: 10px 10px 9px;
-  text-align: left;
-  box-shadow: 3px 4px 0 rgb(var(--bujo-ink-rgb) / 0.035);
-  transform: rotate(-0.7deg);
-}
-
-.calendar-mobile-ticket:nth-child(2n) {
-  background: var(--bujo-card-yellow);
-  transform: rotate(0.55deg);
-}
-
-.calendar-mobile-ticket:nth-child(3n) {
-  background: var(--bujo-card-blue);
-  transform: rotate(-0.25deg);
-}
-
-.calendar-mobile-ticket::after {
-  position: absolute;
-  right: 7px;
-  bottom: 7px;
-  width: 5px;
-  height: 5px;
-  background: rgb(var(--bujo-ink-rgb) / 0.58);
-  content: '';
-}
-
-.calendar-mobile-ticket-date {
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-  color: var(--bujo-text-primary);
-  line-height: 0.82;
-}
-
-.calendar-mobile-ticket-date strong {
-  font-family: var(--bujo-font-deco);
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 0.72;
-}
-
-.calendar-mobile-ticket-date em {
-  color: var(--bujo-text-muted);
-  font-family: var(--bujo-font-meta);
-  font-size: 9px;
-  font-style: normal;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
-.calendar-mobile-ticket-title {
-  overflow: hidden;
-  color: var(--bujo-text-primary);
-  font-family: var(--bujo-font-body);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.calendar-mobile-ticket small {
-  color: var(--bujo-text-muted);
-  font-family: var(--bujo-font-meta);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.calendar-mobile-ticket.is-empty {
-  flex-basis: 172px;
-  border-style: dashed;
-  background: rgb(var(--bujo-white-rgb) / 0.54);
-  transform: rotate(0.45deg);
-}
-
-.calendar-mobile-ticket.is-empty::before {
-  position: absolute;
-  top: -7px;
-  right: 18px;
-  width: 34px;
-  height: 10px;
-  background: rgb(222 212 156 / 0.68);
-  transform: rotate(-2deg);
-  content: '';
-}
-
-.calendar-mobile-pocket-note {
-  margin-top: 8px;
-  color: var(--bujo-text-muted);
-  font-family: var(--bujo-font-meta);
-  font-size: 10px;
-  line-height: 1.3;
 }
 
 .profile-pixel-face {
@@ -1516,16 +1504,32 @@ function isToday(date) {
   }
 
   .calendar-social-rail {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
     border-left: 0;
     border-top: 1px solid rgb(var(--bujo-line-rgb) / 0.45);
     padding: 14px 0 0;
   }
 
-  .calendar-rail-heading,
-  .calendar-rail-note {
-    grid-column: 1 / -1;
+  .calendar-upcoming-list {
+    display: flex;
+    gap: 12px;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    padding: 0 0 6px;
+    scrollbar-width: none;
+    touch-action: pan-x;
+  }
+
+  .calendar-upcoming-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .calendar-upcoming-card {
+    flex: 0 0 min(58vw, 210px);
+    min-height: 88px;
+    gap: 8px;
+    padding: 12px 14px 11px;
   }
 }
 
@@ -1685,33 +1689,8 @@ function isToday(date) {
     padding-bottom: 6px;
   }
 
-  .calendar-mobile-pocket::before {
-    position: absolute;
-    top: 2px;
-    left: 14px;
-    width: 28px;
-    height: 9px;
-    background: rgb(var(--bujo-deco-pink) / 0.34);
-    transform: rotate(-3deg);
-    content: '';
-  }
-
-  .calendar-mobile-ticket {
-    flex-basis: 110px;
-    min-height: 64px;
-    padding: 8px 9px;
-  }
-
-  .calendar-mobile-ticket-date strong {
-    font-size: 24px;
-  }
-
-  .calendar-mobile-ticket-title {
-    font-size: 11px;
-  }
-
-  .calendar-mobile-pocket-note {
-    display: none;
+  .calendar-mobile-pocket .calendar-upcoming-list {
+    margin-top: 8px;
   }
 
   .calendar-stack-sheet--back {
@@ -1751,6 +1730,46 @@ function isToday(date) {
   .calendar-event-dot {
     width: 5px;
     height: 5px;
+  }
+}
+
+.calendar-square-toggle {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgb(var(--bujo-ink-rgb) / 0.5);
+  background: transparent;
+  transition: all 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.calendar-arrow-button.is-active .calendar-square-toggle {
+  background: #98d0a2;
+  border-color: #98d0a2;
+  box-shadow: 2px 2px 0 rgb(var(--bujo-ink-rgb) / 0.15);
+  transform: translate(-1px, -1px);
+}
+
+.calendar-arrow-button:hover .calendar-square-toggle:not(.is-active) {
+  border-color: var(--bujo-ink);
+}
+
+@media (max-width: 640px) {
+  .calendar-toggle-dots-mobile {
+    position: absolute;
+    top: 6px;
+    right: 14px;
+    z-index: 10;
+
+    display: grid;
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
+    background: transparent;
+  }
+
+  .calendar-toggle-dots-mobile:hover {
+    border-color: var(--bujo-ink);
+    background: var(--bujo-surface);
   }
 }
 </style>

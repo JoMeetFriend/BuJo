@@ -8,8 +8,16 @@
 -->
 
 <template>
-  <button type="button" class="sidebar-toggle-button" aria-label="切換側邊欄">☰</button>
+  <button type="button" class="sidebar-toggle-button" :aria-label="t('sidebar.ariaToggle')">
+    ☰
+  </button>
 </template>
+
+<script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+</script>
 
 <style scoped>
 .sidebar-toggle-button {
