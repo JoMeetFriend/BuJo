@@ -1719,17 +1719,30 @@ function isToday(date) {
     font-size: 11px;
   }
 
+  .calendar-event-list {
+    padding-inline: 2px;
+  }
+
   .calendar-event-chip {
-    grid-template-columns: 5px minmax(0, 1fr);
-    gap: 4px;
+    grid-template-columns: 4px minmax(0, 1fr);
+    gap: 3px;
     min-height: 17px;
-    padding: 1px 4px;
+    padding: 1px 3px;
     font-size: 10px;
   }
 
   .calendar-event-dot {
-    width: 5px;
-    height: 5px;
+    width: 4px;
+    height: 4px;
+  }
+
+  .calendar-more-count {
+    top: 4px;
+    right: 4px;
+    bottom: auto;
+    padding: 0;
+    font-size: 8px;
+    line-height: 1;
   }
 }
 
