@@ -35,6 +35,24 @@ async function mountEventPage() {
   })
 }
 
+describe('EventPage - 建立活動彈窗保留手機底部導覽', () => {
+  test('只有主表單 overlay 啟用導覽保留，並維持可捲 body 與固定 footer', async () => {
+    const wrapper = await mountEventPage()
+
+    const overlay = queryBody('.base-modal-overlay--reserve-mobile-nav-space')
+    expect(overlay).not.toBeNull()
+    expect(
+      document.body.querySelectorAll('.base-modal-overlay--reserve-mobile-nav-space'),
+    ).toHaveLength(1)
+
+    const dialog = overlay.querySelector('[role="dialog"]')
+    expect(dialog.querySelector('.overflow-y-auto')).not.toBeNull()
+    expect(dialog.querySelector('footer button[form="event-form"]')).not.toBeNull()
+
+    wrapper.unmount()
+  })
+})
+
 describe('EventPage - 情境一（日期X時間皆已確定）開始日期為今天時不能整日', () => {
   beforeEach(() => {
     vi.useFakeTimers()

@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, test } from 'vitest'
 import BaseModal from '@/components/ui/BaseModal.vue'
+import baseModalSource from '@/components/ui/BaseModal.vue?raw'
 import { createTestI18n } from './testUtils'
 
 // BaseModal 用 <Teleport to="body">，實際 DOM 掛在 document.body 底下，
@@ -24,6 +25,33 @@ describe('BaseModal - 一般模式（bare 預設關閉）', () => {
 
     expect(queryBody('header')).not.toBeNull()
     expect(queryBody('header').textContent).toContain('活動詳情')
+
+    wrapper.unmount()
+  })
+})
+
+describe('BaseModal - 手機底部導覽空間', () => {
+  test('預設維持滿版 overlay，不套用底部導覽保留 class', () => {
+    const wrapper = mountModal()
+
+    const overlay = queryBody('.base-modal-overlay')
+    expect(overlay).not.toBeNull()
+    expect(overlay.classList).not.toContain('base-modal-overlay--reserve-mobile-nav-space')
+
+    wrapper.unmount()
+  })
+
+  test('opt-in 時 overlay 保留 62px 且背景點擊仍會關閉', () => {
+    const wrapper = mountModal({ reserveMobileNavSpace: true })
+
+    const overlay = queryBody('.base-modal-overlay--reserve-mobile-nav-space')
+    expect(overlay).not.toBeNull()
+    expect(baseModalSource).toMatch(
+      /@media \(max-width: 640px\)\s*{[^}]*\.base-modal-overlay--reserve-mobile-nav-space\s*{[^}]*bottom: 62px;/s,
+    )
+
+    overlay.click()
+    expect(wrapper.emitted('close')).toHaveLength(1)
 
     wrapper.unmount()
   })

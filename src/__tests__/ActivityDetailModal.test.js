@@ -1,6 +1,7 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, expect, test, it, vi, beforeEach, afterEach } from 'vitest'
 import ActivityDetailModal from '@/components/ActivityDetailModal.vue'
+import activityDetailModalSource from '@/components/ActivityDetailModal.vue?raw'
 import AvailabilityPickerModal from '@/components/AvailabilityPickerModal.vue'
 import { createTestI18n } from './testUtils'
 
@@ -71,6 +72,18 @@ afterEach(() => {
   vi.unstubAllGlobals()
   delete globalThis.fetch
   vi.useRealTimers()
+})
+
+describe('ActivityDetailModal - 手機高度限制', () => {
+  test('Overflowing detail content remains accessible', () => {
+    expect(activityDetailModalSource).toMatch(
+      /@media \(max-width: 900px\)[^{]*{[\s\S]*?\.activity-detail-panel\s*{[^}]*max-height: min\(45dvh, 430px\);[^}]*min-height: min\(250px, 45dvh\);/,
+    )
+    expect(activityDetailModalSource).toMatch(
+      /\.activity-detail-body\s*{[^}]*min-height: 0;[^}]*overflow-y: auto;/s,
+    )
+    expect(activityDetailModalSource).not.toContain('max-height: clamp(340px, 45dvh, 430px)')
+  })
 })
 
 describe('ActivityDetailModal - 活動標題顯示保護', () => {

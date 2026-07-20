@@ -1537,7 +1537,7 @@ function isToday(date) {
 @media (max-width: 640px) {
   .calendar-main-shell {
     gap: 14px;
-    padding: 8px 8px 72px;
+    padding: 8px 8px calc(84px + env(safe-area-inset-bottom, 0px));
   }
 
   .calendar-content-composition {
@@ -1694,6 +1694,13 @@ function isToday(date) {
     margin-top: 8px;
   }
 
+  .calendar-mobile-pocket .calendar-upcoming-card {
+    flex-basis: min(42vw, 160px);
+    min-height: 72px;
+    gap: 5px;
+    padding: 9px 10px 8px;
+  }
+
   .calendar-stack-sheet--back {
     inset: 10px -5px -7px 8px;
   }
@@ -1720,17 +1727,101 @@ function isToday(date) {
     font-size: 11px;
   }
 
+  .calendar-event-list {
+    padding-inline: 2px;
+  }
+
   .calendar-event-chip {
-    grid-template-columns: 5px minmax(0, 1fr);
-    gap: 4px;
+    grid-template-columns: 4px minmax(0, 1fr);
+    gap: 3px;
     min-height: 17px;
-    padding: 1px 4px;
+    padding: 1px 3px;
     font-size: 10px;
   }
 
   .calendar-event-dot {
-    width: 5px;
-    height: 5px;
+    width: 4px;
+    height: 4px;
+  }
+
+  .calendar-more-count {
+    top: 4px;
+    right: 4px;
+    bottom: auto;
+    padding: 0;
+    font-size: 8px;
+    line-height: 1;
+  }
+}
+
+@media (max-width: 640px) and (max-height: 700px) {
+  .calendar-main-shell {
+    gap: 8px;
+  }
+
+  .calendar-content-composition {
+    min-height: 0;
+    margin-top: 0;
+  }
+
+  .calendar-paper-page {
+    align-self: stretch;
+    min-height: 0;
+    height: 100%;
+    padding: 10px 8px 10px 28px;
+  }
+
+  .calendar-hero-composition {
+    margin-bottom: 12px;
+  }
+
+  .calendar-eyebrow {
+    margin-bottom: 0;
+    padding-bottom: 2px;
+    font-size: 10px;
+  }
+
+  .calendar-title-line h1 {
+    font-size: 32px;
+  }
+
+  .calendar-board {
+    flex: 1 1 auto;
+    height: clamp(220px, calc(100dvh - 330px), 360px);
+    min-height: 220px;
+    max-height: 360px;
+  }
+
+  .calendar-mobile-pocket {
+    margin-top: 8px;
+    padding-top: 6px;
+    padding-bottom: 0;
+  }
+
+  .calendar-mobile-pocket .calendar-upcoming-list {
+    margin-top: 6px;
+  }
+
+  .calendar-upcoming-card {
+    min-height: 64px;
+    gap: 4px;
+    padding: 8px 10px 7px;
+  }
+
+  .calendar-upcoming-date strong {
+    font-size: 28px;
+  }
+
+  .calendar-upcoming-relative {
+    padding: 4px 6px;
+  }
+
+  .calendar-upcoming-title {
+    font-size: 13px;
+  }
+
+  .calendar-weekday {
+    padding: 6px 0;
   }
 }
 
@@ -1756,14 +1847,14 @@ function isToday(date) {
 
 @media (max-width: 640px) {
   .calendar-toggle-dots-mobile {
-    position: fixed;
+    position: absolute;
     top: 5px;
-    right: 10px;
-    z-index: 70;
+    right: 48px;
+    z-index: 10;
 
     display: grid;
-    width: 36px;
-    height: 36px;
+    width: 26px;
+    height: 26px;
     border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
     background: transparent;
   }
