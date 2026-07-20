@@ -622,6 +622,7 @@ async function handleLogout() {
   width: 48px;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   border: 0;
   background: transparent;
   color: var(--bujo-ink);
