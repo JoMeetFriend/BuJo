@@ -585,8 +585,6 @@
             @click="closePicker"
           >
             <div data-tour="event-candidate-dates" class="grid gap-2">
-              <span :class="fieldLabelClass">{{ t('event.candidateDates') }}</span>
-
               <div class="mb-1 flex items-center justify-between gap-2">
                 <button
                   class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
@@ -759,8 +757,6 @@
             @click="closePicker"
           >
             <div data-tour="event-scenario4-dates" class="grid gap-2">
-              <span :class="fieldLabelClass">{{ t('event.candidateDatesAndTimes') }}</span>
-
               <div class="mb-1 flex items-center justify-between gap-2">
                 <button
                   class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
@@ -1256,19 +1252,6 @@ watch(
     form.singleDate = dateValue
   },
 )
-
-const scenarioDescription = computed(() => {
-  if (dateMode.value === 'fixed' && timeMode.value === 'fixed') {
-    return t('event.dateFixedTimeFixed')
-  }
-  if (dateMode.value === 'fixed' && timeMode.value === 'vote') {
-    return t('event.dateFixedTimeVote')
-  }
-  if (dateMode.value === 'range' && timeMode.value === 'fixed') {
-    return t('event.dateVoteTimeFixed')
-  }
-  return t('event.dateVoteTimeVote')
-})
 
 // 情境二：選填的時段範圍，限制參與者可回報的時間
 const timeWindow = reactive({ startTime: null, endTime: null, endTimeUserSet: false })
