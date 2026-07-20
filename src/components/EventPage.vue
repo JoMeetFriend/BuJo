@@ -85,86 +85,14 @@
           <label :class="fieldLabelClass" for="event-location">{{
             t('event.locationLabel')
           }}</label>
-          <label
-            class="inline-flex w-fit items-center gap-1.5 text-xs text-[var(--bujo-muted-strong)]"
-          >
-            <input
-              v-model="searchOverseasLocation"
-              type="checkbox"
-              class="h-4 w-4 cursor-pointer appearance-none rounded-none border border-[var(--bujo-line)] bg-[var(--bujo-surface)] checked:border-[var(--bujo-ink)] checked:bg-[var(--bujo-ink)] focus:outline-none focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
-              @change="handleOverseasToggleChange"
-            />
-            {{ t('event.searchOverseas') }}
-          </label>
-          <span class="relative block">
-            <input
-              id="event-location"
-              v-model="form.location"
-              :class="inputClass"
-              type="text"
-              :placeholder="t('event.locationPlaceholder')"
-              autocomplete="off"
-              role="combobox"
-              aria-autocomplete="list"
-              aria-haspopup="listbox"
-              :aria-expanded="addressResults.length > 0"
-              aria-controls="event-location-listbox"
-              :aria-activedescendant="activeAddressOptionId"
-              @input="handleLocationInput"
-              @blur="handleLocationBlur"
-              @keydown="handleLocationKeydown"
-            />
-            <div
-              v-if="
-                isSearchingAddress ||
-                addressError ||
-                (addressHasSearched && addressResults.length === 0) ||
-                addressResults.length > 0
-              "
-              class="absolute inset-x-0 top-full z-10 mt-1 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-md"
-              aria-live="polite"
-            >
-              <p
-                v-if="isSearchingAddress"
-                class="px-3 py-2 text-sm text-[var(--bujo-muted-strong)]"
-              >
-                {{ t('event.searching') }}
-              </p>
-              <p v-else-if="addressError" class="px-3 py-2 text-sm text-[var(--bujo-danger)]">
-                {{ addressError }}
-              </p>
-              <p
-                v-else-if="addressHasSearched && addressResults.length === 0"
-                class="px-3 py-2 text-sm text-[var(--bujo-muted-strong)]"
-              >
-                {{ t('event.noAddressFound') }}
-              </p>
-              <ul
-                v-else
-                id="event-location-listbox"
-                role="listbox"
-                class="max-h-48 overflow-y-auto"
-              >
-                <li
-                  v-for="(address, index) in addressResults"
-                  :id="`event-location-option-${index}`"
-                  :key="address"
-                  role="option"
-                  :aria-selected="index === activeAddressIndex"
-                >
-                  <button
-                    type="button"
-                    tabindex="-1"
-                    class="block w-full px-3 py-2 text-left text-sm text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                    :class="{ 'bg-[var(--bujo-surface-muted)]': index === activeAddressIndex }"
-                    @mousedown.prevent="selectAddress(address)"
-                  >
-                    {{ address }}
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </span>
+          <input
+            id="event-location"
+            v-model="form.location"
+            :class="inputClass"
+            type="text"
+            :placeholder="t('event.locationPlaceholder')"
+            autocomplete="off"
+          />
         </div>
 
         <div
@@ -1044,7 +972,6 @@ import {
   parseDateTimeValue,
   parseHourFromTimeStr,
 } from '@/utils/timeFormat'
-import { useAddressSearch } from '@/composables/useAddressSearch'
 import { useAuthStore } from '@/stores/auth'
 import { useEventScenarioGuide } from '@/composables/useEventScenarioGuide'
 
@@ -1098,80 +1025,6 @@ const scheduleRows = computed(() => [
 
 const today = formatDateValue(new Date())
 const ACTIVITY_TITLE_MAX_LENGTH = 15
-
-const {
-  searchResults: addressResults,
-  isSearching: isSearchingAddress,
-  error: addressError,
-  hasSearched: addressHasSearched,
-  searchAddress,
-  clearSearch: clearAddressSearch,
-} = useAddressSearch()
-let addressDebounceTimer = null
-const activeAddressIndex = ref(-1)
-const searchOverseasLocation = ref(false)
-const activeAddressOptionId = computed(() =>
-  activeAddressIndex.value >= 0 ? `event-location-option-${activeAddressIndex.value}` : undefined,
-)
-
-function handleLocationInput() {
-  activeAddressIndex.value = -1
-  clearTimeout(addressDebounceTimer)
-  addressDebounceTimer = setTimeout(() => {
-    searchAddress(form.location, { global: searchOverseasLocation.value })
-  }, 300)
-}
-
-function handleOverseasToggleChange() {
-  activeAddressIndex.value = -1
-  searchAddress(form.location, { global: searchOverseasLocation.value })
-}
-
-function handleLocationBlur() {
-  clearAddressSearch()
-  activeAddressIndex.value = -1
-}
-
-function handleLocationKeydown(event) {
-  const hasDropdown =
-    isSearchingAddress.value ||
-    !!addressError.value ||
-    addressHasSearched.value ||
-    addressResults.value.length > 0
-
-  // Escape 只在下拉有東西可關時攔截；否則放行讓 BaseModal 自己的 Escape
-  // 監聽器接手關掉整個表單——不攔截的話會把使用者填到一半的表單也關掉
-  if (event.key === 'Escape') {
-    if (!hasDropdown) return
-    event.preventDefault()
-    event.stopPropagation()
-    clearAddressSearch()
-    activeAddressIndex.value = -1
-    return
-  }
-
-  if (addressResults.value.length === 0) return
-
-  if (event.key === 'ArrowDown') {
-    event.preventDefault()
-    activeAddressIndex.value = (activeAddressIndex.value + 1) % addressResults.value.length
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault()
-    activeAddressIndex.value =
-      activeAddressIndex.value <= 0 ? addressResults.value.length - 1 : activeAddressIndex.value - 1
-  } else if (event.key === 'Enter' && activeAddressIndex.value >= 0) {
-    event.preventDefault()
-    selectAddress(addressResults.value[activeAddressIndex.value])
-  }
-}
-
-function selectAddress(address) {
-  form.location = address
-  clearAddressSearch()
-  activeAddressIndex.value = -1
-}
-
-onBeforeUnmount(() => clearTimeout(addressDebounceTimer))
 
 const form = reactive({
   name: '',
@@ -1845,8 +1698,6 @@ function resetForm() {
   form.type = null
   form.limit = null
   form.location = ''
-  clearAddressSearch()
-  searchOverseasLocation.value = false
   form.allDay = false
   form.startDate = todayStr
   form.startTime = null
