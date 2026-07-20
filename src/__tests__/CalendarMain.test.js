@@ -479,6 +479,18 @@ describe('CalendarMain - UPCOMING 活動側欄', () => {
 })
 
 describe('CalendarMain', () => {
+  test('短螢幕手機會避開固定控制項並讓月曆吸收剩餘高度', () => {
+    expect(calendarMainSource).toContain(
+      'padding: 8px 8px calc(84px + env(safe-area-inset-bottom, 0px));',
+    )
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 640px\) and \(max-height: 700px\) \{[\s\S]*?\.calendar-board\s*\{[\s\S]*?flex: 1 1 auto;[\s\S]*?height: clamp\(220px, calc\(100dvh - 330px\), 360px\);[\s\S]*?min-height: 220px;[\s\S]*?max-height: 360px;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /\.calendar-toggle-dots-mobile\s*\{[\s\S]*?top: 5px;[\s\S]*?right: 48px;[\s\S]*?width: 26px;[\s\S]*?height: 26px;/,
+    )
+  })
+
   test('今天只在原日期位置顯示柔和紅色圓形，並提供 aria-current 語意', async () => {
     const originalFetch = globalThis.fetch
     vi.setSystemTime(new Date(2026, 6, 11, 12, 0, 0))

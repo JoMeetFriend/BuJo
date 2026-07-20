@@ -5,6 +5,7 @@ import { describe, expect, test, vi } from 'vitest'
 import axios from 'axios'
 import AppSidebar from '@/components/AppSidebar.vue'
 import appSidebarSource from '@/components/AppSidebar.vue?raw'
+import appTourHelpButtonSource from '@/components/AppTourHelpButton.vue?raw'
 import { useAuthStore } from '@/stores/auth'
 import { createTestI18n } from './testUtils'
 
@@ -55,8 +56,8 @@ async function mountAppSidebar(user = {}) {
 }
 
 describe('AppSidebar', () => {
-  test('手機月曆篩選按鈕往導覽列內收，避免貼住活動卡片', () => {
-    expect(appSidebarSource).toContain('bottom: calc(100% - 13px);')
+  test('手機月曆篩選按鈕釘選在底部導覽列上緣', () => {
+    expect(appSidebarSource).toContain('bottom: 100%;')
   })
 
   test('側欄下方個人入口會顯示正規化後的使用者頭像', async () => {
@@ -162,6 +163,12 @@ describe('AppSidebar', () => {
   })
 
   describe('新手導覽問號', () => {
+    test('手機版問號在月曆紙張上方區域垂直置中', () => {
+      expect(appTourHelpButtonSource).toMatch(
+        /\.bujo-tour-help-btn--floating\s*\{[\s\S]*?top: 5px;[\s\S]*?right: 10px;[\s\S]*?width: 26px;[\s\S]*?height: 26px;/,
+      )
+    })
+
     test('桌機版（CALENDAR FILTER 上方）與手機版（浮動右上角）各有一顆問號按鈕', async () => {
       const wrapper = await mountAppSidebar()
 

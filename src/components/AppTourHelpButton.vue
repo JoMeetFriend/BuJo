@@ -71,7 +71,7 @@ const emit = defineEmits(['click'])
 
 .bujo-tour-help-btn--floating {
   position: fixed;
-  top: 10px;
+  top: 5px;
   right: 10px;
   z-index: 70;
   width: 26px;
