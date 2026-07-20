@@ -1,6 +1,6 @@
 <template>
   <div class="app-shell relative flex bg-[var(--bujo-page)] overflow-hidden text-[var(--bujo-ink)]">
-    <LoadingPage v-if="!authStore.initialized || !minDisplayElapsed" />
+    <LoadingPage v-if="showLoadingPage" />
 
     <AppSidebar
       v-if="showSidebar"
@@ -67,19 +67,40 @@ import { markEventScenarioGuideSeen } from './composables/useEventScenarioGuide'
 
 // 載入畫面至少顯示這麼久，避免 authStore 初始化太快時畫面閃一下就消失
 const MIN_LOADING_DISPLAY_MS = 1600
+// 同一個分頁只在第一次開啟時跑滿載入畫面；分頁內重新整理就不用再等，直接看目前初始化狀態
+const LOADING_SEEN_KEY = 'bujo-loading-seen'
+const hasSeenLoadingAnimation = (() => {
+  try {
+    return sessionStorage.getItem(LOADING_SEEN_KEY) === '1'
+  } catch {
+    return false
+  }
+})()
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const sidebarOpen = ref(true)
 const filters = ref({ formedByMe: true, formedByOthers: true })
-const minDisplayElapsed = ref(false)
+const minDisplayElapsed = ref(hasSeenLoadingAnimation)
 
 onMounted(() => {
+  if (hasSeenLoadingAnimation) return
   setTimeout(() => {
     minDisplayElapsed.value = true
+    try {
+      sessionStorage.setItem(LOADING_SEEN_KEY, '1')
+    } catch {
+      // sessionStorage 不可用（如無痕模式限制）就每次都跑完整載入畫面，不影響功能
+    }
   }, MIN_LOADING_DISPLAY_MS)
 })
+
+// 只有第一次載入才顯示載入畫面；分頁內重新整理時 authStore 重新確認登入狀態
+// 也不該讓畫面閃一下，所以已經看過的話直接跳過，不管 authStore 是否初始化完成
+const showLoadingPage = computed(
+  () => !hasSeenLoadingAnimation && (!authStore.initialized || !minDisplayElapsed.value),
+)
 
 const isNotFoundPage = computed(() => route.name === 'not-found')
 const showSidebar = computed(
