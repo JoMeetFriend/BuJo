@@ -3,7 +3,7 @@
     <div class="space-y-4">
       <div class="flex items-center gap-3">
         <div
-          class="grid h-[60px] w-[60px] shrink-0 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)]"
+          class="grid h-[60px] w-[60px] shrink-0 place-items-center overflow-hidden border border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)]"
         >
           <img
             v-if="avatarSrc"

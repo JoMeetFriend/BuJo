@@ -1,10 +1,11 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import App from '@/App.vue'
 import appSource from '@/App.vue?raw'
 import { useAuthStore } from '@/stores/auth'
+import { APP_TOUR_SEEN_VALUE, getAppTourKey } from '@/composables/useAppTour'
 import { createTestI18n } from './testUtils'
 
 const user = {
@@ -37,7 +38,23 @@ const LineNotificationOnboardingModalStub = {
   `,
 }
 
-async function mountApp({ path = '/calendar', currentUser = user, initialized = true } = {}) {
+// 帶一個 data-tour="tour-help-button" 錨點，讓真正的 useAppTour/driver.js 在測試裡也能找到「？」按鈕位置
+const AppSidebarStub = {
+  template: '<div><button type="button" data-tour="tour-help-button">?</button></div>',
+}
+
+async function mountApp({
+  path = '/calendar',
+  currentUser = user,
+  initialized = true,
+  // 大部分 LINE onboarding 測試不關心新手導覽本身，預設先標記導覽提示已看過，
+  // 維持跟「LINE 提醒排到導覽提示之後」這個規則加入前一樣的行為
+  seedTourSeen = true,
+} = {}) {
+  if (seedTourSeen && currentUser?.id) {
+    localStorage.setItem(getAppTourKey(currentUser.id), APP_TOUR_SEEN_VALUE)
+  }
+
   const pinia = createPinia()
   setActivePinia(pinia)
   const authStore = useAuthStore()
@@ -52,11 +69,14 @@ async function mountApp({ path = '/calendar', currentUser = user, initialized = 
     global: {
       plugins: [pinia, router, createTestI18n()],
       stubs: {
-        AppSidebar: true,
+        AppSidebar: AppSidebarStub,
         SidebarToggleButton: true,
         LineNotificationOnboardingModal: LineNotificationOnboardingModalStub,
       },
     },
+    // 新手導覽的 driver.js 是直接操作 document 找 [data-tour] 錨點、把 popover 掛在 document.body 底下，
+    // 沒有 attachTo 的話 wrapper 不在真正的 document 裡，driver.js 會找不到錨點
+    attachTo: document.body,
   })
 
   return { wrapper, router }
@@ -65,6 +85,11 @@ async function mountApp({ path = '/calendar', currentUser = user, initialized = 
 beforeEach(() => {
   localStorage.clear()
   sessionStorage.clear()
+})
+
+afterEach(() => {
+  document.body.innerHTML = ''
+  document.body.className = ''
 })
 
 describe('App mobile viewport layout', () => {
@@ -126,5 +151,41 @@ describe('App LINE notification onboarding', () => {
     expect(sessionStorage.getItem('bujo:line-notification-guide:return-path')).toBe('/calendar')
     expect(localStorage.getItem('bujo:line-notification-guide:v1:user-123')).toBeNull()
     expect(wrapper.find('[data-testid="line-notification-onboarding"]').exists()).toBe(true)
+  })
+})
+
+describe('App 新手導覽提示與 LINE 提醒的顯示順序', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  test('第一次登入、還沒看過新手導覽提示時，LINE 提醒不會搶先跳出', async () => {
+    const { wrapper } = await mountApp({ seedTourSeen: false })
+
+    await vi.advanceTimersByTimeAsync(1600)
+    await wrapper.vm.$nextTick()
+
+    expect(document.body.classList.contains('driver-active')).toBe(true)
+    expect(wrapper.find('[data-testid="line-notification-onboarding"]').exists()).toBe(false)
+  })
+
+  test('關閉新手導覽提示後，才會接著顯示 LINE 提醒', async () => {
+    const { wrapper } = await mountApp({ seedTourSeen: false })
+
+    await vi.advanceTimersByTimeAsync(1600)
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('[data-testid="line-notification-onboarding"]').exists()).toBe(false)
+
+    // driver.js 框選第一個元素預設有 400ms 的動畫，動畫跑完前 destroy() 不會觸發 onDestroyed
+    await vi.advanceTimersByTimeAsync(500)
+    document.querySelector('.driver-popover-close-btn').click()
+    await wrapper.vm.$nextTick()
+
+    expect(localStorage.getItem(getAppTourKey('user-123'))).toBe(APP_TOUR_SEEN_VALUE)
+    expect(wrapper.get('[data-testid="line-notification-onboarding"]').text()).toContain('user-123')
   })
 })

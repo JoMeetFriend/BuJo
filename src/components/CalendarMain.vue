@@ -848,6 +848,7 @@ function isToday(date) {
   justify-content: center;
   width: 38px;
   height: 38px;
+  overflow: hidden;
   border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
   background: var(--bujo-surface);
   transition:

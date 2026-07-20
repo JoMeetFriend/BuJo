@@ -84,7 +84,7 @@
 
   <!-- 手機版底部導覽列 + 篩選抽屜 -->
   <div class="md:hidden">
-    <!-- 新手導覽問號：手機版沒有側邊欄可以嵌，浮在畫面右上角 -->
+    <!-- 新手導覽問號：手機版沒有側邊欄可以嵌，浮在畫面左上角 -->
     <AppTourHelpButton floating @click="emit('open-tour')" />
     <!-- 篩選抽屜 -->
     <div v-if="isCalendarPage && drawerOpen" class="bujo-mobile-filter-tray">
@@ -622,6 +622,7 @@ async function handleLogout() {
   width: 48px;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   border: 0;
   background: transparent;
   color: var(--bujo-ink);
