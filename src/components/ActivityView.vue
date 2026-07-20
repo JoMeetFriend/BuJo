@@ -90,11 +90,11 @@ const route = useRoute()
 const { t } = useI18n()
 
 const filters = computed(() => [
+  { key: 'all', text: t('activity.filterAll') },
   { key: 'recruiting', text: t('activity.filterRecruiting') },
   { key: 'joined', text: t('activity.filterJoined') },
   { key: 'confirmed', text: t('activity.filterConfirmed') },
   { key: 'mine', text: t('activity.filterHosting') },
-  { key: 'all', text: t('activity.filterAll') },
 ])
 
 const activities = ref([])

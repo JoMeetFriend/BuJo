@@ -390,7 +390,12 @@
           >
             {{ t('activityDetail.cancelActivityButton') }}
           </PixelButton>
-          <PixelButton type="button" :disabled="actionLoading" @click="handleConfirmFormation">
+          <PixelButton
+            type="button"
+            class="activity-detail-formation-button"
+            :disabled="actionLoading"
+            @click="handleConfirmFormation"
+          >
             {{ actionLoading ? t('common.processing') : t('activityDetail.formNowButton') }}
           </PixelButton>
         </template>
@@ -410,6 +415,7 @@
           </PixelButton>
           <PixelButton
             type="button"
+            class="activity-detail-formation-button"
             :disabled="actionLoading || !selectedDecisionSlotId"
             @click="handleConfirmFormation"
           >
@@ -428,6 +434,7 @@
           </PixelButton>
           <PixelButton
             type="button"
+            class="activity-detail-formation-button"
             :disabled="actionLoading || (activity.requires_voting && !selectedDecisionSlotId)"
             @click="handleConfirmFormation"
           >
@@ -439,6 +446,7 @@
           <PixelButton
             v-if="activity.status === 'recruiting' && !activity.has_joined"
             type="button"
+            class="activity-detail-formation-button"
             :disabled="
               actionLoading ||
               (activity.requires_voting &&
@@ -1341,6 +1349,11 @@ function formatTime(date) {
   --activity-detail-scale: 1;
   --activity-detail-lift: 0px;
   --activity-tone: rgb(var(--bujo-ink-rgb) / 0.36);
+  --activity-action-bg: color-mix(in srgb, var(--activity-tone) 74%, var(--bujo-ink));
+  --activity-action-border: color-mix(in srgb, var(--activity-tone) 72%, var(--bujo-ink));
+  --activity-action-text: var(--bujo-white);
+  --activity-action-hover-bg: color-mix(in srgb, var(--activity-tone) 58%, var(--bujo-ink));
+  --activity-action-hover-border: color-mix(in srgb, var(--activity-tone) 58%, var(--bujo-ink));
   width: min(324px, 72vw);
   max-height: 100%;
   border-radius: 1px;
@@ -1366,27 +1379,27 @@ function formatTime(date) {
 
 .activity-focus-card--mine-recruiting {
   --activity-focus-bg: var(--bujo-card-pink);
-  --activity-tone: #7a5d73;
+  --activity-tone: #8f647d;
 }
 
 .activity-focus-card--mine-confirmed {
   --activity-focus-bg: var(--bujo-card-blue);
-  --activity-tone: #587271;
+  --activity-tone: #63817f;
 }
 
 .activity-focus-card--joined {
   --activity-focus-bg: var(--bujo-card-blue);
-  --activity-tone: #587271;
+  --activity-tone: #63817f;
 }
 
 .activity-focus-card--recruiting {
   --activity-focus-bg: var(--bujo-accent);
-  --activity-tone: #5c755f;
+  --activity-tone: #6f8b70;
 }
 
 .activity-focus-card--confirmed {
   --activity-focus-bg: var(--bujo-card-yellow);
-  --activity-tone: #746d4b;
+  --activity-tone: #857c56;
 }
 
 .activity-focus-card--neutral {
@@ -1964,20 +1977,171 @@ function formatTime(date) {
   justify-content: flex-end;
   gap: 10px;
   flex-wrap: wrap;
+  overflow: visible;
 }
 
 .activity-detail-footer :deep(button) {
-  background: transparent !important;
-  color: var(--bujo-ink) !important;
-  border: 1px solid var(--bujo-ink) !important;
+  min-height: 32px;
+  border-radius: 2px !important;
   box-shadow: none !important;
   font-family: var(--bujo-font-body) !important;
   font-weight: 700 !important;
 }
 
-.activity-detail-footer :deep(button:hover) {
-  background: var(--bujo-ink) !important;
-  color: var(--bujo-white) !important;
+.activity-detail-footer :deep(.bujo-btn--green) {
+  border-color: var(--activity-action-border) !important;
+  background: var(--activity-action-bg) !important;
+  color: var(--activity-action-text) !important;
+  box-shadow: inset 0 0 0 1px rgb(var(--bujo-white-rgb) / 0.12) !important;
+}
+
+.activity-detail-footer :deep(.activity-detail-formation-button) {
+  position: relative !important;
+  z-index: 0;
+}
+
+.activity-detail-footer :deep(.activity-detail-formation-button)::before,
+.activity-detail-footer :deep(.activity-detail-formation-button)::after {
+  position: absolute;
+  left: 50%;
+  z-index: -1;
+  width: 150%;
+  height: 100%;
+  background-repeat: no-repeat;
+  content: '';
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.activity-detail-footer :deep(.bujo-btn--green:hover:not(:disabled)) {
+  border-color: var(--activity-action-hover-border) !important;
+  background: var(--activity-action-hover-bg) !important;
+}
+
+.activity-detail-footer :deep(.activity-detail-formation-button:hover:not(:disabled))::before {
+  top: -70%;
+  background-image:
+    radial-gradient(circle, var(--activity-action-bg) 20%, transparent 20%),
+    radial-gradient(circle, transparent 20%, var(--activity-action-bg) 20%, transparent 30%),
+    radial-gradient(circle, var(--activity-action-bg) 20%, transparent 20%),
+    radial-gradient(circle, transparent 10%, var(--activity-action-bg) 15%, transparent 20%),
+    radial-gradient(circle, var(--activity-action-bg) 20%, transparent 20%);
+  background-position: 50% 120%;
+  background-size:
+    22% 22%,
+    32% 32%,
+    26% 26%,
+    30% 30%,
+    24% 24%;
+  animation: activity-detail-top-bubbles 0.72s ease;
+}
+
+.activity-detail-footer :deep(.activity-detail-formation-button:hover:not(:disabled))::after {
+  bottom: -70%;
+  background-image:
+    radial-gradient(circle, var(--activity-action-bg) 20%, transparent 20%),
+    radial-gradient(circle, transparent 10%, var(--activity-action-bg) 15%, transparent 20%),
+    radial-gradient(circle, var(--activity-action-bg) 20%, transparent 20%),
+    radial-gradient(circle, var(--activity-action-bg) 20%, transparent 20%);
+  background-position: 50% 0%;
+  background-size:
+    28% 28%,
+    32% 32%,
+    26% 26%,
+    30% 30%;
+  animation: activity-detail-bottom-bubbles 0.72s ease;
+}
+
+.activity-detail-footer :deep(.activity-detail-formation-button:active:not(:disabled)) {
+  transform: scale(0.96) !important;
+}
+
+.activity-detail-footer :deep(.bujo-btn--danger) {
+  border-color: color-mix(in srgb, var(--activity-tone) 36%, var(--bujo-white)) !important;
+  background: transparent !important;
+  color: color-mix(in srgb, var(--activity-tone) 78%, var(--bujo-ink)) !important;
+}
+
+.activity-detail-footer :deep(.bujo-btn--danger:hover:not(:disabled)) {
+  border-color: color-mix(in srgb, var(--activity-tone) 62%, var(--bujo-ink)) !important;
+  background: rgb(var(--bujo-white-rgb) / 0.2) !important;
+  color: color-mix(in srgb, var(--activity-tone) 62%, var(--bujo-ink)) !important;
+}
+
+.activity-detail-footer :deep(button:disabled) {
+  opacity: 1 !important;
+}
+
+.activity-detail-footer :deep(.bujo-btn--green:disabled) {
+  border-color: rgb(var(--bujo-white-rgb) / 0.28) !important;
+  background: rgb(var(--bujo-white-rgb) / 0.2) !important;
+  color: color-mix(in srgb, var(--activity-tone) 54%, var(--bujo-white)) !important;
+}
+
+@keyframes activity-detail-top-bubbles {
+  0% {
+    background-position:
+      5% 90%,
+      18% 90%,
+      36% 90%,
+      58% 90%,
+      78% 90%;
+  }
+
+  50% {
+    background-position:
+      0% 20%,
+      18% 0%,
+      42% 35%,
+      66% 5%,
+      92% 30%;
+  }
+
+  100% {
+    background-position:
+      0% 10%,
+      18% -10%,
+      42% 20%,
+      66% -8%,
+      92% 18%;
+    background-size:
+      0% 0%,
+      0% 0%,
+      0% 0%,
+      0% 0%,
+      0% 0%;
+  }
+}
+
+@keyframes activity-detail-bottom-bubbles {
+  0% {
+    background-position:
+      10% -10%,
+      34% -10%,
+      62% -10%,
+      88% -10%;
+  }
+
+  50% {
+    background-position:
+      4% 80%,
+      34% 98%,
+      66% 68%,
+      104% 84%;
+  }
+
+  100% {
+    background-position:
+      4% 92%,
+      34% 112%,
+      66% 82%,
+      110% 96%;
+    background-size:
+      0% 0%,
+      0% 0%,
+      0% 0%,
+      0% 0%;
+  }
 }
 
 .activity-detail-success {
