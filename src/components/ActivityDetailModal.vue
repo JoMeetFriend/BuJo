@@ -322,6 +322,11 @@
                 v-model="selectedDecisionSlotId"
               />
               <span>{{ slotText(entry) }}</span>
+              <span class="activity-detail-choice-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              </span>
               <span v-if="isExpired(entry)" class="activity-detail-expired-label">{{
                 t('activityDetail.expired')
               }}</span>
@@ -1816,10 +1821,22 @@ function formatTime(date) {
 }
 
 .activity-detail-options--decision .activity-detail-option {
+  position: relative;
   border-color: rgb(var(--bujo-white-rgb) / 0.38);
   border-radius: 2px;
   background: rgb(var(--bujo-white-rgb) / 0.18);
-  padding: 8px 8px;
+  padding: 8px 8px 8px 12px;
+  overflow: hidden;
+}
+
+.activity-detail-options--decision .activity-detail-option::before {
+  position: absolute;
+  inset: 6px auto 6px 0;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: transparent;
+  content: '';
+  transition: background-color 160ms ease;
 }
 
 .activity-detail-options--decision .activity-detail-option:hover {
@@ -1831,12 +1848,63 @@ function formatTime(date) {
   background: rgb(var(--bujo-white-rgb) / 0.42);
 }
 
+.activity-detail-options--decision .activity-detail-option--selected::before {
+  background: color-mix(in srgb, var(--activity-tone) 82%, var(--bujo-ink));
+}
+
 .activity-detail-option-time {
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
   align-items: center;
   gap: 6px;
+}
+
+.activity-detail-choice-icon {
+  display: inline-flex;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  opacity: 0;
+  transform: translateY(-0.5px);
+  transition:
+    color 160ms ease,
+    opacity 160ms ease;
+}
+
+.activity-detail-choice-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.activity-detail-options--decision
+  .activity-detail-option--selected
+  .activity-detail-choice-icon {
+  color: color-mix(in srgb, var(--activity-tone) 82%, var(--bujo-ink));
+  opacity: 0.78;
+}
+
+.activity-detail-options--decision input[type='radio'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.activity-detail-options--decision .activity-detail-option:has(input[type='radio']:focus-visible) {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--activity-tone) 42%, transparent);
 }
 
 .activity-detail-option-right {
