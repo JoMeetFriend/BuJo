@@ -382,9 +382,6 @@
             activity?.is_creator && activity.status === 'recruiting' && !activity.requires_voting
           "
         >
-          <PixelButton type="button" :disabled="actionLoading" @click="handleConfirmFormation">
-            {{ actionLoading ? t('common.processing') : t('activityDetail.formNowButton') }}
-          </PixelButton>
           <PixelButton
             variant="danger"
             type="button"
@@ -392,6 +389,9 @@
             @click="handleCancel"
           >
             {{ t('activityDetail.cancelActivityButton') }}
+          </PixelButton>
+          <PixelButton type="button" :disabled="actionLoading" @click="handleConfirmFormation">
+            {{ actionLoading ? t('common.processing') : t('activityDetail.formNowButton') }}
           </PixelButton>
         </template>
 
@@ -401,12 +401,23 @@
           "
         >
           <PixelButton
+            variant="danger"
+            type="button"
+            :disabled="actionLoading"
+            @click="handleCancel"
+          >
+            {{ t('activityDetail.cancelActivityButton') }}
+          </PixelButton>
+          <PixelButton
             type="button"
             :disabled="actionLoading || !selectedDecisionSlotId"
             @click="handleConfirmFormation"
           >
             {{ actionLoading ? t('common.processing') : t('activityDetail.earlyFormationButton') }}
           </PixelButton>
+        </template>
+
+        <template v-else-if="activity?.is_creator && activity.status === 'voting'">
           <PixelButton
             variant="danger"
             type="button"
@@ -415,29 +426,12 @@
           >
             {{ t('activityDetail.cancelActivityButton') }}
           </PixelButton>
-        </template>
-
-        <template v-else-if="activity?.is_creator && activity.status === 'voting'">
           <PixelButton
             type="button"
             :disabled="actionLoading || (activity.requires_voting && !selectedDecisionSlotId)"
             @click="handleConfirmFormation"
           >
-            {{
-              actionLoading
-                ? t('common.processing')
-                : activity.requires_voting
-                  ? t('activityDetail.confirmFormationButton')
-                  : t('activityDetail.formNowButton')
-            }}
-          </PixelButton>
-          <PixelButton
-            variant="danger"
-            type="button"
-            :disabled="actionLoading"
-            @click="handleCancel"
-          >
-            {{ t('activityDetail.cancelActivityButton') }}
+            {{ actionLoading ? t('common.processing') : t('activityDetail.formNowButton') }}
           </PixelButton>
         </template>
 
@@ -1826,7 +1820,7 @@ function formatTime(date) {
   border-radius: 2px;
   background: rgb(var(--bujo-white-rgb) / 0.18);
   padding: 8px 8px 8px 12px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .activity-detail-options--decision .activity-detail-option::before {
@@ -1840,6 +1834,7 @@ function formatTime(date) {
 }
 
 .activity-detail-options--decision .activity-detail-option:hover {
+  z-index: 7;
   background: rgb(var(--bujo-white-rgb) / 0.28);
 }
 
