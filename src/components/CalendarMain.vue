@@ -25,12 +25,31 @@
 
     <button
       v-if="isMobile"
+      type="button"
+      class="calendar-lang-toggle calendar-lang-toggle-mobile"
+      :aria-label="t('common.ariaToggleLanguage')"
+      @click="toggleLanguage"
+    >
+      {{ locale === 'zh-TW' ? t('common.langEn') : t('common.langZhTw') }}
+    </button>
+
+    <button
+      v-if="isMobile"
       @click="toggleDotsAnimation"
       class="calendar-arrow-button calendar-toggle-dots-mobile"
       :class="{ 'is-active': showDots }"
       :aria-label="t('calendar.toggleAnimation')"
     >
       <span class="calendar-square-toggle" aria-hidden="true"></span>
+    </button>
+
+    <button
+      type="button"
+      class="calendar-lang-toggle calendar-lang-toggle-desktop hidden md:flex"
+      :aria-label="t('common.ariaToggleLanguage')"
+      @click="toggleLanguage"
+    >
+      {{ locale === 'zh-TW' ? t('common.langEn') : t('common.langZhTw') }}
     </button>
 
     <button
@@ -325,6 +344,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useLocaleStore } from '@/stores/locale'
 import PixelButton from './ui/PixelButton.vue'
 import BaseModal from './ui/BaseModal.vue'
 import ActivityDetailModal from './ActivityDetailModal.vue'
@@ -339,7 +359,8 @@ const eventModalInitialDate = ref(null)
 const profileBtnBouncing = ref(false)
 const router = useRouter()
 const authStore = useAuthStore()
-const { t } = useI18n()
+const localeStore = useLocaleStore()
+const { t, locale } = useI18n()
 
 const currentUser = computed(() => authStore.user)
 const currentUserAvatarSrc = computed(() => toAvatarSrc(currentUser.value?.avatar_url))
@@ -347,6 +368,11 @@ const currentUserAvatarSrc = computed(() => toAvatarSrc(currentUser.value?.avata
 function openProfileModal() {
   showProfileModal.value = true
   profileBtnBouncing.value = true
+}
+
+function toggleLanguage() {
+  const newLocale = locale.value === 'zh-TW' ? 'en' : 'zh-TW'
+  localeStore.setLocale(newLocale, { global: { locale } })
 }
 
 async function handleLogout() {
@@ -925,6 +951,34 @@ function isToday(date) {
     0 9px 18px rgb(var(--bujo-ink-rgb) / 0.1),
     -4px 4px 0 rgb(var(--bujo-deco-pink) / 0.42);
   transform: rotate(0deg) translateY(-1px);
+}
+
+.calendar-lang-toggle {
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
+  background: var(--bujo-surface);
+  color: var(--bujo-ink);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  transition:
+    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.calendar-lang-toggle:hover {
+  border-color: var(--bujo-ink);
+  background: var(--bujo-white);
+}
+
+.calendar-lang-toggle-desktop {
+  position: absolute;
+  top: 22px;
+  right: 86px;
+  z-index: 8;
+  height: 42px;
+  padding: 0 14px;
 }
 
 .calendar-fetch-error {
@@ -1771,6 +1825,17 @@ function isToday(date) {
   .calendar-toggle-dots-mobile:hover {
     border-color: var(--bujo-ink);
     background: var(--bujo-surface);
+  }
+
+  .calendar-lang-toggle-mobile {
+    position: fixed;
+    top: 5px;
+    right: 56px;
+    z-index: 70;
+
+    display: grid;
+    height: 36px;
+    padding: 0 10px;
   }
 }
 </style>

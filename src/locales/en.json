@@ -689,7 +689,8 @@
     "comma": ", ",
     "unnamed": "Unnamed",
     "langEn": "EN",
-    "langZhTw": "中文"
+    "langZhTw": "中文",
+    "ariaToggleLanguage": "Switch language"
   },
   "userStore": {
     "nameEmpty": "Display name cannot be empty.",

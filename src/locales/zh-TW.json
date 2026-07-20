@@ -687,7 +687,8 @@
     "comma": "、",
     "unnamed": "未命名",
     "langEn": "EN",
-    "langZhTw": "中文"
+    "langZhTw": "中文",
+    "ariaToggleLanguage": "切換中英文"
   },
   "userStore": {
     "nameEmpty": "顯示名稱不可為空白",
