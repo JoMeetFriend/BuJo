@@ -958,8 +958,7 @@ describe('ActivityDetailModal - Scenario D 候選時段窗口報名流程', () =
     })
     await flushPromises()
 
-    expect(wrapper.text()).toContain('日期、時段投票中')
-    expect(wrapper.text()).not.toContain('日期、時段投票中（2）')
+    expect(wrapper.text()).toContain('日期、時段投票中（2）')
     expect(wrapper.text()).toContain('8/1')
     expect(wrapper.text()).toContain('8/3')
   })
@@ -1054,8 +1053,7 @@ describe('ActivityDetailModal - Scenario D 候選時段窗口報名流程', () =
     })
     await flushPromises()
 
-    expect(wrapper.text()).toContain('日期、時段投票中')
-    expect(wrapper.text()).not.toContain('日期、時段投票中（5）')
+    expect(wrapper.text()).toContain('日期、時段投票中（5）')
     // panelDate 卡片標題本來就會顯示候選區間（8/1 ~ 8/9），所以不能用整頁文字判斷「8/9 沒出現」，
     // 要限定在 chip 清單本身
     let chipTexts = wrapper.findAll('.activity-detail-chip').map((c) => c.text())

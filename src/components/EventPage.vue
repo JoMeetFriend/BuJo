@@ -1875,11 +1875,11 @@ async function doSubmitInternal() {
   const trimmedTitle = form.name.trim()
 
   if (!trimmedTitle) {
-    submitError.value = '活動名稱為必填'
+    submitError.value = t('event.errorNameEmpty')
     return
   }
   if (trimmedTitle.length > ACTIVITY_TITLE_MAX_LENGTH) {
-    submitError.value = `活動名稱最多 ${ACTIVITY_TITLE_MAX_LENGTH} 字`
+    submitError.value = t('event.errorNameTooLong', { count: ACTIVITY_TITLE_MAX_LENGTH })
     return
   }
 

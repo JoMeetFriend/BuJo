@@ -186,7 +186,7 @@
       </section>
 
       <!-- Feature strip -->
-      <section class="landing-features" aria-label="核心功能">
+      <section class="landing-features" :aria-label="t('landing.featuresAria')">
         <article v-for="feature in features" :key="feature.title" class="landing-feature">
           <span class="landing-feature-icon" :style="{ '--icon-color': feature.color }">
             <component :is="feature.icon" class="w-5 h-5" />
