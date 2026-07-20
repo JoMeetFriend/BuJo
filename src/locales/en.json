@@ -666,7 +666,10 @@
     "warningPrefix": "Only",
     "warningSuffix": "minutes left until sign-up closes!",
     "openUntilPrefix": "Sign-up open until",
-    "deadlineSuffix": " deadline)"
+    "deadlineSuffix": " deadline)",
+    "pendingPrefix": "Once you pick a date and time, this will show your sign-up deadline. You can also ",
+    "pendingAction": "preview how to adjust it",
+    "pendingSuffix": " now."
   },
   "common": {
     "closeTitle": "Close {title}",

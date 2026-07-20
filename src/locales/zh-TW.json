@@ -664,7 +664,10 @@
     "warningPrefix": "距離報名截止僅剩",
     "warningSuffix": "分鐘！",
     "openUntilPrefix": "報名開放到",
-    "deadlineSuffix": "截止）"
+    "deadlineSuffix": "截止）",
+    "pendingPrefix": "選好日期與時間後，這裡會自動顯示報名截止時間，你也可以先",
+    "pendingAction": "看看怎麼調整",
+    "pendingSuffix": "。"
   },
   "common": {
     "closeTitle": "關閉{title}",
