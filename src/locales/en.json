@@ -470,7 +470,6 @@
     "namePlaceholder": "What are you planning?",
     "locationLabel": "Location",
     "locationPlaceholder": "Where to meet?",
-    "searchOverseas": "Search international locations",
     "timeSlot": "Time Slot",
     "cancel": "Cancel",
     "dateDetermined": "Is the date confirmed?",
@@ -481,8 +480,6 @@
     "capacityHint": "including yourself",
     "capacityPlaceholder": "No limit",
     "clearCapacity": "Clear capacity",
-    "searching": "Searching...",
-    "noAddressFound": "No matching addresses found",
     "allDay": "All day",
     "candidateDates": "Candidate Dates",
     "candidateDatesAndTimes": "Candidate Dates & Time Slots",
@@ -692,7 +689,8 @@
     "comma": ", ",
     "unnamed": "Unnamed",
     "langEn": "EN",
-    "langZhTw": "中文"
+    "langZhTw": "中文",
+    "ariaToggleLanguage": "Switch language"
   },
   "userStore": {
     "nameEmpty": "Display name cannot be empty.",
@@ -711,7 +709,6 @@
   },
   "composable": {
     "userSearchExpired": "Session expired, please log in again",
-    "userSearchError": "Search error occurred",
-    "addressSearchError": "Address search error occurred"
+    "userSearchError": "Search error occurred"
   }
 }
