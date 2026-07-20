@@ -635,8 +635,7 @@
     "prevBtn": "上一步",
     "nextBtn": "下一步",
     "doneBtn": "完成",
-    "skipBtn": "跳過導覽",
-    "progress": "{current} / {total}"
+    "skipBtn": "跳過導覽"
   },
   "guide": {
     "scenarioA0Title": "怎麼喬時間？",
@@ -659,8 +658,7 @@
     "shared1Desc": "可以手動修改報名開放時間。",
     "prevBtn": "上一步",
     "nextBtn": "下一步",
-    "doneBtn": "知道了",
-    "progress": "{current} / {total}"
+    "doneBtn": "完成"
   },
   "reportCutoff": {
     "warningPrefix": "距離報名截止僅剩",

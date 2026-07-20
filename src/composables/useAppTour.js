@@ -185,7 +185,9 @@ function createAppTourDriver(t, navigate, onSuppressEventScenarioGuide, onDestro
     stagePadding: 6,
     stageRadius: 3,
     popoverClass: 'bujo-tour-popover',
-    progressText: t('tour.progress'),
+    // 這是 driver.js 自己的 {{current}}/{{total}} 樣板語法（雙大括號），不能透過 t() 翻譯字串帶進來——
+    // vue-i18n 會把單大括號 {current}/{total} 當成自己的插值語法直接吃掉，字串到 driver.js 手上時數字早就不見了
+    progressText: '{{current}} / {{total}}',
     prevBtnText: t('tour.prevBtn'),
     nextBtnText: t('tour.nextBtn'),
     doneBtnText: t('tour.doneBtn'),

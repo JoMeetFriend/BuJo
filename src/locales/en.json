@@ -635,8 +635,7 @@
     "prevBtn": "Previous",
     "nextBtn": "Next",
     "doneBtn": "Done",
-    "skipBtn": "Skip tour",
-    "progress": "{current} / {total}"
+    "skipBtn": "Skip tour"
   },
   "guide": {
     "scenarioA0Title": "How to schedule?",
@@ -659,8 +658,7 @@
     "shared1Desc": "You can manually adjust the sign-up open duration.",
     "prevBtn": "Previous",
     "nextBtn": "Next",
-    "doneBtn": "Got it",
-    "progress": "{current} / {total}"
+    "doneBtn": "Done"
   },
   "reportCutoff": {
     "helpButtonLabel": "Restart onboarding tour",

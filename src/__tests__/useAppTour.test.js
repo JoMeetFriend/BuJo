@@ -32,7 +32,6 @@ const tourLabels = {
   'tour.nextBtn': '下一步',
   'tour.doneBtn': '完成',
   'tour.skipBtn': '跳過導覽',
-  'tour.progress': '{current} / {total}',
 }
 function mockT(key) {
   return tourLabels[key] ?? key
@@ -226,6 +225,21 @@ describe('useAppTour', () => {
 
       expect(() => tour.startTour()).not.toThrow()
       expect(document.body.classList.contains('driver-active')).toBe(true)
+    })
+
+    test('進度顯示為第 1 步／共 9 步，不會因為套用 i18n 被吃成空字串', () => {
+      // progressText 用的是 driver.js 自己的 {{current}}/{{total}} 樣板語法（雙大括號）。
+      // 這裡故意用「不認識任何 key」的 t 函式（原樣傳回 key），確保 progressText 不是透過
+      // t() 翻譯字串帶進來的——如果是，vue-i18n 會把單大括號 {current}/{total} 當成自己的
+      // 插值語法吃掉，這裡就會顯示成空字串而不是「1 / 9」。
+      const tour = useAppTour(ref('user-123'), {
+        storage: createStorage(),
+        t: (key) => key,
+      })
+
+      tour.startTour()
+
+      expect(document.querySelector('.driver-popover-progress-text').textContent).toBe('1 / 9')
     })
 
     test('導覽結束（跳過或完成）都會導回跟目錄', () => {
