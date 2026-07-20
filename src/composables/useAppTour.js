@@ -158,7 +158,7 @@ function createAppTourDriver(t, navigate, onSuppressEventScenarioGuide, onDestro
     stagePadding: 6,
     stageRadius: 3,
     popoverClass: 'bujo-tour-popover',
-    progressText: t('tour.progress'),
+    progressText: '{{current}} / {{total}}',
     prevBtnText: t('tour.prevBtn'),
     nextBtnText: t('tour.nextBtn'),
     doneBtnText: t('tour.doneBtn'),

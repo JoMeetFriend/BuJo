@@ -146,7 +146,7 @@ function createGuideDriver(t, scenarioKey, openDeadlineEditor, onDestroyed) {
   return driver({
     steps: buildGuideSteps(t, scenarioKey, openDeadlineEditor),
     showProgress: true,
-    progressText: t('guide.progress'),
+    progressText: '{{current}} / {{total}}',
     allowClose: true,
     overlayClickBehavior: 'close',
     overlayColor: 'rgb(var(--bujo-ink-rgb))',
