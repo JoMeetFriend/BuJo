@@ -1411,8 +1411,8 @@ watch(currentScenarioKey, (key) => {
       timeSlots: [
         {
           id: scenario4SlotIdSeq++,
-          startTime: `${t('common.am')} 9:00`,
-          endTime: `${t('common.pm')} 6:00`,
+          startTime: '09:00',
+          endTime: '18:00',
           endTimeUserSet: true,
         },
       ],
@@ -1938,11 +1938,11 @@ async function doSubmitInternal() {
   const trimmedTitle = form.name.trim()
 
   if (!trimmedTitle) {
-    submitError.value = '活動名稱為必填'
+    submitError.value = t('event.errorNameEmpty')
     return
   }
   if (trimmedTitle.length > ACTIVITY_TITLE_MAX_LENGTH) {
-    submitError.value = `活動名稱最多 ${ACTIVITY_TITLE_MAX_LENGTH} 字`
+    submitError.value = t('event.errorNameTooLong', { count: ACTIVITY_TITLE_MAX_LENGTH })
     return
   }
 

@@ -77,7 +77,7 @@
           class="w-8 h-8 object-cover shrink-0"
         />
         <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
-        <span>{{ authStore.user?.display_name || 'ME' }}</span>
+        <span>{{ authStore.user?.display_name || t('sidebar.meFallback') }}</span>
       </button>
     </div>
   </aside>
