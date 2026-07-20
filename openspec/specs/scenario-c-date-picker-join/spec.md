@@ -165,7 +165,7 @@ tests:
 ---
 ### Requirement: Scenario C joined state shows selected dates
 
-The activity detail view SHALL display a scenario C participant's selected dates in date language instead of time-slot language.
+The activity detail view SHALL display a scenario C participant's selected dates in date language instead of time-slot language, while that participant's status is `recruiting` or `voting`. The activity detail view SHALL NOT display this date summary once the activity status is `confirmed`, and SHALL NOT display it for the activity's creator regardless of activity status, because the creator is automatically recorded as a joined participant at activity creation without ever submitting a candidate-slot selection through the join flow.
 
 #### Scenario: Joined participant views recruiting scenario C activity
 
@@ -181,27 +181,27 @@ The activity detail view SHALL display a scenario C participant's selected dates
 - **THEN** the detail view SHALL show a date summary containing `8/1` and `8/9`
 - **AND** the detail view SHALL provide a date revision action
 
-#### Scenario: Joined participant views frozen scenario C activity
+#### Scenario: Joined participant views scenario C activity during voting
 
-- **WHEN** a joined participant opens a scenario C activity whose status is `voting` or `confirmed`
+- **WHEN** a joined, non-creator participant opens a scenario C activity whose status is `voting`
 - **THEN** the activity detail view SHALL show a date summary of the dates the participant selected
 - **AND** the activity detail view SHALL NOT allow revising the selected dates
 
+#### Scenario: Date summary is hidden once the activity is confirmed
+
+- **WHEN** any user opens a scenario C activity whose status is `confirmed`
+- **THEN** the activity detail view SHALL NOT show the selected-dates summary, regardless of whether that user has joined
+
+#### Scenario: Date summary is hidden for the creator regardless of status
+
+- **WHEN** the activity's creator opens their own scenario C activity, at any status
+- **THEN** the activity detail view SHALL NOT show the selected-dates summary to the creator
+
 <!-- @trace
-source: scenario-c-date-picker-join
-updated: 2026-07-10
+source: hide-candidate-slot-summary-when-confirmed
+updated: 2026-07-20
 code:
-  - src/components/EventPage.vue
-  - src/App.vue
-  - src/components/AvailabilityPickerModal.vue
-  - src/components/CalendarMain.vue
-  - src/components/ProfileEditPage.vue
-  - src/components/UrgentStartWarning.vue
   - src/components/ActivityDetailModal.vue
 tests:
   - src/__tests__/ActivityDetailModal.test.js
-  - src/__tests__/AvailabilityPickerModal.test.js
-  - src/__tests__/RegisterViews.test.js
-  - src/__tests__/friendStore.test.js
-  - src/__tests__/EventPage.test.js
 -->
