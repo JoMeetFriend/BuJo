@@ -848,6 +848,7 @@ function isToday(date) {
   justify-content: center;
   width: 38px;
   height: 38px;
+  overflow: hidden;
   border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
   background: var(--bujo-surface);
   transition:
@@ -1755,10 +1756,10 @@ function isToday(date) {
 
 @media (max-width: 640px) {
   .calendar-toggle-dots-mobile {
-    position: absolute;
-    top: 6px;
-    right: 14px;
-    z-index: 10;
+    position: fixed;
+    top: 5px;
+    right: 10px;
+    z-index: 70;
 
     display: grid;
     width: 36px;

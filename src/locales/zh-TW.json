@@ -612,6 +612,8 @@
   "tour": {
     "helpButtonLabel": "重新開啟新手導覽",
     "helpButtonTitle": "新手導覽",
+    "hintTitle": "新手導覽在這裡",
+    "hintDesc": "想了解怎麼用 BuJo 嗎？之後點這顆「？」就可以隨時開始導覽。",
     "calendarTitle": "行事曆",
     "calendarDesc": "在這裡查看所有揪團跟活動的時間安排，一眼掌握你的行程。",
     "todayCellTitle": "只顯示已成團的活動",
@@ -633,8 +635,7 @@
     "prevBtn": "上一步",
     "nextBtn": "下一步",
     "doneBtn": "完成",
-    "skipBtn": "跳過導覽",
-    "progress": "{current} / {total}"
+    "skipBtn": "跳過導覽"
   },
   "guide": {
     "scenarioA0Title": "怎麼喬時間？",
@@ -657,14 +658,16 @@
     "shared1Desc": "可以手動修改報名開放時間。",
     "prevBtn": "上一步",
     "nextBtn": "下一步",
-    "doneBtn": "知道了",
-    "progress": "{current} / {total}"
+    "doneBtn": "完成"
   },
   "reportCutoff": {
     "warningPrefix": "距離報名截止僅剩",
     "warningSuffix": "分鐘！",
     "openUntilPrefix": "報名開放到",
-    "deadlineSuffix": "截止）"
+    "deadlineSuffix": "截止）",
+    "pendingPrefix": "選好日期與時間後，這裡會自動顯示報名截止時間，你也可以先",
+    "pendingAction": "看看怎麼調整",
+    "pendingSuffix": "。"
   },
   "common": {
     "closeTitle": "關閉{title}",

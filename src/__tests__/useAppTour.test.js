@@ -32,7 +32,6 @@ const tourLabels = {
   'tour.nextBtn': '下一步',
   'tour.doneBtn': '完成',
   'tour.skipBtn': '跳過導覽',
-  'tour.progress': '{current} / {total}',
 }
 function mockT(key) {
   return tourLabels[key] ?? key
@@ -228,6 +227,21 @@ describe('useAppTour', () => {
       expect(document.body.classList.contains('driver-active')).toBe(true)
     })
 
+    test('進度顯示為第 1 步／共 9 步，不會因為套用 i18n 被吃成空字串', () => {
+      // progressText 用的是 driver.js 自己的 {{current}}/{{total}} 樣板語法（雙大括號）。
+      // 這裡故意用「不認識任何 key」的 t 函式（原樣傳回 key），確保 progressText 不是透過
+      // t() 翻譯字串帶進來的——如果是，vue-i18n 會把單大括號 {current}/{total} 當成自己的
+      // 插值語法吃掉，這裡就會顯示成空字串而不是「1 / 9」。
+      const tour = useAppTour(ref('user-123'), {
+        storage: createStorage(),
+        t: (key) => key,
+      })
+
+      tour.startTour()
+
+      expect(document.querySelector('.driver-popover-progress-text').textContent).toBe('1 / 9')
+    })
+
     test('導覽結束（跳過或完成）都會導回跟目錄', () => {
       // driver.js 預設有 400ms 的框選動畫，動畫跑完前 destroy() 不會觸發 onDestroyed；
       // 用 fake timers 把動畫時間跑完，模擬使用者實際點擊時的時間點
@@ -265,6 +279,43 @@ describe('useAppTour', () => {
       // 把時間快轉完，避免遺留的 setTimeout 在測試結束、jsdom 環境清掉後才觸發而噴出例外。
       vi.advanceTimersByTime(3200)
       vi.useRealTimers()
+    })
+  })
+
+  describe('startTourHint', () => {
+    beforeEach(() => {
+      const helpButton = document.createElement('button')
+      helpButton.setAttribute('data-tour', 'tour-help-button')
+      document.body.appendChild(helpButton)
+    })
+
+    test('第一次登入只指向「？」按鈕，不會跑完整的多步驟導覽', () => {
+      const tour = useAppTour(ref('user-123'), { storage: createStorage() })
+
+      expect(() => tour.startTourHint()).not.toThrow()
+      expect(document.body.classList.contains('driver-active')).toBe(true)
+      expect(document.querySelectorAll('.driver-popover').length).toBe(1)
+    })
+
+    test('關閉提示後會標記導覽已看過，避免下次自動再彈出', () => {
+      vi.useFakeTimers()
+      const storage = createStorage()
+      const tour = useAppTour(ref('user-123'), { storage })
+
+      tour.startTourHint()
+      vi.advanceTimersByTime(500)
+      document.querySelector('.driver-popover-close-btn').click()
+
+      expect(storage.setItem).toHaveBeenCalledWith('bujo:app-tour:v1:user-123', APP_TOUR_SEEN_VALUE)
+      expect(tour.hasSeenTour.value).toBe(true)
+      vi.useRealTimers()
+    })
+
+    test('找不到「？」按鈕錨點時不拋錯', () => {
+      document.body.innerHTML = ''
+      const tour = useAppTour(ref('user-123'), { storage: createStorage() })
+
+      expect(() => tour.startTourHint()).not.toThrow()
     })
   })
 })

@@ -35,8 +35,7 @@ const guideLabels = {
   'guide.shared1Desc': '可以手動修改報名開放時間。',
   'guide.prevBtn': '上一步',
   'guide.nextBtn': '下一步',
-  'guide.doneBtn': '知道了',
-  'guide.progress': '{current} / {total}',
+  'guide.doneBtn': '完成',
 }
 function mockT(key) {
   return guideLabels[key] ?? key
@@ -212,6 +211,28 @@ describe('useEventScenarioGuide', () => {
       const guide = useEventScenarioGuide(ref('user-123'), ref('a'), { storage: createStorage() })
 
       expect(() => guide.startGuide()).not.toThrow()
+    })
+
+    test('進度顯示為第 1 步／共 3 步（情境一：1 個開場步驟＋2 個共用步驟），不會因為套用 i18n 被吃成空字串', () => {
+      // progressText 用的是 driver.js 自己的 {{current}}/{{total}} 樣板語法（雙大括號）。
+      // 這裡故意用「不認識任何 key」的 t 函式，確保 progressText 不是透過 t() 翻譯字串帶進來的——
+      // 如果是，vue-i18n 會把單大括號 {current}/{total} 當成自己的插值語法吃掉，變成空字串。
+      ;['event-scenario-toggles', 'event-deadline-block', 'event-deadline-offset-button'].forEach(
+        (selector) => {
+          const anchor = document.createElement('button')
+          anchor.setAttribute('data-tour', selector)
+          document.body.appendChild(anchor)
+        },
+      )
+
+      const guide = useEventScenarioGuide(ref('user-123'), ref('a'), {
+        storage: createStorage(),
+        t: (key) => key,
+      })
+
+      guide.startGuide()
+
+      expect(document.querySelector('.driver-popover-progress-text').textContent).toBe('1 / 3')
     })
 
     test('連續呼叫 startGuide 會先關掉前一個，不會疊出兩層 popover', () => {

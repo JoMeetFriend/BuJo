@@ -93,24 +93,33 @@ const {
   shouldShow: hasUnseenLineNotificationOnboarding,
   markSeen: markLineNotificationOnboardingSeen,
 } = useLineNotificationOnboarding(onboardingUserId)
-const showLineNotificationOnboarding = computed(
-  () =>
-    authStore.initialized &&
-    Boolean(authStore.user) &&
-    Boolean(onboardingUserId.value) &&
-    Boolean(route.meta.requiresAuth) &&
-    hasUnseenLineNotificationOnboarding.value,
-)
 
 const { t } = useI18n()
-const { hasSeenTour: hasSeenAppTour, startTour: startAppTour } = useAppTour(onboardingUserId, {
+const {
+  hasSeenTour: hasSeenAppTour,
+  startTour: startAppTour,
+  startTourHint: startAppTourHint,
+} = useAppTour(onboardingUserId, {
   navigate: (path) => router.push(path),
   t,
   // 主導覽自己開了新增活動彈窗要介紹「？」按鈕時，先標記情境一的彈窗導覽已看過，
   // 避免彈窗一開兩邊導覽疊在一起
   onSuppressEventScenarioGuide: () => markEventScenarioGuideSeen(onboardingUserId.value, 'a'),
 })
-// 新手導覽的預設首頁是行事曆頁（登入/註冊後的導向目標），只在那裡自動開啟一次
+
+// LINE 提醒彈窗要排在新手導覽提示之後才出現：第一次登入的使用者要先看過「？」按鈕在哪，
+// 才輪到 LINE 提醒，避免兩個彈窗同時搶畫面
+const showLineNotificationOnboarding = computed(
+  () =>
+    authStore.initialized &&
+    Boolean(authStore.user) &&
+    Boolean(onboardingUserId.value) &&
+    Boolean(route.meta.requiresAuth) &&
+    hasUnseenLineNotificationOnboarding.value &&
+    hasSeenAppTour.value,
+)
+// 新手導覽的預設首頁是行事曆頁（登入/註冊後的導向目標），只在那裡自動提示一次；
+// 第一次登入不直接跑完整導覽，只指出「？」按鈕在哪，完整導覽留給使用者自己點開
 const shouldAutoStartAppTour = computed(
   () =>
     authStore.initialized &&
@@ -125,7 +134,7 @@ watch(
   async (shouldStart) => {
     if (!shouldStart) return
     await nextTick()
-    startAppTour()
+    startAppTourHint()
   },
   { immediate: true },
 )
