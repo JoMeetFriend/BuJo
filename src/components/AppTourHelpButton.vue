@@ -3,6 +3,7 @@
     type="button"
     class="bujo-tour-help-btn"
     :class="floating ? 'bujo-tour-help-btn--floating' : 'bujo-tour-help-btn--inline'"
+    data-tour="tour-help-button"
     :aria-label="t('tour.helpButtonLabel')"
     :title="t('tour.helpButtonTitle')"
     @click="emit('click')"

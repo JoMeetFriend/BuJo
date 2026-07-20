@@ -612,6 +612,8 @@
   "tour": {
     "helpButtonLabel": "Restart onboarding tour",
     "helpButtonTitle": "Onboarding tour",
+    "hintTitle": "Your onboarding tour is here",
+    "hintDesc": "Want to learn how BuJo works? Tap this \"?\" anytime to start the tour.",
     "calendarTitle": "Calendar",
     "calendarDesc": "View all group activities and their schedules at a glance.",
     "todayCellTitle": "Show only formed activities",

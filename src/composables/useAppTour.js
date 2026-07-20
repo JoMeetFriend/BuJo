@@ -145,6 +145,33 @@ export function buildDriveSteps(t, navigate, onSuppressEventScenarioGuide) {
   )
 }
 
+function createAppTourHintDriver(t, onDestroyed) {
+  return driver({
+    steps: [
+      {
+        element: () => resolveTourElement('tour-help-button'),
+        popover: {
+          title: t('tour.hintTitle'),
+          description: t('tour.hintDesc'),
+        },
+        skipMissingElement: true,
+      },
+    ],
+    showProgress: false,
+    allowClose: true,
+    overlayClickBehavior: 'close',
+    overlayColor: 'rgb(var(--bujo-ink-rgb))',
+    overlayOpacity: 0.55,
+    stagePadding: 6,
+    stageRadius: 3,
+    popoverClass: 'bujo-tour-popover',
+    doneBtnText: t('tour.doneBtn'),
+    onDestroyed: () => {
+      onDestroyed?.()
+    },
+  })
+}
+
 function createAppTourDriver(t, navigate, onSuppressEventScenarioGuide, onDestroyed) {
   let tourInstance = null
 
@@ -227,10 +254,16 @@ export function useAppTour(userId, options = {}) {
     createAppTourDriver(t, navigate, onSuppressEventScenarioGuide, markSeen).drive()
   }
 
+  // 第一次登入不直接跑完整導覽，只指出「？」按鈕在哪，使用者想看完整導覽再自己點開
+  function startTourHint() {
+    createAppTourHintDriver(t, markSeen).drive()
+  }
+
   return {
     hasSeenTour,
     storageKey,
     markSeen,
     startTour,
+    startTourHint,
   }
 }

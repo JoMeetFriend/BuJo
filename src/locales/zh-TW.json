@@ -612,6 +612,8 @@
   "tour": {
     "helpButtonLabel": "重新開啟新手導覽",
     "helpButtonTitle": "新手導覽",
+    "hintTitle": "新手導覽在這裡",
+    "hintDesc": "想了解怎麼用 BuJo 嗎？之後點這顆「？」就可以隨時開始導覽。",
     "calendarTitle": "行事曆",
     "calendarDesc": "在這裡查看所有揪團跟活動的時間安排，一眼掌握你的行程。",
     "todayCellTitle": "只顯示已成團的活動",

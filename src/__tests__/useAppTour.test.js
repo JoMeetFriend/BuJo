@@ -267,4 +267,41 @@ describe('useAppTour', () => {
       vi.useRealTimers()
     })
   })
+
+  describe('startTourHint', () => {
+    beforeEach(() => {
+      const helpButton = document.createElement('button')
+      helpButton.setAttribute('data-tour', 'tour-help-button')
+      document.body.appendChild(helpButton)
+    })
+
+    test('第一次登入只指向「？」按鈕，不會跑完整的多步驟導覽', () => {
+      const tour = useAppTour(ref('user-123'), { storage: createStorage() })
+
+      expect(() => tour.startTourHint()).not.toThrow()
+      expect(document.body.classList.contains('driver-active')).toBe(true)
+      expect(document.querySelectorAll('.driver-popover').length).toBe(1)
+    })
+
+    test('關閉提示後會標記導覽已看過，避免下次自動再彈出', () => {
+      vi.useFakeTimers()
+      const storage = createStorage()
+      const tour = useAppTour(ref('user-123'), { storage })
+
+      tour.startTourHint()
+      vi.advanceTimersByTime(500)
+      document.querySelector('.driver-popover-close-btn').click()
+
+      expect(storage.setItem).toHaveBeenCalledWith('bujo:app-tour:v1:user-123', APP_TOUR_SEEN_VALUE)
+      expect(tour.hasSeenTour.value).toBe(true)
+      vi.useRealTimers()
+    })
+
+    test('找不到「？」按鈕錨點時不拋錯', () => {
+      document.body.innerHTML = ''
+      const tour = useAppTour(ref('user-123'), { storage: createStorage() })
+
+      expect(() => tour.startTourHint()).not.toThrow()
+    })
+  })
 })
