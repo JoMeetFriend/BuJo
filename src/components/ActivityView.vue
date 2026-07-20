@@ -105,8 +105,8 @@ const selectedFeaturedActivityId = ref(null)
 const focusRequested = ref(false)
 const showCreateModal = ref(false)
 
-// 四個 tab 是各自獨立的狀態/角色 facet，不是互斥分類，同一筆活動可以同時符合多個 tab：
-// RECRUITING = 招募中（status 為 recruiting，不分自建或別人的）
+// 四個 tab 以使用者任務分流：
+// RECRUITING = 可報名的招募中活動（非自己建立、尚未報名、status 為 recruiting）
 // JOINED = 揪團中（已報名、非自己建立、且還沒成團/取消）
 // CONFIRMED = 已成團（status 為 confirmed，不分自建或別人的）
 // HOSTING = 自己建立的活動（is_creator，不分狀態）
@@ -114,7 +114,7 @@ const filterPredicates = {
   mine: (a) => a.is_creator,
   joined: (a) =>
     a.has_joined && !a.is_creator && a.status !== 'confirmed' && a.status !== 'cancelled',
-  recruiting: (a) => a.status === 'recruiting',
+  recruiting: (a) => a.status === 'recruiting' && !a.has_joined && !a.is_creator,
   confirmed: (a) => a.status === 'confirmed',
 }
 
