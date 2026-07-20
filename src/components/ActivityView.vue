@@ -597,6 +597,7 @@ onMounted(() => {
   }
 
   .activity-stage {
+    --activity-detail-available-height: 100%;
     position: relative;
     z-index: 3;
     min-height: 0;
@@ -613,6 +614,8 @@ onMounted(() => {
   .activity-stage :deep(.activity-detail-panel) {
     width: min(100%, calc(100vw - 92px));
     max-width: none;
+    max-height: var(--activity-detail-available-height);
+    min-height: min(250px, var(--activity-detail-available-height));
   }
 
   .activity-card-rail {
@@ -630,6 +633,20 @@ onMounted(() => {
   .activity-mini-card {
     flex-basis: 144px;
     height: 101px;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 700px) {
+  .activity-gallery-page {
+    gap: 8px;
+  }
+
+  .activity-stage {
+    padding: 16px 0 4px;
+  }
+
+  .activity-card-rail {
+    margin-top: 12px;
   }
 }
 </style>

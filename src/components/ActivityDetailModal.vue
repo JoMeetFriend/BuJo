@@ -1855,8 +1855,8 @@ function formatTime(date) {
     --activity-detail-scale: 1;
     width: min(100%, 360px);
     height: auto;
-    max-height: clamp(340px, 45dvh, 430px);
-    min-height: 250px;
+    max-height: min(45dvh, 430px);
+    min-height: min(250px, 45dvh);
   }
 
   .activity-detail-header,

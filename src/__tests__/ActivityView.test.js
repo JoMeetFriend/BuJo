@@ -2,6 +2,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { describe, expect, test, vi, afterEach } from 'vitest'
 import ActivityView from '@/components/ActivityView.vue'
+import activityViewSource from '@/components/ActivityView.vue?raw'
 import ActivityDetailModal from '@/components/ActivityDetailModal.vue'
 import { createTestI18n } from './testUtils'
 
@@ -50,6 +51,20 @@ async function clickFilter(wrapper, text) {
   const button = wrapper.findAll('button.activity-filter').find((b) => b.text().includes(text))
   await button.trigger('click')
 }
+
+describe('ActivityView - 手機短螢幕響應式版面', () => {
+  test('Mobile activity detail respects the stage height', () => {
+    expect(activityViewSource).toMatch(
+      /\.activity-stage :deep\(\.activity-detail-panel\)\s*{[^}]*max-height: var\(--activity-detail-available-height\);[^}]*min-height: min\(250px, var\(--activity-detail-available-height\)\);/s,
+    )
+  })
+
+  test('Short screens reduce decorative vertical spacing', () => {
+    expect(activityViewSource).toMatch(
+      /@media \(max-width: 900px\) and \(max-height: 700px\)[^{]*{[\s\S]*?\.activity-gallery-page\s*{[^}]*gap: 8px;[\s\S]*?\.activity-stage\s*{[^}]*padding: 16px 0 4px;[\s\S]*?\.activity-card-rail\s*{[^}]*margin-top: 12px;/,
+    )
+  })
+})
 
 describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirmed/hosting', () => {
   test('RECRUITING 計入所有 status===recruiting 的活動，不論是否為自己建立', async () => {
