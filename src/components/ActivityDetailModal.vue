@@ -2,7 +2,17 @@
   <article v-if="isOpen" class="activity-detail-panel" :class="focusCardClass">
     <header class="activity-detail-header">
       <div class="activity-detail-top-row">
-        <div class="activity-detail-kicker">{{ t('activityDetail.kicker') }}</div>
+        <div v-if="activity" class="activity-detail-creator">
+          <div class="activity-detail-avatar">
+            <img
+              v-if="activity.creator.avatar_url"
+              :src="toAvatarSrc(activity.creator.avatar_url)"
+              alt=""
+            />
+            <UserIcon v-else class="h-4 w-4" aria-hidden="true" />
+          </div>
+          <span>{{ activity.creator.display_name }}</span>
+        </div>
         <div class="activity-detail-top-actions">
           <div v-if="activity" class="activity-detail-badges">
             <span class="activity-detail-badge" :class="statusBadgeClass">
@@ -21,17 +31,6 @@
         </div>
       </div>
       <div class="activity-detail-header-content">
-        <div v-if="activity" class="activity-detail-creator">
-          <div class="activity-detail-avatar">
-            <img
-              v-if="activity.creator.avatar_url"
-              :src="toAvatarSrc(activity.creator.avatar_url)"
-              alt=""
-            />
-            <UserIcon v-else class="h-4 w-4" aria-hidden="true" />
-          </div>
-          <span>{{ activity.creator.display_name }}</span>
-        </div>
         <h2 :title="activity?.title || t('activityDetail.title')">
           {{ activity?.title || t('activityDetail.title') }}
         </h2>
@@ -1392,14 +1391,6 @@ function formatTime(date) {
   gap: 8px;
 }
 
-.activity-detail-kicker {
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.08em;
-  opacity: 0.52;
-}
-
 .activity-detail-header h2 {
   margin: 0;
   min-width: 0;
@@ -1485,9 +1476,15 @@ function formatTime(date) {
 }
 
 .activity-detail-creator {
-  margin-bottom: 10px;
+  min-width: 0;
   font-size: 14px;
   font-weight: 600;
+}
+
+.activity-detail-creator > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .activity-detail-avatar {
