@@ -8,7 +8,6 @@
         <p class="friends-eyebrow">{{ t('friends.eyebrow') }}</p>
         <div class="friends-title-line">
           <h1>{{ t('friends.pageTitle') }}</h1>
-          <span class="friends-cn-tag">{{ t('friends.subtitle') }}</span>
         </div>
       </div>
 
@@ -187,13 +186,6 @@ onMounted(() => {
   font-weight: 800;
   line-height: 0.9;
   letter-spacing: 0;
-}
-
-.friends-cn-tag {
-  color: var(--bujo-muted);
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
-  letter-spacing: 0.04em;
 }
 
 .friends-empty {

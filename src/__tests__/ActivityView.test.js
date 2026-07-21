@@ -53,6 +53,12 @@ async function clickFilter(wrapper, text) {
 }
 
 describe('ActivityView - 手機短螢幕響應式版面', () => {
+  test('手機大標字級與好友、通知頁一致', () => {
+    expect(activityViewSource).toMatch(
+      /@media \(max-width: 900px\)[^{]*\{[\s\S]*?\.activity-heading h1\s*\{[^}]*font-size: clamp\(40px, 6vw, 64px\);/,
+    )
+  })
+
   test('Mobile activity detail respects the stage height', () => {
     expect(activityViewSource).toMatch(
       /\.activity-stage :deep\(\.activity-detail-panel\)\s*{[^}]*max-height: var\(--activity-detail-available-height\);[^}]*min-height: min\(250px, var\(--activity-detail-available-height\)\);/s,
