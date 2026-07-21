@@ -536,6 +536,7 @@ import AvailabilityPickerModal from './AvailabilityPickerModal.vue'
 import { toAvatarSrc } from '@/utils/avatar'
 import { googleMapsSearchUrl } from '@/utils/mapLink'
 import { useI18n } from 'vue-i18n'
+import { apiFetch } from '@/services/httpClient'
 
 const { t } = useI18n()
 
@@ -1088,7 +1089,7 @@ async function fetchActivity(id) {
   openSupportersKey.value = null
   participantsExpanded.value = false
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities/${id}`, {
+    const res = await apiFetch(`/api/activities/${id}`, {
       credentials: 'include',
       signal: controller.signal,
     })

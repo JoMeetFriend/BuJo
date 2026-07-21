@@ -377,13 +377,13 @@ import {
 } from '@/composables/useLineNotificationOnboarding'
 import { toAvatarSrc } from '@/utils/avatar'
 import { useUserStore } from '@/stores/userStore'
+import { apiFetch } from '@/services/httpClient'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
 const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
-const API = import.meta.env.VITE_API_URL || ''
 
 const avatarUrl = ref(toAvatarSrc(authStore.user?.avatar_url || ''))
 const avatarLoading = ref(false)
@@ -449,7 +449,7 @@ const handleAvatarChange = async (event) => {
     const formData = new FormData()
     formData.append('avatar', file)
 
-    const res = await fetch(`${API}/api/users/me/avatar`, {
+    const res = await apiFetch('/api/users/me/avatar', {
       method: 'PATCH',
       credentials: 'include',
       body: formData,
@@ -508,7 +508,7 @@ const handleUnlink = async (provider) => {
   if (identityCount.value <= 1) return
   linkLoading.value = true
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/${provider}/unlink`, {
+    const res = await apiFetch(`/api/auth/${provider}/unlink`, {
       method: 'DELETE',
       credentials: 'include',
     })

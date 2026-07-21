@@ -10,7 +10,10 @@ import { useAuthStore } from '@/stores/auth'
 import { createTestI18n } from './testUtils'
 
 vi.mock('axios', () => {
-  const apiClient = { get: vi.fn().mockResolvedValue({ data: { unreadCount: 0 } }) }
+  const apiClient = {
+    get: vi.fn().mockResolvedValue({ data: { unreadCount: 0 } }),
+    interceptors: { request: { use: vi.fn() } },
+  }
   return { default: { create: vi.fn(() => apiClient) } }
 })
 

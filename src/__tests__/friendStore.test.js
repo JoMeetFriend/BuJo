@@ -4,7 +4,12 @@ import axios from 'axios'
 import { useFriendStore } from '@/stores/friendStore'
 
 vi.mock('axios', () => {
-  const apiClient = { get: vi.fn(), post: vi.fn() }
+  const apiClient = {
+    get: vi.fn(),
+    post: vi.fn(),
+    delete: vi.fn(),
+    interceptors: { request: { use: vi.fn() } },
+  }
   return { default: { create: vi.fn(() => apiClient) } }
 })
 
