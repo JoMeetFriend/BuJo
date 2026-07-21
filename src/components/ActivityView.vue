@@ -58,7 +58,22 @@
             ]"
             @click="selectActivity(activity.id)"
           >
-            <h2 :title="activity.title">{{ miniCardTitle(activity.title) }}</h2>
+            <div class="activity-mini-title-row">
+              <span
+                class="activity-mini-avatar"
+                :class="{ 'activity-mini-avatar--initial': !activity.creator?.avatar_url }"
+                aria-hidden="true"
+              >
+                <img
+                  v-if="activity.creator?.avatar_url"
+                  :src="toAvatarSrc(activity.creator.avatar_url)"
+                  alt=""
+                  loading="lazy"
+                />
+                <span v-else>{{ miniCardCreatorInitial(activity) }}</span>
+              </span>
+              <h2 :title="activity.title">{{ miniCardTitle(activity.title) }}</h2>
+            </div>
             <div class="activity-mini-bottom">
               <span>{{ activity.date }}</span>
               <span class="activity-mini-dot"></span>
@@ -85,6 +100,7 @@ import { useI18n } from 'vue-i18n'
 import ActivityDetailModal from './ActivityDetailModal.vue'
 import EventPage from './EventPage.vue'
 import PixelButton from './ui/PixelButton.vue'
+import { toAvatarSrc } from '@/utils/avatar'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -169,6 +185,11 @@ function miniCardClass(activity) {
 function miniCardTitle(title) {
   const text = String(title ?? '')
   return text.length > 13 ? `${text.slice(0, 13)}...` : text
+}
+
+function miniCardCreatorInitial(activity) {
+  const name = activity.creator?.display_name || activity.creator?.name || ''
+  return String(name).trim().charAt(0) || '?'
 }
 
 async function fetchActivities() {
@@ -457,6 +478,41 @@ onMounted(() => {
   content: '';
 }
 
+.activity-mini-avatar {
+  display: inline-flex;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mini-card-hover-bg) 62%, var(--bujo-ink));
+  color: rgb(var(--bujo-ink-rgb) / 0.72);
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.activity-mini-avatar--initial {
+  background: color-mix(in srgb, var(--mini-card-hover-bg) 70%, var(--bujo-white));
+}
+
+.activity-mini-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.activity-mini-title-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
 .activity-mini-card:hover,
 .activity-mini-card--active {
   background: var(--mini-card-hover-bg);
@@ -492,6 +548,7 @@ onMounted(() => {
 
 .activity-mini-card h2 {
   margin: 0;
+  min-width: 0;
   color: var(--activity-ink);
   font-size: 16px;
   line-height: 1.12;
@@ -500,6 +557,7 @@ onMounted(() => {
   contain: paint;
   overflow: hidden;
   overflow-wrap: anywhere;
+  transform: translateY(1px);
 }
 
 .activity-mini-bottom {
