@@ -67,16 +67,6 @@
             </div>
           </div>
 
-          <!-- 忘記密碼 -->
-          <div class="flex justify-end">
-            <router-link
-              to="/forgot-password"
-              class="text-sm text-[var(--bujo-muted-strong)] underline decoration-[var(--bujo-line)] underline-offset-2 transition-colors duration-150 hover:text-[var(--bujo-ink)]"
-            >
-              {{ t('login.forgotPassword') }}
-            </router-link>
-          </div>
-
           <!-- 錯誤訊息 -->
           <p
             v-if="errorMsg"
