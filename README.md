@@ -1,8 +1,30 @@
-# BuJo（前端）
+# BuJo 不揪喔~說完你就揪到了!
 
-好友揪團活動規劃平台的前端專案。使用者可以註冊/登入、加好友、建立與報名活動，未來將延伸通知、投票、聊天室等功能。
+正式網域：[https://bujo.live](https://bujo.live)
 
-本 repo 為前端，需搭配後端 [BuJoBackend](https://github.com/JoMeetFriend/BuJoBackend)（Node.js + Express + Prisma + PostgreSQL）一起運作。
+![BuJo 首頁畫面](./docs/images/homepage.png)
+
+## 關於 BuJo
+
+BuJo 是一個「好友揪團活動規劃」平台，核心理念是為了解決好朋友們約出去玩時間難喬的問題。
+
+## 如何開始
+
+BuJo 圍繞五大核心功能設計，登入後即可依序體驗：
+
+1. 行事曆：一眼看清所有揪團活動。
+2. 活動："日期x時間"組成四種情境來建立活動，與朋友一起分享愉快時光。
+3. 好友：透過BuJo ID增加好友，認識朋友的朋友!
+4. 通知：站內通知提醒你準時參加活動！
+5. 站外通知：BuJo Line官方帳號，讓你不會錯過每一個朋友的活動。
+
+## BuJo Line 官方帳號
+
+[https://line.me/R/ti/p/@626mzgfu?ts=07131855&oat_content=url](https://line.me/R/ti/p/@626mzgfu?ts=07131855&oat_content=url)
+
+## BuJo（前端）
+
+本 repo 為前端(Vue 3 + Vite)，透過 Vue Router 劃分行事曆、活動、好友、通知等頁面，需搭配後端 [BuJoBackend](https://github.com/JoMeetFriend/BuJoBackend)(Node.js + Express + Prisma + PostgreSQL)，取得資料，同時整合 Google 與 LINE 第三方登入、LINE 官方帳號活動提醒。
 
 ## 技術棧
 
@@ -71,10 +93,17 @@ npm run format
 
 ## 部署
 
-- 前端：[Vercel](https://bujofe.vercel.app)
-- 後端：[Render](https://bujo-backend.onrender.com)
+**正式環境（`main`）**
 
-合併進 `dev` 分支的內容會自動部署到上方前端網址，方便 demo。
+- 前端：[https://bujo.live](https://bujo.live)
+- 後端：[https://api.bujo.live](https://api.bujo.live)
+
+**測試環境（`dev`）**
+
+- 前端：[https://bu-jo-dev-fe.vercel.app](https://bu-jo-dev-fe.vercel.app)
+- 後端：[https://bujobackend-bkef.onrender.com](https://bujobackend-bkef.onrender.com)
+
+合併進 `main` 分支會自動部署到正式網址；合併進 `dev` 分支會自動部署到測試網址，方便 demo。
 
 部署 LINE 官方帳號引導前，請確認：
 
@@ -82,6 +111,14 @@ npm run format
 - 手機可由 add friend URL 開啟正確的 BuJo 官方帳號。
 - 桌機可顯示 QR Code，且使用手機 LINE 掃描後開啟同一個官方帳號。
 - BuJoBackend 已另外設定 Messaging API token 與 push feature flag；前端不得持有這些值。
+
+## API 手冊
+
+互動式 Swagger 文件（依程式碼 JSDoc 註解自動產生，可直接在頁面上 Try it out）：
+
+- 本地：[http://localhost:3000/api-docs](http://localhost:3000/api-docs)
+- 正式環境（main）：[https://api.bujo.live/api-docs](https://api.bujo.live/api-docs)
+- 測試環境（dev）：[https://bujobackend-bkef.onrender.com/api-docs](https://bujobackend-bkef.onrender.com/api-docs)
 
 ## 相關 Repo
 
@@ -97,3 +134,37 @@ docker build \
   --build-arg VITE_GOOGLE_CLIENT_ID=your-google-id \
   -t bujo-frontend .
 ```
+
+## 開發團隊
+
+- [劉巧文](https://github.com/orgs/JoMeetFriend/people/LiuChiaoWen)
+  - 一般註冊/登入 前後端串接
+  - 資料庫 Schema 設計
+  - 後端架構與開發
+  - 測試版本 前後端部署
+  - landing-page 製作
+  - 揪團建立活動功能協作開發
+
+- [蔣德勳](https://github.com/orgs/JoMeetFriend/people/TE-HSIUN)
+  - 個人編輯頁面切版
+  - 通知頁面切版
+  - line 登入/前後端串接
+  - 站內通知系統
+  - line 通知系統串接
+  - 後端部署
+
+- [陳姵君](https://github.com/orgs/JoMeetFriend/people/cc-chuni)
+  - 行事曆頁面切版
+  - Google 登入/前後端串接
+  - 活動狀態機規劃
+  - 建立活動全端功能
+  - 報名活動全端功能
+  - 使用流程/視覺規劃
+
+- [廖家瑜](https://github.com/orgs/JoMeetFriend/people/yuaangela)
+  - 活動頁面與動態彈窗切版
+  - 前端路由與頁面切換
+  - 萬用路由與 404 頁面
+  - 好友功能/前後端串接
+  - 個人編輯名稱與簡介
+  - 前端部署
