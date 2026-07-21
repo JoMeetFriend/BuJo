@@ -90,11 +90,11 @@ const route = useRoute()
 const { t } = useI18n()
 
 const filters = computed(() => [
+  { key: 'all', text: t('activity.filterAll') },
   { key: 'recruiting', text: t('activity.filterRecruiting') },
   { key: 'joined', text: t('activity.filterJoined') },
   { key: 'confirmed', text: t('activity.filterConfirmed') },
   { key: 'mine', text: t('activity.filterHosting') },
-  { key: 'all', text: t('activity.filterAll') },
 ])
 
 const activities = ref([])
@@ -105,8 +105,8 @@ const selectedFeaturedActivityId = ref(null)
 const focusRequested = ref(false)
 const showCreateModal = ref(false)
 
-// 四個 tab 是各自獨立的狀態/角色 facet，不是互斥分類，同一筆活動可以同時符合多個 tab：
-// RECRUITING = 招募中（status 為 recruiting，不分自建或別人的）
+// 四個 tab 以使用者任務分流：
+// RECRUITING = 可報名的招募中活動（非自己建立、尚未報名、status 為 recruiting）
 // JOINED = 揪團中（已報名、非自己建立、且還沒成團/取消）
 // CONFIRMED = 已成團（status 為 confirmed，不分自建或別人的）
 // HOSTING = 自己建立的活動（is_creator，不分狀態）
@@ -114,7 +114,7 @@ const filterPredicates = {
   mine: (a) => a.is_creator,
   joined: (a) =>
     a.has_joined && !a.is_creator && a.status !== 'confirmed' && a.status !== 'cancelled',
-  recruiting: (a) => a.status === 'recruiting',
+  recruiting: (a) => a.status === 'recruiting' && !a.has_joined && !a.is_creator,
   confirmed: (a) => a.status === 'confirmed',
 }
 
@@ -311,20 +311,20 @@ onMounted(() => {
 }
 
 .activity-filter {
-  --ticket-bg: rgb(var(--bujo-white-rgb) / 0.56);
+  --ticket-bg: transparent;
   display: inline-flex;
   min-height: 30px;
   position: relative;
   align-items: center;
   gap: 7px;
-  border: 1px solid rgb(var(--bujo-line-rgb) / 0.32);
+  border: 1px solid transparent;
   background: var(--ticket-bg);
-  color: rgb(var(--bujo-ink-rgb) / 0.66);
+  color: rgb(var(--bujo-ink-rgb) / 0.52);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 650;
   line-height: 1.08;
   cursor: pointer;
-  padding: 6px 11px;
+  padding: 6px 9px;
   transition:
     color 160ms ease,
     background-color 160ms ease,
@@ -334,21 +334,22 @@ onMounted(() => {
 
 .activity-filter:hover {
   transform: translateY(-1px);
-  color: rgb(var(--bujo-ink-rgb) / 0.88);
-  border-color: rgb(var(--bujo-ink-rgb) / 0.28);
+  color: rgb(var(--bujo-ink-rgb) / 0.72);
+  border-color: rgb(var(--bujo-line-rgb) / 0.22);
+  background: rgb(var(--bujo-white-rgb) / 0.34);
 }
 
 .activity-filter b {
-  color: rgb(var(--bujo-ink-rgb) / 0.42);
-  font-size: 12px;
-  font-weight: 700;
+  color: rgb(var(--bujo-ink-rgb) / 0.34);
+  font-size: 11px;
+  font-weight: 650;
 }
 
 .activity-filter--active {
-  background: rgb(var(--bujo-white-rgb) / 0.88);
-  color: var(--activity-ink);
-  border-color: rgb(var(--bujo-ink-rgb) / 0.7);
-  box-shadow: 2px 3px 0 rgb(var(--bujo-line-rgb) / 0.18);
+  background: rgb(var(--bujo-white-rgb) / 0.62);
+  color: rgb(var(--bujo-ink-rgb) / 0.78);
+  border-color: rgb(var(--bujo-ink-rgb) / 0.34);
+  box-shadow: 1px 2px 0 rgb(var(--bujo-line-rgb) / 0.1);
 }
 
 .activity-filter--active b {
@@ -437,7 +438,7 @@ onMounted(() => {
   background:
     linear-gradient(to bottom, rgb(var(--bujo-white-rgb) / 0.2), transparent 30px), #dedfdb;
   transform: translateY(0);
-  box-shadow: 5px 6px 10px rgba(var(--bujo-ink-rgb), 0.08);
+  box-shadow: 5px 6px 10px rgb(var(--bujo-ink-rgb) / 0.08);
   transition:
     background-color 180ms ease,
     transform 160ms ease,
@@ -449,10 +450,10 @@ onMounted(() => {
   position: absolute;
   right: 10px;
   bottom: 10px;
-  width: 6px;
-  height: 6px;
-  background: currentColor;
-  opacity: 0.62;
+  width: 5px;
+  height: 5px;
+  background: rgb(var(--bujo-ink-rgb) / 0.42);
+  opacity: 0.46;
   content: '';
 }
 
@@ -461,7 +462,7 @@ onMounted(() => {
   background: var(--mini-card-hover-bg);
   transform: translateY(-5px);
   filter: saturate(1.02);
-  box-shadow: 7px 9px 12px rgba(var(--bujo-ink-rgb), 0.12);
+  box-shadow: 7px 9px 12px rgb(var(--bujo-ink-rgb) / 0.12);
 }
 
 .activity-mini-card--mine-recruiting {
@@ -506,10 +507,10 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  color: var(--activity-muted);
+  color: rgb(var(--bujo-ink-rgb) / 0.42);
   font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  font-weight: 400;
+  font-size: 9.5px;
+  font-weight: 450;
 }
 
 .activity-mini-dot {
