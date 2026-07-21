@@ -711,7 +711,8 @@
     "members": "人",
     "inputPlaceholder": "輸入訊息...",
     "loadMore": "載入更多訊息",
-    "toggleAria": "切換聊天室"
+    "toggleAria": "切換聊天室",
+    "retry": "重新傳送"
   },
   "composable": {
     "userSearchExpired": "登入已過期，請重新登入",

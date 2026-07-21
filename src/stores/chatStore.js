@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -11,10 +12,8 @@ export const useChatStore = defineStore('chat', () => {
   const nextCursors = ref({})
   const unreadCounts = ref({})
   const isLoadingMessages = ref(false)
-  const isSendingMessage = ref(false)
   const isLoadingActivities = ref(false)
   const error = ref('')
-  // chat_id → activity_id mapping from joined activities
   const chatRoomMap = ref({})
 
   const totalUnread = computed(() =>
@@ -72,11 +71,7 @@ export const useChatStore = defineStore('chat', () => {
       const data = await res.json()
       const joined = (data.activities ?? []).filter((a) => a.has_joined)
       joinedActivities.value = joined
-      // Build chat room mapping — assume chat_id === activity id when
-      // backend creates one chat room per activity
       for (const a of joined) {
-        // The chat_id likely matches the activity id; store both directions.
-        // If backend exposes chat_id separately, adjust accordingly.
         chatRoomMap.value[a.chat_id ?? a.id] = a.id
       }
     } catch {
@@ -121,8 +116,24 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   async function sendMessage(activityId, content) {
-    isSendingMessage.value = true
-    error.value = ''
+    const user = useAuthStore().user
+    const localId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+
+    const pending = {
+      _localId: localId,
+      _status: 'pending',
+      content,
+      sender: user
+        ? { id: user.id, display_name: user.display_name, avatar_url: user.avatar_url }
+        : { id: '?', display_name: '?' },
+      created_at: new Date().toISOString(),
+    }
+
+    if (!messages.value[activityId]) {
+      messages.value[activityId] = []
+    }
+    messages.value[activityId] = [...messages.value[activityId], pending]
+
     try {
       const res = await fetch(`${API}/api/activities/${activityId}/messages`, {
         method: 'POST',
@@ -131,35 +142,78 @@ export const useChatStore = defineStore('chat', () => {
         body: JSON.stringify({ content }),
       })
       if (!res.ok) {
-        if (res.status === 429) {
-          error.value = '傳送太頻繁，請稍後再試'
-        } else {
-          error.value = '傳送失敗'
-        }
+        markMessageFailed(
+          activityId,
+          localId,
+          res.status === 429 ? '傳送太頻繁，請稍後再試' : '傳送失敗',
+        )
         return false
       }
       const data = await res.json()
-      if (!messages.value[activityId]) {
-        messages.value[activityId] = []
-      }
-      messages.value[activityId] = [...messages.value[activityId], data]
+      replaceMessage(activityId, localId, data)
       return true
     } catch {
-      error.value = '網路錯誤'
+      markMessageFailed(activityId, localId, '網路錯誤')
       return false
-    } finally {
-      isSendingMessage.value = false
     }
   }
 
+  async function retryMessage(activityId, localId) {
+    const list = messages.value[activityId]
+    if (!list) return false
+    const msg = list.find((m) => m._localId === localId)
+    if (!msg || msg._status !== 'failed') return false
+
+    messages.value[activityId] = list.map((m) =>
+      m._localId === localId ? { ...m, _status: 'pending', _error: undefined } : m,
+    )
+
+    try {
+      const res = await fetch(`${API}/api/activities/${activityId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ content: msg.content }),
+      })
+      if (!res.ok) {
+        markMessageFailed(activityId, localId, '傳送失敗')
+        return false
+      }
+      const data = await res.json()
+      replaceMessage(activityId, localId, data)
+      return true
+    } catch {
+      markMessageFailed(activityId, localId, '網路錯誤')
+      return false
+    }
+  }
+
+  function replaceMessage(activityId, localId, realMsg) {
+    const list = messages.value[activityId]
+    if (!list) return
+    const idx = list.findIndex((m) => m._localId === localId)
+    if (idx === -1) return
+    messages.value[activityId] = [...list.slice(0, idx), realMsg, ...list.slice(idx + 1)]
+  }
+
+  function markMessageFailed(activityId, localId, errorText) {
+    const list = messages.value[activityId]
+    if (!list) return
+    messages.value[activityId] = list.map((m) =>
+      m._localId === localId ? { ...m, _status: 'failed', _error: errorText } : m,
+    )
+  }
+
   function addIncomingMessage(msg) {
-    // msg shape: { id, chat_id, sender: { id, display_name, avatar_url }, content, created_at }
     const activityId = chatRoomMap.value[msg.chat_id] ?? msg.chat_id
     if (!activityId) return
 
     if (!messages.value[activityId]) {
       messages.value[activityId] = []
     }
+
+    if (messages.value[activityId].some((m) => m.id === msg.id)) return
+
     messages.value[activityId] = [...messages.value[activityId], msg]
 
     if (activityId !== currentActivityId.value || !isOpen.value) {
@@ -179,7 +233,6 @@ export const useChatStore = defineStore('chat', () => {
     nextCursors,
     unreadCounts,
     isLoadingMessages,
-    isSendingMessage,
     isLoadingActivities,
     error,
     totalUnread,
@@ -194,6 +247,7 @@ export const useChatStore = defineStore('chat', () => {
     fetchMessages,
     loadMoreMessages,
     sendMessage,
+    retryMessage,
     addIncomingMessage,
     markActivityRead,
   }

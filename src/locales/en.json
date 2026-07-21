@@ -713,7 +713,8 @@
     "members": "members",
     "inputPlaceholder": "Type a message...",
     "loadMore": "Load more messages",
-    "toggleAria": "Toggle chat panel"
+    "toggleAria": "Toggle chat panel",
+    "retry": "Retry"
   },
   "composable": {
     "userSearchExpired": "Session expired, please log in again",

@@ -80,12 +80,12 @@
 
             <div
               v-for="msg in chatStore.currentMessages"
-              :key="msg.id"
+              :key="msg._localId ?? msg.id"
               class="chat-message"
               :class="{ 'chat-message--self': msg.sender?.id === authStore.user?.id }"
             >
               <img
-                v-if="msg.sender?.avatar_url"
+                v-if="msg.sender?.avatar_url && !msg._localId"
                 :src="toAvatarSrc(msg.sender.avatar_url)"
                 alt=""
                 class="chat-message-avatar"
@@ -96,12 +96,32 @@
               </div>
               <div class="chat-message-body">
                 <div class="chat-message-sender">{{ msg.sender?.display_name ?? '' }}</div>
-                <div class="chat-message-content">{{ msg.content }}</div>
-                <div class="chat-message-time">{{ formatTime(msg.created_at) }}</div>
+                <div
+                  class="chat-message-content"
+                  :class="{
+                    'chat-message-content--pending': msg._status === 'pending',
+                    'chat-message-content--failed': msg._status === 'failed',
+                  }"
+                >
+                  {{ msg.content }}
+                </div>
+                <div class="chat-message-footer">
+                  <span class="chat-message-time">{{ formatTime(msg.created_at) }}</span>
+                  <span v-if="msg._status === 'pending'" class="chat-message-indicator">
+                    <ArrowPathIcon class="h-3 w-3 chat-spin" />
+                  </span>
+                  <button
+                    v-if="msg._status === 'failed'"
+                    type="button"
+                    class="chat-message-indicator chat-message-indicator--failed"
+                    :title="msg._error ?? t('chat.retry')"
+                    @click="chatStore.retryMessage(chatStore.currentActivityId, msg._localId)"
+                  >
+                    <ExclamationCircleIcon class="h-3 w-3" />
+                  </button>
+                </div>
               </div>
             </div>
-
-            <div v-if="chatStore.error" class="chat-error">{{ chatStore.error }}</div>
           </div>
 
           <div class="chat-input-bar">
@@ -110,14 +130,13 @@
               type="text"
               class="chat-input"
               :placeholder="t('chat.inputPlaceholder')"
-              :disabled="chatStore.isSendingMessage"
               maxlength="2000"
               @keyup.enter="handleSend"
             />
             <button
               type="button"
               class="chat-send-btn"
-              :disabled="!inputText.trim() || chatStore.isSendingMessage"
+              :disabled="!inputText.trim()"
               @click="handleSend"
             >
               <PaperAirplaneIcon class="h-4 w-4" />
@@ -151,6 +170,8 @@ import {
   XMarkIcon,
   ArrowLeftIcon,
   PaperAirplaneIcon,
+  ArrowPathIcon,
+  ExclamationCircleIcon,
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import { useChatStore } from '@/stores/chatStore'
@@ -221,7 +242,7 @@ function loadMore() {
 
 function handleSend() {
   const text = inputText.value.trim()
-  if (!text || !chatStore.currentActivityId || chatStore.isSendingMessage) return
+  if (!text || !chatStore.currentActivityId) return
   chatStore.sendMessage(chatStore.currentActivityId, text)
   inputText.value = ''
 }
@@ -245,6 +266,12 @@ function formatTime(iso) {
 </script>
 
 <style scoped>
+@keyframes chat-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .floating-chat {
   position: fixed;
   bottom: 24px;
@@ -544,20 +571,70 @@ function formatTime(iso) {
   white-space: pre-wrap;
 }
 
+.chat-message-content--pending {
+  opacity: 0.55;
+}
+
+.chat-message-content--failed {
+  outline: 1px solid var(--bujo-danger);
+  background: rgb(var(--bujo-danger) / 0.06);
+}
+
 .chat-message--self .chat-message-content {
   background: var(--bujo-accent);
   color: var(--bujo-ink);
+}
+
+.chat-message--self .chat-message-content--pending {
+  opacity: 0.55;
+}
+
+.chat-message--self .chat-message-content--failed {
+  outline: 1px solid var(--bujo-danger);
+  background: color-mix(in srgb, var(--bujo-accent) 80%, var(--bujo-danger));
+}
+
+.chat-message-footer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.chat-message--self .chat-message-footer {
+  justify-content: flex-end;
 }
 
 .chat-message-time {
   font-family: var(--bujo-font-meta);
   font-size: 9px;
   color: var(--bujo-muted);
-  margin-top: 2px;
 }
 
-.chat-message--self .chat-message-time {
-  text-align: right;
+.chat-message-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--bujo-muted-strong);
+}
+
+.chat-message-indicator--failed {
+  color: var(--bujo-notification);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+  transition: opacity 120ms ease;
+}
+
+.chat-message-indicator--failed:hover {
+  opacity: 0.7;
+}
+
+.chat-spin {
+  animation: chat-spin 800ms linear infinite;
 }
 
 /* Error */
