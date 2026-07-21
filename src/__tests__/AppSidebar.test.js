@@ -18,7 +18,7 @@ const notificationApiClient = axios.create()
 
 let router
 
-async function mountAppSidebar(user = {}) {
+async function mountAppSidebar(user = {}, routePath = '/') {
   const pinia = createPinia()
   setActivePinia(pinia)
   const authStore = useAuthStore()
@@ -33,12 +33,13 @@ async function mountAppSidebar(user = {}) {
     history: createMemoryHistory(),
     routes: [
       { path: '/', component: { template: '<div>Calendar</div>' } },
+      { path: '/calendar', component: { template: '<div>Calendar</div>' } },
       { path: '/profile/edit', component: { template: '<div>Profile</div>' } },
       { path: '/login', component: { template: '<div>Login</div>' } },
       { path: '/activity', component: { template: '<div>Activity</div>' } },
     ],
   })
-  await router.push('/')
+  await router.push(routePath)
   await router.isReady()
 
   return mount(AppSidebar, {
@@ -163,21 +164,31 @@ describe('AppSidebar', () => {
   })
 
   describe('新手導覽問號', () => {
-    test('手機版問號在月曆紙張上方區域垂直置中', () => {
+    test('手機版問號固定在右上工具組位置', () => {
       expect(appTourHelpButtonSource).toMatch(
-        /\.bujo-tour-help-btn--floating\s*\{[\s\S]*?top: 5px;[\s\S]*?right: 10px;[\s\S]*?width: 26px;[\s\S]*?height: 26px;/,
+        /\.bujo-tour-help-btn--floating\s*\{[\s\S]*?top: 8px;[\s\S]*?right: 14px;[\s\S]*?width: 26px;[\s\S]*?height: 26px;/,
+      )
+      expect(appSidebarSource).toContain('calendar-aligned')
+      expect(appTourHelpButtonSource).toMatch(
+        /\.bujo-tour-help-btn--calendar-aligned\s*\{[^}]*top: 12px;/,
       )
     })
 
     test('桌機版（CALENDAR FILTER 上方）與手機版（浮動右上角）各有一顆問號按鈕', async () => {
-      const wrapper = await mountAppSidebar()
+      const wrapper = await mountAppSidebar({}, '/calendar')
 
       const buttons = wrapper.findAll('[aria-label="重新開啟新手導覽"]')
       expect(buttons).toHaveLength(2)
     })
 
+    test('非日曆頁不顯示桌機版或手機版問號按鈕', async () => {
+      const wrapper = await mountAppSidebar({}, '/activity')
+
+      expect(wrapper.findAll('[aria-label="重新開啟新手導覽"]')).toHaveLength(0)
+    })
+
     test('點擊任一顆問號按鈕都會 emit open-tour', async () => {
-      const wrapper = await mountAppSidebar()
+      const wrapper = await mountAppSidebar({}, '/calendar')
       const buttons = wrapper.findAll('[aria-label="重新開啟新手導覽"]')
 
       await buttons[0].trigger('click')

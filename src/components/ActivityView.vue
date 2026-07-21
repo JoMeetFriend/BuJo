@@ -58,7 +58,22 @@
             ]"
             @click="selectActivity(activity.id)"
           >
-            <h2 :title="activity.title">{{ miniCardTitle(activity.title) }}</h2>
+            <div class="activity-mini-title-row">
+              <span
+                class="activity-mini-avatar"
+                :class="{ 'activity-mini-avatar--initial': !activity.creator?.avatar_url }"
+                aria-hidden="true"
+              >
+                <img
+                  v-if="activity.creator?.avatar_url"
+                  :src="toAvatarSrc(activity.creator.avatar_url)"
+                  alt=""
+                  loading="lazy"
+                />
+                <span v-else>{{ miniCardCreatorInitial(activity) }}</span>
+              </span>
+              <h2 :title="activity.title">{{ miniCardTitle(activity.title) }}</h2>
+            </div>
             <div class="activity-mini-bottom">
               <span>{{ activity.date }}</span>
               <span class="activity-mini-dot"></span>
@@ -85,16 +100,17 @@ import { useI18n } from 'vue-i18n'
 import ActivityDetailModal from './ActivityDetailModal.vue'
 import EventPage from './EventPage.vue'
 import PixelButton from './ui/PixelButton.vue'
+import { toAvatarSrc } from '@/utils/avatar'
 
 const route = useRoute()
 const { t } = useI18n()
 
 const filters = computed(() => [
+  { key: 'all', text: t('activity.filterAll') },
   { key: 'recruiting', text: t('activity.filterRecruiting') },
   { key: 'joined', text: t('activity.filterJoined') },
   { key: 'confirmed', text: t('activity.filterConfirmed') },
   { key: 'mine', text: t('activity.filterHosting') },
-  { key: 'all', text: t('activity.filterAll') },
 ])
 
 const activities = ref([])
@@ -105,8 +121,8 @@ const selectedFeaturedActivityId = ref(null)
 const focusRequested = ref(false)
 const showCreateModal = ref(false)
 
-// 四個 tab 是各自獨立的狀態/角色 facet，不是互斥分類，同一筆活動可以同時符合多個 tab：
-// RECRUITING = 招募中（status 為 recruiting，不分自建或別人的）
+// 四個 tab 以使用者任務分流：
+// RECRUITING = 可報名的招募中活動（非自己建立、尚未報名、status 為 recruiting）
 // JOINED = 揪團中（已報名、非自己建立、且還沒成團/取消）
 // CONFIRMED = 已成團（status 為 confirmed，不分自建或別人的）
 // HOSTING = 自己建立的活動（is_creator，不分狀態）
@@ -114,7 +130,7 @@ const filterPredicates = {
   mine: (a) => a.is_creator,
   joined: (a) =>
     a.has_joined && !a.is_creator && a.status !== 'confirmed' && a.status !== 'cancelled',
-  recruiting: (a) => a.status === 'recruiting',
+  recruiting: (a) => a.status === 'recruiting' && !a.has_joined && !a.is_creator,
   confirmed: (a) => a.status === 'confirmed',
 }
 
@@ -169,6 +185,11 @@ function miniCardClass(activity) {
 function miniCardTitle(title) {
   const text = String(title ?? '')
   return text.length > 13 ? `${text.slice(0, 13)}...` : text
+}
+
+function miniCardCreatorInitial(activity) {
+  const name = activity.creator?.display_name || activity.creator?.name || ''
+  return String(name).trim().charAt(0) || '?'
 }
 
 async function fetchActivities() {
@@ -311,20 +332,20 @@ onMounted(() => {
 }
 
 .activity-filter {
-  --ticket-bg: rgb(var(--bujo-white-rgb) / 0.56);
+  --ticket-bg: transparent;
   display: inline-flex;
   min-height: 30px;
   position: relative;
   align-items: center;
   gap: 7px;
-  border: 1px solid rgb(var(--bujo-line-rgb) / 0.32);
+  border: 1px solid transparent;
   background: var(--ticket-bg);
-  color: rgb(var(--bujo-ink-rgb) / 0.66);
+  color: rgb(var(--bujo-ink-rgb) / 0.52);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 650;
   line-height: 1.08;
   cursor: pointer;
-  padding: 6px 11px;
+  padding: 6px 9px;
   transition:
     color 160ms ease,
     background-color 160ms ease,
@@ -334,21 +355,22 @@ onMounted(() => {
 
 .activity-filter:hover {
   transform: translateY(-1px);
-  color: rgb(var(--bujo-ink-rgb) / 0.88);
-  border-color: rgb(var(--bujo-ink-rgb) / 0.28);
+  color: rgb(var(--bujo-ink-rgb) / 0.72);
+  border-color: rgb(var(--bujo-line-rgb) / 0.22);
+  background: rgb(var(--bujo-white-rgb) / 0.34);
 }
 
 .activity-filter b {
-  color: rgb(var(--bujo-ink-rgb) / 0.42);
-  font-size: 12px;
-  font-weight: 700;
+  color: rgb(var(--bujo-ink-rgb) / 0.34);
+  font-size: 11px;
+  font-weight: 650;
 }
 
 .activity-filter--active {
-  background: rgb(var(--bujo-white-rgb) / 0.88);
-  color: var(--activity-ink);
-  border-color: rgb(var(--bujo-ink-rgb) / 0.7);
-  box-shadow: 2px 3px 0 rgb(var(--bujo-line-rgb) / 0.18);
+  background: rgb(var(--bujo-white-rgb) / 0.62);
+  color: rgb(var(--bujo-ink-rgb) / 0.78);
+  border-color: rgb(var(--bujo-ink-rgb) / 0.34);
+  box-shadow: 1px 2px 0 rgb(var(--bujo-line-rgb) / 0.1);
 }
 
 .activity-filter--active b {
@@ -437,7 +459,7 @@ onMounted(() => {
   background:
     linear-gradient(to bottom, rgb(var(--bujo-white-rgb) / 0.2), transparent 30px), #dedfdb;
   transform: translateY(0);
-  box-shadow: 5px 6px 10px rgba(var(--bujo-ink-rgb), 0.08);
+  box-shadow: 5px 6px 10px rgb(var(--bujo-ink-rgb) / 0.08);
   transition:
     background-color 180ms ease,
     transform 160ms ease,
@@ -449,11 +471,46 @@ onMounted(() => {
   position: absolute;
   right: 10px;
   bottom: 10px;
-  width: 6px;
-  height: 6px;
-  background: currentColor;
-  opacity: 0.62;
+  width: 5px;
+  height: 5px;
+  background: rgb(var(--bujo-ink-rgb) / 0.42);
+  opacity: 0.46;
   content: '';
+}
+
+.activity-mini-avatar {
+  display: inline-flex;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mini-card-hover-bg) 62%, var(--bujo-ink));
+  color: rgb(var(--bujo-ink-rgb) / 0.72);
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.activity-mini-avatar--initial {
+  background: color-mix(in srgb, var(--mini-card-hover-bg) 70%, var(--bujo-white));
+}
+
+.activity-mini-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.activity-mini-title-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
 }
 
 .activity-mini-card:hover,
@@ -461,7 +518,7 @@ onMounted(() => {
   background: var(--mini-card-hover-bg);
   transform: translateY(-5px);
   filter: saturate(1.02);
-  box-shadow: 7px 9px 12px rgba(var(--bujo-ink-rgb), 0.12);
+  box-shadow: 7px 9px 12px rgb(var(--bujo-ink-rgb) / 0.12);
 }
 
 .activity-mini-card--mine-recruiting {
@@ -491,6 +548,7 @@ onMounted(() => {
 
 .activity-mini-card h2 {
   margin: 0;
+  min-width: 0;
   color: var(--activity-ink);
   font-size: 16px;
   line-height: 1.12;
@@ -499,6 +557,7 @@ onMounted(() => {
   contain: paint;
   overflow: hidden;
   overflow-wrap: anywhere;
+  transform: translateY(1px);
 }
 
 .activity-mini-bottom {
@@ -506,10 +565,10 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  color: var(--activity-muted);
+  color: rgb(var(--bujo-ink-rgb) / 0.42);
   font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  font-weight: 400;
+  font-size: 9.5px;
+  font-weight: 450;
 }
 
 .activity-mini-dot {
@@ -553,7 +612,7 @@ onMounted(() => {
 
   .activity-heading h1 {
     white-space: normal;
-    font-size: clamp(40px, 13vw, 48px);
+    font-size: clamp(40px, 6vw, 64px);
     line-height: 0.95;
   }
 

@@ -53,6 +53,12 @@ async function clickFilter(wrapper, text) {
 }
 
 describe('ActivityView - 手機短螢幕響應式版面', () => {
+  test('手機大標字級與好友、通知頁一致', () => {
+    expect(activityViewSource).toMatch(
+      /@media \(max-width: 900px\)[^{]*\{[\s\S]*?\.activity-heading h1\s*\{[^}]*font-size: clamp\(40px, 6vw, 64px\);/,
+    )
+  })
+
   test('Mobile activity detail respects the stage height', () => {
     expect(activityViewSource).toMatch(
       /\.activity-stage :deep\(\.activity-detail-panel\)\s*{[^}]*max-height: var\(--activity-detail-available-height\);[^}]*min-height: min\(250px, var\(--activity-detail-available-height\)\);/s,
@@ -66,19 +72,28 @@ describe('ActivityView - 手機短螢幕響應式版面', () => {
   })
 })
 
-describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirmed/hosting', () => {
-  test('RECRUITING 計入所有 status===recruiting 的活動，不論是否為自己建立', async () => {
+describe('ActivityView - 篩選 tab 依使用者任務分流 recruiting/joined/confirmed/hosting', () => {
+  test('RECRUITING 只計入可報名的揪團中活動，不含已報名或自己建立', async () => {
     const activities = [
       makeActivity({
         id: 'mine-recruiting',
+        title: 'mine',
         is_creator: true,
         has_joined: true,
         status: 'recruiting',
       }),
       makeActivity({
         id: 'friend-recruiting',
+        title: 'friend',
         is_creator: false,
         has_joined: false,
+        status: 'recruiting',
+      }),
+      makeActivity({
+        id: 'joined-recruiting',
+        title: 'joined',
+        is_creator: false,
+        has_joined: true,
         status: 'recruiting',
       }),
       makeActivity({
@@ -93,7 +108,10 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
     await flushPromises()
 
     await clickFilter(wrapper, '揪團中')
-    expect(wrapper.text()).toContain('2')
+    expect(wrapper.findAll('.activity-mini-card')).toHaveLength(1)
+    expect(wrapper.text()).toContain('friend')
+    expect(wrapper.text()).not.toContain('mine')
+    expect(wrapper.text()).not.toContain('joined')
 
     await clickFilter(wrapper, '我建立的')
     expect(wrapper.findAll('.activity-mini-card')).toHaveLength(1)
@@ -199,6 +217,29 @@ describe('ActivityView - focus query 聚焦指定活動', () => {
     const title = wrapper.find('.activity-mini-card h2')
     expect(title.attributes('title')).toBe(longTitle)
     expect(title.text()).toBe('嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨...')
+  })
+
+  test('底部活動小卡顯示建立者頭像，沒有頭像時顯示名字首字', async () => {
+    stubFetch([
+      makeActivity({
+        id: 'with-avatar',
+        title: '有頭像',
+        creator: { display_name: '小明', avatar_url: '/uploads/avatars/creator.png' },
+      }),
+      makeActivity({
+        id: 'without-avatar',
+        title: '無頭像',
+        creator: { display_name: 'Alice', avatar_url: '' },
+      }),
+    ])
+    const wrapper = await mountActivityView()
+    await flushPromises()
+
+    const cards = wrapper.findAll('.activity-mini-card')
+    expect(cards[0].find('.activity-mini-avatar img').attributes('src')).toContain(
+      '/uploads/avatars/creator.png',
+    )
+    expect(cards[1].find('.activity-mini-avatar').text()).toBe('A')
   })
 
   test('掛載於 /activity?focus=<id> 時 featured 為該活動且 modal 收到正確 activity-id', async () => {

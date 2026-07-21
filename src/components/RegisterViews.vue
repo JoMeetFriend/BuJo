@@ -278,8 +278,8 @@ const handleRegister = async () => {
     if (res.status === 429) {
       const retryAfter = res.headers.get('Retry-After')
       const waitMin = retryAfter ? Math.ceil(Number(retryAfter) / 60) : 60
-      _errorMsg.value = data.error
-        ? { text: data.error }
+      _errorMsg.value = data.message
+        ? { text: data.message }
         : { key: 'register.errorRateLimit', params: { minutes: waitMin } }
       return
     }
@@ -290,7 +290,7 @@ const handleRegister = async () => {
     }
 
     if (!res.ok) {
-      _errorMsg.value = data.error ? { text: data.error } : { key: 'register.errorGeneric' }
+      _errorMsg.value = data.message ? { text: data.message } : { key: 'register.errorGeneric' }
       return
     }
 
@@ -304,29 +304,8 @@ const handleRegister = async () => {
   }
 }
 
-const handleCredentialResponse = async (response) => {
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ credential: response.credential }),
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error || t('register.errorGoogleFailed'))
-    authStore.setUser(data.user)
-    router.push('/calendar')
-  } catch {
-    _errorMsg.value = { key: 'register.errorGoogleRetry' }
-  }
-}
-
 const handleGoogleLogin = () => {
-  window.google?.accounts.id.prompt((notification) => {
-    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-      _errorMsg.value = { key: 'register.errorGoogleUnavailable' }
-    }
-  })
+  window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`
 }
 
 const handleLineLogin = () => {
@@ -334,25 +313,17 @@ const handleLineLogin = () => {
 }
 
 onMounted(() => {
-  const lineError = route.query.error
-  if (lineError === 'line_cancelled') {
-    _errorMsg.value = { key: 'register.errorLineCancelled' }
-    router.replace({ query: {} })
-  } else if (lineError === 'line_login_failed') {
-    _errorMsg.value = { key: 'register.errorLineFailed' }
+  const errorMap = {
+    line_cancelled: { key: 'register.errorLineCancelled' },
+    line_login_failed: { key: 'register.errorLineFailed' },
+    google_cancelled: { key: 'register.errorGoogleCancelled' },
+    google_login_failed: { key: 'register.errorGoogleFailed' },
+  }
+  const oauthError = errorMap[route.query.error]
+  if (oauthError) {
+    _errorMsg.value = oauthError
     router.replace({ query: {} })
   }
-
-  if (window.google) return
-  const script = document.createElement('script')
-  script.src = 'https://accounts.google.com/gsi/client'
-  script.onload = () => {
-    window.google.accounts.id.initialize({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-      callback: handleCredentialResponse,
-    })
-  }
-  document.head.appendChild(script)
 })
 </script>
 

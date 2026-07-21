@@ -2,7 +2,10 @@
   <button
     type="button"
     class="bujo-tour-help-btn"
-    :class="floating ? 'bujo-tour-help-btn--floating' : 'bujo-tour-help-btn--inline'"
+    :class="[
+      floating ? 'bujo-tour-help-btn--floating' : 'bujo-tour-help-btn--inline',
+      { 'bujo-tour-help-btn--calendar-aligned': floating && calendarAligned },
+    ]"
     data-tour="tour-help-button"
     :aria-label="t('tour.helpButtonLabel')"
     :title="t('tour.helpButtonTitle')"
@@ -21,6 +24,10 @@ defineProps({
   // 桌機版嵌在側邊欄 CALENDAR FILTER 那條線上面，跟著版面走；
   // 手機版沒有側邊欄可以嵌，改成浮在畫面右上角
   floating: {
+    type: Boolean,
+    default: false,
+  },
+  calendarAligned: {
     type: Boolean,
     default: false,
   },
@@ -72,11 +79,15 @@ const emit = defineEmits(['click'])
 
 .bujo-tour-help-btn--floating {
   position: fixed;
-  top: 5px;
-  right: 10px;
+  top: 8px;
+  right: 14px;
   z-index: 70;
   width: 26px;
   height: 26px;
   font-size: 12px;
+}
+
+.bujo-tour-help-btn--calendar-aligned {
+  top: 12px;
 }
 </style>

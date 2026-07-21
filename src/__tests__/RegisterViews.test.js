@@ -173,7 +173,7 @@ describe('RegisterViews - 送出註冊', () => {
   })
 
   test('其他錯誤時顯示後端回傳的訊息', async () => {
-    fetch.mockResolvedValue({ ok: false, status: 500, json: async () => ({ error: '伺服器錯誤' }) })
+    fetch.mockResolvedValue({ ok: false, status: 500, json: async () => ({ message: '伺服器錯誤' }) })
     const wrapper = mountRegisterViews()
     await fillForm(wrapper)
 

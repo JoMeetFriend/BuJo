@@ -492,29 +492,9 @@ function showMsg(msg, type = 'success') {
   setTimeout(() => (linkMsg.value = ''), 4000)
 }
 
-// Google link
-const handleGoogleLinkCredential = async (response) => {
-  linkLoading.value = true
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google/link`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ credential: response.credential }),
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error || t('profileEdit.googleLinkFailed'))
-    await authStore.fetchMe()
-    showMsg(t('profileEdit.googleLinkSuccess'))
-  } catch (err) {
-    showMsg(err.message || t('profileEdit.googleLinkFailed'), 'error')
-  } finally {
-    linkLoading.value = false
-  }
-}
-
+// Google link — redirects through backend OAuth flow
 const handleGoogleLink = () => {
-  window.google?.accounts.id.prompt()
+  window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google/link`
 }
 
 // LINE link — redirects through backend OAuth flow
@@ -533,7 +513,7 @@ const handleUnlink = async (provider) => {
       credentials: 'include',
     })
     const data = await res.json()
-    if (!res.ok) throw new Error(data.error || t('profileEdit.unlinkFailed'))
+    if (!res.ok) throw new Error(data.message || t('profileEdit.unlinkFailed'))
     await authStore.fetchMe()
     showMsg(t('profileEdit.unlinkSuccess'))
   } catch (err) {
@@ -561,34 +541,22 @@ function isProfileEditDestination(path) {
   return router.resolve(path).matched.some((record) => record.path === '/profile/edit')
 }
 
-function initializeGoogleLinking() {
-  if (window.google) {
-    window.google.accounts.id.initialize({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-      callback: handleGoogleLinkCredential,
-    })
-    return
-  }
-
-  const script = document.createElement('script')
-  script.src = 'https://accounts.google.com/gsi/client'
-  script.onload = () => {
-    window.google.accounts.id.initialize({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-      callback: handleGoogleLinkCredential,
-    })
-  }
-  document.head.appendChild(script)
-}
-
 onMounted(async () => {
   const lineLinkSucceeded = route.query.linked === 'line'
   const lineLinkError = ['line_link_cancelled', 'line_link_failed'].includes(route.query.error)
+  const googleLinkSucceeded = route.query.linked === 'google'
+  const googleLinkError = ['google_link_cancelled', 'google_link_failed'].includes(
+    route.query.error,
+  )
 
-  if (lineLinkSucceeded || lineLinkError) {
+  if (lineLinkSucceeded || lineLinkError || googleLinkSucceeded || googleLinkError) {
     if (lineLinkSucceeded) {
       await authStore.fetchMe()
       showMsg(t('profileEdit.lineLinkSuccess'))
+    }
+    if (googleLinkSucceeded) {
+      await authStore.fetchMe()
+      showMsg(t('profileEdit.googleLinkSuccess'))
     }
 
     const onboardingReturnPath = consumeLineNotificationOnboardingReturnPath()
@@ -597,6 +565,14 @@ onMounted(async () => {
         route.query.error === 'line_link_cancelled'
           ? t('profileEdit.errorLineCancelled')
           : t('profileEdit.errorLineFailed'),
+        'error',
+      )
+    }
+    if (googleLinkError) {
+      showMsg(
+        route.query.error === 'google_link_cancelled'
+          ? t('profileEdit.errorGoogleCancelled')
+          : t('profileEdit.googleLinkFailed'),
         'error',
       )
     }
@@ -609,8 +585,6 @@ onMounted(async () => {
       await router.replace({ query: {} })
     }
   }
-
-  initializeGoogleLinking()
 })
 
 const handleNameSubmit = async () => {

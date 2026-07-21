@@ -23,7 +23,6 @@
 
 ```
 VITE_API_URL=            # 後端 API 網址，本地開發填 http://localhost:3000
-VITE_GOOGLE_CLIENT_ID=   # Google OAuth Client ID（公開值，非密鑰）
 VITE_LINE_OFFICIAL_ACCOUNT_ADD_FRIEND_URL= # LINE 官方帳號公開 add friend URL
 VITE_LINE_OFFICIAL_ACCOUNT_QR_CODE_URL=    # LINE 官方帳號公開 QR Code 圖片 URL
 ```
@@ -38,7 +37,7 @@ Vite 讀取順序為 `.env.local` > `.env`，因此本地開發會自動使用 `
 ## 認證方式
 
 - **本地帳號密碼**：註冊/登入走後端 API
-- **Google 登入**：前端取得 Google ID Token 後送後端驗證，只需要 `VITE_GOOGLE_CLIENT_ID`（公開值），不需要也不應該在前端放 Client Secret
+- **Google 登入**：OAuth 與 callback 都在後端處理，前端只是 `window.location.href` 導頁到後端入口，不需要任何前端環境變數
 - **LINE 登入**：OAuth 與 callback 都在後端處理；前端的兩個 LINE 官方帳號環境變數只負責顯示公開 add friend 入口，不參與登入或推播授權
 
 若要在本地測試 OAuth 登入，需確認 Google Cloud Console / LINE Developers 後台的 redirect URI 有指向本機網址。

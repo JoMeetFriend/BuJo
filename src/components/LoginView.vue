@@ -67,16 +67,6 @@
             </div>
           </div>
 
-          <!-- 忘記密碼 -->
-          <div class="flex justify-end">
-            <router-link
-              to="/forgot-password"
-              class="text-sm text-[var(--bujo-muted-strong)] underline decoration-[var(--bujo-line)] underline-offset-2 transition-colors duration-150 hover:text-[var(--bujo-ink)]"
-            >
-              {{ t('login.forgotPassword') }}
-            </router-link>
-          </div>
-
           <!-- 錯誤訊息 -->
           <p
             v-if="errorMsg"
@@ -232,14 +222,14 @@ const handleLogin = async () => {
     if (res.status === 429) {
       const retryAfter = res.headers.get('Retry-After')
       const waitMin = retryAfter ? Math.ceil(Number(retryAfter) / 60) : 15
-      _errorMsg.value = data.error
-        ? { text: data.error }
+      _errorMsg.value = data.message
+        ? { text: data.message }
         : { key: 'login.errorRateLimit', params: { minutes: waitMin } }
       return
     }
 
     if (!res.ok) {
-      _errorMsg.value = data.error ? { text: data.error } : { key: 'login.errorInvalid' }
+      _errorMsg.value = data.message ? { text: data.message } : { key: 'login.errorInvalid' }
       return
     }
 
@@ -252,29 +242,8 @@ const handleLogin = async () => {
   }
 }
 
-const handleCredentialResponse = async (response) => {
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ credential: response.credential }),
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error || t('login.errorGoogleFailed'))
-    authStore.setUser(data.user)
-    router.push('/calendar')
-  } catch (err) {
-    _errorMsg.value = { text: err.message || t('login.errorGoogleFailed') }
-  }
-}
-
 const handleGoogleLogin = () => {
-  window.google?.accounts.id.prompt((notification) => {
-    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-      _errorMsg.value = { key: 'login.errorGoogleUnavailable' }
-    }
-  })
+  window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`
 }
 
 const handleLineLogin = () => {
@@ -290,23 +259,14 @@ onMounted(() => {
   const errorMap = {
     line_cancelled: { key: 'login.errorLineCancelled' },
     line_login_failed: { key: 'login.errorLineFailed' },
+    google_cancelled: { key: 'login.errorGoogleCancelled' },
+    google_login_failed: { key: 'login.errorGoogleFailed' },
   }
-  const lineError = errorMap[route.query.error]
-  if (lineError) {
-    _errorMsg.value = lineError
+  const oauthError = errorMap[route.query.error]
+  if (oauthError) {
+    _errorMsg.value = oauthError
     router.replace({ query: {} })
   }
-
-  if (window.google) return
-  const script = document.createElement('script')
-  script.src = 'https://accounts.google.com/gsi/client'
-  script.onload = () => {
-    window.google.accounts.id.initialize({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-      callback: handleCredentialResponse,
-    })
-  }
-  document.head.appendChild(script)
 })
 
 onUnmounted(() => {

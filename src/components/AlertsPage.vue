@@ -4,7 +4,6 @@
       <p class="alerts-eyebrow">{{ t('alerts.eyebrow') }}</p>
       <div class="alerts-title-line">
         <h1>{{ t('alerts.pageTitle') }}</h1>
-        <span class="alerts-cn-tag">{{ t('alerts.subtitle') }}</span>
       </div>
     </header>
 
@@ -599,13 +598,6 @@ function setActionBusy(notificationId, isBusy) {
   font-weight: 800;
   line-height: 0.9;
   letter-spacing: 0;
-}
-
-.alerts-cn-tag {
-  color: var(--bujo-muted);
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
-  letter-spacing: 0.04em;
 }
 
 .alerts-status-text {
