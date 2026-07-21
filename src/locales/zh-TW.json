@@ -288,8 +288,7 @@
   "alerts": {
     "title": "SOCIAL INBOX",
     "eyebrow": "SOCIAL INBOX",
-    "pageTitle": "通知頁面",
-    "subtitle": "通知",
+    "pageTitle": "通知",
     "loading": "通知讀取中...",
     "markAllRead": "全部已讀",
     "empty": "目前沒有通知",
@@ -314,8 +313,7 @@
   "friends": {
     "title": "SOCIAL COLLECTION",
     "eyebrow": "SOCIAL COLLECTION",
-    "pageTitle": "好友頁面",
-    "subtitle": "好友",
+    "pageTitle": "好友",
     "addFriend": "＋ 新增好友",
     "loading": "資料讀取中...",
     "empty": "目前還沒有好友喔！",
