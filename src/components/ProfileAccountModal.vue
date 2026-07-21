@@ -3,7 +3,7 @@
     <div class="space-y-4">
       <div class="flex items-center gap-3">
         <div
-          class="grid h-[60px] w-[60px] shrink-0 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)]"
+          class="grid h-[60px] w-[60px] shrink-0 place-items-center overflow-hidden border border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)]"
         >
           <img
             v-if="avatarSrc"
@@ -36,13 +36,6 @@
             >
               {{ copyStatusMessage }}
             </p>
-            <button
-              type="button"
-              class="ml-auto shrink-0 rounded border border-[var(--bujo-line)] bg-[var(--bujo-surface)] px-3 py-1 text-xs font-semibold text-[var(--bujo-ink)] transition-colors duration-150 hover:bg-[var(--bujo-line-soft)]"
-              @click="toggleLanguage"
-            >
-              {{ locale === 'zh-TW' ? t('common.langEn') : t('common.langZhTw') }}
-            </button>
           </div>
         </div>
       </div>
@@ -104,10 +97,8 @@ import {
 } from '@heroicons/vue/24/outline'
 import BaseModal from './ui/BaseModal.vue'
 import { toAvatarSrc } from '@/utils/avatar'
-import { useLocaleStore } from '@/stores/locale'
 
-const { t, locale } = useI18n()
-const localeStore = useLocaleStore()
+const { t } = useI18n()
 
 const props = defineProps({
   user: {
@@ -130,11 +121,6 @@ const copyStatusMessage = computed(() => {
   if (copyStatus.value === 'error') return t('profileAccount.copyFailed')
   return ''
 })
-
-function toggleLanguage() {
-  const newLocale = locale.value === 'zh-TW' ? 'en' : 'zh-TW'
-  localeStore.setLocale(newLocale, { global: { locale } })
-}
 
 async function copyShareCode() {
   if (!shareCode.value) return

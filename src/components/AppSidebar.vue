@@ -77,14 +77,14 @@
           class="w-8 h-8 object-cover shrink-0"
         />
         <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
-        <span>{{ authStore.user?.display_name || 'ME' }}</span>
+        <span>{{ authStore.user?.display_name || t('sidebar.meFallback') }}</span>
       </button>
     </div>
   </aside>
 
   <!-- 手機版底部導覽列 + 篩選抽屜 -->
   <div class="md:hidden">
-    <!-- 新手導覽問號：手機版沒有側邊欄可以嵌，浮在畫面右上角 -->
+    <!-- 新手導覽問號：手機版沒有側邊欄可以嵌，浮在畫面左上角 -->
     <AppTourHelpButton floating @click="emit('open-tour')" />
     <!-- 篩選抽屜 -->
     <div v-if="isCalendarPage && drawerOpen" class="bujo-mobile-filter-tray">
@@ -485,7 +485,7 @@ async function handleLogout() {
 
 .bujo-mobile-filter-toggle {
   position: absolute;
-  bottom: calc(100% - 13px);
+  bottom: 100%;
   left: 50%;
   display: grid;
   width: 30px;
@@ -622,6 +622,7 @@ async function handleLogout() {
   width: 48px;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   border: 0;
   background: transparent;
   color: var(--bujo-ink);

@@ -55,6 +55,7 @@
     "bentoTodaysNudge": "TODAY'S NUDGE",
     "bentoPhotoDusk": "slow afternoon",
     "bentoCreateInSecondsTitle": "CREATE IN SECONDS",
+    "featuresAria": "Core features",
     "bentoWhyBujoTitle": "WHY BUJO?",
     "bentoPhotoCoffee": "coffee & plans",
     "bujoIsForItems": [
@@ -181,6 +182,8 @@
     "currentVotes": "Current Votes",
     "showMore": "Show More",
     "collapse": "Collapse",
+    "collapseParticipantsAria": "Collapse participant avatars",
+    "expandParticipantsAria": "Expand all participant avatars",
     "notFound": "Activity not found",
     "loadFailed": "Load failed",
     "timeNotSet": "Time not set",
@@ -467,7 +470,6 @@
     "namePlaceholder": "What are you planning?",
     "locationLabel": "Location",
     "locationPlaceholder": "Where to meet?",
-    "searchOverseas": "Search international locations",
     "timeSlot": "Time Slot",
     "cancel": "Cancel",
     "dateDetermined": "Is the date confirmed?",
@@ -478,8 +480,6 @@
     "capacityHint": "including yourself",
     "capacityPlaceholder": "No limit",
     "clearCapacity": "Clear capacity",
-    "searching": "Searching...",
-    "noAddressFound": "No matching addresses found",
     "allDay": "All day",
     "candidateDates": "Candidate Dates",
     "candidateDatesAndTimes": "Candidate Dates & Time Slots",
@@ -543,6 +543,8 @@
     "errorSelectCandidateSlot": "Please set complete candidate time slots for at least one candidate date",
     "errorSlotEndTimeAfterStart": "Each candidate slot's end time must be later than its start time",
     "errorSelectStartTime": "Please select a start time",
+    "errorNameEmpty": "Activity name is required",
+    "errorNameTooLong": "Activity name can be at most {count} characters",
     "errorCreateFailed": "Failed to create activity, please try again later",
     "errorConnectFailed": "Unable to connect to server, please check and try again",
     "configuredCombinations": "Configured Combinations",
@@ -612,6 +614,8 @@
   "tour": {
     "helpButtonLabel": "Restart onboarding tour",
     "helpButtonTitle": "Onboarding tour",
+    "hintTitle": "Your onboarding tour is here",
+    "hintDesc": "Want to learn how BuJo works? Tap this \"?\" anytime to start the tour.",
     "calendarTitle": "Calendar",
     "calendarDesc": "View all group activities and their schedules at a glance.",
     "todayCellTitle": "Show only formed activities",
@@ -633,8 +637,7 @@
     "prevBtn": "Previous",
     "nextBtn": "Next",
     "doneBtn": "Done",
-    "skipBtn": "Skip tour",
-    "progress": "{current} / {total}"
+    "skipBtn": "Skip tour"
   },
   "guide": {
     "scenarioA0Title": "How to schedule?",
@@ -657,8 +660,7 @@
     "shared1Desc": "You can manually adjust the sign-up open duration.",
     "prevBtn": "Previous",
     "nextBtn": "Next",
-    "doneBtn": "Got it",
-    "progress": "{current} / {total}"
+    "doneBtn": "Done"
   },
   "reportCutoff": {
     "helpButtonLabel": "Restart onboarding tour",
@@ -666,13 +668,14 @@
     "warningPrefix": "Only",
     "warningSuffix": "minutes left until sign-up closes!",
     "openUntilPrefix": "Sign-up open until",
-    "deadlineSuffix": " deadline)"
+    "deadlineSuffix": " deadline)",
+    "pendingPrefix": "Once you pick a date and time, this will show your sign-up deadline. You can also ",
+    "pendingAction": "preview how to adjust it",
+    "pendingSuffix": " now."
   },
   "common": {
     "closeTitle": "Close {title}",
     "networkError": "Network error, please check your connection or try again later.",
-    "am": "AM",
-    "pm": "PM",
     "sun": "Sun",
     "mon": "Mon",
     "tue": "Tue",
@@ -686,7 +689,8 @@
     "comma": ", ",
     "unnamed": "Unnamed",
     "langEn": "EN",
-    "langZhTw": "中文"
+    "langZhTw": "中文",
+    "ariaToggleLanguage": "Switch language"
   },
   "userStore": {
     "nameEmpty": "Display name cannot be empty.",
@@ -705,7 +709,6 @@
   },
   "composable": {
     "userSearchExpired": "Session expired, please log in again",
-    "userSearchError": "Search error occurred",
-    "addressSearchError": "Address search error occurred"
+    "userSearchError": "Search error occurred"
   }
 }

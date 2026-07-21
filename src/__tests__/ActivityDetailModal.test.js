@@ -1,6 +1,7 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, expect, test, it, vi, beforeEach, afterEach } from 'vitest'
 import ActivityDetailModal from '@/components/ActivityDetailModal.vue'
+import activityDetailModalSource from '@/components/ActivityDetailModal.vue?raw'
 import AvailabilityPickerModal from '@/components/AvailabilityPickerModal.vue'
 import { createTestI18n } from './testUtils'
 
@@ -71,6 +72,18 @@ afterEach(() => {
   vi.unstubAllGlobals()
   delete globalThis.fetch
   vi.useRealTimers()
+})
+
+describe('ActivityDetailModal - 手機高度限制', () => {
+  test('Overflowing detail content remains accessible', () => {
+    expect(activityDetailModalSource).toMatch(
+      /@media \(max-width: 900px\)[^{]*{[\s\S]*?\.activity-detail-panel\s*{[^}]*max-height: min\(45dvh, 430px\);[^}]*min-height: min\(250px, 45dvh\);/,
+    )
+    expect(activityDetailModalSource).toMatch(
+      /\.activity-detail-body\s*{[^}]*min-height: 0;[^}]*overflow-y: auto;/s,
+    )
+    expect(activityDetailModalSource).not.toContain('max-height: clamp(340px, 45dvh, 430px)')
+  })
 })
 
 describe('ActivityDetailModal - 活動標題顯示保護', () => {
@@ -958,8 +971,7 @@ describe('ActivityDetailModal - Scenario D 候選時段窗口報名流程', () =
     })
     await flushPromises()
 
-    expect(wrapper.text()).toContain('日期、時段投票中')
-    expect(wrapper.text()).not.toContain('日期、時段投票中（2）')
+    expect(wrapper.text()).toContain('日期、時段投票中（2）')
     expect(wrapper.text()).toContain('8/1')
     expect(wrapper.text()).toContain('8/3')
   })
@@ -1054,8 +1066,7 @@ describe('ActivityDetailModal - Scenario D 候選時段窗口報名流程', () =
     })
     await flushPromises()
 
-    expect(wrapper.text()).toContain('日期、時段投票中')
-    expect(wrapper.text()).not.toContain('日期、時段投票中（5）')
+    expect(wrapper.text()).toContain('日期、時段投票中（5）')
     // panelDate 卡片標題本來就會顯示候選區間（8/1 ~ 8/9），所以不能用整頁文字判斷「8/9 沒出現」，
     // 要限定在 chip 清單本身
     let chipTexts = wrapper.findAll('.activity-detail-chip').map((c) => c.text())
@@ -2732,5 +2743,105 @@ describe('ActivityDetailModal - 決選候選清單同票時，離現在最近的
     expect(options[0].classes()).not.toContain('activity-detail-option--expired')
     expect(options[1].text()).toContain('6/20')
     expect(options[1].classes()).toContain('activity-detail-option--expired')
+  })
+})
+
+describe('ActivityDetailModal - 已成團或建立者本人不顯示候選時段摘要', () => {
+  test('情境三：活動已成團（confirmed）時，即使有已選日期資料也不顯示「你報名的日期」', async () => {
+    const activity = makeScenarioCActivity({
+      is_creator: false,
+      has_joined: true,
+      status: 'confirmed',
+      confirmed_slot: { slot_start: '2026-08-01T19:00:00', slot_end: '2026-08-01T21:00:00' },
+      candidate_slots: [
+        {
+          id: 'slot-a',
+          slot_start: '2026-08-01T19:00:00',
+          slot_end: '2026-08-01T21:00:00',
+          is_selected: true,
+        },
+      ],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+      global: { plugins: [createTestI18n()] },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('你報名的日期')
+  })
+
+  test('情境三：建立者看自己的活動時，voting 狀態下即使有已選日期資料也不顯示「你報名的日期」', async () => {
+    const activity = makeScenarioCActivity({
+      is_creator: true,
+      has_joined: true,
+      status: 'voting',
+      candidate_slots: [
+        {
+          id: 'slot-a',
+          slot_start: '2026-08-01T19:00:00',
+          slot_end: '2026-08-01T21:00:00',
+          is_selected: true,
+        },
+      ],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+      global: { plugins: [createTestI18n()] },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('你報名的日期')
+  })
+
+  test('情境四：活動已成團（confirmed）時，即使有已選候選時段資料也不顯示「已報名的時段」', async () => {
+    const activity = makeScenarioDActivity({
+      is_creator: false,
+      has_joined: true,
+      status: 'confirmed',
+      confirmed_slot: { slot_start: '2026-08-01T14:00:00', slot_end: '2026-08-01T16:00:00' },
+      candidate_slots: [
+        {
+          id: 'slot-a',
+          slot_start: '2026-08-01T14:00:00',
+          slot_end: '2026-08-01T16:00:00',
+          is_selected: true,
+        },
+      ],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+      global: { plugins: [createTestI18n()] },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('已報名的時段')
+  })
+
+  test('情境四：建立者看自己已成團前的活動時，voting 狀態下不顯示「已報名的時段」（也不會顯示「尚未選擇候選時段」）', async () => {
+    const activity = makeScenarioDActivity({
+      is_creator: true,
+      has_joined: true,
+      status: 'voting',
+      candidate_slots: [
+        { id: 'slot-a', slot_start: '2026-08-01T14:00:00', slot_end: '2026-08-01T16:00:00' },
+      ],
+    })
+    stubFetch(activity)
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+      global: { plugins: [createTestI18n()] },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('已報名的時段')
+    expect(wrapper.text()).not.toContain('尚未選擇候選時段')
   })
 })

@@ -48,7 +48,9 @@
       <template v-else-if="activity">
         <div v-if="showCandidateChips && isScenarioDMode" class="activity-detail-info">
           <div class="activity-detail-list-block">
-            <div class="activity-detail-label">日期、時段投票中</div>
+            <div class="activity-detail-label">
+              {{ t('activityDetail.dateVotingWithCount', { count: candidateChipsForCard.length }) }}
+            </div>
             <div class="activity-detail-date-list">
               <button
                 v-for="chip in visibleCandidateChips"
@@ -82,7 +84,7 @@
 
         <div class="activity-detail-info">
           <div v-if="showCandidateChips && isScenarioCMode">
-            <div class="activity-detail-label">日期投票中</div>
+            <div class="activity-detail-label">{{ t('activityDetail.dateVotingStatus') }}</div>
             <div class="activity-detail-date-list">
               <span
                 v-for="chip in visibleCandidateChips"
@@ -163,7 +165,11 @@
                 v-if="hasExpandableParticipants"
                 type="button"
                 class="activity-detail-avatar activity-detail-avatar--text activity-detail-avatar-toggle"
-                :aria-label="participantsExpanded ? '收合參與者頭像' : '展開所有參與者頭像'"
+                :aria-label="
+                  participantsExpanded
+                    ? t('activityDetail.collapseParticipantsAria')
+                    : t('activityDetail.expandParticipantsAria')
+                "
                 :aria-expanded="participantsExpanded"
                 @click.stop="participantsExpanded = !participantsExpanded"
               >
@@ -173,7 +179,7 @@
                 v-if="openSupportersKey === 'participants' && activity.participants.length"
                 class="activity-detail-chip-popover"
               >
-                {{ activity.participants.map((p) => p.display_name).join('、') }}
+                {{ activity.participants.map((p) => p.display_name).join(t('common.comma')) }}
               </span>
             </div>
             <span class="activity-detail-count">
@@ -189,12 +195,13 @@
           v-if="
             isScenarioCMode &&
             activity.has_joined &&
+            !activity.is_creator &&
             selectedScenarioCSlots.length &&
-            (activity.status === 'voting' || activity.status === 'confirmed')
+            activity.status === 'voting'
           "
           class="activity-detail-options"
         >
-          <div class="activity-detail-label">你報名的日期</div>
+          <div class="activity-detail-label">{{ t('activityDetail.selectedYourDates') }}</div>
           <div class="activity-detail-date-list">
             <span
               v-for="slot in selectedScenarioCSlots"
@@ -223,7 +230,7 @@
                   v-if="openSupportersKey === `c2-${slot.id}`"
                   class="activity-detail-chip-popover"
                 >
-                  {{ slot.co_participants.map((p) => p.display_name).join('、') }}
+                  {{ slot.co_participants.map((p) => p.display_name).join(t('common.comma')) }}
                 </span>
               </span>
             </span>
@@ -234,11 +241,12 @@
           v-if="
             isScenarioDMode &&
             activity.has_joined &&
-            (activity.status === 'voting' || activity.status === 'confirmed')
+            !activity.is_creator &&
+            activity.status === 'voting'
           "
           class="activity-detail-options"
         >
-          <div class="activity-detail-label">已報名的時段</div>
+          <div class="activity-detail-label">{{ t('activityDetail.selectedYourSlots') }}</div>
           <div v-if="selectedScenarioDSlots.length" class="activity-detail-date-list">
             <span
               v-for="slot in selectedScenarioDSlots"
@@ -267,7 +275,7 @@
                   v-if="openSupportersKey === `d2-${slot.id}`"
                   class="activity-detail-chip-popover"
                 >
-                  {{ slot.co_participants.map((p) => p.display_name).join('、') }}
+                  {{ slot.co_participants.map((p) => p.display_name).join(t('common.comma')) }}
                 </span>
               </span>
             </span>
@@ -326,7 +334,7 @@
                   v-if="openSupportersKey === entry.radioId"
                   class="activity-detail-chip-popover"
                 >
-                  {{ entry.supporters.map((s) => s.display_name).join('、') }}
+                  {{ entry.supporters.map((s) => s.display_name).join(t('common.comma')) }}
                 </span>
               </span>
               <span class="activity-detail-ratio">{{ ratioText(entry.count) }}</span>
@@ -1855,8 +1863,8 @@ function formatTime(date) {
     --activity-detail-scale: 1;
     width: min(100%, 360px);
     height: auto;
-    max-height: clamp(340px, 45dvh, 430px);
-    min-height: 250px;
+    max-height: min(45dvh, 430px);
+    min-height: min(250px, 45dvh);
   }
 
   .activity-detail-header,

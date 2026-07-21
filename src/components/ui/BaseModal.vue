@@ -4,6 +4,7 @@
     title    String   — 標題文字（同時用於 aria-labelledby／bare 模式的 aria-label）
     scrollable Boolean — 是否可捲動（預設 false）；true 時 body 可捲、footer 固定在底部
     maxWidth String   — 彈窗最大寬度（預設 '440px'）
+    reserveMobileNavSpace Boolean — 手機版是否預留 62px 底部導覽空間（預設 false）
     bare     Boolean  — 不顯示標題列/外框/內距，用於內容本身已經是完整卡片
                         （例如 ActivityDetailModal 的便利貼樣式，卡片要自己提供關閉按鈕）的情境；
                         點遮罩背景仍會觸發 close，跟一般模式一樣
@@ -37,7 +38,10 @@
   <Teleport to="body">
     <div
       v-if="isOpen"
-      class="fixed inset-0 z-[80] flex items-center justify-center bg-[rgb(var(--bujo-ink-rgb)/0.35)] px-4"
+      class="base-modal-overlay fixed inset-0 z-[80] flex items-center justify-center bg-[rgb(var(--bujo-ink-rgb)/0.35)] px-4"
+      :class="{
+        'base-modal-overlay--reserve-mobile-nav-space': reserveMobileNavSpace,
+      }"
       @click="emit('close')"
     >
       <div
@@ -133,6 +137,10 @@ const props = defineProps({
     type: String,
     default: '440px',
   },
+  reserveMobileNavSpace: {
+    type: Boolean,
+    default: false,
+  },
   bare: {
     type: Boolean,
     default: false,
@@ -154,5 +162,11 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
 <style scoped>
 .bujo-modal-panel {
   box-shadow: 7px 8px 0 rgb(var(--bujo-ink-rgb) / 0.06);
+}
+
+@media (max-width: 640px) {
+  .base-modal-overlay--reserve-mobile-nav-space {
+    bottom: 62px;
+  }
 }
 </style>

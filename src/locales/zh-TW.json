@@ -55,6 +55,7 @@
     "bentoTodaysNudge": "TODAY'S NUDGE",
     "bentoPhotoDusk": "slow afternoon",
     "bentoCreateInSecondsTitle": "CREATE IN SECONDS",
+    "featuresAria": "核心功能",
     "bentoWhyBujoTitle": "WHY BUJO?",
     "bentoPhotoCoffee": "coffee & plans",
     "bujoIsForItems": [
@@ -181,6 +182,8 @@
     "currentVotes": "目前票數",
     "showMore": "顯示更多",
     "collapse": "收合",
+    "collapseParticipantsAria": "收合參與者頭像",
+    "expandParticipantsAria": "展開所有參與者頭像",
     "notFound": "找不到此活動",
     "loadFailed": "載入失敗",
     "timeNotSet": "時間未設定",
@@ -467,7 +470,6 @@
     "namePlaceholder": "想揪什麼？",
     "locationLabel": "地點",
     "locationPlaceholder": "在哪裡集合？",
-    "searchOverseas": "搜尋海外地點",
     "timeSlot": "時段",
     "cancel": "取消",
     "dateDetermined": "日期確定了嗎？",
@@ -478,8 +480,6 @@
     "capacityHint": "含自己",
     "capacityPlaceholder": "不限",
     "clearCapacity": "清除人數上限",
-    "searching": "搜尋中...",
-    "noAddressFound": "查無符合的地址",
     "allDay": "整日",
     "candidateDates": "候選日期",
     "candidateDatesAndTimes": "候選日期與時段",
@@ -543,6 +543,8 @@
     "errorSelectCandidateSlot": "請至少為一個候選日期設定完整的候選時段",
     "errorSlotEndTimeAfterStart": "每個候選時段的結束時間都要晚於開始時間",
     "errorSelectStartTime": "請選擇開始時間",
+    "errorNameEmpty": "活動名稱為必填",
+    "errorNameTooLong": "活動名稱最多 {count} 字",
     "errorCreateFailed": "建立活動失敗，請稍後再試",
     "errorConnectFailed": "無法連線到伺服器，請確認後再試",
     "configuredCombinations": "已選候選組合",
@@ -612,6 +614,8 @@
   "tour": {
     "helpButtonLabel": "重新開啟新手導覽",
     "helpButtonTitle": "新手導覽",
+    "hintTitle": "新手導覽在這裡",
+    "hintDesc": "想了解怎麼用 BuJo 嗎？之後點這顆「？」就可以隨時開始導覽。",
     "calendarTitle": "行事曆",
     "calendarDesc": "在這裡查看所有揪團跟活動的時間安排，一眼掌握你的行程。",
     "todayCellTitle": "只顯示已成團的活動",
@@ -633,8 +637,7 @@
     "prevBtn": "上一步",
     "nextBtn": "下一步",
     "doneBtn": "完成",
-    "skipBtn": "跳過導覽",
-    "progress": "{current} / {total}"
+    "skipBtn": "跳過導覽"
   },
   "guide": {
     "scenarioA0Title": "怎麼喬時間？",
@@ -657,20 +660,20 @@
     "shared1Desc": "可以手動修改報名開放時間。",
     "prevBtn": "上一步",
     "nextBtn": "下一步",
-    "doneBtn": "知道了",
-    "progress": "{current} / {total}"
+    "doneBtn": "完成"
   },
   "reportCutoff": {
     "warningPrefix": "距離報名截止僅剩",
     "warningSuffix": "分鐘！",
     "openUntilPrefix": "報名開放到",
-    "deadlineSuffix": "截止）"
+    "deadlineSuffix": "截止）",
+    "pendingPrefix": "選好日期與時間後，這裡會自動顯示報名截止時間，你也可以先",
+    "pendingAction": "看看怎麼調整",
+    "pendingSuffix": "。"
   },
   "common": {
     "closeTitle": "關閉{title}",
     "networkError": "網路連線異常，請檢查您的網路或稍後再試。",
-    "am": "上午",
-    "pm": "下午",
     "sun": "日",
     "mon": "一",
     "tue": "二",
@@ -684,7 +687,8 @@
     "comma": "、",
     "unnamed": "未命名",
     "langEn": "EN",
-    "langZhTw": "中文"
+    "langZhTw": "中文",
+    "ariaToggleLanguage": "切換中英文"
   },
   "userStore": {
     "nameEmpty": "顯示名稱不可為空白",
@@ -703,7 +707,6 @@
   },
   "composable": {
     "userSearchExpired": "登入已過期，請重新登入",
-    "userSearchError": "搜尋發生錯誤",
-    "addressSearchError": "地址搜尋發生錯誤"
+    "userSearchError": "搜尋發生錯誤"
   }
 }

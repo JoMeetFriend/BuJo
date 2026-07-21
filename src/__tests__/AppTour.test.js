@@ -6,15 +6,17 @@ import App from '@/App.vue'
 import { useAuthStore } from '@/stores/auth'
 import { createTestI18n } from './testUtils'
 
-const { hasSeenTourRef, startTourMock } = vi.hoisted(() => ({
+const { hasSeenTourRef, startTourMock, startTourHintMock } = vi.hoisted(() => ({
   hasSeenTourRef: { value: false },
   startTourMock: vi.fn(),
+  startTourHintMock: vi.fn(),
 }))
 
 vi.mock('@/composables/useAppTour', () => ({
   useAppTour: () => ({
     hasSeenTour: hasSeenTourRef,
     startTour: startTourMock,
+    startTourHint: startTourHintMock,
     markSeen: vi.fn(),
     storageKey: { value: '' },
   }),
@@ -79,6 +81,7 @@ beforeEach(() => {
   sessionStorage.clear()
   hasSeenTourRef.value = false
   startTourMock.mockClear()
+  startTourHintMock.mockClear()
   vi.useFakeTimers()
 })
 
@@ -87,32 +90,33 @@ afterEach(() => {
 })
 
 describe('App 新手導覽觸發與問號球', () => {
-  test('新使用者進入行事曆頁，載入畫面時間到後自動開啟導覽', async () => {
+  test('新使用者進入行事曆頁，載入畫面時間到後自動提示「？」按鈕位置（不直接跑完整導覽）', async () => {
     const { wrapper } = await mountApp({ path: '/calendar' })
 
     await vi.advanceTimersByTimeAsync(1600)
     await wrapper.vm.$nextTick()
 
-    expect(startTourMock).toHaveBeenCalledTimes(1)
+    expect(startTourHintMock).toHaveBeenCalledTimes(1)
+    expect(startTourMock).not.toHaveBeenCalled()
   })
 
-  test('已經看過導覽的使用者不會自動再次開啟', async () => {
+  test('已經看過導覽的使用者不會自動再次提示', async () => {
     hasSeenTourRef.value = true
     const { wrapper } = await mountApp({ path: '/calendar' })
 
     await vi.advanceTimersByTimeAsync(1600)
     await wrapper.vm.$nextTick()
 
-    expect(startTourMock).not.toHaveBeenCalled()
+    expect(startTourHintMock).not.toHaveBeenCalled()
   })
 
-  test('不在行事曆頁時不自動開啟導覽', async () => {
+  test('不在行事曆頁時不自動提示', async () => {
     const { wrapper } = await mountApp({ path: '/friends-page' })
 
     await vi.advanceTimersByTimeAsync(1600)
     await wrapper.vm.$nextTick()
 
-    expect(startTourMock).not.toHaveBeenCalled()
+    expect(startTourHintMock).not.toHaveBeenCalled()
   })
 
   test('側邊欄觸發 open-tour 時會呼叫 startTour（問號按鈕實際渲染在 AppSidebar 裡）', async () => {

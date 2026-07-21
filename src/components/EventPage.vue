@@ -1,5 +1,11 @@
 <template>
-  <BaseModal :isOpen="modalOpen" :title="t('event.createTitle')" scrollable @close="closeForm">
+  <BaseModal
+    :isOpen="modalOpen"
+    :title="t('event.createTitle')"
+    scrollable
+    reserve-mobile-nav-space
+    @close="closeForm"
+  >
     <template #default>
       <form id="event-form" class="grid gap-4" @submit.prevent="submitForm">
         <label :class="[fieldClass, 'col-span-full']" for="event-name">
@@ -14,12 +20,8 @@
             type="text"
             required
             :maxlength="ACTIVITY_TITLE_MAX_LENGTH"
-            aria-describedby="event-name-hint"
             :placeholder="t('event.namePlaceholder')"
           />
-          <span id="event-name-hint" class="text-xs font-medium text-[var(--bujo-muted-strong)]">
-            {{ t('event.maxChars', { count: ACTIVITY_TITLE_MAX_LENGTH }) }}
-          </span>
         </label>
 
         <div class="grid grid-cols-2 gap-5 max-sm:gap-2">
@@ -85,86 +87,14 @@
           <label :class="fieldLabelClass" for="event-location">{{
             t('event.locationLabel')
           }}</label>
-          <label
-            class="inline-flex w-fit items-center gap-1.5 text-xs text-[var(--bujo-muted-strong)]"
-          >
-            <input
-              v-model="searchOverseasLocation"
-              type="checkbox"
-              class="h-4 w-4 cursor-pointer appearance-none rounded-none border border-[var(--bujo-line)] bg-[var(--bujo-surface)] checked:border-[var(--bujo-ink)] checked:bg-[var(--bujo-ink)] focus:outline-none focus:shadow-[inset_0_0_0_1px_var(--bujo-accent)]"
-              @change="handleOverseasToggleChange"
-            />
-            {{ t('event.searchOverseas') }}
-          </label>
-          <span class="relative block">
-            <input
-              id="event-location"
-              v-model="form.location"
-              :class="inputClass"
-              type="text"
-              :placeholder="t('event.locationPlaceholder')"
-              autocomplete="off"
-              role="combobox"
-              aria-autocomplete="list"
-              aria-haspopup="listbox"
-              :aria-expanded="addressResults.length > 0"
-              aria-controls="event-location-listbox"
-              :aria-activedescendant="activeAddressOptionId"
-              @input="handleLocationInput"
-              @blur="handleLocationBlur"
-              @keydown="handleLocationKeydown"
-            />
-            <div
-              v-if="
-                isSearchingAddress ||
-                addressError ||
-                (addressHasSearched && addressResults.length === 0) ||
-                addressResults.length > 0
-              "
-              class="absolute inset-x-0 top-full z-10 mt-1 border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] shadow-md"
-              aria-live="polite"
-            >
-              <p
-                v-if="isSearchingAddress"
-                class="px-3 py-2 text-sm text-[var(--bujo-muted-strong)]"
-              >
-                {{ t('event.searching') }}
-              </p>
-              <p v-else-if="addressError" class="px-3 py-2 text-sm text-[var(--bujo-danger)]">
-                {{ addressError }}
-              </p>
-              <p
-                v-else-if="addressHasSearched && addressResults.length === 0"
-                class="px-3 py-2 text-sm text-[var(--bujo-muted-strong)]"
-              >
-                {{ t('event.noAddressFound') }}
-              </p>
-              <ul
-                v-else
-                id="event-location-listbox"
-                role="listbox"
-                class="max-h-48 overflow-y-auto"
-              >
-                <li
-                  v-for="(address, index) in addressResults"
-                  :id="`event-location-option-${index}`"
-                  :key="address"
-                  role="option"
-                  :aria-selected="index === activeAddressIndex"
-                >
-                  <button
-                    type="button"
-                    tabindex="-1"
-                    class="block w-full px-3 py-2 text-left text-sm text-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                    :class="{ 'bg-[var(--bujo-surface-muted)]': index === activeAddressIndex }"
-                    @mousedown.prevent="selectAddress(address)"
-                  >
-                    {{ address }}
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </span>
+          <input
+            id="event-location"
+            v-model="form.location"
+            :class="inputClass"
+            type="text"
+            :placeholder="t('event.locationPlaceholder')"
+            autocomplete="off"
+          />
         </div>
 
         <div
@@ -242,14 +172,6 @@
                   </span>
                 </label>
               </div>
-            </div>
-
-            <!-- 情境說明 -->
-            <div
-              v-if="dateMode !== 'fixed' || timeMode !== 'fixed'"
-              class="border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 py-2 text-xs leading-5 text-[var(--bujo-muted-strong)]"
-            >
-              {{ scenarioDescription }}
             </div>
           </div>
 
@@ -402,7 +324,6 @@
             </div>
 
             <ReportCutoffReminder
-              v-if="scheduleCeilingDate"
               :is-warning="isReportCutoffWarning"
               :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
@@ -579,7 +500,6 @@
             </div>
 
             <ReportCutoffReminder
-              v-if="scheduleCeilingDate"
               :is-warning="isReportCutoffWarning"
               :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
@@ -599,8 +519,6 @@
             @click="closePicker"
           >
             <div data-tour="event-candidate-dates" class="grid gap-2">
-              <span :class="fieldLabelClass">{{ t('event.candidateDates') }}</span>
-
               <div class="mb-1 flex items-center justify-between gap-2">
                 <button
                   class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
@@ -753,7 +671,6 @@
             </div>
 
             <ReportCutoffReminder
-              v-if="scheduleCeilingDate"
               :is-warning="isReportCutoffWarning"
               :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
@@ -774,8 +691,6 @@
             @click="closePicker"
           >
             <div data-tour="event-scenario4-dates" class="grid gap-2">
-              <span :class="fieldLabelClass">{{ t('event.candidateDatesAndTimes') }}</span>
-
               <div class="mb-1 flex items-center justify-between gap-2">
                 <button
                   class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
@@ -950,7 +865,6 @@
             </div>
 
             <ReportCutoffReminder
-              v-if="scheduleCeilingDate"
               :is-warning="isReportCutoffWarning"
               :remaining-minutes="minutesUntilVoteDeadline"
               :time-label="reportCutoffTimeLabel"
@@ -1048,7 +962,6 @@ import {
   parseDateTimeValue,
   parseHourFromTimeStr,
 } from '@/utils/timeFormat'
-import { useAddressSearch } from '@/composables/useAddressSearch'
 import { useAuthStore } from '@/stores/auth'
 import { useEventScenarioGuide } from '@/composables/useEventScenarioGuide'
 
@@ -1102,80 +1015,6 @@ const scheduleRows = computed(() => [
 
 const today = formatDateValue(new Date())
 const ACTIVITY_TITLE_MAX_LENGTH = 15
-
-const {
-  searchResults: addressResults,
-  isSearching: isSearchingAddress,
-  error: addressError,
-  hasSearched: addressHasSearched,
-  searchAddress,
-  clearSearch: clearAddressSearch,
-} = useAddressSearch()
-let addressDebounceTimer = null
-const activeAddressIndex = ref(-1)
-const searchOverseasLocation = ref(false)
-const activeAddressOptionId = computed(() =>
-  activeAddressIndex.value >= 0 ? `event-location-option-${activeAddressIndex.value}` : undefined,
-)
-
-function handleLocationInput() {
-  activeAddressIndex.value = -1
-  clearTimeout(addressDebounceTimer)
-  addressDebounceTimer = setTimeout(() => {
-    searchAddress(form.location, { global: searchOverseasLocation.value })
-  }, 300)
-}
-
-function handleOverseasToggleChange() {
-  activeAddressIndex.value = -1
-  searchAddress(form.location, { global: searchOverseasLocation.value })
-}
-
-function handleLocationBlur() {
-  clearAddressSearch()
-  activeAddressIndex.value = -1
-}
-
-function handleLocationKeydown(event) {
-  const hasDropdown =
-    isSearchingAddress.value ||
-    !!addressError.value ||
-    addressHasSearched.value ||
-    addressResults.value.length > 0
-
-  // Escape 只在下拉有東西可關時攔截；否則放行讓 BaseModal 自己的 Escape
-  // 監聽器接手關掉整個表單——不攔截的話會把使用者填到一半的表單也關掉
-  if (event.key === 'Escape') {
-    if (!hasDropdown) return
-    event.preventDefault()
-    event.stopPropagation()
-    clearAddressSearch()
-    activeAddressIndex.value = -1
-    return
-  }
-
-  if (addressResults.value.length === 0) return
-
-  if (event.key === 'ArrowDown') {
-    event.preventDefault()
-    activeAddressIndex.value = (activeAddressIndex.value + 1) % addressResults.value.length
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault()
-    activeAddressIndex.value =
-      activeAddressIndex.value <= 0 ? addressResults.value.length - 1 : activeAddressIndex.value - 1
-  } else if (event.key === 'Enter' && activeAddressIndex.value >= 0) {
-    event.preventDefault()
-    selectAddress(addressResults.value[activeAddressIndex.value])
-  }
-}
-
-function selectAddress(address) {
-  form.location = address
-  clearAddressSearch()
-  activeAddressIndex.value = -1
-}
-
-onBeforeUnmount(() => clearTimeout(addressDebounceTimer))
 
 const form = reactive({
   name: '',
@@ -1273,19 +1112,6 @@ watch(
   },
 )
 
-const scenarioDescription = computed(() => {
-  if (dateMode.value === 'fixed' && timeMode.value === 'fixed') {
-    return t('event.dateFixedTimeFixed')
-  }
-  if (dateMode.value === 'fixed' && timeMode.value === 'vote') {
-    return t('event.dateFixedTimeVote')
-  }
-  if (dateMode.value === 'range' && timeMode.value === 'fixed') {
-    return t('event.dateVoteTimeFixed')
-  }
-  return t('event.dateVoteTimeVote')
-})
-
 // 情境二：選填的時段範圍，限制參與者可回報的時間
 const timeWindow = reactive({ startTime: null, endTime: null, endTimeUserSet: false })
 const openSlotPicker = ref(null) // `${slotId}:startTime` | `${slotId}:endTime` | null
@@ -1324,15 +1150,6 @@ const uniformTime = reactive({
   endTime: null,
   allDay: false,
   endTimeUserSet: false,
-})
-
-// 切到情境三、還沒選任何候選日期時，預設把「明天」加進候選日期，讓表單一開始就有東西可以動，
-// 導覽走到報名截止步驟時也才有實際算得出來的截止時間可以顯示
-watch(currentScenarioKey, (key) => {
-  if (key !== 'c' || candidateDates.value.length > 0) return
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  candidateDates.value = [formatDateValue(tomorrow)]
 })
 
 // 情境三：整日已勾選時，「今天」不可能再是完整一天，跟情境一的 isStartDateToday 規則同理，
@@ -1398,27 +1215,6 @@ const configuredSlots = computed(() =>
       })),
   ),
 )
-
-// 切到情境四、還沒設定任何候選時段時，預設把「明天 09:00–18:00」設成候選組合，讓表單一開始
-// 就有東西可以動，導覽走到報名截止步驟時也才有截止時間可以顯示
-watch(currentScenarioKey, (key) => {
-  if (key !== 'd' || candidateSlots.value.length > 0) return
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  candidateSlots.value = [
-    {
-      date: formatDateValue(tomorrow),
-      timeSlots: [
-        {
-          id: scenario4SlotIdSeq++,
-          startTime: `${t('common.am')} 9:00`,
-          endTime: `${t('common.pm')} 6:00`,
-          endTimeUserSet: true,
-        },
-      ],
-    },
-  ]
-})
 
 const scenario4DateCells = computed(() => {
   const todayValue = formatDateValue(new Date())
@@ -1849,8 +1645,6 @@ function resetForm() {
   form.type = null
   form.limit = null
   form.location = ''
-  clearAddressSearch()
-  searchOverseasLocation.value = false
   form.allDay = false
   form.startDate = todayStr
   form.startTime = null
@@ -1938,11 +1732,11 @@ async function doSubmitInternal() {
   const trimmedTitle = form.name.trim()
 
   if (!trimmedTitle) {
-    submitError.value = '活動名稱為必填'
+    submitError.value = t('event.errorNameEmpty')
     return
   }
   if (trimmedTitle.length > ACTIVITY_TITLE_MAX_LENGTH) {
-    submitError.value = `活動名稱最多 ${ACTIVITY_TITLE_MAX_LENGTH} 字`
+    submitError.value = t('event.errorNameTooLong', { count: ACTIVITY_TITLE_MAX_LENGTH })
     return
   }
 

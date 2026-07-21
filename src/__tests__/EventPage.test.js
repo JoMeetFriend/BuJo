@@ -35,6 +35,24 @@ async function mountEventPage() {
   })
 }
 
+describe('EventPage - 建立活動彈窗保留手機底部導覽', () => {
+  test('只有主表單 overlay 啟用導覽保留，並維持可捲 body 與固定 footer', async () => {
+    const wrapper = await mountEventPage()
+
+    const overlay = queryBody('.base-modal-overlay--reserve-mobile-nav-space')
+    expect(overlay).not.toBeNull()
+    expect(
+      document.body.querySelectorAll('.base-modal-overlay--reserve-mobile-nav-space'),
+    ).toHaveLength(1)
+
+    const dialog = overlay.querySelector('[role="dialog"]')
+    expect(dialog.querySelector('.overflow-y-auto')).not.toBeNull()
+    expect(dialog.querySelector('footer button[form="event-form"]')).not.toBeNull()
+
+    wrapper.unmount()
+  })
+})
+
 describe('EventPage - 情境一（日期X時間皆已確定）開始日期為今天時不能整日', () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -128,11 +146,10 @@ describe('EventPage - 活動名稱長度限制', () => {
     vi.useRealTimers()
   })
 
-  test('活動名稱欄位顯示 15 字上限提示並設定 maxlength', async () => {
+  test('活動名稱欄位設定 maxlength', async () => {
     const wrapper = await mountEventPage()
 
     expect(queryBody('#event-name').getAttribute('maxlength')).toBe('15')
-    expect(document.body.textContent).toContain('最多 15 字')
 
     wrapper.unmount()
   })
@@ -179,16 +196,7 @@ describe('EventPage - 活動名稱長度限制', () => {
 })
 
 describe('EventPage - 日期與時間模式 switch UI', () => {
-  const modeCopy = [
-    '日期確定了！',
-    '還沒～選幾天讓大家投票',
-    '時間確定了！',
-    '還沒～選時段讓大家投票',
-    '日期、時間都確定了！大家可以直接報名參加',
-    '日期確定了，還沒決定時間，選幾個時段讓大家投票',
-    '日期還沒決定，選幾天讓大家投票，時間維持固定',
-    '日期、時間都還沒，選幾個日期＋時段讓大家投票',
-  ]
+  const modeCopy = ['日期確定了！', '還沒～選幾天讓大家投票', '時間確定了！', '還沒～選時段讓大家投票']
 
   test('預設兩個 switch 都在右側，對應 fixed/fixed，並隱藏整體說明', async () => {
     const wrapper = await mountEventPage()
@@ -213,18 +221,15 @@ describe('EventPage - 日期與時間模式 switch UI', () => {
     expect(modeSwitch('日期確定了嗎？').checked).toBe(false)
     expect(wrapper.vm.dateMode).toBe('range')
     expect(document.body.textContent).toContain('還沒～選幾天讓大家投票')
-    expect(document.body.textContent).toContain('日期還沒決定，選幾天讓大家投票，時間維持固定')
 
     await toggleModeSwitch('時間確定了嗎？')
     expect(modeSwitch('時間確定了嗎？').checked).toBe(false)
     expect(wrapper.vm.timeMode).toBe('vote')
     expect(document.body.textContent).toContain('還沒～選時段讓大家投票')
-    expect(document.body.textContent).toContain('日期、時間都還沒，選幾個日期＋時段讓大家投票')
 
     await toggleModeSwitch('日期確定了嗎？')
     expect(modeSwitch('日期確定了嗎？').checked).toBe(true)
     expect(wrapper.vm.dateMode).toBe('fixed')
-    expect(document.body.textContent).toContain('日期確定了，還沒決定時間，選幾個時段讓大家投票')
 
     await toggleModeSwitch('時間確定了嗎？')
     expect(modeSwitch('時間確定了嗎？').checked).toBe(true)
@@ -234,7 +239,7 @@ describe('EventPage - 日期與時間模式 switch UI', () => {
     wrapper.unmount()
   })
 
-  test('模式提示與整體說明文案不包含句號', async () => {
+  test('模式提示文案不包含句號', async () => {
     const wrapper = await mountEventPage()
 
     for (const copy of modeCopy) {
@@ -944,7 +949,6 @@ describe('EventPage - 尚未選完日期/時間時，報名截止提醒完全不
     wrapper.vm.timeMode = 'vote'
     await flushPromises()
 
-    expect(document.body.textContent).not.toContain('報名開放到')
     expect(document.body.textContent).not.toContain('距離報名截止僅剩')
     expect(wrapper.vm.isReportCutoffWarning).toBe(false)
 

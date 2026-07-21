@@ -25,12 +25,31 @@
 
     <button
       v-if="isMobile"
+      type="button"
+      class="calendar-lang-toggle calendar-lang-toggle-mobile"
+      :aria-label="t('common.ariaToggleLanguage')"
+      @click="toggleLanguage"
+    >
+      {{ locale === 'zh-TW' ? t('common.langEn') : t('common.langZhTw') }}
+    </button>
+
+    <button
+      v-if="isMobile"
       @click="toggleDotsAnimation"
       class="calendar-arrow-button calendar-toggle-dots-mobile"
       :class="{ 'is-active': showDots }"
       :aria-label="t('calendar.toggleAnimation')"
     >
       <span class="calendar-square-toggle" aria-hidden="true"></span>
+    </button>
+
+    <button
+      type="button"
+      class="calendar-lang-toggle calendar-lang-toggle-desktop hidden md:flex"
+      :aria-label="t('common.ariaToggleLanguage')"
+      @click="toggleLanguage"
+    >
+      {{ locale === 'zh-TW' ? t('common.langEn') : t('common.langZhTw') }}
     </button>
 
     <button
@@ -325,6 +344,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useLocaleStore } from '@/stores/locale'
 import PixelButton from './ui/PixelButton.vue'
 import BaseModal from './ui/BaseModal.vue'
 import ActivityDetailModal from './ActivityDetailModal.vue'
@@ -339,7 +359,8 @@ const eventModalInitialDate = ref(null)
 const profileBtnBouncing = ref(false)
 const router = useRouter()
 const authStore = useAuthStore()
-const { t } = useI18n()
+const localeStore = useLocaleStore()
+const { t, locale } = useI18n()
 
 const currentUser = computed(() => authStore.user)
 const currentUserAvatarSrc = computed(() => toAvatarSrc(currentUser.value?.avatar_url))
@@ -347,6 +368,11 @@ const currentUserAvatarSrc = computed(() => toAvatarSrc(currentUser.value?.avata
 function openProfileModal() {
   showProfileModal.value = true
   profileBtnBouncing.value = true
+}
+
+function toggleLanguage() {
+  const newLocale = locale.value === 'zh-TW' ? 'en' : 'zh-TW'
+  localeStore.setLocale(newLocale, { global: { locale } })
 }
 
 async function handleLogout() {
@@ -848,6 +874,7 @@ function isToday(date) {
   justify-content: center;
   width: 38px;
   height: 38px;
+  overflow: hidden;
   border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
   background: var(--bujo-surface);
   transition:
@@ -924,6 +951,34 @@ function isToday(date) {
     0 9px 18px rgb(var(--bujo-ink-rgb) / 0.1),
     -4px 4px 0 rgb(var(--bujo-deco-pink) / 0.42);
   transform: rotate(0deg) translateY(-1px);
+}
+
+.calendar-lang-toggle {
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
+  background: var(--bujo-surface);
+  color: var(--bujo-ink);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  transition:
+    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.calendar-lang-toggle:hover {
+  border-color: var(--bujo-ink);
+  background: var(--bujo-white);
+}
+
+.calendar-lang-toggle-desktop {
+  position: absolute;
+  top: 22px;
+  right: 86px;
+  z-index: 8;
+  height: 42px;
+  padding: 0 14px;
 }
 
 .calendar-fetch-error {
@@ -1536,7 +1591,7 @@ function isToday(date) {
 @media (max-width: 640px) {
   .calendar-main-shell {
     gap: 14px;
-    padding: 8px 8px 72px;
+    padding: 8px 8px calc(84px + env(safe-area-inset-bottom, 0px));
   }
 
   .calendar-content-composition {
@@ -1693,6 +1748,13 @@ function isToday(date) {
     margin-top: 8px;
   }
 
+  .calendar-mobile-pocket .calendar-upcoming-card {
+    flex-basis: min(42vw, 160px);
+    min-height: 72px;
+    gap: 5px;
+    padding: 9px 10px 8px;
+  }
+
   .calendar-stack-sheet--back {
     inset: 10px -5px -7px 8px;
   }
@@ -1719,17 +1781,101 @@ function isToday(date) {
     font-size: 11px;
   }
 
+  .calendar-event-list {
+    padding-inline: 2px;
+  }
+
   .calendar-event-chip {
-    grid-template-columns: 5px minmax(0, 1fr);
-    gap: 4px;
+    grid-template-columns: 4px minmax(0, 1fr);
+    gap: 3px;
     min-height: 17px;
-    padding: 1px 4px;
+    padding: 1px 3px;
     font-size: 10px;
   }
 
   .calendar-event-dot {
-    width: 5px;
-    height: 5px;
+    width: 4px;
+    height: 4px;
+  }
+
+  .calendar-more-count {
+    top: 4px;
+    right: 4px;
+    bottom: auto;
+    padding: 0;
+    font-size: 8px;
+    line-height: 1;
+  }
+}
+
+@media (max-width: 640px) and (max-height: 700px) {
+  .calendar-main-shell {
+    gap: 8px;
+  }
+
+  .calendar-content-composition {
+    min-height: 0;
+    margin-top: 0;
+  }
+
+  .calendar-paper-page {
+    align-self: stretch;
+    min-height: 0;
+    height: 100%;
+    padding: 10px 8px 10px 28px;
+  }
+
+  .calendar-hero-composition {
+    margin-bottom: 12px;
+  }
+
+  .calendar-eyebrow {
+    margin-bottom: 0;
+    padding-bottom: 2px;
+    font-size: 10px;
+  }
+
+  .calendar-title-line h1 {
+    font-size: 32px;
+  }
+
+  .calendar-board {
+    flex: 1 1 auto;
+    height: clamp(220px, calc(100dvh - 330px), 360px);
+    min-height: 220px;
+    max-height: 360px;
+  }
+
+  .calendar-mobile-pocket {
+    margin-top: 8px;
+    padding-top: 6px;
+    padding-bottom: 0;
+  }
+
+  .calendar-mobile-pocket .calendar-upcoming-list {
+    margin-top: 6px;
+  }
+
+  .calendar-upcoming-card {
+    min-height: 64px;
+    gap: 4px;
+    padding: 8px 10px 7px;
+  }
+
+  .calendar-upcoming-date strong {
+    font-size: 28px;
+  }
+
+  .calendar-upcoming-relative {
+    padding: 4px 6px;
+  }
+
+  .calendar-upcoming-title {
+    font-size: 13px;
+  }
+
+  .calendar-weekday {
+    padding: 6px 0;
   }
 }
 
@@ -1756,13 +1902,13 @@ function isToday(date) {
 @media (max-width: 640px) {
   .calendar-toggle-dots-mobile {
     position: absolute;
-    top: 6px;
-    right: 14px;
+    top: 5px;
+    right: 48px;
     z-index: 10;
 
     display: grid;
-    width: 36px;
-    height: 36px;
+    width: 26px;
+    height: 26px;
     border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
     background: transparent;
   }
@@ -1770,6 +1916,17 @@ function isToday(date) {
   .calendar-toggle-dots-mobile:hover {
     border-color: var(--bujo-ink);
     background: var(--bujo-surface);
+  }
+
+  .calendar-lang-toggle-mobile {
+    position: fixed;
+    top: 5px;
+    right: 56px;
+    z-index: 70;
+
+    display: grid;
+    height: 36px;
+    padding: 0 10px;
   }
 }
 </style>

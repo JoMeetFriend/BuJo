@@ -1,6 +1,6 @@
 <template>
   <div class="app-shell relative flex bg-[var(--bujo-page)] overflow-hidden text-[var(--bujo-ink)]">
-    <LoadingPage v-if="!authStore.initialized || !minDisplayElapsed" />
+    <LoadingPage v-if="showLoadingPage" />
 
     <AppSidebar
       v-if="showSidebar"
@@ -67,19 +67,40 @@ import { markEventScenarioGuideSeen } from './composables/useEventScenarioGuide'
 
 // 載入畫面至少顯示這麼久，避免 authStore 初始化太快時畫面閃一下就消失
 const MIN_LOADING_DISPLAY_MS = 1600
+// 同一個分頁只在第一次開啟時跑滿載入畫面；分頁內重新整理就不用再等，直接看目前初始化狀態
+const LOADING_SEEN_KEY = 'bujo-loading-seen'
+const hasSeenLoadingAnimation = (() => {
+  try {
+    return sessionStorage.getItem(LOADING_SEEN_KEY) === '1'
+  } catch {
+    return false
+  }
+})()
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const sidebarOpen = ref(true)
 const filters = ref({ formedByMe: true, formedByOthers: true })
-const minDisplayElapsed = ref(false)
+const minDisplayElapsed = ref(hasSeenLoadingAnimation)
 
 onMounted(() => {
+  if (hasSeenLoadingAnimation) return
   setTimeout(() => {
     minDisplayElapsed.value = true
+    try {
+      sessionStorage.setItem(LOADING_SEEN_KEY, '1')
+    } catch {
+      // sessionStorage 不可用（如無痕模式限制）就每次都跑完整載入畫面，不影響功能
+    }
   }, MIN_LOADING_DISPLAY_MS)
 })
+
+// 只有第一次載入才顯示載入畫面；分頁內重新整理時 authStore 重新確認登入狀態
+// 也不該讓畫面閃一下，所以已經看過的話直接跳過，不管 authStore 是否初始化完成
+const showLoadingPage = computed(
+  () => !hasSeenLoadingAnimation && (!authStore.initialized || !minDisplayElapsed.value),
+)
 
 const isNotFoundPage = computed(() => route.name === 'not-found')
 const showSidebar = computed(
@@ -93,24 +114,33 @@ const {
   shouldShow: hasUnseenLineNotificationOnboarding,
   markSeen: markLineNotificationOnboardingSeen,
 } = useLineNotificationOnboarding(onboardingUserId)
-const showLineNotificationOnboarding = computed(
-  () =>
-    authStore.initialized &&
-    Boolean(authStore.user) &&
-    Boolean(onboardingUserId.value) &&
-    Boolean(route.meta.requiresAuth) &&
-    hasUnseenLineNotificationOnboarding.value,
-)
 
 const { t } = useI18n()
-const { hasSeenTour: hasSeenAppTour, startTour: startAppTour } = useAppTour(onboardingUserId, {
+const {
+  hasSeenTour: hasSeenAppTour,
+  startTour: startAppTour,
+  startTourHint: startAppTourHint,
+} = useAppTour(onboardingUserId, {
   navigate: (path) => router.push(path),
   t,
   // 主導覽自己開了新增活動彈窗要介紹「？」按鈕時，先標記情境一的彈窗導覽已看過，
   // 避免彈窗一開兩邊導覽疊在一起
   onSuppressEventScenarioGuide: () => markEventScenarioGuideSeen(onboardingUserId.value, 'a'),
 })
-// 新手導覽的預設首頁是行事曆頁（登入/註冊後的導向目標），只在那裡自動開啟一次
+
+// LINE 提醒彈窗要排在新手導覽提示之後才出現：第一次登入的使用者要先看過「？」按鈕在哪，
+// 才輪到 LINE 提醒，避免兩個彈窗同時搶畫面
+const showLineNotificationOnboarding = computed(
+  () =>
+    authStore.initialized &&
+    Boolean(authStore.user) &&
+    Boolean(onboardingUserId.value) &&
+    Boolean(route.meta.requiresAuth) &&
+    hasUnseenLineNotificationOnboarding.value &&
+    hasSeenAppTour.value,
+)
+// 新手導覽的預設首頁是行事曆頁（登入/註冊後的導向目標），只在那裡自動提示一次；
+// 第一次登入不直接跑完整導覽，只指出「？」按鈕在哪，完整導覽留給使用者自己點開
 const shouldAutoStartAppTour = computed(
   () =>
     authStore.initialized &&
@@ -125,7 +155,7 @@ watch(
   async (shouldStart) => {
     if (!shouldStart) return
     await nextTick()
-    startAppTour()
+    startAppTourHint()
   },
   { immediate: true },
 )
