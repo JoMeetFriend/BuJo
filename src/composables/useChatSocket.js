@@ -18,6 +18,8 @@ export function useChatSocket() {
 
     socket.on('connect', () => {
       isConnected.value = true
+      const chatStore = useChatStore()
+      chatStore.fetchJoinedActivities()
     })
 
     socket.on('disconnect', () => {

@@ -205,7 +205,10 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function addIncomingMessage(msg) {
-    const activityId = chatRoomMap.value[msg.chat_id] ?? msg.chat_id
+    const authStore = useAuthStore()
+    if (msg.sender?.id === authStore.user?.id) return
+
+    const activityId = msg.activity_id ?? chatRoomMap.value[msg.chat_id]
     if (!activityId) return
 
     if (!messages.value[activityId]) {
