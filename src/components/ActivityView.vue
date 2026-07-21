@@ -554,7 +554,7 @@ onMounted(() => {
 
   .activity-heading h1 {
     white-space: normal;
-    font-size: clamp(40px, 13vw, 48px);
+    font-size: clamp(40px, 6vw, 64px);
     line-height: 0.95;
   }
 
