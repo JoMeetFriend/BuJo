@@ -137,7 +137,7 @@ docker build \
 
 ## 開發團隊
 
-- [劉巧文](https://github.com/orgs/JoMeetFriend/people/LiuChiaoWen)
+- [劉巧文](https://github.com/LiuChiaoWen)
   - 一般註冊/登入 前後端串接
   - 資料庫 Schema 設計
   - 後端架構與開發
@@ -145,7 +145,7 @@ docker build \
   - landing-page 製作
   - 揪團建立活動功能協作開發
 
-- [蔣德勳](https://github.com/orgs/JoMeetFriend/people/TE-HSIUN)
+- [蔣德勳](https://github.com/TE-HSIUN)
   - 個人編輯頁面切版
   - 通知頁面切版
   - line 登入/前後端串接
@@ -153,7 +153,7 @@ docker build \
   - line 通知系統串接
   - 後端部署
 
-- [陳姵君](https://github.com/orgs/JoMeetFriend/people/cc-chuni)
+- [陳姵君](https://github.com/cc-chuni)
   - 行事曆頁面切版
   - Google 登入/前後端串接
   - 活動狀態機規劃
@@ -161,7 +161,7 @@ docker build \
   - 報名活動全端功能
   - 使用流程/視覺規劃
 
-- [廖家瑜](https://github.com/orgs/JoMeetFriend/people/yuaangela)
+- [廖家瑜](https://github.com/yuaangela)
   - 活動頁面與動態彈窗切版
   - 前端路由與頁面切換
   - 萬用路由與 404 頁面
