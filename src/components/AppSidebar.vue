@@ -42,8 +42,16 @@
 
     <!-- 下半：篩選 + 用戶 -->
     <div class="flex flex-col gap-5">
-      <!-- 新手導覽問號：固定在 CALENDAR FILTER 那條線上面，靠左對齊 -->
-      <div class="flex justify-start">
+      <!-- 語言切換與新手導覽：固定在 CALENDAR FILTER 那條線上面，靠左對齊 -->
+      <div class="bujo-sidebar-tool-stack">
+        <button
+          type="button"
+          class="bujo-sidebar-language-button"
+          :aria-label="t('common.ariaToggleLanguage')"
+          @click="toggleLanguage"
+        >
+          {{ locale === 'zh-TW' ? t('common.langEn') : 'CH' }}
+        </button>
         <AppTourHelpButton @click="emit('open-tour')" />
       </div>
 
@@ -188,6 +196,7 @@ import {
   BellAlertIcon,
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
+import { useLocaleStore } from '@/stores/locale'
 import { useNotificationStore } from '@/stores/notificationStore'
 import bujoLogoUrl from '@/assets/bujo-logo.svg'
 import { toAvatarSrc } from '@/utils/avatar'
@@ -200,8 +209,9 @@ const emit = defineEmits(['toggle-filter', 'open-tour'])
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const localeStore = useLocaleStore()
 const notificationStore = useNotificationStore()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const isCalendarPage = computed(() => route.path === '/calendar')
 const userAvatarSrc = computed(() => toAvatarSrc(authStore.user?.avatar_url))
 
@@ -279,6 +289,11 @@ const filterItems = computed(() => [
 function onProfileAnimEnd() {
   profileBtnBouncing.value = false
   showProfileModal.value = true
+}
+
+function toggleLanguage() {
+  const newLocale = locale.value === 'zh-TW' ? 'en' : 'zh-TW'
+  localeStore.setLocale(newLocale, { global: { locale } })
 }
 
 async function handleLogout() {
@@ -410,6 +425,50 @@ async function handleLogout() {
   padding-top: 18px;
   display: grid;
   gap: 8px;
+}
+
+.bujo-sidebar-tool-stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.bujo-sidebar-language-button {
+  display: flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--bujo-ink);
+  border-radius: 999px;
+  background: var(--bujo-surface);
+  color: var(--bujo-ink);
+  box-shadow: 0 2px 0 var(--bujo-ink);
+  cursor: pointer;
+  font-family: var(--bujo-font-body);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    background-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 100ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.bujo-sidebar-language-button:hover {
+  background: var(--bujo-ink);
+  color: var(--bujo-white);
+}
+
+.bujo-sidebar-language-button:active {
+  box-shadow: 0 1px 0 var(--bujo-ink);
+  transform: translate(1px, 1px);
+}
+
+.bujo-sidebar-language-button:focus-visible {
+  outline: 2px solid var(--bujo-accent);
+  outline-offset: 2px;
 }
 
 .bujo-sidebar-filter-title {

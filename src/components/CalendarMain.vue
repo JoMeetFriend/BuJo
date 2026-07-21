@@ -30,7 +30,7 @@
       :aria-label="t('common.ariaToggleLanguage')"
       @click="toggleLanguage"
     >
-      {{ locale === 'zh-TW' ? t('common.langEn') : t('common.langZhTw') }}
+      {{ locale === 'zh-TW' ? t('common.langEn') : 'CH' }}
     </button>
 
     <button
@@ -41,15 +41,6 @@
       :aria-label="t('calendar.toggleAnimation')"
     >
       <span class="calendar-square-toggle" aria-hidden="true"></span>
-    </button>
-
-    <button
-      type="button"
-      class="calendar-lang-toggle calendar-lang-toggle-desktop hidden md:flex"
-      :aria-label="t('common.ariaToggleLanguage')"
-      @click="toggleLanguage"
-    >
-      {{ locale === 'zh-TW' ? t('common.langEn') : t('common.langZhTw') }}
     </button>
 
     <button
@@ -80,7 +71,7 @@
     <p v-if="activitiesFetchError" class="calendar-fetch-error" role="alert">
       {{ activitiesFetchError }}
     </p>
-    <div class="md:hidden h-5"></div>
+    <div class="calendar-mobile-control-spacer md:hidden"></div>
 
     <section class="calendar-content-composition">
       <div class="calendar-paper-page">
@@ -894,6 +885,7 @@ function isToday(date) {
   z-index: 8;
   width: 42px;
   height: 42px;
+  overflow: visible;
   border-color: rgb(var(--bujo-line-rgb) / 0.62);
   background:
     linear-gradient(135deg, rgb(var(--bujo-white-rgb) / 0.92), rgb(var(--bujo-surface-rgb) / 0.94)),
@@ -906,6 +898,10 @@ function isToday(date) {
     border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
     transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.calendar-page-profile-button > img {
+  overflow: hidden;
 }
 
 .calendar-page-profile-button::before,
@@ -956,29 +952,34 @@ function isToday(date) {
 .calendar-lang-toggle {
   align-items: center;
   justify-content: center;
-  border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
+  border: 1px solid var(--bujo-ink);
+  border-radius: 999px;
   background: var(--bujo-surface);
   color: var(--bujo-ink);
-  font-family: 'Space Mono', monospace;
+  font-family: var(--bujo-font-body);
   font-size: 12px;
   font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 2px 0 var(--bujo-ink);
   transition:
-    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    background-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 100ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .calendar-lang-toggle:hover {
-  border-color: var(--bujo-ink);
-  background: var(--bujo-white);
+  background: var(--bujo-ink);
+  color: var(--bujo-white);
 }
 
-.calendar-lang-toggle-desktop {
-  position: absolute;
-  top: 22px;
-  right: 86px;
-  z-index: 8;
-  height: 42px;
-  padding: 0 14px;
+.calendar-lang-toggle:active {
+  box-shadow: 0 1px 0 var(--bujo-ink);
+  transform: translate(1px, 1px);
+}
+
+.calendar-lang-toggle:focus-visible {
+  outline: 2px solid var(--bujo-accent);
+  outline-offset: 2px;
 }
 
 .calendar-fetch-error {
@@ -1594,6 +1595,10 @@ function isToday(date) {
     padding: 8px 8px calc(84px + env(safe-area-inset-bottom, 0px));
   }
 
+  .calendar-mobile-control-spacer {
+    height: 34px;
+  }
+
   .calendar-content-composition {
     margin-top: 6px;
   }
@@ -1901,10 +1906,10 @@ function isToday(date) {
 
 @media (max-width: 640px) {
   .calendar-toggle-dots-mobile {
-    position: absolute;
-    top: 5px;
-    right: 48px;
-    z-index: 10;
+    position: fixed;
+    top: 8px;
+    left: 16px;
+    z-index: 70;
 
     display: grid;
     width: 26px;
@@ -1920,13 +1925,15 @@ function isToday(date) {
 
   .calendar-lang-toggle-mobile {
     position: fixed;
-    top: 5px;
-    right: 56px;
+    top: 8px;
+    right: 48px;
     z-index: 70;
 
     display: grid;
-    height: 36px;
-    padding: 0 10px;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    font-size: 12px;
   }
 }
 </style>
