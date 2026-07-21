@@ -163,9 +163,9 @@ describe('AppSidebar', () => {
   })
 
   describe('新手導覽問號', () => {
-    test('手機版問號在月曆紙張上方區域垂直置中', () => {
+    test('手機版問號固定在右上工具組位置', () => {
       expect(appTourHelpButtonSource).toMatch(
-        /\.bujo-tour-help-btn--floating\s*\{[\s\S]*?top: 5px;[\s\S]*?right: 10px;[\s\S]*?width: 26px;[\s\S]*?height: 26px;/,
+        /\.bujo-tour-help-btn--floating\s*\{[\s\S]*?top: 8px;[\s\S]*?right: 14px;[\s\S]*?width: 26px;[\s\S]*?height: 26px;/,
       )
     })
 

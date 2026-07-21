@@ -557,10 +557,13 @@ describe('CalendarMain', () => {
       'padding: 8px 8px calc(84px + env(safe-area-inset-bottom, 0px));',
     )
     expect(calendarMainSource).toMatch(
+      /\.calendar-mobile-control-spacer\s*\{[\s\S]*?height: 34px;/,
+    )
+    expect(calendarMainSource).toMatch(
       /@media \(max-width: 640px\) and \(max-height: 700px\) \{[\s\S]*?\.calendar-board\s*\{[\s\S]*?flex: 1 1 auto;[\s\S]*?height: clamp\(220px, calc\(100dvh - 330px\), 360px\);[\s\S]*?min-height: 220px;[\s\S]*?max-height: 360px;/,
     )
     expect(calendarMainSource).toMatch(
-      /\.calendar-toggle-dots-mobile\s*\{[\s\S]*?top: 5px;[\s\S]*?right: 48px;[\s\S]*?width: 26px;[\s\S]*?height: 26px;/,
+      /\.calendar-toggle-dots-mobile\s*\{[\s\S]*?position: fixed;[\s\S]*?top: 8px;[\s\S]*?left: 16px;[\s\S]*?width: 26px;[\s\S]*?height: 26px;/,
     )
   })
 
