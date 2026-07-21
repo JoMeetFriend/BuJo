@@ -431,6 +431,25 @@ describe('ActivityDetailModal - 人數上限顯示精簡', () => {
 })
 
 describe('ActivityDetailModal - 頭像相對路徑要補上 API base URL，避免破圖', () => {
+  test('建立者頭像與活動狀態位於同一列，且不顯示 ACTIVITY ROOM', async () => {
+    stubFetch(makeActivity())
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+      global: { plugins: [createTestI18n()] },
+    })
+    await flushPromises()
+
+    const topRow = wrapper.find('.activity-detail-top-row')
+    expect(topRow.find('.activity-detail-creator').exists()).toBe(true)
+    expect(topRow.find('.activity-detail-badge').exists()).toBe(true)
+    expect(wrapper.find('.activity-detail-header-content .activity-detail-creator').exists()).toBe(
+      false,
+    )
+    expect(wrapper.find('.activity-detail-kicker').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('ACTIVITY ROOM')
+  })
+
   test('建立者頭像是相對路徑時，會補上 API base URL', async () => {
     const activity = makeActivity({
       creator: { display_name: '小明', avatar_url: '/uploads/avatars/creator.png' },
