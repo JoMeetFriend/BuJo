@@ -278,8 +278,8 @@ const handleRegister = async () => {
     if (res.status === 429) {
       const retryAfter = res.headers.get('Retry-After')
       const waitMin = retryAfter ? Math.ceil(Number(retryAfter) / 60) : 60
-      _errorMsg.value = data.error
-        ? { text: data.error }
+      _errorMsg.value = data.message
+        ? { text: data.message }
         : { key: 'register.errorRateLimit', params: { minutes: waitMin } }
       return
     }
@@ -290,7 +290,7 @@ const handleRegister = async () => {
     }
 
     if (!res.ok) {
-      _errorMsg.value = data.error ? { text: data.error } : { key: 'register.errorGeneric' }
+      _errorMsg.value = data.message ? { text: data.message } : { key: 'register.errorGeneric' }
       return
     }
 
