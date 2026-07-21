@@ -27,36 +27,16 @@ beforeEach(() => {
   setActivePinia(createPinia())
   vi.clearAllMocks()
   localStorage.clear()
-  document.head
-    .querySelectorAll('script[src="https://accounts.google.com/gsi/client"]')
-    .forEach((el) => {
-      el.remove()
-    })
-  window.google = {
-    accounts: {
-      id: {
-        prompt: vi.fn(),
-        initialize: vi.fn(),
-      },
-    },
-  }
+  delete window.location
+  window.location = { href: '' }
 })
 
 describe('GoogleLogin', () => {
-  test('點擊 Google 登入按鈕會開啟 Google prompt', async () => {
+  test('點擊 Google 登入按鈕會導頁到後端 OAuth 入口', async () => {
     const wrapper = mountLoginView()
 
     await wrapper.find('button[data-testid="google-login"]').trigger('click')
 
-    expect(window.google.accounts.id.prompt).toHaveBeenCalledTimes(1)
-  })
-
-  test('Google SDK 尚未載入時點擊按鈕不應拋錯或跳頁', async () => {
-    window.google = undefined
-    const wrapper = mountLoginView()
-
-    await wrapper.find('button[data-testid="google-login"]').trigger('click')
-
-    expect(localStorage.getItem('token')).toBeNull()
+    expect(window.location.href).toBe(`${import.meta.env.VITE_API_URL}/api/auth/google`)
   })
 })
