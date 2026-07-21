@@ -86,3 +86,14 @@ npm run format
 ## 相關 Repo
 
 - 後端：[BuJoBackend](https://github.com/JoMeetFriend/BuJoBackend)
+
+### 使用 Docker 本地建置與運行
+
+由於專案採用 Vite，環境變數必須在**建置階段（Build Time）**寫入。打包時請務必帶入 `--build-arg`，否則會預設連至 localhost：
+
+```sh
+docker build \
+  --build-arg VITE_API_URL=https://your-backend-api.com\
+  --build-arg VITE_GOOGLE_CLIENT_ID=your-google-id \
+  -t bujo-frontend .
+```
