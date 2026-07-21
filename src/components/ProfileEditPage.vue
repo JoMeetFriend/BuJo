@@ -503,7 +503,7 @@ const handleGoogleLinkCredential = async (response) => {
       body: JSON.stringify({ credential: response.credential }),
     })
     const data = await res.json()
-    if (!res.ok) throw new Error(data.error || t('profileEdit.googleLinkFailed'))
+    if (!res.ok) throw new Error(data.message || t('profileEdit.googleLinkFailed'))
     await authStore.fetchMe()
     showMsg(t('profileEdit.googleLinkSuccess'))
   } catch (err) {
@@ -533,7 +533,7 @@ const handleUnlink = async (provider) => {
       credentials: 'include',
     })
     const data = await res.json()
-    if (!res.ok) throw new Error(data.error || t('profileEdit.unlinkFailed'))
+    if (!res.ok) throw new Error(data.message || t('profileEdit.unlinkFailed'))
     await authStore.fetchMe()
     showMsg(t('profileEdit.unlinkSuccess'))
   } catch (err) {

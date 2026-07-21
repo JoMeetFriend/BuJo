@@ -313,7 +313,7 @@ const handleCredentialResponse = async (response) => {
       body: JSON.stringify({ credential: response.credential }),
     })
     const data = await res.json()
-    if (!res.ok) throw new Error(data.error || t('register.errorGoogleFailed'))
+    if (!res.ok) throw new Error(data.message || t('register.errorGoogleFailed'))
     authStore.setUser(data.user)
     router.push('/calendar')
   } catch {
