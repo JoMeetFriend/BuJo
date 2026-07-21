@@ -53,6 +53,12 @@ async function clickFilter(wrapper, text) {
 }
 
 describe('ActivityView - 手機短螢幕響應式版面', () => {
+  test('手機大標字級與好友、通知頁一致', () => {
+    expect(activityViewSource).toMatch(
+      /@media \(max-width: 900px\)[^{]*\{[\s\S]*?\.activity-heading h1\s*\{[^}]*font-size: clamp\(40px, 6vw, 64px\);/,
+    )
+  })
+
   test('Mobile activity detail respects the stage height', () => {
     expect(activityViewSource).toMatch(
       /\.activity-stage :deep\(\.activity-detail-panel\)\s*{[^}]*max-height: var\(--activity-detail-available-height\);[^}]*min-height: min\(250px, var\(--activity-detail-available-height\)\);/s,
@@ -211,6 +217,29 @@ describe('ActivityView - focus query 聚焦指定活動', () => {
     const title = wrapper.find('.activity-mini-card h2')
     expect(title.attributes('title')).toBe(longTitle)
     expect(title.text()).toBe('嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨...')
+  })
+
+  test('底部活動小卡顯示建立者頭像，沒有頭像時顯示名字首字', async () => {
+    stubFetch([
+      makeActivity({
+        id: 'with-avatar',
+        title: '有頭像',
+        creator: { display_name: '小明', avatar_url: '/uploads/avatars/creator.png' },
+      }),
+      makeActivity({
+        id: 'without-avatar',
+        title: '無頭像',
+        creator: { display_name: 'Alice', avatar_url: '' },
+      }),
+    ])
+    const wrapper = await mountActivityView()
+    await flushPromises()
+
+    const cards = wrapper.findAll('.activity-mini-card')
+    expect(cards[0].find('.activity-mini-avatar img').attributes('src')).toContain(
+      '/uploads/avatars/creator.png',
+    )
+    expect(cards[1].find('.activity-mini-avatar').text()).toBe('A')
   })
 
   test('掛載於 /activity?focus=<id> 時 featured 為該活動且 modal 收到正確 activity-id', async () => {

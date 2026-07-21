@@ -1462,7 +1462,7 @@ function formatTime(date) {
 
 .activity-detail-date {
   margin-top: 8px;
-  color: rgba(var(--bujo-ink-rgb), 0.54);
+  color: rgb(var(--bujo-ink-rgb) / 0.84);
   font-family: 'Space Mono', monospace;
   font-size: 22px;
   line-height: 1;
@@ -2199,7 +2199,61 @@ function formatTime(date) {
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    padding-top: 14px;
     scrollbar-width: none;
+  }
+
+  .activity-detail-header h2 {
+    color: rgb(var(--bujo-ink-rgb) / 0.88);
+    font-size: 24px;
+    line-height: 1.1;
+    font-weight: 700;
+  }
+
+  .activity-detail-date {
+    margin-top: 7px;
+    font-size: 22px;
+    font-weight: 650;
+  }
+
+  .activity-detail-info,
+  .activity-detail-options {
+    gap: 14px;
+    color: rgb(var(--bujo-ink-rgb) / 0.8);
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 550;
+  }
+
+  .activity-detail-info + .activity-detail-info {
+    margin-top: 14px;
+  }
+
+  .activity-detail-info > div:not(.activity-detail-list-block) {
+    gap: 6px;
+  }
+
+  .activity-detail-info > div:has(> .activity-detail-date-list) {
+    gap: 0;
+  }
+
+  .activity-detail-label {
+    color: color-mix(in srgb, var(--activity-tone) 92%, var(--bujo-ink));
+    font-size: 14px;
+    font-weight: 650;
+    line-height: 1.2;
+  }
+
+  .activity-detail-label + .activity-detail-date-list {
+    margin-top: 7px;
+  }
+
+  .activity-detail-description,
+  .activity-detail-date-time-text {
+    color: rgb(var(--bujo-ink-rgb) / 0.82);
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 550;
   }
 
   .activity-detail-body::-webkit-scrollbar {
@@ -2216,6 +2270,22 @@ function formatTime(date) {
 
   .activity-detail-description::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .activity-detail-header h2 {
+    color: rgb(var(--bujo-ink-rgb) / 0.9);
+    font-size: 26px;
+    line-height: 1.08;
+    font-weight: 720;
+  }
+
+  .activity-detail-date {
+    margin-top: 8px;
+    font-size: 19px;
+    line-height: 1.05;
+    font-weight: 650;
   }
 }
 </style>

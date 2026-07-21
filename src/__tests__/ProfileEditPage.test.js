@@ -71,14 +71,8 @@ beforeEach(() => {
   sessionStorage.clear()
   globalThis.fetch = vi.fn()
   stubClipboard()
-  window.google = {
-    accounts: {
-      id: {
-        initialize: vi.fn(),
-        prompt: vi.fn(),
-      },
-    },
-  }
+  delete window.location
+  window.location = { href: '' }
 })
 
 describe('ProfileEditPage', () => {
@@ -215,7 +209,7 @@ describe('ProfileEditPage', () => {
     expect(localStorage.getItem('bujo:line-notification-guide:v1:legacy-11111')).toBeNull()
   })
 
-  test('LINE callback 回到個人編輯頁時仍初始化 Google 連接功能', async () => {
+  test('LINE callback 回到個人編輯頁時仍留在個人編輯頁面', async () => {
     sessionStorage.setItem('bujo:line-notification-guide:return-path', '/profile/edit')
     fetch.mockResolvedValue({
       ok: true,
@@ -230,7 +224,6 @@ describe('ProfileEditPage', () => {
     const wrapper = await mountProfileEditPage({}, '/profile/edit?linked=line')
 
     expect(wrapper.vm.$router.currentRoute.value.fullPath).toBe('/profile/edit')
-    expect(window.google.accounts.id.initialize).toHaveBeenCalledTimes(1)
     expect(sessionStorage.getItem('bujo:line-notification-guide:return-path')).toBeNull()
   })
 
@@ -244,6 +237,43 @@ describe('ProfileEditPage', () => {
       expect(wrapper.vm.$router.currentRoute.value.path).toBe('/calendar')
       expect(sessionStorage.getItem('bujo:line-notification-guide:return-path')).toBeNull()
       expect(fetch).not.toHaveBeenCalled()
+    },
+  )
+
+  test('未連接 Google 時點擊連接按鈕會導頁到後端 OAuth 入口', async () => {
+    const wrapper = await mountProfileEditPage({
+      identities: [{ provider: 'local', email: 'test@example.com' }],
+    })
+
+    const buttons = wrapper.findAll('button').filter((btn) => btn.text() === '連接')
+    await buttons[0].trigger('click')
+
+    expect(window.location.href).toBe(`${import.meta.env.VITE_API_URL}/api/auth/google/link`)
+  })
+
+  test('Google callback 成功連結後顯示成功訊息', async () => {
+    fetch.mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({ user: baseUser }),
+    })
+
+    const wrapper = await mountProfileEditPage({}, '/profile/edit?linked=google')
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/auth/me'),
+      expect.objectContaining({ credentials: 'include' }),
+    )
+    expect(wrapper.text()).toContain('Google 帳號連結成功')
+    expect(wrapper.vm.$router.currentRoute.value.fullPath).toBe('/profile/edit')
+  })
+
+  test.each(['google_link_cancelled', 'google_link_failed'])(
+    'Google callback 回傳 %s 時顯示錯誤訊息且不重新取得使用者',
+    async (error) => {
+      const wrapper = await mountProfileEditPage({}, `/profile/edit?error=${error}`)
+
+      expect(fetch).not.toHaveBeenCalled()
+      expect(wrapper.vm.$router.currentRoute.value.fullPath).toBe('/profile/edit')
     },
   )
 

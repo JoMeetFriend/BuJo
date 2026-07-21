@@ -23,25 +23,25 @@
       />
     </div>
 
-    <button
-      v-if="isMobile"
-      type="button"
-      class="calendar-lang-toggle calendar-lang-toggle-mobile"
-      :aria-label="t('common.ariaToggleLanguage')"
-      @click="toggleLanguage"
-    >
-      {{ locale === 'zh-TW' ? t('common.langEn') : 'CH' }}
-    </button>
+    <div v-if="isMobile" class="calendar-mobile-controls md:hidden">
+      <button
+        @click="toggleDotsAnimation"
+        class="calendar-arrow-button calendar-toggle-dots-mobile"
+        :class="{ 'is-active': showDots }"
+        :aria-label="t('calendar.toggleAnimation')"
+      >
+        <span class="calendar-square-toggle" aria-hidden="true"></span>
+      </button>
 
-    <button
-      v-if="isMobile"
-      @click="toggleDotsAnimation"
-      class="calendar-arrow-button calendar-toggle-dots-mobile"
-      :class="{ 'is-active': showDots }"
-      :aria-label="t('calendar.toggleAnimation')"
-    >
-      <span class="calendar-square-toggle" aria-hidden="true"></span>
-    </button>
+      <button
+        type="button"
+        class="calendar-lang-toggle calendar-lang-toggle-mobile"
+        :aria-label="t('common.ariaToggleLanguage')"
+        @click="toggleLanguage"
+      >
+        {{ locale === 'zh-TW' ? t('common.langEn') : 'CH' }}
+      </button>
+    </div>
 
     <button
       type="button"
@@ -71,8 +71,6 @@
     <p v-if="activitiesFetchError" class="calendar-fetch-error" role="alert">
       {{ activitiesFetchError }}
     </p>
-    <div class="calendar-mobile-control-spacer md:hidden"></div>
-
     <section class="calendar-content-composition">
       <div class="calendar-paper-page">
         <span class="calendar-stack-sheet calendar-stack-sheet--back" aria-hidden="true"></span>
@@ -1327,7 +1325,8 @@ function isToday(date) {
   max-height: 568px;
   overflow-y: auto;
   overscroll-behavior-y: contain;
-  padding-right: 5px;
+  padding-right: 10px;
+  scrollbar-gutter: stable;
   scrollbar-color: rgb(var(--bujo-ink-rgb) / 0.28) transparent;
   scrollbar-width: thin;
 }
@@ -1595,8 +1594,15 @@ function isToday(date) {
     padding: 8px 8px calc(84px + env(safe-area-inset-bottom, 0px));
   }
 
-  .calendar-mobile-control-spacer {
+  .calendar-mobile-controls {
+    position: relative;
+    z-index: 70;
+    display: flex;
+    flex: 0 0 34px;
+    align-items: center;
+    justify-content: space-between;
     height: 34px;
+    padding: 0 40px 0 8px;
   }
 
   .calendar-content-composition {
@@ -1906,11 +1912,6 @@ function isToday(date) {
 
 @media (max-width: 640px) {
   .calendar-toggle-dots-mobile {
-    position: fixed;
-    top: 8px;
-    left: 16px;
-    z-index: 70;
-
     display: grid;
     width: 26px;
     height: 26px;
@@ -1924,11 +1925,6 @@ function isToday(date) {
   }
 
   .calendar-lang-toggle-mobile {
-    position: fixed;
-    top: 8px;
-    right: 48px;
-    z-index: 70;
-
     display: grid;
     width: 26px;
     height: 26px;
