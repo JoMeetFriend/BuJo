@@ -48,7 +48,7 @@
         <div v-if="showCandidateChips && isScenarioDMode" class="activity-detail-info">
           <div class="activity-detail-list-block">
             <div class="activity-detail-label">
-              {{ t('activityDetail.dateVotingWithCount', { count: candidateChipsForCard.length }) }}
+              {{ t('activityDetail.dateTimeVotingStatus') }}
             </div>
             <div class="activity-detail-date-list">
               <button
@@ -101,11 +101,25 @@
               </button>
             </div>
           </div>
-          <div v-else-if="dateText && !(showCandidateChips && isScenarioDMode)">
+          <div v-else-if="showCombinedDateTime">
+            <div class="activity-detail-label">{{ t('activityDetail.dateTimeStatus') }}</div>
+            <div class="activity-detail-date-time-text">{{ dateTimeText }}</div>
+          </div>
+          <div
+            v-else-if="
+              dateText && !activity.confirmed_slot && !(showCandidateChips && isScenarioDMode)
+            "
+          >
             <div class="activity-detail-label">{{ t('activityDetail.dateStatus') }}</div>
             <div>{{ dateText }}</div>
           </div>
-          <div v-if="!(showCandidateChips && isScenarioDMode)">
+          <div
+            v-if="
+              !activity.confirmed_slot &&
+              !showCombinedDateTime &&
+              !(showCandidateChips && isScenarioDMode)
+            "
+          >
             <div class="activity-detail-label">
               {{
                 rangeTimeWindowText
@@ -289,7 +303,7 @@
             (activity.status === 'recruiting' || activity.status === 'voting') &&
             hasDecisionVotes
           "
-          class="activity-detail-options"
+          class="activity-detail-options activity-detail-options--decision"
         >
           <div class="activity-detail-label">{{ decisionSectionLabel }}</div>
           <label
@@ -311,6 +325,11 @@
                 v-model="selectedDecisionSlotId"
               />
               <span>{{ slotText(entry) }}</span>
+              <span class="activity-detail-choice-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              </span>
               <span v-if="isExpired(entry)" class="activity-detail-expired-label">{{
                 t('activityDetail.expired')
               }}</span>
@@ -366,9 +385,6 @@
             activity?.is_creator && activity.status === 'recruiting' && !activity.requires_voting
           "
         >
-          <PixelButton type="button" :disabled="actionLoading" @click="handleConfirmFormation">
-            {{ actionLoading ? t('common.processing') : t('activityDetail.formNowButton') }}
-          </PixelButton>
           <PixelButton
             variant="danger"
             type="button"
@@ -376,6 +392,14 @@
             @click="handleCancel"
           >
             {{ t('activityDetail.cancelActivityButton') }}
+          </PixelButton>
+          <PixelButton
+            type="button"
+            class="activity-detail-formation-button"
+            :disabled="actionLoading"
+            @click="handleConfirmFormation"
+          >
+            {{ actionLoading ? t('common.processing') : t('activityDetail.formNowButton') }}
           </PixelButton>
         </template>
 
@@ -385,43 +409,39 @@
           "
         >
           <PixelButton
+            variant="danger"
             type="button"
+            :disabled="actionLoading"
+            @click="handleCancel"
+          >
+            {{ t('activityDetail.cancelActivityButton') }}
+          </PixelButton>
+          <PixelButton
+            type="button"
+            class="activity-detail-formation-button"
             :disabled="actionLoading || !selectedDecisionSlotId"
             @click="handleConfirmFormation"
           >
             {{ actionLoading ? t('common.processing') : t('activityDetail.earlyFormationButton') }}
           </PixelButton>
-          <PixelButton
-            variant="danger"
-            type="button"
-            :disabled="actionLoading"
-            @click="handleCancel"
-          >
-            {{ t('activityDetail.cancelActivityButton') }}
-          </PixelButton>
         </template>
 
         <template v-else-if="activity?.is_creator && activity.status === 'voting'">
           <PixelButton
-            type="button"
-            :disabled="actionLoading || (activity.requires_voting && !selectedDecisionSlotId)"
-            @click="handleConfirmFormation"
-          >
-            {{
-              actionLoading
-                ? t('common.processing')
-                : activity.requires_voting
-                  ? t('activityDetail.confirmFormationButton')
-                  : t('activityDetail.formNowButton')
-            }}
-          </PixelButton>
-          <PixelButton
             variant="danger"
             type="button"
             :disabled="actionLoading"
             @click="handleCancel"
           >
             {{ t('activityDetail.cancelActivityButton') }}
+          </PixelButton>
+          <PixelButton
+            type="button"
+            class="activity-detail-formation-button"
+            :disabled="actionLoading || (activity.requires_voting && !selectedDecisionSlotId)"
+            @click="handleConfirmFormation"
+          >
+            {{ actionLoading ? t('common.processing') : t('activityDetail.formNowButton') }}
           </PixelButton>
         </template>
 
@@ -429,6 +449,7 @@
           <PixelButton
             v-if="activity.status === 'recruiting' && !activity.has_joined"
             type="button"
+            class="activity-detail-formation-button"
             :disabled="
               actionLoading ||
               (activity.requires_voting &&
@@ -900,7 +921,8 @@ const panelDate = computed(() => {
   const a = activity.value
   if (!a) return ''
   if (a.confirmed_slot) {
-    return formatShortDate(new Date(a.confirmed_slot.slot_start))
+    const start = new Date(a.confirmed_slot.slot_start)
+    return `${formatShortDate(start)}   ${timeOnlyText(a.confirmed_slot)}`
   }
   // range 模式（情境二）沒有 candidate_slots 也沒有 confirmed_slot 可以推導日期——
   // 日期本來就是固定的，直接讀 fixed_date，不然標題完全不會顯示是哪一天
@@ -970,6 +992,18 @@ const rangeTimeWindowText = computed(() => {
   return t('activityDetail.timeWindowRange', {
     window: `${a.time_window_start}–${a.time_window_end}`,
   })
+})
+
+const showCombinedDateTime = computed(() => {
+  if (!activity.value) return false
+  if (activity.value.confirmed_slot) return false
+  if (showCandidateChips.value || rangeTimeWindowText.value) return false
+  return Boolean(dateText.value && timeText.value)
+})
+
+const dateTimeText = computed(() => {
+  if (!showCombinedDateTime.value) return ''
+  return `${dateText.value} · ${timeText.value}`
 })
 
 // subRange（可選）：情境四參與者實際選的子區間 {start, end}，優先顯示子區間而不是候選
@@ -1317,6 +1351,12 @@ function formatTime(date) {
 .activity-detail-panel {
   --activity-detail-scale: 1;
   --activity-detail-lift: 0px;
+  --activity-tone: rgb(var(--bujo-ink-rgb) / 0.36);
+  --activity-action-bg: color-mix(in srgb, var(--activity-tone) 74%, var(--bujo-ink));
+  --activity-action-border: color-mix(in srgb, var(--activity-tone) 72%, var(--bujo-ink));
+  --activity-action-text: var(--bujo-white);
+  --activity-action-hover-bg: color-mix(in srgb, var(--activity-tone) 58%, var(--bujo-ink));
+  --activity-action-hover-border: color-mix(in srgb, var(--activity-tone) 58%, var(--bujo-ink));
   width: min(324px, 72vw);
   max-height: 100%;
   border-radius: 1px;
@@ -1342,26 +1382,32 @@ function formatTime(date) {
 
 .activity-focus-card--mine-recruiting {
   --activity-focus-bg: var(--bujo-card-pink);
+  --activity-tone: #8f647d;
 }
 
 .activity-focus-card--mine-confirmed {
   --activity-focus-bg: var(--bujo-card-blue);
+  --activity-tone: #63817f;
 }
 
 .activity-focus-card--joined {
   --activity-focus-bg: var(--bujo-card-blue);
+  --activity-tone: #63817f;
 }
 
 .activity-focus-card--recruiting {
   --activity-focus-bg: var(--bujo-accent);
+  --activity-tone: #6f8b70;
 }
 
 .activity-focus-card--confirmed {
   --activity-focus-bg: var(--bujo-card-yellow);
+  --activity-tone: #857c56;
 }
 
 .activity-focus-card--neutral {
   --activity-focus-bg: var(--bujo-white);
+  --activity-tone: rgb(var(--bujo-ink-rgb) / 0.36);
   border: 1px solid var(--bujo-line);
 }
 
@@ -1476,8 +1522,8 @@ function formatTime(date) {
 }
 
 .activity-detail-creator {
-  min-width: 0;
-  font-size: 14px;
+  margin-bottom: 10px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -1490,10 +1536,10 @@ function formatTime(date) {
 .activity-detail-avatar {
   width: 25px;
   height: 25px;
-  border: 1px solid rgba(var(--bujo-white-rgb), 0.9);
+  border: 1px solid rgb(var(--bujo-white-rgb) / 0.9);
   border-radius: 999px;
   background: var(--bujo-white);
-  box-shadow: 0 0 0 1px rgba(var(--bujo-ink-rgb), 0.18);
+  box-shadow: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1507,6 +1553,9 @@ function formatTime(date) {
 .activity-detail-creator .activity-detail-avatar {
   width: 30px;
   height: 30px;
+  border: 0;
+  background: transparent;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--activity-tone) 62%, transparent);
 }
 
 .activity-detail-avatar-toggle {
@@ -1529,9 +1578,10 @@ function formatTime(date) {
 .activity-detail-options {
   display: grid;
   gap: 16px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.42;
-  font-weight: 600;
+  font-weight: 550;
+  color: rgb(var(--bujo-ink-rgb) / 0.78);
 }
 
 /* 情境四會有兩個 .activity-detail-info 疊在一起（候選時段 chip 清單＋地點/備註），
@@ -1542,15 +1592,43 @@ function formatTime(date) {
 
 .activity-detail-list-block {
   display: grid;
-  gap: 7px;
+  gap: 0;
+}
+
+.activity-detail-info > div:not(.activity-detail-list-block) {
+  display: grid;
+  gap: 4px;
+}
+
+.activity-detail-info > div:has(> .activity-detail-date-list) {
+  gap: 0;
 }
 
 .activity-detail-label {
-  color: rgba(var(--bujo-ink-rgb), 0.5);
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: color-mix(in srgb, var(--activity-tone) 88%, var(--bujo-ink));
+  font-family: var(--bujo-font-body);
+  font-size: 14px;
   font-weight: 600;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: none;
+}
+
+.activity-detail-label::before {
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--activity-tone) 72%, var(--bujo-ink));
+  content: '';
+  opacity: 0.58;
+  transform: translateY(-1px);
+}
+
+.activity-detail-label + .activity-detail-date-list {
+  margin-top: 8px;
 }
 
 .activity-detail-infinity {
@@ -1578,41 +1656,41 @@ function formatTime(date) {
   border: 0;
   border-radius: 6px;
   padding: 7px 11px;
-  background: rgba(var(--bujo-white-rgb), 0.62);
-  color: rgba(var(--bujo-ink-rgb), 0.64);
-  font-size: 11px;
+  background: rgb(var(--bujo-white-rgb) / 0.62);
+  color: color-mix(in srgb, var(--activity-tone) 86%, var(--bujo-ink));
+  font-size: 12px;
   font-weight: 700;
   line-height: 1;
 }
 
 .activity-focus-card--mine-recruiting .activity-detail-badge--recruiting {
-  background: rgba(248, 239, 245, 0.74);
+  background: rgb(248 239 245 / 0.74);
   color: #75616f;
 }
 
 .activity-focus-card--recruiting .activity-detail-badge--recruiting {
-  background: rgba(238, 247, 239, 0.72);
+  background: rgb(238 247 239 / 0.72);
   color: #5f7462;
 }
 
 .activity-detail-badge--confirmed {
-  background: rgba(247, 243, 224, 0.76);
+  background: rgb(247 243 224 / 0.76);
   color: #746e53;
 }
 
 .activity-focus-card--joined .activity-detail-badge,
 .activity-focus-card--mine-confirmed .activity-detail-badge {
-  background: rgba(239, 247, 246, 0.72);
+  background: rgb(239 247 246 / 0.72);
   color: #607777;
 }
 
 .activity-detail-badge--light {
-  background: rgba(var(--bujo-white-rgb), 0.56);
-  color: rgba(var(--bujo-ink-rgb), 0.58);
+  background: rgb(var(--bujo-white-rgb) / 0.56);
+  color: color-mix(in srgb, var(--activity-tone) 76%, var(--bujo-ink));
 }
 
 .activity-detail-badge--cancelled {
-  background: rgba(241, 242, 238, 0.78);
+  background: rgb(241 242 238 / 0.78);
   color: #697066;
 }
 
@@ -1623,9 +1701,9 @@ function formatTime(date) {
 
 .activity-detail-count {
   font-family: 'Space Mono', monospace;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
-  color: rgba(var(--bujo-ink-rgb), 0.78);
+  color: color-mix(in srgb, var(--activity-tone) 72%, var(--bujo-ink));
   white-space: nowrap;
 }
 
@@ -1645,6 +1723,13 @@ function formatTime(date) {
   gap: 8px;
 }
 
+.activity-detail-options--decision {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--activity-tone) 34%, transparent);
+  gap: 7px;
+}
+
 .activity-detail-date-list {
   display: flex;
   flex-wrap: wrap;
@@ -1660,7 +1745,7 @@ function formatTime(date) {
   color: rgb(var(--bujo-ink-rgb) / 0.74);
   box-shadow: none;
   padding: 5px 8px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1.12;
 }
@@ -1689,7 +1774,7 @@ function formatTime(date) {
   border-color: rgb(var(--bujo-white-rgb) / 0.64);
   background: rgb(var(--bujo-white-rgb) / 0.52);
   padding: 4px 6px;
-  font-size: 11px;
+  font-size: 12px;
   color: rgb(var(--bujo-ink-rgb) / 0.72);
   cursor: pointer;
 }
@@ -1743,12 +1828,90 @@ function formatTime(date) {
   justify-content: space-between;
 }
 
+.activity-detail-options--decision .activity-detail-option {
+  position: relative;
+  border-color: rgb(var(--bujo-white-rgb) / 0.38);
+  border-radius: 2px;
+  background: rgb(var(--bujo-white-rgb) / 0.18);
+  padding: 8px 8px 8px 12px;
+  overflow: visible;
+}
+
+.activity-detail-options--decision .activity-detail-option::before {
+  position: absolute;
+  inset: 6px auto 6px 0;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: transparent;
+  content: '';
+  transition: background-color 160ms ease;
+}
+
+.activity-detail-options--decision .activity-detail-option:hover {
+  z-index: 7;
+  background: rgb(var(--bujo-white-rgb) / 0.28);
+}
+
+.activity-detail-options--decision .activity-detail-option--selected {
+  border-color: color-mix(in srgb, var(--activity-tone) 58%, var(--bujo-ink));
+  background: rgb(var(--bujo-white-rgb) / 0.42);
+}
+
+.activity-detail-options--decision .activity-detail-option--selected::before {
+  background: color-mix(in srgb, var(--activity-tone) 82%, var(--bujo-ink));
+}
+
 .activity-detail-option-time {
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
   align-items: center;
   gap: 6px;
+}
+
+.activity-detail-choice-icon {
+  display: inline-flex;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  opacity: 0;
+  transform: translateY(-0.5px);
+  transition:
+    color 160ms ease,
+    opacity 160ms ease;
+}
+
+.activity-detail-choice-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.activity-detail-options--decision .activity-detail-option--selected .activity-detail-choice-icon {
+  color: color-mix(in srgb, var(--activity-tone) 82%, var(--bujo-ink));
+  opacity: 0.78;
+}
+
+.activity-detail-options--decision input[type='radio'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.activity-detail-options--decision .activity-detail-option:has(input[type='radio']:focus-visible) {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--activity-tone) 42%, transparent);
 }
 
 .activity-detail-option-right {
@@ -1758,6 +1921,10 @@ function formatTime(date) {
   white-space: nowrap;
   flex-shrink: 0;
   margin-left: auto;
+}
+
+.activity-detail-options--decision .activity-detail-option-right {
+  color: color-mix(in srgb, var(--activity-tone) 70%, var(--bujo-ink));
 }
 
 .activity-detail-ratio {
@@ -1809,20 +1976,171 @@ function formatTime(date) {
   justify-content: flex-end;
   gap: 10px;
   flex-wrap: wrap;
+  overflow: visible;
 }
 
 .activity-detail-footer :deep(button) {
-  background: transparent !important;
-  color: var(--bujo-ink) !important;
-  border: 1px solid var(--bujo-ink) !important;
+  min-height: 32px;
+  border-radius: 2px !important;
   box-shadow: none !important;
   font-family: var(--bujo-font-body) !important;
   font-weight: 700 !important;
 }
 
-.activity-detail-footer :deep(button:hover) {
-  background: var(--bujo-ink) !important;
-  color: var(--bujo-white) !important;
+.activity-detail-footer :deep(.bujo-btn--green) {
+  border-color: var(--activity-action-border) !important;
+  background: var(--activity-action-bg) !important;
+  color: var(--activity-action-text) !important;
+  box-shadow: inset 0 0 0 1px rgb(var(--bujo-white-rgb) / 0.12) !important;
+}
+
+.activity-detail-footer :deep(.activity-detail-formation-button) {
+  position: relative !important;
+  z-index: 0;
+}
+
+.activity-detail-footer :deep(.activity-detail-formation-button)::before,
+.activity-detail-footer :deep(.activity-detail-formation-button)::after {
+  position: absolute;
+  left: 50%;
+  z-index: -1;
+  width: 150%;
+  height: 100%;
+  background-repeat: no-repeat;
+  content: '';
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.activity-detail-footer :deep(.bujo-btn--green:hover:not(:disabled)) {
+  border-color: var(--activity-action-hover-border) !important;
+  background: var(--activity-action-hover-bg) !important;
+}
+
+.activity-detail-footer :deep(.activity-detail-formation-button:hover:not(:disabled))::before {
+  top: -70%;
+  background-image:
+    radial-gradient(circle, var(--activity-action-bg) 20%, transparent 20%),
+    radial-gradient(circle, transparent 20%, var(--activity-action-bg) 20%, transparent 30%),
+    radial-gradient(circle, var(--activity-action-bg) 20%, transparent 20%),
+    radial-gradient(circle, transparent 10%, var(--activity-action-bg) 15%, transparent 20%),
+    radial-gradient(circle, var(--activity-action-bg) 20%, transparent 20%);
+  background-position: 50% 120%;
+  background-size:
+    22% 22%,
+    32% 32%,
+    26% 26%,
+    30% 30%,
+    24% 24%;
+  animation: activity-detail-top-bubbles 0.72s ease;
+}
+
+.activity-detail-footer :deep(.activity-detail-formation-button:hover:not(:disabled))::after {
+  bottom: -70%;
+  background-image:
+    radial-gradient(circle, var(--activity-action-bg) 20%, transparent 20%),
+    radial-gradient(circle, transparent 10%, var(--activity-action-bg) 15%, transparent 20%),
+    radial-gradient(circle, var(--activity-action-bg) 20%, transparent 20%),
+    radial-gradient(circle, var(--activity-action-bg) 20%, transparent 20%);
+  background-position: 50% 0%;
+  background-size:
+    28% 28%,
+    32% 32%,
+    26% 26%,
+    30% 30%;
+  animation: activity-detail-bottom-bubbles 0.72s ease;
+}
+
+.activity-detail-footer :deep(.activity-detail-formation-button:active:not(:disabled)) {
+  transform: scale(0.96) !important;
+}
+
+.activity-detail-footer :deep(.bujo-btn--danger) {
+  border-color: color-mix(in srgb, var(--activity-tone) 36%, var(--bujo-white)) !important;
+  background: transparent !important;
+  color: color-mix(in srgb, var(--activity-tone) 78%, var(--bujo-ink)) !important;
+}
+
+.activity-detail-footer :deep(.bujo-btn--danger:hover:not(:disabled)) {
+  border-color: color-mix(in srgb, var(--activity-tone) 62%, var(--bujo-ink)) !important;
+  background: rgb(var(--bujo-white-rgb) / 0.2) !important;
+  color: color-mix(in srgb, var(--activity-tone) 62%, var(--bujo-ink)) !important;
+}
+
+.activity-detail-footer :deep(button:disabled) {
+  opacity: 1 !important;
+}
+
+.activity-detail-footer :deep(.bujo-btn--green:disabled) {
+  border-color: rgb(var(--bujo-white-rgb) / 0.28) !important;
+  background: rgb(var(--bujo-white-rgb) / 0.2) !important;
+  color: color-mix(in srgb, var(--activity-tone) 54%, var(--bujo-white)) !important;
+}
+
+@keyframes activity-detail-top-bubbles {
+  0% {
+    background-position:
+      5% 90%,
+      18% 90%,
+      36% 90%,
+      58% 90%,
+      78% 90%;
+  }
+
+  50% {
+    background-position:
+      0% 20%,
+      18% 0%,
+      42% 35%,
+      66% 5%,
+      92% 30%;
+  }
+
+  100% {
+    background-position:
+      0% 10%,
+      18% -10%,
+      42% 20%,
+      66% -8%,
+      92% 18%;
+    background-size:
+      0% 0%,
+      0% 0%,
+      0% 0%,
+      0% 0%,
+      0% 0%;
+  }
+}
+
+@keyframes activity-detail-bottom-bubbles {
+  0% {
+    background-position:
+      10% -10%,
+      34% -10%,
+      62% -10%,
+      88% -10%;
+  }
+
+  50% {
+    background-position:
+      4% 80%,
+      34% 98%,
+      66% 68%,
+      104% 84%;
+  }
+
+  100% {
+    background-position:
+      4% 92%,
+      34% 112%,
+      66% 82%,
+      110% 96%;
+    background-size:
+      0% 0%,
+      0% 0%,
+      0% 0%,
+      0% 0%;
+  }
 }
 
 .activity-detail-success {

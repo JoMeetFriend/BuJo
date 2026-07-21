@@ -66,19 +66,28 @@ describe('ActivityView - 手機短螢幕響應式版面', () => {
   })
 })
 
-describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirmed/hosting', () => {
-  test('RECRUITING 計入所有 status===recruiting 的活動，不論是否為自己建立', async () => {
+describe('ActivityView - 篩選 tab 依使用者任務分流 recruiting/joined/confirmed/hosting', () => {
+  test('RECRUITING 只計入可報名的揪團中活動，不含已報名或自己建立', async () => {
     const activities = [
       makeActivity({
         id: 'mine-recruiting',
+        title: 'mine',
         is_creator: true,
         has_joined: true,
         status: 'recruiting',
       }),
       makeActivity({
         id: 'friend-recruiting',
+        title: 'friend',
         is_creator: false,
         has_joined: false,
+        status: 'recruiting',
+      }),
+      makeActivity({
+        id: 'joined-recruiting',
+        title: 'joined',
+        is_creator: false,
+        has_joined: true,
         status: 'recruiting',
       }),
       makeActivity({
@@ -93,7 +102,10 @@ describe('ActivityView - 篩選 tab 各自獨立對應 recruiting/joined/confirm
     await flushPromises()
 
     await clickFilter(wrapper, '揪團中')
-    expect(wrapper.text()).toContain('2')
+    expect(wrapper.findAll('.activity-mini-card')).toHaveLength(1)
+    expect(wrapper.text()).toContain('friend')
+    expect(wrapper.text()).not.toContain('mine')
+    expect(wrapper.text()).not.toContain('joined')
 
     await clickFilter(wrapper, '我建立的')
     expect(wrapper.findAll('.activity-mini-card')).toHaveLength(1)
