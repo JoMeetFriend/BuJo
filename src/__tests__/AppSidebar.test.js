@@ -167,6 +167,10 @@ describe('AppSidebar', () => {
       expect(appTourHelpButtonSource).toMatch(
         /\.bujo-tour-help-btn--floating\s*\{[\s\S]*?top: 8px;[\s\S]*?right: 14px;[\s\S]*?width: 26px;[\s\S]*?height: 26px;/,
       )
+      expect(appSidebarSource).toContain(':calendar-aligned="isCalendarPage"')
+      expect(appTourHelpButtonSource).toMatch(
+        /\.bujo-tour-help-btn--calendar-aligned\s*\{[^}]*top: 12px;/,
+      )
     })
 
     test('桌機版（CALENDAR FILTER 上方）與手機版（浮動右上角）各有一顆問號按鈕', async () => {

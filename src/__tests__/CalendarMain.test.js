@@ -510,6 +510,9 @@ describe('CalendarMain - UPCOMING 活動側欄', () => {
     expect(calendarMainSource).toMatch(
       /\.calendar-upcoming-list\s*\{[\s\S]*?max-height: 568px;[\s\S]*?overflow-y: auto;/,
     )
+    expect(calendarMainSource).toMatch(
+      /\.calendar-upcoming-list\s*\{[\s\S]*?padding-right: 10px;[\s\S]*?scrollbar-gutter: stable;/,
+    )
     expect(calendarMainSource).toContain('.calendar-upcoming-card.is-soon')
     expect(calendarMainSource).toContain(
       'color-mix(in srgb, var(--bujo-card-blue) 44%, var(--bujo-white))',
@@ -557,13 +560,17 @@ describe('CalendarMain', () => {
       'padding: 8px 8px calc(84px + env(safe-area-inset-bottom, 0px));',
     )
     expect(calendarMainSource).toMatch(
-      /\.calendar-mobile-control-spacer\s*\{[\s\S]*?height: 34px;/,
+      /\.calendar-mobile-controls\s*\{[\s\S]*?display: flex;[\s\S]*?align-items: center;[\s\S]*?height: 34px;/,
     )
+    expect(calendarMainSource).not.toContain('calendar-mobile-control-spacer')
     expect(calendarMainSource).toMatch(
       /@media \(max-width: 640px\) and \(max-height: 700px\) \{[\s\S]*?\.calendar-board\s*\{[\s\S]*?flex: 1 1 auto;[\s\S]*?height: clamp\(220px, calc\(100dvh - 330px\), 360px\);[\s\S]*?min-height: 220px;[\s\S]*?max-height: 360px;/,
     )
     expect(calendarMainSource).toMatch(
-      /\.calendar-toggle-dots-mobile\s*\{[\s\S]*?position: fixed;[\s\S]*?top: 8px;[\s\S]*?left: 16px;[\s\S]*?width: 26px;[\s\S]*?height: 26px;/,
+      /\.calendar-toggle-dots-mobile\s*\{[\s\S]*?width: 26px;[\s\S]*?height: 26px;/,
+    )
+    expect(calendarMainSource).not.toMatch(
+      /\.calendar-toggle-dots-mobile\s*\{[\s\S]*?position: fixed;/,
     )
   })
 
