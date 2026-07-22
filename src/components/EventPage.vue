@@ -964,6 +964,7 @@ import {
 } from '@/utils/timeFormat'
 import { useAuthStore } from '@/stores/auth'
 import { useEventScenarioGuide } from '@/composables/useEventScenarioGuide'
+import { apiFetch } from '@/services/httpClient'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -1854,7 +1855,7 @@ async function doSubmitInternal() {
   }
 
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities`, {
+    const res = await apiFetch('/api/activities', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

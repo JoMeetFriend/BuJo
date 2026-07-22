@@ -173,6 +173,7 @@ import { EyeIcon, EyeSlashIcon, EnvelopeIcon } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import { useLocaleStore } from '@/stores/locale'
 import bujoLogoUrl from '@/assets/bujo-logo-auth.svg'
+import { apiFetch } from '@/services/httpClient'
 
 const router = useRouter()
 const route = useRoute()
@@ -210,7 +211,7 @@ const handleLogin = async () => {
 
   isLoading.value = true
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+    const res = await apiFetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

@@ -341,6 +341,7 @@ import DateEventsModal from './DateEventsModal.vue'
 import ProfileAccountModal from './ProfileAccountModal.vue'
 import EventPage from './EventPage.vue'
 import { toAvatarSrc } from '@/utils/avatar'
+import { apiFetch } from '@/services/httpClient'
 
 const showDots = ref(true)
 const showEventModal = ref(false)
@@ -572,7 +573,7 @@ const activitiesFetchError = ref('')
 
 async function fetchActivities() {
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities`, {
+    const res = await apiFetch('/api/activities', {
       credentials: 'include',
     })
     if (!res.ok) {

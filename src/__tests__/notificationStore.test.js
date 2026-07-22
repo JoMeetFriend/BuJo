@@ -4,7 +4,7 @@ import axios from 'axios'
 import { useNotificationStore } from '@/stores/notificationStore'
 
 vi.mock('axios', () => {
-  const apiClient = { get: vi.fn() }
+  const apiClient = { get: vi.fn(), interceptors: { request: { use: vi.fn() } } }
   return { default: { create: vi.fn(() => apiClient) } }
 })
 

@@ -101,6 +101,7 @@ import ActivityDetailModal from './ActivityDetailModal.vue'
 import EventPage from './EventPage.vue'
 import PixelButton from './ui/PixelButton.vue'
 import { toAvatarSrc } from '@/utils/avatar'
+import { apiFetch } from '@/services/httpClient'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -196,7 +197,7 @@ async function fetchActivities() {
   loading.value = true
   fetchError.value = ''
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities`, {
+    const res = await apiFetch('/api/activities', {
       credentials: 'include',
     })
     if (!res.ok) {
