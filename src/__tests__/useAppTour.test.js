@@ -297,6 +297,33 @@ describe('useAppTour', () => {
       expect(document.querySelectorAll('.driver-popover').length).toBe(1)
     })
 
+    test('手機 fixed 問號按鈕沒有 offsetParent 時，仍會選中實際可見的手機錨點', () => {
+      const desktopHelpButton = document.querySelector('[data-tour="tour-help-button"]')
+      desktopHelpButton.style.display = 'none'
+
+      const mobileHelpButton = document.createElement('button')
+      mobileHelpButton.setAttribute('data-tour', 'tour-help-button')
+      mobileHelpButton.style.position = 'fixed'
+      mobileHelpButton.getBoundingClientRect = () => ({
+        x: 344,
+        y: 12,
+        top: 12,
+        right: 370,
+        bottom: 38,
+        left: 344,
+        width: 26,
+        height: 26,
+        toJSON: () => ({}),
+      })
+      document.body.appendChild(mobileHelpButton)
+
+      const tour = useAppTour(ref('user-123'), { storage: createStorage() })
+      tour.startTourHint()
+
+      expect(mobileHelpButton.classList.contains('driver-active-element')).toBe(true)
+      expect(desktopHelpButton.classList.contains('driver-active-element')).toBe(false)
+    })
+
     test('關閉提示後會標記導覽已看過，避免下次自動再彈出', () => {
       vi.useFakeTimers()
       const storage = createStorage()
