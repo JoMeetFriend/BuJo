@@ -118,6 +118,23 @@ describe('ActivityDetailModal - 載入中顯示骨架圖，避免看起來像換
   })
 })
 
+describe('ActivityDetailModal - 桌機捲動提示', () => {
+  test('精準滑鼠裝置 hover 或 focus 時顯示細捲軸，手機版仍維持隱藏', () => {
+    expect(activityDetailModalSource).toMatch(
+      /@media \(hover: hover\) and \(pointer: fine\)[^{]*{[\s\S]*?\.activity-detail-body\s*{[^}]*scrollbar-gutter: stable;[^}]*scrollbar-width: thin;[^}]*scrollbar-color: transparent transparent;/,
+    )
+    expect(activityDetailModalSource).toMatch(
+      /\.activity-detail-body:hover,\s*\.activity-detail-body:focus-within\s*{[^}]*scrollbar-color: rgb\(var\(--bujo-ink-rgb\) \/ 0\.28\) transparent;/,
+    )
+    expect(activityDetailModalSource).toMatch(
+      /\.activity-detail-body:hover::-webkit-scrollbar-thumb,\s*\.activity-detail-body:focus-within::-webkit-scrollbar-thumb\s*{[^}]*background: rgb\(var\(--bujo-ink-rgb\) \/ 0\.28\);/,
+    )
+    expect(activityDetailModalSource).toMatch(
+      /@media \(max-width: 900px\)[^{]*{[\s\S]*?\.activity-detail-body\s*{[^}]*scrollbar-width: none;[\s\S]*?\.activity-detail-body::-webkit-scrollbar\s*{[^}]*display: none;/,
+    )
+  })
+})
+
 describe('ActivityDetailModal - 活動標題顯示保護', () => {
   test('長標題仍保留完整 title 屬性供 hover 或輔助工具讀取', async () => {
     const longTitle = '嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨'

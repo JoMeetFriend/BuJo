@@ -2320,6 +2320,45 @@ function formatTime(date) {
   background: var(--bujo-accent);
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .activity-detail-body {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .activity-detail-body::-webkit-scrollbar {
+    width: 7px;
+    display: block;
+  }
+
+  .activity-detail-body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .activity-detail-body::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    background: transparent;
+    background-clip: content-box;
+  }
+
+  .activity-detail-body:hover,
+  .activity-detail-body:focus-within {
+    scrollbar-color: rgb(var(--bujo-ink-rgb) / 0.28) transparent;
+  }
+
+  .activity-detail-body:hover::-webkit-scrollbar-thumb,
+  .activity-detail-body:focus-within::-webkit-scrollbar-thumb {
+    background: rgb(var(--bujo-ink-rgb) / 0.28);
+    background-clip: content-box;
+  }
+
+  .activity-detail-body::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--bujo-ink-rgb) / 0.48);
+    background-clip: content-box;
+  }
+}
+
 @media (max-width: 900px) {
   .activity-detail-panel {
     --activity-detail-scale: 1;

@@ -37,18 +37,26 @@
     <template v-else-if="featuredActivity || focusMissing">
       <div class="activity-content">
         <section class="activity-stage">
-          <span class="activity-stage-sheet activity-stage-sheet--back" aria-hidden="true"></span>
-          <span class="activity-stage-sheet activity-stage-sheet--middle" aria-hidden="true"></span>
           <Transition name="activity-focus" mode="out-in">
             <div v-if="focusMissing" key="focus-missing" class="activity-state-message">
               {{ t('activity.notFound') }}
             </div>
             <div v-else :key="featuredActivity.id" class="activity-focus-frame">
-              <ActivityDetailModal
-                :is-open="true"
-                :activity-id="featuredActivity.id"
-                @status-changed="fetchActivities"
-              />
+              <div class="activity-paper-stack">
+                <span
+                  class="activity-stage-sheet activity-stage-sheet--back"
+                  aria-hidden="true"
+                ></span>
+                <span
+                  class="activity-stage-sheet activity-stage-sheet--middle"
+                  aria-hidden="true"
+                ></span>
+                <ActivityDetailModal
+                  :is-open="true"
+                  :activity-id="featuredActivity.id"
+                  @status-changed="fetchActivities"
+                />
+              </div>
             </div>
           </Transition>
         </section>
@@ -94,7 +102,38 @@
       </div>
     </template>
 
-    <div v-else class="activity-empty">{{ t('activity.noActivities') }}</div>
+    <div v-else class="activity-content activity-content--empty">
+      <section class="activity-stage activity-stage--empty">
+        <div class="activity-paper-stack activity-paper-stack--empty">
+          <span class="activity-stage-sheet activity-stage-sheet--back" aria-hidden="true"></span>
+          <span class="activity-stage-sheet activity-stage-sheet--middle" aria-hidden="true"></span>
+
+          <article class="activity-empty" role="status" aria-live="polite">
+            <p class="activity-empty-kicker">{{ t('activity.emptyKicker') }}</p>
+            <h2>
+              {{
+                activities.length === 0
+                  ? t('activity.emptyAllTitle')
+                  : t('activity.emptyFilterTitle')
+              }}
+            </h2>
+            <p class="activity-empty-copy">
+              {{
+                activities.length === 0 ? t('activity.emptyAllBody') : t('activity.emptyFilterBody')
+              }}
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <aside class="activity-card-rail activity-card-rail--empty">
+        <div class="activity-rail-empty">
+          <p class="activity-rail-empty-kicker">{{ t('activity.emptyRailKicker') }}</p>
+          <h2>{{ t('activity.emptyRailTitle') }}</h2>
+          <p>{{ t('activity.emptyRailBody') }}</p>
+        </div>
+      </aside>
+    </div>
 
     <EventPage
       :is-open="showCreateModal"
@@ -467,31 +506,99 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.activity-stage::before {
+.activity-paper-stack {
   position: absolute;
-  inset: clamp(18px, 2.8vh, 34px) max(126px, 19vw) clamp(24px, 4vh, 42px);
-  border: 1px solid rgb(var(--bujo-line-rgb) / 0.18);
-  background:
-    linear-gradient(to bottom, rgb(var(--bujo-white-rgb) / 0.36), transparent 42px),
-    rgb(var(--bujo-white-rgb) / 0.28);
-  box-shadow: 0 10px 18px rgb(var(--bujo-ink-rgb) / 0.025);
-  content: '';
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
 }
 
 .activity-stage-sheet {
   position: absolute;
-  inset: clamp(26px, 4vh, 42px) max(122px, 18.5vw) clamp(14px, 3vh, 28px);
-  border: 1px solid rgb(var(--bujo-line-rgb) / 0.11);
-  background: rgb(var(--bujo-white-rgb) / 0.2);
+  inset: 0;
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.12);
+  background:
+    repeating-linear-gradient(
+      176deg,
+      transparent 0 13px,
+      rgb(var(--bujo-line-rgb) / 0.065) 13px 14px
+    ),
+    rgb(var(--bujo-white-rgb) / 0.22);
+  box-shadow: 3px 4px 8px rgb(var(--bujo-ink-rgb) / 0.025);
   pointer-events: none;
 }
 
+.activity-stage-sheet--back::before,
+.activity-stage-sheet--back::after,
+.activity-stage-sheet--middle::after {
+  position: absolute;
+  z-index: 1;
+  width: 11px;
+  height: 11px;
+  background: currentColor;
+  clip-path: polygon(
+    50% 0,
+    61% 35%,
+    98% 35%,
+    68% 57%,
+    79% 91%,
+    50% 70%,
+    21% 91%,
+    32% 57%,
+    2% 35%,
+    39% 35%
+  );
+  content: '';
+}
+
+.activity-stage-sheet--back::before {
+  bottom: 64px;
+  left: -38px;
+  color: rgb(var(--bujo-ink-rgb) / 0.48);
+  transform: rotate(-9deg);
+}
+
+.activity-stage-sheet--back::after {
+  top: 8px;
+  left: 56%;
+  color: rgb(222 153 205 / 0.68);
+  transform: rotate(8deg);
+}
+
 .activity-stage-sheet--back {
-  transform: rotate(-0.3deg) translate(-8px, 7px);
+  z-index: 0;
+  border-color: rgb(var(--bujo-line-rgb) / 0.22);
+  background:
+    repeating-linear-gradient(
+      176deg,
+      transparent 0 13px,
+      rgb(var(--bujo-line-rgb) / 0.085) 13px 14px
+    ),
+    rgb(var(--bujo-white-rgb) / 0.28);
+  transform: translate(18px, -24px) rotate(2.4deg);
 }
 
 .activity-stage-sheet--middle {
-  transform: rotate(0.24deg) translate(8px, 4px);
+  z-index: 1;
+  border-color: rgb(var(--bujo-line-rgb) / 0.2);
+  background:
+    repeating-linear-gradient(
+      176deg,
+      transparent 0 13px,
+      rgb(var(--bujo-line-rgb) / 0.065) 13px 14px
+    ),
+    rgb(var(--bujo-white-rgb) / 0.34);
+  box-shadow: 4px 5px 10px rgb(var(--bujo-ink-rgb) / 0.035);
+  transform: translate(-4px, 24px) rotate(-1.5deg);
+}
+
+.activity-stage-sheet--middle::after {
+  right: 22%;
+  bottom: -6px;
+  color: rgb(var(--bujo-ink-rgb) / 0.42);
+  transform: rotate(11deg);
 }
 
 .activity-stage :deep(.activity-detail-panel) {
@@ -716,8 +823,7 @@ onMounted(() => {
   display: none;
 }
 
-.activity-state-message,
-.activity-empty {
+.activity-state-message {
   margin: auto;
   width: min(420px, calc(100vw - 48px));
   border-radius: 1px;
@@ -725,6 +831,102 @@ onMounted(() => {
   padding: 48px;
   text-align: center;
   font-weight: 700;
+}
+
+.activity-content--empty {
+  min-height: 390px;
+}
+
+.activity-stage--empty {
+  overflow: visible;
+}
+
+.activity-empty {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-height: 280px;
+  border: 1px solid rgb(var(--bujo-line-rgb) / 0.2);
+  background:
+    linear-gradient(180deg, rgb(var(--bujo-white-rgb) / 0.28), transparent 46px),
+    rgb(var(--bujo-white-rgb) / 0.84);
+  box-shadow: 8px 10px 18px rgb(var(--bujo-ink-rgb) / 0.07);
+  padding: clamp(38px, 5vw, 56px);
+  display: grid;
+  align-content: center;
+  text-align: center;
+}
+
+.activity-empty-kicker,
+.activity-rail-empty-kicker {
+  margin: 0;
+  color: rgb(var(--bujo-ink-rgb) / 0.48);
+  font-family: var(--bujo-font-meta);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.activity-empty-kicker::after {
+  width: 42px;
+  height: 1px;
+  margin: 14px auto 18px;
+  display: block;
+  background: rgb(var(--bujo-line-rgb) / 0.48);
+  content: '';
+}
+
+.activity-empty h2,
+.activity-rail-empty h2 {
+  margin: 0;
+  color: var(--activity-ink);
+  font-family: var(--bujo-font-heading);
+  font-weight: 750;
+}
+
+.activity-empty h2 {
+  font-size: clamp(23px, 2.2vw, 30px);
+  line-height: 1.18;
+}
+
+.activity-empty-copy {
+  max-width: 260px;
+  margin: 14px auto 0;
+  color: rgb(var(--bujo-ink-rgb) / 0.58);
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1.7;
+}
+
+.activity-card-rail--empty {
+  display: grid;
+  align-items: start;
+}
+
+.activity-rail-empty {
+  margin: 12px 10px 0 6px;
+  border-top: 2px solid rgb(var(--bujo-ink-rgb) / 0.52);
+  border-bottom: 1px solid rgb(var(--bujo-line-rgb) / 0.25);
+  padding: 18px 2px 20px;
+}
+
+.activity-rail-empty-kicker {
+  margin-bottom: 12px;
+}
+
+.activity-rail-empty h2 {
+  max-width: 11em;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.activity-rail-empty > p:last-child {
+  max-width: 15em;
+  margin: 10px 0 0;
+  color: rgb(var(--bujo-ink-rgb) / 0.5);
+  font-size: 11px;
+  font-weight: 550;
+  line-height: 1.65;
 }
 
 .activity-state-message--error {
@@ -752,9 +954,27 @@ onMounted(() => {
 }
 
 @media (min-width: 901px) {
-  .activity-stage :deep(.activity-detail-panel) {
+  .activity-paper-stack {
+    position: relative;
     width: min(420px, calc(100% - 40px));
-    min-height: min(520px, calc(100% - 40px));
+    height: min(520px, calc(100% - 40px));
+    min-height: 0;
+    max-height: calc(100% - 40px);
+    place-items: stretch;
+  }
+
+  .activity-stage :deep(.activity-detail-panel) {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+  }
+
+  .activity-paper-stack--empty {
+    width: min(390px, calc(100% - 64px));
+    height: auto;
+    min-height: min(300px, calc(100% - 72px));
+    max-height: calc(100% - 72px);
   }
 }
 
@@ -812,16 +1032,47 @@ onMounted(() => {
     overflow: visible;
   }
 
-  .activity-stage::before,
   .activity-stage-sheet {
     display: none;
+  }
+
+  .activity-focus-frame {
+    position: relative;
+  }
+
+  .activity-paper-stack {
+    inset: 0;
+    width: auto;
+    height: auto;
   }
 
   .activity-stage :deep(.activity-detail-panel) {
     width: min(100%, calc(100vw - 92px));
     max-width: none;
-    max-height: var(--activity-detail-available-height);
-    min-height: min(250px, var(--activity-detail-available-height));
+    max-height: min(45dvh, 430px, var(--activity-detail-available-height));
+    min-height: min(250px, 45dvh, var(--activity-detail-available-height));
+  }
+
+  .activity-paper-stack--empty {
+    position: relative;
+    width: min(390px, calc(100% - 32px));
+    height: auto;
+    min-height: 250px;
+    place-items: stretch;
+  }
+
+  .activity-empty {
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .activity-content--empty {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .activity-card-rail--empty {
+    display: none;
   }
 }
 
@@ -848,6 +1099,10 @@ onMounted(() => {
     margin-top: clamp(42px, 8vh, 68px);
     padding: 0;
     border-left: 0;
+  }
+
+  .activity-content--empty {
+    grid-template-rows: minmax(0, 1fr);
   }
 
   .activity-strip {

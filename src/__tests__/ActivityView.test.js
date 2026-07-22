@@ -119,6 +119,41 @@ describe('ActivityView - 手機短螢幕響應式版面', () => {
     )
   })
 
+  test('桌機主活動卡使用同尺寸的雙層錯位紙張背框', () => {
+    expect(activityViewSource).toMatch(
+      /<div v-else :key="featuredActivity\.id" class="activity-focus-frame">\s*<div class="activity-paper-stack">\s*<span[\s\S]*?activity-stage-sheet--back[\s\S]*?activity-stage-sheet--middle[\s\S]*?<ActivityDetailModal/,
+    )
+    expect(activityViewSource).not.toMatch(/\.activity-stage::before\s*{/)
+    expect(activityViewSource).toMatch(
+      /\.activity-stage-sheet\s*{[^}]*position: absolute;[^}]*inset: 0;[^}]*pointer-events: none;/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-stage-sheet--back\s*{[^}]*z-index: 0;[^}]*repeating-linear-gradient\([^}]*transform: translate\(18px, -24px\) rotate\(2\.4deg\);/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-stage-sheet--middle\s*{[^}]*z-index: 1;[^}]*repeating-linear-gradient\([^}]*transform: translate\(-4px, 24px\) rotate\(-1\.5deg\);/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-stage :deep\(\.activity-detail-panel\)\s*{[^}]*position: relative;[^}]*z-index: 2;/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-stage-sheet\s*{[^}]*repeating-linear-gradient\([^}]*176deg,[^}]*rgb\(var\(--bujo-line-rgb\) \/ 0\.065\)/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-stage-sheet--back::before,[\s\S]*?\.activity-stage-sheet--middle::after\s*{[^}]*width: 11px;[^}]*height: 11px;[^}]*background: currentColor;[^}]*clip-path: polygon\([^}]*content: '';/,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-stage-sheet--back::after\s*{[^}]*top: 8px;[^}]*left: 56%;[^}]*rgb\(222 153 205 \/ 0\.68\);/s,
+    )
+    expect(activityViewSource).not.toMatch(/\.activity-stage-sheet--middle::before\s*{/)
+    expect(activityViewSource).toMatch(
+      /@media \(min-width: 901px\)[^{]*{[\s\S]*?\.activity-paper-stack\s*{[^}]*width: min\(420px, calc\(100% - 40px\)\);[^}]*height: min\(520px, calc\(100% - 40px\)\);[^}]*min-height: 0;[^}]*max-height: calc\(100% - 40px\);/,
+    )
+    expect(activityViewSource).toMatch(
+      /@media \(max-width: 900px\)[^{]*{[\s\S]*?\.activity-stage-sheet\s*{[^}]*display: none;/,
+    )
+  })
+
   test('篩選墨線與活動小卡 hover 只在精準滑鼠裝置啟用', () => {
     expect(activityViewSource).toMatch(
       /\.activity-filter::after\s*{[^}]*transform: scaleX\(0\);[^}]*transform-origin: left center;/s,
@@ -155,9 +190,51 @@ describe('ActivityView - 手機短螢幕響應式版面', () => {
     )
   })
 
+  test('空狀態沿用主內容兩欄，主提示放在紙張背框且桌機右欄顯示說明', async () => {
+    stubFetch([])
+    const wrapper = await mountActivityView()
+    await flushPromises()
+
+    const emptyContent = wrapper.find('.activity-content--empty')
+    expect(emptyContent.exists()).toBe(true)
+    expect(emptyContent.find('.activity-stage--empty .activity-paper-stack--empty').exists()).toBe(
+      true,
+    )
+    expect(emptyContent.findAll('.activity-stage-sheet')).toHaveLength(2)
+    expect(emptyContent.find('.activity-card-rail--empty').exists()).toBe(true)
+    expect(emptyContent.text()).toContain('目前還沒有活動')
+    expect(emptyContent.text()).toContain('活動會出現在這裡')
+
+    expect(activityViewSource).toMatch(
+      /\.activity-paper-stack--empty\s*{[^}]*width: min\(390px, calc\(100% - 64px\)\);[^}]*min-height: min\(300px, calc\(100% - 72px\)\);/s,
+    )
+    expect(activityViewSource).toMatch(
+      /@media \(max-width: 768px\)[^{]*{[\s\S]*?\.activity-content--empty\s*{[^}]*grid-template-columns: minmax\(0, 1fr\);[\s\S]*?\.activity-card-rail--empty\s*{[^}]*display: none;/,
+    )
+  })
+
+  test('有活動但目前篩選無結果時顯示分類提示，而不是全站空狀態', async () => {
+    stubFetch([
+      makeActivity({
+        id: 'confirmed-1',
+        status: 'confirmed',
+        has_joined: true,
+      }),
+    ])
+    const wrapper = await mountActivityView()
+    await flushPromises()
+
+    await clickFilter(wrapper, '揪團中')
+
+    expect(wrapper.find('.activity-content--empty').exists()).toBe(true)
+    expect(wrapper.text()).toContain('此分類目前沒有活動')
+    expect(wrapper.text()).toContain('試試其他篩選條件。')
+    expect(wrapper.text()).not.toContain('建立第一場聚會')
+  })
+
   test('桌機主活動卡加寬加長，右側小卡沿用行事曆 UPCOMING 卡片尺寸', () => {
     expect(activityViewSource).toMatch(
-      /@media \(min-width: 901px\)[^{]*{[\s\S]*?\.activity-stage :deep\(\.activity-detail-panel\)\s*{[^}]*width: min\(420px, calc\(100% - 40px\)\);[^}]*min-height: min\(520px, calc\(100% - 40px\)\);/,
+      /@media \(min-width: 901px\)[^{]*{[\s\S]*?\.activity-paper-stack\s*{[^}]*width: min\(420px, calc\(100% - 40px\)\);[^}]*height: min\(520px, calc\(100% - 40px\)\);[\s\S]*?\.activity-stage :deep\(\.activity-detail-panel\)\s*{[^}]*width: 100%;[^}]*height: 100%;[^}]*min-height: 0;[^}]*max-height: 100%;/,
     )
     expect(activityViewSource).toMatch(
       /\.activity-strip\s*{[^}]*grid-auto-rows: 104px;[^}]*gap: 12px;/s,
@@ -193,7 +270,7 @@ describe('ActivityView - 手機短螢幕響應式版面', () => {
 
   test('Mobile activity detail respects the stage height', () => {
     expect(activityViewSource).toMatch(
-      /\.activity-stage :deep\(\.activity-detail-panel\)\s*{[^}]*max-height: var\(--activity-detail-available-height\);[^}]*min-height: min\(250px, var\(--activity-detail-available-height\)\);/s,
+      /@media \(max-width: 900px\)[^{]*{[\s\S]*?\.activity-focus-frame\s*{[^}]*position: relative;[\s\S]*?\.activity-paper-stack\s*{[^}]*inset: 0;[^}]*width: auto;[^}]*height: auto;[\s\S]*?\.activity-stage :deep\(\.activity-detail-panel\)\s*{[^}]*max-height: min\(45dvh, 430px, var\(--activity-detail-available-height\)\);[^}]*min-height: min\(250px, 45dvh, var\(--activity-detail-available-height\)\);/,
     )
   })
 
