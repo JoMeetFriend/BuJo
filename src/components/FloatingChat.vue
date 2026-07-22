@@ -80,50 +80,56 @@
               {{ t('chat.loading') }}
             </div>
 
-            <div
-              v-for="msg in chatStore.currentMessages"
+            <template
+              v-for="(msg, msgIndex) in chatStore.currentMessages"
               :key="msg._localId ?? msg.id"
-              class="chat-message"
-              :class="{ 'chat-message--self': msg.sender?.id === authStore.user?.id }"
             >
-              <img
-                v-if="msg.sender?.avatar_url && !msg._localId"
-                :src="toAvatarSrc(msg.sender.avatar_url)"
-                alt=""
-                class="chat-message-avatar"
-                loading="lazy"
-              />
-              <div v-else class="chat-message-avatar chat-message-avatar--text">
-                {{ avatarInitial(msg.sender) }}
+              <div v-if="shouldShowDateSeparator(msg, msgIndex)" class="chat-date-separator">
+                {{ formatDateLabel(msg.created_at) }}
               </div>
-              <div class="chat-message-body">
-                <div class="chat-message-sender">{{ msg.sender?.display_name ?? '' }}</div>
-                <div
-                  class="chat-message-content"
-                  :class="{
-                    'chat-message-content--pending': msg._status === 'pending',
-                    'chat-message-content--failed': msg._status === 'failed',
-                  }"
-                >
-                  {{ msg.content }}
+              <div
+                class="chat-message"
+                :class="{ 'chat-message--self': msg.sender?.id === authStore.user?.id }"
+              >
+                <img
+                  v-if="msg.sender?.avatar_url && !msg._localId"
+                  :src="toAvatarSrc(msg.sender.avatar_url)"
+                  alt=""
+                  class="chat-message-avatar"
+                  loading="lazy"
+                />
+                <div v-else class="chat-message-avatar chat-message-avatar--text">
+                  {{ avatarInitial(msg.sender) }}
                 </div>
-                <div class="chat-message-footer">
-                  <span class="chat-message-time">{{ formatTime(msg.created_at) }}</span>
-                  <span v-if="msg._status === 'pending'" class="chat-message-indicator">
-                    <ArrowPathIcon class="h-3 w-3 chat-spin" />
-                  </span>
-                  <button
-                    v-if="msg._status === 'failed'"
-                    type="button"
-                    class="chat-message-indicator chat-message-indicator--failed"
-                    :title="msg._error ?? t('chat.retry')"
-                    @click="chatStore.retryMessage(chatStore.currentActivityId, msg._localId)"
+                <div class="chat-message-body">
+                  <div class="chat-message-sender">{{ msg.sender?.display_name ?? '' }}</div>
+                  <div
+                    class="chat-message-content"
+                    :class="{
+                      'chat-message-content--pending': msg._status === 'pending',
+                      'chat-message-content--failed': msg._status === 'failed',
+                    }"
                   >
-                    <ExclamationCircleIcon class="h-3 w-3" />
-                  </button>
+                    {{ msg.content }}
+                  </div>
+                  <div class="chat-message-footer">
+                    <span class="chat-message-time">{{ formatTime(msg.created_at) }}</span>
+                    <span v-if="msg._status === 'pending'" class="chat-message-indicator">
+                      <ArrowPathIcon class="h-3 w-3 chat-spin" />
+                    </span>
+                    <button
+                      v-if="msg._status === 'failed'"
+                      type="button"
+                      class="chat-message-indicator chat-message-indicator--failed"
+                      :title="msg._error ?? t('chat.retry')"
+                      @click="chatStore.retryMessage(chatStore.currentActivityId, msg._localId)"
+                    >
+                      <ExclamationCircleIcon class="h-3 w-3" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            </template>
           </div>
 
           <div class="chat-input-bar">
@@ -235,10 +241,16 @@ function scrollToBottom() {
   el.scrollTop = el.scrollHeight
 }
 
+let scrollThrottleTimer = null
+
 function onScroll() {
   if (!messageContainerRef.value) return
+  if (scrollThrottleTimer) return
   const el = messageContainerRef.value
   if (el.scrollTop < 80) {
+    scrollThrottleTimer = setTimeout(() => {
+      scrollThrottleTimer = null
+    }, 200)
     loadMore()
   }
 }
@@ -272,7 +284,43 @@ function formatTime(iso) {
   if (!iso) return ''
   const d = new Date(iso)
   const pad = (n) => String(n).padStart(2, '0')
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}`
+  const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`
+  if (!isSameDay(d, new Date())) {
+    return `${formatDateLabel(iso)} ${time}`
+  }
+  return time
+}
+
+function isSameDay(a, b) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
+}
+
+function getDateKey(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function shouldShowDateSeparator(msg, index) {
+  if (index === 0) return true
+  const prev = chatStore.currentMessages[index - 1]
+  return getDateKey(msg.created_at) !== getDateKey(prev.created_at)
+}
+
+function formatDateLabel(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+
+  if (isSameDay(d, today)) return '今天'
+  if (isSameDay(d, yesterday)) return '昨天'
+  return `${d.getMonth() + 1}/${d.getDate()}`
 }
 </script>
 
@@ -519,6 +567,15 @@ function formatTime(iso) {
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 2px;
+}
+
+.chat-date-separator {
+  text-align: center;
+  font-family: var(--bujo-font-meta);
+  font-size: 10px;
+  color: var(--bujo-muted);
+  padding: 4px 0;
+  letter-spacing: 0.3px;
 }
 
 .chat-message {

@@ -108,7 +108,12 @@ describe('useChatStore', () => {
     it('建立 pending 訊息並在成功後取代', async () => {
       fetch.mockResolvedValue({
         ok: true,
-        json: async () => ({ id: 'real-1', content: 'hello', sender: { id: 'user-1' }, created_at: new Date().toISOString() }),
+        json: async () => ({
+          id: 'real-1',
+          content: 'hello',
+          sender: { id: 'user-1' },
+          created_at: new Date().toISOString(),
+        }),
       })
       const store = useChatStore()
       store.messages.a1 = []
@@ -172,10 +177,17 @@ describe('useChatStore', () => {
     it('重送失敗的訊息', async () => {
       fetch.mockResolvedValue({
         ok: true,
-        json: async () => ({ id: 'real-1', content: 'hello', sender: { id: 'user-1' }, created_at: new Date().toISOString() }),
+        json: async () => ({
+          id: 'real-1',
+          content: 'hello',
+          sender: { id: 'user-1' },
+          created_at: new Date().toISOString(),
+        }),
       })
       const store = useChatStore()
-      store.messages.a1 = [{ _localId: 'local-1', _status: 'failed', content: 'hello', sender: { id: 'user-1' } }]
+      store.messages.a1 = [
+        { _localId: 'local-1', _status: 'failed', content: 'hello', sender: { id: 'user-1' } },
+      ]
 
       const result = await store.retryMessage('a1', 'local-1')
 
@@ -190,7 +202,12 @@ describe('useChatStore', () => {
       const store = useChatStore()
       store.messages.a1 = []
 
-      store.addIncomingMessage({ id: 'm1', content: 'hi', sender: { id: 'user-1' }, activity_id: 'a1' })
+      store.addIncomingMessage({
+        id: 'm1',
+        content: 'hi',
+        sender: { id: 'user-1' },
+        activity_id: 'a1',
+      })
 
       expect(store.messages.a1).toHaveLength(0)
     })
@@ -198,7 +215,12 @@ describe('useChatStore', () => {
     it('加入他人的訊息並計算未讀', () => {
       const store = useChatStore()
 
-      store.addIncomingMessage({ id: 'm1', content: 'hi', sender: { id: 'user-2' }, activity_id: 'a1' })
+      store.addIncomingMessage({
+        id: 'm1',
+        content: 'hi',
+        sender: { id: 'user-2' },
+        activity_id: 'a1',
+      })
 
       expect(store.messages.a1).toHaveLength(1)
       expect(store.unreadCounts.a1).toBe(1)
@@ -208,7 +230,12 @@ describe('useChatStore', () => {
       const store = useChatStore()
       store.messages.a1 = [{ id: 'm1', content: 'hi', sender: {} }]
 
-      store.addIncomingMessage({ id: 'm1', content: 'hi', sender: { id: 'user-2' }, activity_id: 'a1' })
+      store.addIncomingMessage({
+        id: 'm1',
+        content: 'hi',
+        sender: { id: 'user-2' },
+        activity_id: 'a1',
+      })
 
       expect(store.messages.a1).toHaveLength(1)
     })

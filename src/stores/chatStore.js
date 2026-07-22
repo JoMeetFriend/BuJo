@@ -18,6 +18,7 @@ export const useChatStore = defineStore('chat', () => {
   const isSending = ref(false)
   const error = ref('')
   const chatRoomMap = ref({})
+  const pendingMessages = ref([])
 
   const totalUnread = computed(() =>
     Object.values(unreadCounts.value).reduce((sum, c) => sum + c, 0),
@@ -56,9 +57,7 @@ export const useChatStore = defineStore('chat', () => {
   function selectActivity(activityId) {
     currentActivityId.value = activityId
     unreadCounts.value[activityId] = 0
-    if (!messages.value[activityId]) {
-      fetchMessages(activityId)
-    }
+    fetchMessages(activityId)
   }
 
   function backToList() {
@@ -77,6 +76,7 @@ export const useChatStore = defineStore('chat', () => {
       for (const a of joined) {
         chatRoomMap.value[a.chat_id ?? a.id] = a.id
       }
+      flushPendingMessages()
     } catch {
       // silent
     } finally {
@@ -231,13 +231,20 @@ export const useChatStore = defineStore('chat', () => {
     )
   }
 
-  function addIncomingMessage(msg) {
-    const authStore = useAuthStore()
-    if (msg.sender?.id === authStore.user?.id) return
+  function flushPendingMessages() {
+    const remaining = []
+    for (const msg of pendingMessages.value) {
+      const activityId = msg.activity_id ?? chatRoomMap.value[msg.chat_id]
+      if (activityId) {
+        applyIncomingMessage(msg, activityId)
+      } else {
+        remaining.push(msg)
+      }
+    }
+    pendingMessages.value = remaining
+  }
 
-    const activityId = msg.activity_id ?? chatRoomMap.value[msg.chat_id]
-    if (!activityId) return
-
+  function applyIncomingMessage(msg, activityId) {
     if (!messages.value[activityId]) {
       messages.value[activityId] = []
     }
@@ -249,6 +256,19 @@ export const useChatStore = defineStore('chat', () => {
     if (activityId !== currentActivityId.value || !isOpen.value) {
       unreadCounts.value[activityId] = (unreadCounts.value[activityId] ?? 0) + 1
     }
+  }
+
+  function addIncomingMessage(msg) {
+    const authStore = useAuthStore()
+    if (msg.sender?.id === authStore.user?.id) return
+
+    const activityId = msg.activity_id ?? chatRoomMap.value[msg.chat_id]
+    if (!activityId) {
+      pendingMessages.value = [...pendingMessages.value, msg]
+      return
+    }
+
+    applyIncomingMessage(msg, activityId)
   }
 
   function removeRoom(activityId) {
