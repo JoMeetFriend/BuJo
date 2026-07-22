@@ -88,6 +88,10 @@ const emit = defineEmits(['click'])
 }
 
 .bujo-tour-help-btn--calendar-aligned {
-  top: 12px;
+  top: 22px;
+  right: clamp(20px, 4vw, 40px);
+  width: 36px;
+  height: 36px;
+  font-size: 13px;
 }
 </style>

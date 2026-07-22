@@ -60,6 +60,13 @@ async function mountAppSidebar(user = {}, routePath = '/') {
 }
 
 describe('AppSidebar', () => {
+  test('平板沿用底部導覽，1024px 以上才顯示完整側欄', () => {
+    expect(appSidebarSource).toContain('class="hidden lg:flex')
+    expect(appSidebarSource).toContain('<div class="lg:hidden">')
+    expect(appSidebarSource).not.toContain('class="hidden md:flex')
+    expect(appSidebarSource).not.toContain('<div class="md:hidden">')
+  })
+
   test('手機月曆篩選按鈕釘選在底部導覽列上緣', () => {
     expect(appSidebarSource).toContain('bottom: 100%;')
   })
@@ -190,7 +197,7 @@ describe('AppSidebar', () => {
       )
       expect(appSidebarSource).toContain('calendar-aligned')
       expect(appTourHelpButtonSource).toMatch(
-        /\.bujo-tour-help-btn--calendar-aligned\s*\{[^}]*top: 12px;/,
+        /\.bujo-tour-help-btn--calendar-aligned\s*\{[^}]*top: 22px;[^}]*right: clamp\(20px, 4vw, 40px\);[^}]*width: 36px;[^}]*height: 36px;/,
       )
     })
 

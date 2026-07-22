@@ -12,7 +12,7 @@
 
     <SidebarToggleButton
       v-if="showSidebar"
-      class="hidden md:flex"
+      class="hidden lg:flex"
       :class="
         sidebarOpen
           ? 'app-sidebar-toggle app-sidebar-toggle--open'
