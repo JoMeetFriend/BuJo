@@ -14,11 +14,22 @@
           </div>
           <span>{{ activity.creator.display_name }}</span>
         </div>
+        <div v-else-if="loading" class="activity-detail-creator" aria-hidden="true">
+          <div class="activity-detail-avatar activity-detail-skeleton-avatar"></div>
+          <span class="activity-detail-skeleton-line activity-detail-skeleton-line--name"></span>
+        </div>
         <div class="activity-detail-top-actions">
           <div v-if="activity" class="activity-detail-badges">
             <span class="activity-detail-badge" :class="statusBadgeClass">
               {{ statusText }}
             </span>
+          </div>
+          <div
+            v-else-if="loading"
+            class="activity-detail-badges"
+            aria-hidden="true"
+          >
+            <span class="activity-detail-badge activity-detail-skeleton-badge"></span>
           </div>
           <button
             v-if="closable"
@@ -32,15 +43,37 @@
         </div>
       </div>
       <div class="activity-detail-header-content">
-        <h2 :title="activity?.title || t('activityDetail.title')">
+        <h2
+          v-if="!loading"
+          :title="activity?.title || t('activityDetail.title')"
+        >
           {{ activity?.title || t('activityDetail.title') }}
         </h2>
+        <span
+          v-else
+          class="activity-detail-skeleton-line activity-detail-skeleton-line--title"
+          :aria-label="t('activityDetail.loading')"
+        ></span>
         <div v-if="activity" class="activity-detail-date">{{ panelDate }}</div>
+        <span
+          v-else-if="loading"
+          class="activity-detail-skeleton-line activity-detail-skeleton-line--date"
+          aria-hidden="true"
+        ></span>
       </div>
     </header>
 
     <section class="activity-detail-body">
-      <div v-if="loading" class="activity-detail-state">{{ t('activityDetail.loading') }}</div>
+      <div v-if="loading" class="activity-detail-skeleton" role="status" :aria-label="t('activityDetail.loading')">
+        <div class="activity-detail-skeleton-block"></div>
+        <div class="activity-detail-skeleton-line activity-detail-skeleton-line--medium"></div>
+        <div class="activity-detail-skeleton-line activity-detail-skeleton-line--wide"></div>
+        <div class="activity-detail-skeleton-avatars">
+          <span class="activity-detail-skeleton-avatar"></span>
+          <span class="activity-detail-skeleton-avatar"></span>
+          <span class="activity-detail-skeleton-avatar"></span>
+        </div>
+      </div>
       <div v-else-if="fetchError" class="activity-detail-state activity-detail-state--error">
         {{ fetchError }}
       </div>
@@ -388,6 +421,10 @@
         <p v-if="actionError" class="activity-detail-error">{{ actionError }}</p>
       </template>
     </section>
+
+    <footer v-if="loading" class="activity-detail-footer" aria-hidden="true">
+      <span class="activity-detail-skeleton-button"></span>
+    </footer>
 
     <footer v-if="activity" class="activity-detail-footer">
       <div v-if="successMessage" class="activity-detail-success">
@@ -1542,6 +1579,85 @@ function formatTime(date) {
 .activity-detail-state--error,
 .activity-detail-error {
   color: var(--bujo-danger);
+}
+
+/* 載入中骨架圖：外形貼近載入完成後的版面，避免「空殼 → 填滿」看起來像換了一個彈窗 */
+@keyframes activity-detail-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
+
+.activity-detail-skeleton-line,
+.activity-detail-skeleton-block,
+.activity-detail-skeleton-avatar,
+.activity-detail-skeleton-badge,
+.activity-detail-skeleton-button {
+  display: block;
+  border-radius: 2px;
+  background: rgb(var(--bujo-ink-rgb) / 0.28);
+  animation: activity-detail-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.activity-detail-skeleton-line {
+  height: 12px;
+}
+
+.activity-detail-skeleton-line--title {
+  width: 60%;
+  height: 20px;
+  margin-bottom: 4px;
+}
+
+.activity-detail-skeleton-line--date {
+  width: 35%;
+  height: 11px;
+}
+
+.activity-detail-skeleton-line--name {
+  width: 64px;
+}
+
+.activity-detail-skeleton-line--wide {
+  width: 90%;
+}
+
+.activity-detail-skeleton-line--medium {
+  width: 65%;
+  margin-top: 10px;
+}
+
+.activity-detail-skeleton-badge {
+  width: 52px;
+  height: 20px;
+  border-radius: 999px;
+}
+
+.activity-detail-skeleton-block {
+  height: 46px;
+  width: 100%;
+}
+
+.activity-detail-skeleton-avatars {
+  display: flex;
+  gap: 6px;
+  margin-top: 22px;
+}
+
+.activity-detail-skeleton-avatar {
+  width: 25px;
+  height: 25px;
+  border-radius: 999px;
+}
+
+.activity-detail-skeleton-button {
+  width: 96px;
+  height: 32px;
+  border-radius: 2px;
 }
 
 .activity-detail-creator,

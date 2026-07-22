@@ -86,6 +86,38 @@ describe('ActivityDetailModal - 手機高度限制', () => {
   })
 })
 
+describe('ActivityDetailModal - 載入中顯示骨架圖，避免看起來像換了一個彈窗', () => {
+  test('資料抓回來前顯示骨架圖，抓回來後換成真實內容且沒有殘留骨架元素', async () => {
+    let resolveFetch
+    globalThis.fetch = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveFetch = resolve
+        }),
+    )
+
+    const wrapper = mount(ActivityDetailModal, {
+      props: { isOpen: true, activityId: 'act-1' },
+      global: { plugins: [createTestI18n()] },
+    })
+    await flushPromises()
+
+    expect(wrapper.find('.activity-detail-skeleton').exists()).toBe(true)
+    expect(wrapper.find('.activity-detail-state--error').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('載入中')
+
+    resolveFetch({
+      ok: true,
+      json: () => Promise.resolve({ activity: makeActivity({ title: '揪團活動' }) }),
+    })
+    await flushPromises()
+
+    expect(wrapper.find('.activity-detail-skeleton').exists()).toBe(false)
+    expect(wrapper.find('[class*="activity-detail-skeleton"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('揪團活動')
+  })
+})
+
 describe('ActivityDetailModal - 活動標題顯示保護', () => {
   test('長標題仍保留完整 title 屬性供 hover 或輔助工具讀取', async () => {
     const longTitle = '嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨嗨'
