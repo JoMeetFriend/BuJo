@@ -563,6 +563,9 @@ describe('CalendarMain', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.calendar-mobile-controls').exists()).toBe(false)
     expect(wrapper.find('[aria-label="切換背景動畫"]').exists()).toBe(true)
+    const pageHeader = wrapper.get('header.calendar-page-header')
+    expect(pageHeader.find('.calendar-mood-line').exists()).toBe(true)
+    expect(pageHeader.find('.calendar-page-profile-button').exists()).toBe(true)
 
     expect(calendarMainSource).toMatch(
       /@media \(max-width: 1199px\) \{[\s\S]*?\.calendar-content-composition\s*\{[^}]*grid-template-columns: minmax\(0, 1fr\);[^}]*flex: 0 0 auto;/,
@@ -571,7 +574,13 @@ describe('CalendarMain', () => {
       /@media \(max-width: 1199px\) \{[\s\S]*?\.calendar-content-composition\s*\{[^}]*margin-top: 80px;/,
     )
     expect(calendarMainSource).toMatch(
-      /@media \(max-width: 1199px\) \{[\s\S]*?\.calendar-page-profile-button\s*\{[^}]*top: 19px;[^}]*right: clamp\(32px, 4vw, 48px\);/,
+      /\.calendar-page-header\s*\{[^}]*position: absolute;[^}]*right: 64px;[^}]*left: 64px;[^}]*display: grid;[^}]*grid-template-columns: minmax\(0, 1fr\) minmax\(190px, 240px\);[^}]*gap: clamp\(18px, 2\.2vw, 34px\);[^}]*height: calc\(24px \+ clamp\(92px, 13vh, 112px\)\);[^}]*align-items: center;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /\.calendar-mood-line\s*\{[^}]*grid-column: 1;[^}]*align-items: center;[^}]*justify-self: center;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /\.calendar-page-profile-button\s*\{[^}]*position: relative;[^}]*grid-column: 2;[^}]*justify-self: end;/,
     )
     expect(calendarMainSource).toMatch(
       /@media \(max-width: 1199px\) \{[\s\S]*?\.calendar-main-shell\s*\{[^}]*overflow-x: hidden;[^}]*overflow-y: auto;/,
@@ -579,7 +588,18 @@ describe('CalendarMain', () => {
     expect(calendarMainSource).toMatch(
       /@media \(max-width: 1023px\) \{[\s\S]*?padding: 0 clamp\(20px, 4vw, 40px\) calc\(84px \+ env\(safe-area-inset-bottom, 0px\)\);/,
     )
-    expect(calendarMainSource).toContain('position: absolute;\n  top: 22px;\n  left: 50%;')
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 1199px\) \{[\s\S]*?\.calendar-page-header\s*\{[^}]*height: 80px;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 1199px\) \{[\s\S]*?\.calendar-mood-line\s*\{[^}]*grid-column: 2;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 1023px\) \{[\s\S]*?\.calendar-page-header\s*\{[^}]*grid-template-columns: 88px minmax\(0, 1fr\) 88px;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 640px\) \{[\s\S]*?\.calendar-page-header\s*\{[^}]*display: none;/,
+    )
     expect(calendarMainSource).not.toContain('left: 50vw;')
 
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth })

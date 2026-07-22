@@ -41,32 +41,35 @@
       </button>
     </div>
 
-    <button
-      type="button"
-      class="calendar-profile-button calendar-page-profile-button hidden lg:flex"
-      :class="{ 'btn-bounce-green': profileBtnBouncing }"
-      @animationend="profileBtnBouncing = false"
-      :aria-label="t('calendar.openAccountMenu')"
-      @click="openProfileModal"
-    >
-      <img
-        v-if="showCurrentUserAvatar"
-        :src="currentUserAvatarSrc"
-        :alt="currentUser.display_name"
-        @error="handleCurrentUserAvatarError"
-        class="h-full w-full object-cover"
-      />
-      <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
-    </button>
-    <p class="calendar-mood-line" :aria-label="t('calendar.moodLineAria')">
-      <strong>BuJo</strong>
-      <span class="calendar-mood-divider"></span>
-      <span>{{ t('calendar.moodLinePart1') }}</span>
-      <span>{{ t('calendar.moodLinePart2') }}</span>
-      <span>{{ t('calendar.moodLinePart3') }}</span>
-      <span>.</span>
-      <span class="calendar-mood-flag" aria-hidden="true"></span>
-    </p>
+    <header class="calendar-page-header">
+      <p class="calendar-mood-line" :aria-label="t('calendar.moodLineAria')">
+        <strong>BuJo</strong>
+        <span class="calendar-mood-divider"></span>
+        <span>{{ t('calendar.moodLinePart1') }}</span>
+        <span>{{ t('calendar.moodLinePart2') }}</span>
+        <span>{{ t('calendar.moodLinePart3') }}</span>
+        <span>.</span>
+        <span class="calendar-mood-flag" aria-hidden="true"></span>
+      </p>
+
+      <button
+        type="button"
+        class="calendar-profile-button calendar-page-profile-button hidden lg:flex"
+        :class="{ 'btn-bounce-green': profileBtnBouncing }"
+        @animationend="profileBtnBouncing = false"
+        :aria-label="t('calendar.openAccountMenu')"
+        @click="openProfileModal"
+      >
+        <img
+          v-if="showCurrentUserAvatar"
+          :src="currentUserAvatarSrc"
+          :alt="currentUser.display_name"
+          @error="handleCurrentUserAvatarError"
+          class="h-full w-full object-cover"
+        />
+        <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
+      </button>
+    </header>
     <p v-if="activitiesFetchError" class="calendar-fetch-error" role="alert">
       {{ activitiesFetchError }}
     </p>
@@ -898,11 +901,25 @@ function isToday(date) {
   background: var(--bujo-white);
 }
 
-.calendar-page-profile-button {
+.calendar-page-header {
   position: absolute;
-  top: 22px;
-  right: 32px;
+  top: 0;
+  right: 64px;
+  left: 64px;
+  z-index: 7;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 240px);
+  gap: clamp(18px, 2.2vw, 34px);
+  height: calc(24px + clamp(92px, 13vh, 112px));
+  min-width: 0;
+  align-items: center;
+}
+
+.calendar-page-profile-button {
+  position: relative;
   z-index: 8;
+  grid-column: 2;
+  justify-self: end;
   width: 42px;
   height: 42px;
   overflow: visible;
@@ -1013,18 +1030,17 @@ function isToday(date) {
 }
 
 .calendar-mood-line {
-  position: absolute;
-  top: 22px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 7;
+  grid-column: 1;
   display: flex;
-  max-width: calc(100% - 180px);
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
+  justify-self: center;
   gap: 6px;
+  margin: 0;
   color: var(--bujo-text-muted);
   font-family: 'Inter', var(--bujo-font-body);
-  font-size: 18px;
+  font-size: clamp(12px, 1.15vw, 18px);
   font-weight: 400;
   line-height: 1;
   white-space: nowrap;
@@ -1571,8 +1587,16 @@ function isToday(date) {
     padding: 0 clamp(32px, 4vw, 48px) 32px;
   }
 
-  .calendar-mood-line {
-    display: none;
+  .calendar-page-header {
+    right: clamp(32px, 4vw, 48px);
+    left: clamp(32px, 4vw, 48px);
+    grid-template-columns: 42px minmax(0, 1fr) 42px;
+    gap: 0;
+    height: 80px;
+  }
+
+  .calendar-page-profile-button {
+    grid-column: 3;
   }
 
   .calendar-content-composition {
@@ -1581,9 +1605,9 @@ function isToday(date) {
     margin-top: 80px;
   }
 
-  .calendar-page-profile-button {
-    top: 19px;
-    right: clamp(32px, 4vw, 48px);
+  .calendar-mood-line {
+    grid-column: 2;
+    font-size: clamp(12px, 1.45vw, 16px);
   }
 
   .calendar-social-rail {
@@ -1630,6 +1654,31 @@ function isToday(date) {
     padding: 0 clamp(20px, 4vw, 40px) calc(84px + env(safe-area-inset-bottom, 0px));
   }
 
+  .calendar-page-header {
+    right: clamp(20px, 4vw, 40px);
+    left: clamp(20px, 4vw, 40px);
+    grid-template-columns: 88px minmax(0, 1fr) 88px;
+  }
+
+  .calendar-mood-line {
+    gap: 4px;
+    font-size: clamp(10px, 1.35vw, 14px);
+  }
+
+  .calendar-mood-divider {
+    height: 24px;
+  }
+
+  .calendar-mood-flag {
+    width: 26px;
+    height: 20px;
+  }
+
+  .calendar-mood-flag::after {
+    width: 24px;
+    height: 18px;
+  }
+
   .calendar-mobile-controls {
     position: absolute;
     top: 22px;
@@ -1662,6 +1711,10 @@ function isToday(date) {
   .calendar-main-shell {
     gap: 14px;
     padding: 0 8px calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .calendar-page-header {
+    display: none;
   }
 
   .calendar-content-composition {
