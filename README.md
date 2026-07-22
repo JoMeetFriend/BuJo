@@ -32,6 +32,8 @@ BuJo 圍繞五大核心功能設計，登入後即可依序體驗：
 - Pinia（狀態管理）
 - Vue Router
 - Tailwind CSS
+- Vue I18n（多語系，繁中／英文）
+- Driver.js（新手導覽）
 - Vitest（測試）
 - ESLint + oxlint + Prettier（程式碼風格）
 
