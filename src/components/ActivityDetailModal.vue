@@ -5,9 +5,10 @@
         <div v-if="activity" class="activity-detail-creator">
           <div class="activity-detail-avatar">
             <img
-              v-if="activity.creator.avatar_url"
-              :src="toAvatarSrc(activity.creator.avatar_url)"
+              v-if="personAvatarSrc(activity.creator)"
+              :src="personAvatarSrc(activity.creator)"
               alt=""
+              @error="handleAvatarError(activity.creator)"
             />
             <UserIcon v-else class="h-4 w-4" aria-hidden="true" />
           </div>
@@ -162,10 +163,11 @@
             >
               <template v-for="p in visibleParticipants" :key="p.id">
                 <img
-                  v-if="p.avatar_url"
+                  v-if="personAvatarSrc(p)"
                   class="activity-detail-avatar activity-detail-participant-avatar"
-                  :src="toAvatarSrc(p.avatar_url)"
+                  :src="personAvatarSrc(p)"
                   alt=""
+                  @error="handleAvatarError(p)"
                 />
                 <div
                   v-else
@@ -236,7 +238,12 @@
                   :key="p.user_id"
                   class="activity-detail-avatar"
                 >
-                  <img v-if="p.avatar_url" :src="toAvatarSrc(p.avatar_url)" alt="" />
+                  <img
+                    v-if="personAvatarSrc(p)"
+                    :src="personAvatarSrc(p)"
+                    alt=""
+                    @error="handleAvatarError(p)"
+                  />
                   <span v-else>{{ p.display_name?.slice(0, 1) ?? '?' }}</span>
                 </span>
                 <span
@@ -281,7 +288,12 @@
                   :key="p.user_id"
                   class="activity-detail-avatar"
                 >
-                  <img v-if="p.avatar_url" :src="toAvatarSrc(p.avatar_url)" alt="" />
+                  <img
+                    v-if="personAvatarSrc(p)"
+                    :src="personAvatarSrc(p)"
+                    alt=""
+                    @error="handleAvatarError(p)"
+                  />
                   <span v-else>{{ p.display_name?.slice(0, 1) ?? '?' }}</span>
                 </span>
                 <span
@@ -345,7 +357,12 @@
                 @touchmove="handleAvatarTouchEnd"
               >
                 <span v-for="s in entry.supporters" :key="s.user_id" class="activity-detail-avatar">
-                  <img v-if="s.avatar_url" :src="toAvatarSrc(s.avatar_url)" alt="" />
+                  <img
+                    v-if="personAvatarSrc(s)"
+                    :src="personAvatarSrc(s)"
+                    alt=""
+                    @error="handleAvatarError(s)"
+                  />
                   <span v-else>{{ s.display_name?.slice(0, 1) ?? '?' }}</span>
                 </span>
                 <span
@@ -851,6 +868,21 @@ function ratioText(count) {
   return votingDenominator.value > 0
     ? `${count}/${votingDenominator.value}${t('common.person')}`
     : `${count}${t('common.person')}`
+}
+
+const brokenAvatarIds = ref(new Set())
+
+function personAvatarSrc(person) {
+  if (!person?.avatar_url) return ''
+  const key = person.id ?? person.user_id
+  if (key != null && brokenAvatarIds.value.has(key)) return ''
+  return toAvatarSrc(person.avatar_url)
+}
+
+function handleAvatarError(person) {
+  const key = person?.id ?? person?.user_id
+  if (key == null) return
+  brokenAvatarIds.value = new Set([...brokenAvatarIds.value, key])
 }
 
 const hasExpandableParticipants = computed(() => (activity.value?.current_count ?? 0) > 5)

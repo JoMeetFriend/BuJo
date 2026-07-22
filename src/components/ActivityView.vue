@@ -61,14 +61,15 @@
             <div class="activity-mini-title-row">
               <span
                 class="activity-mini-avatar"
-                :class="{ 'activity-mini-avatar--initial': !activity.creator?.avatar_url }"
+                :class="{ 'activity-mini-avatar--initial': !creatorAvatarSrc(activity) }"
                 aria-hidden="true"
               >
                 <img
-                  v-if="activity.creator?.avatar_url"
-                  :src="toAvatarSrc(activity.creator.avatar_url)"
+                  v-if="creatorAvatarSrc(activity)"
+                  :src="creatorAvatarSrc(activity)"
                   alt=""
                   loading="lazy"
+                  @error="handleCreatorAvatarError(activity.id)"
                 />
                 <span v-else>{{ miniCardCreatorInitial(activity) }}</span>
               </span>
@@ -117,6 +118,17 @@ const filters = computed(() => [
 const activities = ref([])
 const loading = ref(false)
 const fetchError = ref('')
+const brokenCreatorAvatarIds = ref(new Set())
+
+function creatorAvatarSrc(activity) {
+  if (!activity.creator?.avatar_url) return ''
+  if (brokenCreatorAvatarIds.value.has(activity.id)) return ''
+  return toAvatarSrc(activity.creator.avatar_url)
+}
+
+function handleCreatorAvatarError(activityId) {
+  brokenCreatorAvatarIds.value = new Set([...brokenCreatorAvatarIds.value, activityId])
+}
 const currentFilter = ref('all')
 const selectedFeaturedActivityId = ref(null)
 const focusRequested = ref(false)

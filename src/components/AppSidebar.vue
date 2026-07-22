@@ -79,9 +79,10 @@
         @click="showProfileModal = true"
       >
         <img
-          v-if="userAvatarSrc"
+          v-if="showUserAvatar"
           :src="userAvatarSrc"
           :alt="authStore.user?.display_name || t('sidebar.meFallback')"
+          @error="handleUserAvatarError"
           class="w-8 h-8 object-cover shrink-0"
         />
         <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
@@ -168,9 +169,10 @@
         :aria-label="t('sidebar.ariaMobileProfile')"
       >
         <img
-          v-if="userAvatarSrc"
+          v-if="showUserAvatar"
           :src="userAvatarSrc"
           :alt="authStore.user?.display_name || t('sidebar.meFallback')"
+          @error="handleUserAvatarError"
           class="w-full h-full object-cover"
         />
         <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
@@ -214,6 +216,14 @@ const notificationStore = useNotificationStore()
 const { t, locale } = useI18n()
 const isCalendarPage = computed(() => route.path === '/calendar')
 const userAvatarSrc = computed(() => toAvatarSrc(authStore.user?.avatar_url))
+const userAvatarFailed = ref(false)
+watch(userAvatarSrc, () => {
+  userAvatarFailed.value = false
+})
+const showUserAvatar = computed(() => Boolean(userAvatarSrc.value) && !userAvatarFailed.value)
+function handleUserAvatarError() {
+  userAvatarFailed.value = true
+}
 
 // 未讀數更新時機：掛載、瀏覽器分頁回到可見（如從 LINE 推播返回）、App 內換頁
 function refetchUnreadCountWhenVisible() {
