@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import axios from 'axios'
 import i18n from '@/i18n'
 import { apiClient } from '@/services/httpClient'
+import { toAvatarSrc } from '@/utils/avatar'
 
 export function useUserSearch() {
   const searchResults = ref([])
@@ -40,7 +41,7 @@ export function useUserSearch() {
       searchResults.value = (response.data || []).map((user) => ({
         id: String(user.id),
         display_name: String(user.display_name || i18n.global.t('common.unnamed')),
-        avatar_url: /^https?:\/\//.test(user.avatar_url) ? user.avatar_url : null,
+        avatar_url: toAvatarSrc(user.avatar_url) || null,
       }))
 
       hasSearched.value = true
