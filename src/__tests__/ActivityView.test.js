@@ -53,9 +53,141 @@ async function clickFilter(wrapper, text) {
 }
 
 describe('ActivityView - 手機短螢幕響應式版面', () => {
+  test('頁首與篩選工具列為獨立區塊，建立活動按鈕留在頁首右側', async () => {
+    stubFetch([makeActivity()])
+    const wrapper = await mountActivityView()
+    await flushPromises()
+
+    const header = wrapper.find('header.activity-gallery-header')
+    const toolbar = wrapper.find('nav.activity-filter-toolbar')
+
+    expect(header.find('.activity-filter').exists()).toBe(false)
+    expect(header.find('.activity-create-button').exists()).toBe(true)
+    expect(toolbar.exists()).toBe(true)
+    expect(toolbar.findAll('.activity-filter')).toHaveLength(5)
+  })
+
+  test('獨立篩選工具列使用 40px 按鈕與較大的標籤、數量字級', () => {
+    expect(activityViewSource).toMatch(
+      /\.activity-gallery-page\s*{[^}]*grid-template-rows: auto auto minmax\(390px, 1fr\);/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-filter-toolbar\s*{[^}]*min-height: 56px;[^}]*border-top:[^;]+;[^}]*border-bottom:[^;]+;/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-filter\s*{[^}]*min-height: 40px;[^}]*font-size: 13px;[^}]*padding: 9px 16px;/s,
+    )
+    expect(activityViewSource).toMatch(/\.activity-filter b\s*{[^}]*font-size: 14px;/s)
+  })
+
+  test('桌機標題、篩選群組與主活動卡共用主內容欄中心線', () => {
+    expect(activityViewSource).toMatch(
+      /\.activity-gallery-page\s*{[^}]*--activity-rail-width: clamp\(190px, 18vw, 240px\);[^}]*--activity-column-gap: clamp\(18px, 2\.2vw, 32px\);/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-gallery-header\s*{[^}]*grid-template-columns: minmax\(0, 1fr\) var\(--activity-rail-width\);[^}]*gap: var\(--activity-column-gap\);/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-heading\s*{[^}]*grid-column: 1;[^}]*text-align: center;/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-filter-toolbar\s*{[^}]*display: grid;[^}]*grid-template-columns: minmax\(0, 1fr\) var\(--activity-rail-width\);[^}]*gap: var\(--activity-column-gap\);/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-filter-scroller\s*{[^}]*grid-column: 1;[^}]*overflow-x: auto;[^}]*touch-action: pan-x;/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-filter-group\s*{[^}]*width: max-content;[^}]*min-width: 100%;[^}]*flex-wrap: nowrap;[^}]*justify-content: center;/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-content\s*{[^}]*grid-template-columns: minmax\(0, 1fr\) var\(--activity-rail-width\);[^}]*gap: var\(--activity-column-gap\);/s,
+    )
+  })
+
+  test('主活動卡以 activity id 做紙張切換過場', () => {
+    expect(activityViewSource).toMatch(
+      /<Transition name="activity-focus" mode="out-in">[\s\S]*?<div v-else :key="featuredActivity\.id" class="activity-focus-frame">/,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-stage :deep\(\.activity-focus-enter-active\)\s*{[^}]*opacity 180ms ease,[^}]*transform 180ms/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-stage :deep\(\.activity-focus-leave-active\)\s*{[^}]*opacity 120ms ease,[^}]*transform 120ms/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-stage :deep\(\.activity-focus-enter-from\)\s*{[^}]*opacity: 0;[^}]*translateY\(8px\)/s,
+    )
+  })
+
+  test('篩選墨線與活動小卡 hover 只在精準滑鼠裝置啟用', () => {
+    expect(activityViewSource).toMatch(
+      /\.activity-filter::after\s*{[^}]*transform: scaleX\(0\);[^}]*transform-origin: left center;/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-filter--active::after\s*{[^}]*transform: scaleX\(1\);/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-mini-card::before\s*{[^}]*top: 15px;[^}]*left: 0;[^}]*width: 2px;[^}]*height: 22px;[^}]*transform: scaleY\(0\);/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-mini-card--active::before\s*{[^}]*transform: scaleY\(1\);/s,
+    )
+    expect(activityViewSource).toMatch(
+      /@media \(hover: hover\) and \(pointer: fine\)[^{]*{[\s\S]*?\.activity-filter:not\(\.activity-filter--active\):hover[\s\S]*?\.activity-mini-card:hover\s*{[^}]*transform: translateX\(-4px\);/,
+    )
+  })
+
+  test('偏好減少動態時停用過場與位移但保留選中樣式', () => {
+    expect(activityViewSource).toMatch(
+      /@media \(prefers-reduced-motion: reduce\)[^{]*{[\s\S]*?\.activity-filter,[\s\S]*?\.activity-focus-leave-active\)[^{]*{[^}]*transition: none;[\s\S]*?\.activity-mini-card:hover,[\s\S]*?\.activity-focus-leave-to\)[^{]*{[^}]*opacity: 1;[^}]*transform: none;/,
+    )
+  })
+
+  test('平板與電腦使用右側垂直活動列，手機改為底部橫向活動列', () => {
+    expect(activityViewSource).toMatch(
+      /\.activity-content\s*{[^}]*grid-template-columns: minmax\(0, 1fr\) var\(--activity-rail-width\);/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-strip\s*{[^}]*overflow-y: auto;[^}]*scroll-snap-type: y proximity;[^}]*touch-action: pan-y;/s,
+    )
+    expect(activityViewSource).toMatch(
+      /@media \(max-width: 767px\)[^{]*{[\s\S]*?\.activity-content\s*{[^}]*grid-template-columns: minmax\(0, 1fr\);[^}]*grid-template-rows: minmax\(0, 1fr\) auto;[\s\S]*?\.activity-strip\s*{[^}]*overflow-x: auto;[^}]*overflow-y: hidden;[^}]*scroll-snap-type: x proximity;/,
+    )
+  })
+
+  test('桌機主活動卡加寬加長，右側小卡沿用行事曆 UPCOMING 卡片尺寸', () => {
+    expect(activityViewSource).toMatch(
+      /@media \(min-width: 901px\)[^{]*{[\s\S]*?\.activity-stage :deep\(\.activity-detail-panel\)\s*{[^}]*width: min\(420px, calc\(100% - 40px\)\);[^}]*min-height: min\(520px, calc\(100% - 40px\)\);/,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-strip\s*{[^}]*grid-auto-rows: 104px;[^}]*gap: 12px;/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-mini-card\s*{[^}]*min-height: 104px;[^}]*padding: 15px 16px 14px;/s,
+    )
+  })
+
   test('手機大標字級與好友、通知頁一致', () => {
     expect(activityViewSource).toMatch(
       /@media \(max-width: 900px\)[^{]*\{[\s\S]*?\.activity-heading h1\s*\{[^}]*font-size: clamp\(40px, 6vw, 64px\);/,
+    )
+  })
+
+  test('900px 以下維持標題靠左與篩選列水平捲動', () => {
+    expect(activityViewSource).toMatch(
+      /@media \(max-width: 900px\)[^{]*{[\s\S]*?\.activity-gallery-header\s*{[^}]*grid-template-columns: minmax\(0, 1fr\) auto;[\s\S]*?\.activity-heading\s*{[^}]*text-align: left;[\s\S]*?\.activity-filter-toolbar\s*{[^}]*display: flex;[^}]*gap: 0;[\s\S]*?\.activity-filter-group\s*{[^}]*justify-content: flex-start;/,
+    )
+  })
+
+  test('篩選項目在所有 RWD 寬度維持單列，空間不足時可水平捲動', () => {
+    expect(activityViewSource).toMatch(
+      /<div class="activity-filter-scroller">\s*<div class="activity-filter-group">[\s\S]*?v-for="item in filters"/,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-filter-group\s*{[^}]*width: max-content;[^}]*display: flex;[^}]*flex-wrap: nowrap;/s,
+    )
+    expect(activityViewSource).toMatch(
+      /\.activity-filter\s*{[^}]*flex: 0 0 auto;[^}]*white-space: nowrap;/s,
     )
   })
 
@@ -67,7 +199,7 @@ describe('ActivityView - 手機短螢幕響應式版面', () => {
 
   test('Short screens reduce decorative vertical spacing', () => {
     expect(activityViewSource).toMatch(
-      /@media \(max-width: 900px\) and \(max-height: 700px\)[^{]*{[\s\S]*?\.activity-gallery-page\s*{[^}]*gap: 8px;[\s\S]*?\.activity-stage\s*{[^}]*padding: 16px 0 4px;[\s\S]*?\.activity-card-rail\s*{[^}]*margin-top: 12px;/,
+      /@media \(max-width: 767px\) and \(max-height: 700px\)[^{]*{[\s\S]*?\.activity-gallery-page\s*{[^}]*gap: 8px;[\s\S]*?\.activity-stage\s*{[^}]*padding: 16px 0 4px;[\s\S]*?\.activity-card-rail\s*{[^}]*margin-top: 12px;/,
     )
   })
 })

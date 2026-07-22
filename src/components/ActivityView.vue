@@ -4,27 +4,30 @@
       <div class="activity-heading">
         <p class="activity-eyebrow">{{ t('activity.socialIndex') }}</p>
         <h1>{{ t('activity.activityLabel') }}</h1>
-        <div class="activity-filter-row">
-          <div class="activity-filter-scroller" :aria-label="t('activity.ariaFilters')">
-            <button
-              v-for="item in filters"
-              :key="item.key"
-              type="button"
-              @click="currentFilter = item.key"
-              class="activity-filter"
-              :class="{ 'activity-filter--active': currentFilter === item.key }"
-            >
-              <span>{{ item.text }}</span>
-              <b>{{ filterCounts[item.key] ?? 0 }}</b>
-            </button>
-          </div>
+      </div>
 
-          <PixelButton type="button" class="activity-create-button" @click="showCreateModal = true">
-            {{ t('activity.createButton') }}
-          </PixelButton>
+      <PixelButton type="button" class="activity-create-button" @click="showCreateModal = true">
+        {{ t('activity.createButton') }}
+      </PixelButton>
+    </header>
+
+    <nav class="activity-filter-toolbar" :aria-label="t('activity.ariaFilters')">
+      <div class="activity-filter-scroller">
+        <div class="activity-filter-group">
+          <button
+            v-for="item in filters"
+            :key="item.key"
+            type="button"
+            @click="currentFilter = item.key"
+            class="activity-filter"
+            :class="{ 'activity-filter--active': currentFilter === item.key }"
+          >
+            <span>{{ item.text }}</span>
+            <b>{{ filterCounts[item.key] ?? 0 }}</b>
+          </button>
         </div>
       </div>
-    </header>
+    </nav>
 
     <section v-if="loading" class="activity-state-message">{{ t('activity.loading') }}</section>
     <section v-else-if="fetchError" class="activity-state-message activity-state-message--error">
@@ -32,56 +35,63 @@
     </section>
 
     <template v-else-if="featuredActivity || focusMissing">
-      <section class="activity-stage">
-        <span class="activity-stage-sheet activity-stage-sheet--back" aria-hidden="true"></span>
-        <span class="activity-stage-sheet activity-stage-sheet--middle" aria-hidden="true"></span>
-        <div v-if="focusMissing" class="activity-state-message">{{ t('activity.notFound') }}</div>
-        <ActivityDetailModal
-          v-else
-          :is-open="true"
-          :activity-id="featuredActivity.id"
-          @status-changed="fetchActivities"
-        />
-      </section>
+      <div class="activity-content">
+        <section class="activity-stage">
+          <span class="activity-stage-sheet activity-stage-sheet--back" aria-hidden="true"></span>
+          <span class="activity-stage-sheet activity-stage-sheet--middle" aria-hidden="true"></span>
+          <Transition name="activity-focus" mode="out-in">
+            <div v-if="focusMissing" key="focus-missing" class="activity-state-message">
+              {{ t('activity.notFound') }}
+            </div>
+            <div v-else :key="featuredActivity.id" class="activity-focus-frame">
+              <ActivityDetailModal
+                :is-open="true"
+                :activity-id="featuredActivity.id"
+                @status-changed="fetchActivities"
+              />
+            </div>
+          </Transition>
+        </section>
 
-      <section class="activity-card-rail" :aria-label="t('activity.ariaActivities')">
-        <ul class="activity-strip">
-          <li
-            v-for="activity in filteredActivities"
-            :key="activity.id"
-            class="activity-mini-card"
-            :class="[
-              miniCardClass(activity),
-              !focusMissing && activity.id === featuredActivity?.id
-                ? 'activity-mini-card--active'
-                : '',
-            ]"
-            @click="selectActivity(activity.id)"
-          >
-            <div class="activity-mini-title-row">
-              <span
-                class="activity-mini-avatar"
-                :class="{ 'activity-mini-avatar--initial': !creatorAvatarSrc(activity) }"
-                aria-hidden="true"
-              >
-                <img
-                  v-if="creatorAvatarSrc(activity)"
-                  :src="creatorAvatarSrc(activity)"
-                  alt=""
-                  loading="lazy"
-                  @error="handleCreatorAvatarError(activity.id)"
-                />
-                <span v-else>{{ miniCardCreatorInitial(activity) }}</span>
-              </span>
-              <h2 :title="activity.title">{{ miniCardTitle(activity.title) }}</h2>
-            </div>
-            <div class="activity-mini-bottom">
-              <span>{{ activity.date }}</span>
-              <span class="activity-mini-dot"></span>
-            </div>
-          </li>
-        </ul>
-      </section>
+        <section class="activity-card-rail" :aria-label="t('activity.ariaActivities')">
+          <ul class="activity-strip">
+            <li
+              v-for="activity in filteredActivities"
+              :key="activity.id"
+              class="activity-mini-card"
+              :class="[
+                miniCardClass(activity),
+                !focusMissing && activity.id === featuredActivity?.id
+                  ? 'activity-mini-card--active'
+                  : '',
+              ]"
+              @click="selectActivity(activity.id)"
+            >
+              <div class="activity-mini-title-row">
+                <span
+                  class="activity-mini-avatar"
+                  :class="{ 'activity-mini-avatar--initial': !creatorAvatarSrc(activity) }"
+                  aria-hidden="true"
+                >
+                  <img
+                    v-if="creatorAvatarSrc(activity)"
+                    :src="creatorAvatarSrc(activity)"
+                    alt=""
+                    loading="lazy"
+                    @error="handleCreatorAvatarError(activity.id)"
+                  />
+                  <span v-else>{{ miniCardCreatorInitial(activity) }}</span>
+                </span>
+                <h2 :title="activity.title">{{ miniCardTitle(activity.title) }}</h2>
+              </div>
+              <div class="activity-mini-bottom">
+                <span>{{ activity.date }}</span>
+                <span class="activity-mini-dot"></span>
+              </div>
+            </li>
+          </ul>
+        </section>
+      </div>
     </template>
 
     <div v-else class="activity-empty">{{ t('activity.noActivities') }}</div>
@@ -257,13 +267,15 @@ onMounted(() => {
   --activity-green: var(--bujo-accent);
   --activity-pink: var(--bujo-deco-pink);
   --activity-yellow: var(--bujo-card-yellow);
+  --activity-rail-width: clamp(190px, 18vw, 240px);
+  --activity-column-gap: clamp(18px, 2.2vw, 32px);
   min-height: 100%;
   height: 100%;
   max-width: 100%;
   padding: clamp(22px, 2.4vw, 34px) clamp(28px, 3.4vw, 48px) clamp(18px, 2vw, 26px);
   display: grid;
-  grid-template-rows: auto minmax(390px, 1fr) auto;
-  gap: clamp(18px, 2.8vh, 34px);
+  grid-template-rows: auto auto minmax(390px, 1fr);
+  gap: clamp(12px, 1.8vh, 20px);
   overflow: hidden;
   color: var(--activity-ink);
   background:
@@ -274,14 +286,14 @@ onMounted(() => {
 
 .activity-gallery-header {
   display: grid;
-  grid-template-columns: minmax(120px, 1fr) minmax(420px, 2.25fr) minmax(120px, 1fr);
-  gap: clamp(18px, 3vw, 42px);
-  align-items: start;
-  min-height: clamp(118px, 16vh, 148px);
+  grid-template-columns: minmax(0, 1fr) var(--activity-rail-width);
+  gap: var(--activity-column-gap);
+  align-items: end;
+  min-height: clamp(84px, 12vh, 110px);
 }
 
 .activity-heading {
-  grid-column: 2;
+  grid-column: 1;
   grid-row: 1;
   min-width: 0;
   text-align: center;
@@ -320,45 +332,70 @@ onMounted(() => {
   letter-spacing: 0.04em;
 }
 
-.activity-filter-row {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
+.activity-filter-toolbar {
+  min-width: 0;
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--activity-rail-width);
+  gap: var(--activity-column-gap);
   align-items: center;
-  gap: 8px;
-  margin-top: 16px;
+  border-top: 1px solid rgb(var(--bujo-line-rgb) / 0.28);
+  border-bottom: 1px solid rgb(var(--bujo-line-rgb) / 0.28);
+  padding: 7px 0;
   font-family: var(--bujo-font-meta);
 }
 
 .activity-filter-scroller {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 7px;
+  grid-column: 1;
   min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.activity-filter-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.activity-filter-group {
+  width: max-content;
+  min-width: 100%;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 10px;
 }
 
 .activity-create-button {
-  min-height: 28px;
-  padding: 4px 11px;
-  font-size: 10px;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: end;
+  justify-self: end;
+  min-height: 40px;
+  margin-bottom: 3px;
+  padding: 9px 16px;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 .activity-filter {
   --ticket-bg: transparent;
   display: inline-flex;
-  min-height: 30px;
+  min-height: 40px;
   position: relative;
   align-items: center;
-  gap: 7px;
+  gap: 9px;
   border: 1px solid transparent;
   background: var(--ticket-bg);
   color: rgb(var(--bujo-ink-rgb) / 0.52);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 650;
   line-height: 1.08;
   cursor: pointer;
-  padding: 6px 9px;
+  flex: 0 0 auto;
+  padding: 9px 16px;
+  white-space: nowrap;
   transition:
     color 160ms ease,
     background-color 160ms ease,
@@ -366,16 +403,35 @@ onMounted(() => {
     transform 160ms ease;
 }
 
-.activity-filter:hover {
-  transform: translateY(-1px);
+.activity-filter::after {
+  position: absolute;
+  right: 14px;
+  bottom: 4px;
+  left: 14px;
+  height: 2px;
+  background: currentColor;
+  content: '';
+  opacity: 0.56;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.activity-filter:focus-visible {
   color: rgb(var(--bujo-ink-rgb) / 0.72);
   border-color: rgb(var(--bujo-line-rgb) / 0.22);
   background: rgb(var(--bujo-white-rgb) / 0.34);
+  outline: 2px solid var(--bujo-accent);
+  outline-offset: 2px;
+}
+
+.activity-filter:focus-visible::after {
+  transform: scaleX(0.55);
 }
 
 .activity-filter b {
   color: rgb(var(--bujo-ink-rgb) / 0.34);
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 650;
 }
 
@@ -386,8 +442,20 @@ onMounted(() => {
   box-shadow: 1px 2px 0 rgb(var(--bujo-line-rgb) / 0.1);
 }
 
+.activity-filter--active::after {
+  transform: scaleX(1);
+}
+
 .activity-filter--active b {
   color: var(--bujo-accent);
+}
+
+.activity-content {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--activity-rail-width);
+  gap: var(--activity-column-gap);
+  overflow: hidden;
 }
 
 .activity-stage {
@@ -431,41 +499,86 @@ onMounted(() => {
   z-index: 2;
 }
 
-.activity-card-rail {
-  min-height: 126px;
-  padding: 0 0 10px;
+.activity-focus-frame {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
   display: grid;
-  align-items: center;
+  place-items: center;
+}
+
+.activity-stage :deep(.activity-focus-enter-active) {
+  transition:
+    opacity 180ms ease,
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.activity-stage :deep(.activity-focus-leave-active) {
+  transition:
+    opacity 120ms ease,
+    transform 120ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.activity-stage :deep(.activity-focus-enter-from) {
+  opacity: 0;
+  transform: translateY(8px) rotate(0.18deg);
+}
+
+.activity-stage :deep(.activity-focus-leave-to) {
+  opacity: 0;
+  transform: translateY(-6px) rotate(-0.12deg);
+}
+
+.activity-card-rail {
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(18px, 3vh, 34px) 0 clamp(20px, 3.8vh, 42px) clamp(14px, 1.4vw, 20px);
+  border-left: 1px solid rgb(var(--bujo-line-rgb) / 0.3);
   overflow: hidden;
   position: relative;
   z-index: 2;
 }
 
 .activity-strip {
-  display: flex;
-  gap: clamp(18px, 1.25vw, 24px);
-  overflow-x: auto;
-  padding: 8px 0 14px;
+  height: 100%;
+  display: grid;
+  grid-auto-rows: 104px;
+  align-content: start;
+  gap: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding: 6px 10px 14px 6px;
   margin: 0;
   list-style: none;
-  scroll-snap-type: x proximity;
-  scrollbar-width: none;
-  touch-action: pan-x;
+  scroll-snap-type: y proximity;
+  scrollbar-gutter: stable;
+  scrollbar-color: rgb(var(--bujo-ink-rgb) / 0.28) transparent;
+  scrollbar-width: thin;
+  touch-action: pan-y;
 }
 
 .activity-strip::-webkit-scrollbar {
-  display: none;
+  width: 5px;
+}
+
+.activity-strip::-webkit-scrollbar-thumb {
+  background: rgb(var(--bujo-ink-rgb) / 0.28);
+}
+
+.activity-strip::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .activity-mini-card {
   --mini-card-hover-bg: var(--activity-white-card);
   position: relative;
-  flex: 0 0 clamp(152px, 11.2vw, 176px);
-  height: 101px;
+  width: 100%;
+  min-height: 104px;
   scroll-snap-align: center;
   border: 1px solid rgb(var(--bujo-line-rgb) / 0.18);
   border-radius: 1px;
-  padding: 13px 13px 11px;
+  padding: 15px 16px 14px;
   display: grid;
   align-content: space-between;
   cursor: pointer;
@@ -489,6 +602,19 @@ onMounted(() => {
   background: rgb(var(--bujo-ink-rgb) / 0.42);
   opacity: 0.46;
   content: '';
+}
+
+.activity-mini-card::before {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  width: 2px;
+  height: 22px;
+  background: color-mix(in srgb, var(--mini-card-hover-bg) 64%, var(--bujo-ink));
+  content: '';
+  transform: scaleY(0);
+  transform-origin: center top;
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .activity-mini-avatar {
@@ -526,12 +652,14 @@ onMounted(() => {
   gap: 8px;
 }
 
-.activity-mini-card:hover,
 .activity-mini-card--active {
   background: var(--mini-card-hover-bg);
-  transform: translateY(-5px);
   filter: saturate(1.02);
   box-shadow: 7px 9px 12px rgb(var(--bujo-ink-rgb) / 0.12);
+}
+
+.activity-mini-card--active::before {
+  transform: scaleY(1);
 }
 
 .activity-mini-card--mine-recruiting {
@@ -603,23 +731,43 @@ onMounted(() => {
   color: var(--bujo-danger);
 }
 
-@media (max-width: 900px) {
-  .activity-gallery-page {
-    min-height: 100%;
-    height: 100dvh;
-    padding: 18px 16px calc(74px + env(safe-area-inset-bottom));
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    overflow: hidden;
+@media (hover: hover) and (pointer: fine) {
+  .activity-filter:not(.activity-filter--active):hover {
+    color: rgb(var(--bujo-ink-rgb) / 0.72);
+    border-color: rgb(var(--bujo-line-rgb) / 0.22);
+    background: rgb(var(--bujo-white-rgb) / 0.34);
+    transform: translateY(-1px);
   }
 
+  .activity-filter:not(.activity-filter--active):hover::after {
+    transform: scaleX(0.55);
+  }
+
+  .activity-mini-card:hover {
+    background: var(--mini-card-hover-bg);
+    filter: saturate(1.02);
+    box-shadow: 7px 9px 12px rgb(var(--bujo-ink-rgb) / 0.12);
+    transform: translateX(-4px);
+  }
+}
+
+@media (min-width: 901px) {
+  .activity-stage :deep(.activity-detail-panel) {
+    width: min(420px, calc(100% - 40px));
+    min-height: min(520px, calc(100% - 40px));
+  }
+}
+
+@media (max-width: 900px) {
   .activity-gallery-header {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    min-height: 76px;
   }
 
   .activity-heading {
     grid-column: 1;
-    grid-row: auto;
+    grid-row: 1;
     text-align: left;
   }
 
@@ -633,39 +781,25 @@ onMounted(() => {
     margin-bottom: 12px;
   }
 
-  .activity-filter-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
+  .activity-filter-toolbar {
+    display: flex;
+    gap: 0;
   }
 
   .activity-filter-scroller {
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    gap: 8px;
     min-width: 0;
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scrollbar-width: none;
   }
 
-  .activity-filter-scroller::-webkit-scrollbar {
-    display: none;
+  .activity-filter-group {
+    justify-content: flex-start;
   }
 
   .activity-create-button {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: end;
     justify-self: end;
-    white-space: nowrap;
-  }
-
-  .activity-filter {
-    flex: 0 0 auto;
-    min-height: 28px;
-    padding: 5px 8px;
-    white-space: nowrap;
+    margin-bottom: 2px;
   }
 
   .activity-stage {
@@ -689,26 +823,58 @@ onMounted(() => {
     max-height: var(--activity-detail-available-height);
     min-height: min(250px, var(--activity-detail-available-height));
   }
+}
+
+@media (max-width: 767px) {
+  .activity-gallery-page {
+    min-height: 100%;
+    height: 100dvh;
+    padding: 18px 16px calc(74px + env(safe-area-inset-bottom));
+    grid-template-rows: auto auto minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .activity-content {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 0;
+    overflow: visible;
+  }
 
   .activity-card-rail {
     position: relative;
     z-index: 1;
-    margin-top: clamp(42px, 8vh, 68px);
     min-height: 108px;
-    padding-bottom: 0;
+    margin-top: clamp(42px, 8vh, 68px);
+    padding: 0;
+    border-left: 0;
   }
 
   .activity-strip {
-    padding-bottom: 8px;
+    height: auto;
+    display: flex;
+    gap: clamp(18px, 4vw, 24px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    padding: 8px 0;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    touch-action: pan-x;
+  }
+
+  .activity-strip::-webkit-scrollbar {
+    display: none;
   }
 
   .activity-mini-card {
-    flex-basis: 144px;
+    flex: 0 0 144px;
+    width: 144px;
     height: 101px;
   }
 }
 
-@media (max-width: 900px) and (max-height: 700px) {
+@media (max-width: 767px) and (max-height: 700px) {
   .activity-gallery-page {
     gap: 8px;
   }
@@ -719,6 +885,25 @@ onMounted(() => {
 
   .activity-card-rail {
     margin-top: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .activity-filter,
+  .activity-filter::after,
+  .activity-mini-card,
+  .activity-mini-card::before,
+  .activity-stage :deep(.activity-focus-enter-active),
+  .activity-stage :deep(.activity-focus-leave-active) {
+    transition: none;
+  }
+
+  .activity-filter:hover,
+  .activity-mini-card:hover,
+  .activity-stage :deep(.activity-focus-enter-from),
+  .activity-stage :deep(.activity-focus-leave-to) {
+    opacity: 1;
+    transform: none;
   }
 }
 </style>
