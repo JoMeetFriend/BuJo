@@ -495,6 +495,7 @@
     "startLabel": "開始：",
     "endLabel": "結束：",
     "dateLabel": "日期：",
+    "timeLabel": "時間：",
     "timeSlotLabel": "可投票時段",
     "noteLabel": "備註",
     "notePlaceholder": "補充說明，例如裝備、費用...",
