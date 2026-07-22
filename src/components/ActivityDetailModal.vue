@@ -2474,4 +2474,59 @@ function formatTime(date) {
     font-weight: 650;
   }
 }
+
+@media (max-width: 360px) and (max-height: 600px) {
+  .activity-detail-header {
+    padding: 10px 12px 6px;
+  }
+
+  .activity-detail-top-row {
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .activity-detail-creator {
+    gap: 6px;
+    margin-bottom: 0;
+    font-size: 13px;
+  }
+
+  .activity-detail-creator .activity-detail-avatar {
+    width: 26px;
+    height: 26px;
+  }
+
+  .activity-detail-badge {
+    padding: 5px 7px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .activity-detail-header h2 {
+    font-size: 20px;
+    line-height: 1.04;
+  }
+
+  .activity-detail-date {
+    margin-top: 4px;
+    font-size: 16px;
+  }
+
+  .activity-detail-body {
+    padding: 8px 12px 10px;
+  }
+
+  .activity-detail-footer {
+    gap: 6px;
+    flex-wrap: nowrap;
+    padding: 6px 12px 8px;
+  }
+
+  .activity-detail-footer :deep(button) {
+    min-height: 28px;
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    white-space: nowrap;
+  }
+}
 </style>

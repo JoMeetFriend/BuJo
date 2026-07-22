@@ -119,7 +119,7 @@ describe('ActivityView - 手機短螢幕響應式版面', () => {
     )
   })
 
-  test('桌機主活動卡使用同尺寸的雙層錯位紙張背框', () => {
+  test('各裝置主活動卡使用同尺寸的雙層錯位紙張背框', () => {
     expect(activityViewSource).toMatch(
       /<div v-else :key="featuredActivity\.id" class="activity-focus-frame">\s*<div class="activity-paper-stack">\s*<span[\s\S]*?activity-stage-sheet--back[\s\S]*?activity-stage-sheet--middle[\s\S]*?<ActivityDetailModal/,
     )
@@ -149,8 +149,17 @@ describe('ActivityView - 手機短螢幕響應式版面', () => {
     expect(activityViewSource).toMatch(
       /@media \(min-width: 901px\)[^{]*{[\s\S]*?\.activity-paper-stack\s*{[^}]*width: min\(420px, calc\(100% - 40px\)\);[^}]*height: min\(520px, calc\(100% - 40px\)\);[^}]*min-height: 0;[^}]*max-height: calc\(100% - 40px\);/,
     )
-    expect(activityViewSource).toMatch(
+    expect(activityViewSource).not.toMatch(
       /@media \(max-width: 900px\)[^{]*{[\s\S]*?\.activity-stage-sheet\s*{[^}]*display: none;/,
+    )
+    expect(activityViewSource).toMatch(
+      /@media \(max-width: 900px\)[^{]*{[\s\S]*?\.activity-paper-stack\s*{[^}]*width: min\(100%, calc\(100vw - 92px\)\);[^}]*height: min\(45dvh, 430px, 100%\);[^}]*min-height: min\(250px, 45dvh, 100%\);[\s\S]*?\.activity-stage-sheet--back\s*{[^}]*translate\(9px, -12px\) rotate\(1\.2deg\);[\s\S]*?\.activity-stage-sheet--middle\s*{[^}]*translate\(-3px, 12px\) rotate\(-0\.8deg\);/,
+    )
+    expect(activityViewSource).toMatch(
+      /@media \(max-width: 768px\)[^{]*{[\s\S]*?\.activity-stage-sheet--back\s*{[^}]*translate\(5px, -7px\) rotate\(0\.7deg\);[\s\S]*?\.activity-stage-sheet--middle\s*{[^}]*translate\(-3px, 8px\) rotate\(-0\.5deg\);[\s\S]*?width: 7px;[^}]*height: 7px;/,
+    )
+    expect(activityViewSource).toMatch(
+      /@media \(max-width: 768px\)[^{]*{[\s\S]*?\.activity-stage-sheet--back::before\s*{[^}]*right: -3px;[^}]*bottom: 26%;[\s\S]*?\.activity-stage-sheet--back::after\s*{[^}]*top: -3px;[\s\S]*?\.activity-stage-sheet--middle::after\s*{[^}]*right: 16%;[^}]*bottom: -3px;/,
     )
   })
 
@@ -270,7 +279,7 @@ describe('ActivityView - 手機短螢幕響應式版面', () => {
 
   test('Mobile activity detail respects the stage height', () => {
     expect(activityViewSource).toMatch(
-      /@media \(max-width: 900px\)[^{]*{[\s\S]*?\.activity-focus-frame\s*{[^}]*position: relative;[\s\S]*?\.activity-paper-stack\s*{[^}]*inset: 0;[^}]*width: auto;[^}]*height: auto;[\s\S]*?\.activity-stage :deep\(\.activity-detail-panel\)\s*{[^}]*max-height: min\(45dvh, 430px, var\(--activity-detail-available-height\)\);[^}]*min-height: min\(250px, 45dvh, var\(--activity-detail-available-height\)\);/,
+      /@media \(max-width: 900px\)[^{]*{[\s\S]*?\.activity-focus-frame\s*{[^}]*position: relative;[\s\S]*?\.activity-paper-stack\s*{[^}]*position: relative;[^}]*width: min\(100%, calc\(100vw - 92px\)\);[^}]*height: min\(45dvh, 430px, 100%\);[\s\S]*?\.activity-stage :deep\(\.activity-detail-panel\)\s*{[^}]*width: 100%;[^}]*height: 100%;[^}]*min-height: 0;[^}]*max-height: 100%;/,
     )
   })
 

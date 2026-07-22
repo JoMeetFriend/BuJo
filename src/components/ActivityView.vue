@@ -1032,25 +1032,56 @@ onMounted(() => {
     overflow: visible;
   }
 
-  .activity-stage-sheet {
-    display: none;
-  }
-
   .activity-focus-frame {
     position: relative;
   }
 
   .activity-paper-stack {
-    inset: 0;
-    width: auto;
-    height: auto;
+    position: relative;
+    inset: auto;
+    width: min(100%, calc(100vw - 92px));
+    height: min(45dvh, 430px, 100%);
+    min-height: min(250px, 45dvh, 100%);
+    place-items: stretch;
+  }
+
+  .activity-stage-sheet--back {
+    transform: translate(9px, -12px) rotate(1.2deg);
+  }
+
+  .activity-stage-sheet--middle {
+    transform: translate(-3px, 12px) rotate(-0.8deg);
+  }
+
+  .activity-stage-sheet--back::before,
+  .activity-stage-sheet--back::after,
+  .activity-stage-sheet--middle::after {
+    width: 8px;
+    height: 8px;
+  }
+
+  .activity-stage-sheet--back::before {
+    right: -4px;
+    bottom: 28%;
+    left: auto;
+  }
+
+  .activity-stage-sheet--back::after {
+    top: -4px;
+    left: 58%;
+  }
+
+  .activity-stage-sheet--middle::after {
+    right: 18%;
+    bottom: -4px;
   }
 
   .activity-stage :deep(.activity-detail-panel) {
-    width: min(100%, calc(100vw - 92px));
+    width: 100%;
+    height: 100%;
     max-width: none;
-    max-height: min(45dvh, 430px, var(--activity-detail-available-height));
-    min-height: min(250px, 45dvh, var(--activity-detail-available-height));
+    min-height: 0;
+    max-height: 100%;
   }
 
   .activity-paper-stack--empty {
@@ -1067,6 +1098,35 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+  .activity-stage-sheet--back {
+    transform: translate(5px, -7px) rotate(0.7deg);
+  }
+
+  .activity-stage-sheet--middle {
+    transform: translate(-3px, 8px) rotate(-0.5deg);
+  }
+
+  .activity-stage-sheet--back::before,
+  .activity-stage-sheet--back::after,
+  .activity-stage-sheet--middle::after {
+    width: 7px;
+    height: 7px;
+  }
+
+  .activity-stage-sheet--back::before {
+    right: -3px;
+    bottom: 26%;
+  }
+
+  .activity-stage-sheet--back::after {
+    top: -3px;
+  }
+
+  .activity-stage-sheet--middle::after {
+    right: 16%;
+    bottom: -3px;
+  }
+
   .activity-content--empty {
     grid-template-columns: minmax(0, 1fr);
   }

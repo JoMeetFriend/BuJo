@@ -84,6 +84,12 @@ describe('ActivityDetailModal - 手機高度限制', () => {
     )
     expect(activityDetailModalSource).not.toContain('max-height: clamp(340px, 45dvh, 430px)')
   })
+
+  test('極短手機壓縮 header 與 footer，保留內容捲動和操作按鈕', () => {
+    expect(activityDetailModalSource).toMatch(
+      /@media \(max-width: 360px\) and \(max-height: 600px\)[^{]*{[\s\S]*?\.activity-detail-header\s*{[^}]*padding: 10px 12px 6px;[\s\S]*?\.activity-detail-badge\s*{[^}]*white-space: nowrap;[\s\S]*?\.activity-detail-body\s*{[^}]*padding: 8px 12px 10px;[\s\S]*?\.activity-detail-footer\s*{[^}]*flex-wrap: nowrap;[^}]*padding: 6px 12px 8px;/,
+    )
+  })
 })
 
 describe('ActivityDetailModal - 載入中顯示骨架圖，避免看起來像換了一個彈窗', () => {
