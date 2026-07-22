@@ -242,6 +242,29 @@ describe('ActivityView - focus query 聚焦指定活動', () => {
     expect(cards[1].find('.activity-mini-avatar').text()).toBe('A')
   })
 
+  test('建立者頭像圖片載入失敗時改顯示名字首字', async () => {
+    stubFetch([
+      makeActivity({
+        id: 'broken-avatar',
+        title: '壞掉的頭像',
+        creator: {
+          display_name: '小明',
+          avatar_url: 'https://res.cloudinary.com/demo/avatar-dead-link.png',
+        },
+      }),
+    ])
+    const wrapper = await mountActivityView()
+    await flushPromises()
+
+    const card = wrapper.get('.activity-mini-card')
+    expect(card.find('.activity-mini-avatar img').exists()).toBe(true)
+
+    await card.get('.activity-mini-avatar img').trigger('error')
+
+    expect(card.find('.activity-mini-avatar img').exists()).toBe(false)
+    expect(card.find('.activity-mini-avatar').text()).toBe('小')
+  })
+
   test('掛載於 /activity?focus=<id> 時 featured 為該活動且 modal 收到正確 activity-id', async () => {
     const activities = [
       makeActivity({ id: 'act-1' }),

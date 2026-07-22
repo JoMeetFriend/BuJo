@@ -94,6 +94,23 @@ describe('AppSidebar', () => {
     expect(profileButton.find('.profile-pixel-face').exists()).toBe(true)
   })
 
+  test('頭像圖片載入失敗時側欄與手機底部入口都改顯示 fallback', async () => {
+    const wrapper = await mountAppSidebar({
+      avatar_url: 'https://res.cloudinary.com/demo/avatar-dead-link.png',
+    })
+
+    const desktopButton = wrapper.get('[aria-label="開啟側邊欄個人帳號"]')
+    const mobileButton = wrapper.get('[aria-label="開啟個人帳號"]')
+    expect(desktopButton.find('img').exists()).toBe(true)
+
+    await desktopButton.get('img').trigger('error')
+
+    expect(desktopButton.find('img').exists()).toBe(false)
+    expect(desktopButton.find('.profile-pixel-face').exists()).toBe(true)
+    expect(mobileButton.find('img').exists()).toBe(false)
+    expect(mobileButton.find('.profile-pixel-face').exists()).toBe(true)
+  })
+
   test('點擊側欄下方個人入口會開啟帳號彈窗', async () => {
     const wrapper = await mountAppSidebar()
 

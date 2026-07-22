@@ -52,9 +52,10 @@
       @click="openProfileModal"
     >
       <img
-        v-if="currentUserAvatarSrc"
+        v-if="showCurrentUserAvatar"
         :src="currentUserAvatarSrc"
         :alt="currentUser.display_name"
+        @error="handleCurrentUserAvatarError"
         class="h-full w-full object-cover"
       />
       <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
@@ -329,7 +330,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -354,6 +355,16 @@ const { t, locale } = useI18n()
 
 const currentUser = computed(() => authStore.user)
 const currentUserAvatarSrc = computed(() => toAvatarSrc(currentUser.value?.avatar_url))
+const currentUserAvatarFailed = ref(false)
+watch(currentUserAvatarSrc, () => {
+  currentUserAvatarFailed.value = false
+})
+const showCurrentUserAvatar = computed(
+  () => Boolean(currentUserAvatarSrc.value) && !currentUserAvatarFailed.value,
+)
+function handleCurrentUserAvatarError() {
+  currentUserAvatarFailed.value = true
+}
 
 function openProfileModal() {
   showProfileModal.value = true

@@ -303,6 +303,19 @@ describe('ProfileEditPage', () => {
     expect(wrapper.find('[aria-label="預設使用者頭像"]').exists()).toBe(false)
   })
 
+  test('頭像圖片載入失敗時改顯示預設像素頭像', async () => {
+    const wrapper = await mountProfileEditPage({
+      avatar_url: 'https://res.cloudinary.com/demo/avatar-dead-link.png',
+    })
+
+    expect(wrapper.find('img[alt="使用者頭像"]').exists()).toBe(true)
+
+    await wrapper.get('img[alt="使用者頭像"]').trigger('error')
+
+    expect(wrapper.find('img[alt="使用者頭像"]').exists()).toBe(false)
+    expect(wrapper.get('[aria-label="預設使用者頭像"]').classes()).toContain('profile-edit-face')
+  })
+
   test('更換頭像會用 FormData 上傳並更新目前登入者頭像', async () => {
     fetch.mockResolvedValue({
       ok: true,

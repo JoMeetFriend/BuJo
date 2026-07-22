@@ -6,9 +6,10 @@
           class="grid h-[60px] w-[60px] shrink-0 place-items-center overflow-hidden border border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)]"
         >
           <img
-            v-if="avatarSrc"
+            v-if="showAvatar"
             :src="avatarSrc"
             :alt="displayName"
+            @error="handleAvatarError"
             class="h-full w-full object-cover"
           />
           <span v-else class="profile-modal-face" aria-hidden="true"></span>
@@ -88,7 +89,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   ClipboardDocumentIcon,
@@ -111,6 +112,14 @@ const emit = defineEmits(['close', 'logout'])
 
 const displayName = computed(() => props.user?.display_name || t('profileAccount.notLoggedIn'))
 const avatarSrc = computed(() => toAvatarSrc(props.user?.avatar_url))
+const avatarFailed = ref(false)
+watch(avatarSrc, () => {
+  avatarFailed.value = false
+})
+const showAvatar = computed(() => Boolean(avatarSrc.value) && !avatarFailed.value)
+function handleAvatarError() {
+  avatarFailed.value = true
+}
 const shareCode = computed(() => {
   const idSource = props.user?.uid ?? props.user?.id
   return idSource ? String(idSource).slice(-5) : ''
