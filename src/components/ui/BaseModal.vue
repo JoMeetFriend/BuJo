@@ -45,9 +45,9 @@
       @click="emit('close')"
     >
       <div
-        class="relative max-h-[90vh] font-nunito text-[var(--bujo-ink)]"
+        class="relative max-h-[90dvh] font-nunito text-[var(--bujo-ink)]"
         :class="[
-          scrollable ? 'flex flex-col max-h-[80vh]' : '',
+          scrollable ? 'flex flex-col max-h-[80dvh]' : '',
           bare
             ? ''
             : 'bujo-modal-panel w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)]',

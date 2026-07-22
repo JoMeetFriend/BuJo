@@ -53,3 +53,5 @@ graphify-out/
 CLAUDE.md
 .spectra/
 openspec/.vector-search.db*
+docs/superpowers/
+.docs

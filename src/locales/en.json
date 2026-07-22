@@ -495,6 +495,7 @@
     "startLabel": "Start:",
     "endLabel": "End:",
     "dateLabel": "Date:",
+    "timeLabel": "Time:",
     "timeSlotLabel": "Votable Time Slots",
     "noteLabel": "Notes",
     "notePlaceholder": "Add details, e.g. equipment, cost...",
