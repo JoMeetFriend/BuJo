@@ -712,7 +712,11 @@
     "inputPlaceholder": "輸入訊息...",
     "loadMore": "載入更多訊息",
     "toggleAria": "切換聊天室",
-    "retry": "重新傳送"
+    "retry": "重新傳送",
+    "sendRateLimit": "傳送太頻繁，請稍後再試",
+    "sendFailed": "傳送失敗",
+    "networkError": "網路錯誤",
+    "fetchFailed": "載入失敗，請稍後再試"
   },
   "composable": {
     "userSearchExpired": "登入已過期，請重新登入",

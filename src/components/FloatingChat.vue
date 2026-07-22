@@ -10,6 +10,7 @@
               <XMarkIcon class="h-4 w-4" />
             </button>
           </header>
+          <div v-if="chatStore.error" class="chat-error">{{ chatStore.error }}</div>
           <div class="chat-body">
             <div v-if="chatStore.isLoadingActivities" class="chat-state">
               {{ t('chat.loading') }}
@@ -58,6 +59,7 @@
               {{ chatStore.currentActivity?.title ?? '' }}
             </h3>
           </header>
+          <div v-if="chatStore.error" class="chat-error">{{ chatStore.error }}</div>
           <div ref="messageContainerRef" class="chat-messages" @scroll="onScroll">
             <div v-if="chatStore.nextCursors[chatStore.currentActivityId]" class="chat-load-more">
               <button
@@ -181,10 +183,11 @@ import { useChatSocket } from '@/composables/useChatSocket'
 const { t } = useI18n()
 const authStore = useAuthStore()
 const chatStore = useChatStore()
-const { connect: connectSocket, isConnected } = useChatSocket()
+const { connect: connectSocket, disconnect: disconnectSocket, isConnected } = useChatSocket()
 
 const inputText = ref('')
 const messageContainerRef = ref(null)
+const isLoadingMore = ref(false)
 
 const sortedActivities = computed(() => {
   const acts = [...chatStore.joinedActivities]
@@ -192,7 +195,9 @@ const sortedActivities = computed(() => {
     const aUnread = chatStore.unreadCounts[a.id] ?? 0
     const bUnread = chatStore.unreadCounts[b.id] ?? 0
     if (bUnread !== aUnread) return bUnread - aUnread
-    return 0
+    const aTime = new Date(a.updated_at || a.created_at || 0).getTime()
+    const bTime = new Date(b.updated_at || b.created_at || 0).getTime()
+    return bTime - aTime
   })
   return acts
 })
@@ -200,6 +205,7 @@ const sortedActivities = computed(() => {
 watch(
   () => chatStore.currentMessages.length,
   () => {
+    if (isLoadingMore.value) return
     nextTick(() => scrollToBottom())
   },
 )
@@ -216,6 +222,8 @@ watch(
   ([user, connected]) => {
     if (user && !connected) {
       connectSocket()
+    } else if (!user && connected) {
+      disconnectSocket()
     }
   },
   { immediate: true },
@@ -237,13 +245,16 @@ function onScroll() {
 
 function loadMore() {
   if (!chatStore.currentActivityId) return
-  chatStore.loadMoreMessages(chatStore.currentActivityId)
+  isLoadingMore.value = true
+  Promise.resolve(chatStore.loadMoreMessages(chatStore.currentActivityId)).finally(() => {
+    isLoadingMore.value = false
+  })
 }
 
-function handleSend() {
+async function handleSend() {
   const text = inputText.value.trim()
-  if (!text || !chatStore.currentActivityId) return
-  chatStore.sendMessage(chatStore.currentActivityId, text)
+  if (!text || !chatStore.currentActivityId || chatStore.isSending) return
+  await chatStore.sendMessage(chatStore.currentActivityId, text)
   inputText.value = ''
 }
 

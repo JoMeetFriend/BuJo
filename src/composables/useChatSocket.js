@@ -30,6 +30,12 @@ export function useChatSocket() {
       const chatStore = useChatStore()
       chatStore.addIncomingMessage(msg)
     })
+
+    socket.on('chat:room_removed', ({ activity_id }) => {
+      if (!activity_id) return
+      const chatStore = useChatStore()
+      chatStore.removeRoom(activity_id)
+    })
   }
 
   function disconnect() {

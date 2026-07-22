@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import i18n from '@/i18n'
 
 const API = import.meta.env.VITE_API_URL
+const $t = i18n.global.t
 
 export const useChatStore = defineStore('chat', () => {
   const isOpen = ref(false)
@@ -13,6 +15,7 @@ export const useChatStore = defineStore('chat', () => {
   const unreadCounts = ref({})
   const isLoadingMessages = ref(false)
   const isLoadingActivities = ref(false)
+  const isSending = ref(false)
   const error = ref('')
   const chatRoomMap = ref({})
 
@@ -116,6 +119,9 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   async function sendMessage(activityId, content) {
+    if (isSending.value) return false
+    isSending.value = true
+
     const user = useAuthStore().user
     const localId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 
@@ -145,20 +151,32 @@ export const useChatStore = defineStore('chat', () => {
         markMessageFailed(
           activityId,
           localId,
-          res.status === 429 ? '傳送太頻繁，請稍後再試' : '傳送失敗',
+          res.status === 429 ? $t('chat.sendRateLimit') : $t('chat.sendFailed'),
         )
         return false
       }
-      const data = await res.json()
+      let data
+      try {
+        data = await res.json()
+      } catch {
+        const { _localId: _, _status: _s, ...rest } = pending
+        replaceMessage(activityId, localId, { ...rest, id: localId })
+        return true
+      }
       replaceMessage(activityId, localId, data)
       return true
     } catch {
-      markMessageFailed(activityId, localId, '網路錯誤')
+      markMessageFailed(activityId, localId, $t('chat.networkError'))
       return false
+    } finally {
+      isSending.value = false
     }
   }
 
   async function retryMessage(activityId, localId) {
+    if (isSending.value) return false
+    isSending.value = true
+
     const list = messages.value[activityId]
     if (!list) return false
     const msg = list.find((m) => m._localId === localId)
@@ -176,15 +194,24 @@ export const useChatStore = defineStore('chat', () => {
         body: JSON.stringify({ content: msg.content }),
       })
       if (!res.ok) {
-        markMessageFailed(activityId, localId, '傳送失敗')
+        markMessageFailed(activityId, localId, $t('chat.sendFailed'))
         return false
       }
-      const data = await res.json()
+      let data
+      try {
+        data = await res.json()
+      } catch {
+        const { _localId: _, _status: _s, ...rest } = msg
+        replaceMessage(activityId, localId, { ...rest, id: localId })
+        return true
+      }
       replaceMessage(activityId, localId, data)
       return true
     } catch {
-      markMessageFailed(activityId, localId, '網路錯誤')
+      markMessageFailed(activityId, localId, $t('chat.networkError'))
       return false
+    } finally {
+      isSending.value = false
     }
   }
 
@@ -224,6 +251,21 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  function removeRoom(activityId) {
+    joinedActivities.value = joinedActivities.value.filter((a) => a.id !== activityId)
+    for (const [chatId, actId] of Object.entries(chatRoomMap.value)) {
+      if (actId === activityId) {
+        delete chatRoomMap.value[chatId]
+      }
+    }
+    delete messages.value[activityId]
+    delete unreadCounts.value[activityId]
+    delete nextCursors.value[activityId]
+    if (currentActivityId.value === activityId) {
+      currentActivityId.value = null
+    }
+  }
+
   function markActivityRead(activityId) {
     unreadCounts.value[activityId] = 0
   }
@@ -237,6 +279,7 @@ export const useChatStore = defineStore('chat', () => {
     unreadCounts,
     isLoadingMessages,
     isLoadingActivities,
+    isSending,
     error,
     totalUnread,
     currentMessages,
@@ -252,6 +295,7 @@ export const useChatStore = defineStore('chat', () => {
     sendMessage,
     retryMessage,
     addIncomingMessage,
+    removeRoom,
     markActivityRead,
   }
 })

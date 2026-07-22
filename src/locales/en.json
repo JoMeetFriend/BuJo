@@ -714,7 +714,11 @@
     "inputPlaceholder": "Type a message...",
     "loadMore": "Load more messages",
     "toggleAria": "Toggle chat panel",
-    "retry": "Retry"
+    "retry": "Retry",
+    "sendRateLimit": "Sending too fast, please slow down",
+    "sendFailed": "Failed to send",
+    "networkError": "Network error",
+    "fetchFailed": "Failed to load, please try again"
   },
   "composable": {
     "userSearchExpired": "Session expired, please log in again",
