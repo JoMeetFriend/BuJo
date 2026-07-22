@@ -874,13 +874,14 @@ const brokenAvatarIds = ref(new Set())
 
 function personAvatarSrc(person) {
   if (!person?.avatar_url) return ''
-  const key = person.id ?? person.user_id
-  if (key != null && brokenAvatarIds.value.has(key)) return ''
+  // 沒有 id/user_id 時退回用 avatar_url 本身當 key，確保一定有東西可以標記為壞掉
+  const key = person.id ?? person.user_id ?? person.avatar_url
+  if (brokenAvatarIds.value.has(key)) return ''
   return toAvatarSrc(person.avatar_url)
 }
 
 function handleAvatarError(person) {
-  const key = person?.id ?? person?.user_id
+  const key = person?.id ?? person?.user_id ?? person?.avatar_url
   if (key == null) return
   brokenAvatarIds.value = new Set([...brokenAvatarIds.value, key])
 }

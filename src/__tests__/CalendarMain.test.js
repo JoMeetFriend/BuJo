@@ -636,4 +636,18 @@ describe('CalendarMain', () => {
     expect(profileButton.find('img').exists()).toBe(false)
     expect(profileButton.find('.profile-pixel-face').exists()).toBe(true)
   })
+
+  test('主頁右上角帳號按鈕頭像圖片載入失敗時改顯示 fallback', async () => {
+    const wrapper = await mountCalendarMain({
+      avatar_url: 'https://res.cloudinary.com/demo/avatar-dead-link.png',
+    })
+
+    const profileButton = wrapper.get('[aria-label="開啟個人帳號"]')
+    expect(profileButton.find('img').exists()).toBe(true)
+
+    await profileButton.get('img').trigger('error')
+
+    expect(profileButton.find('img').exists()).toBe(false)
+    expect(profileButton.find('.profile-pixel-face').exists()).toBe(true)
+  })
 })
