@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="calendar-main-shell flex flex-col flex-1 min-h-0 px-4 pb-8 md:px-16 md:pt-6 md:pb-16 relative isolate"
-  >
+  <div class="calendar-main-shell relative isolate flex min-h-0 flex-1 flex-col">
     <div
       v-show="showDots"
       ref="overlayRef"
@@ -23,7 +21,7 @@
       />
     </div>
 
-    <div v-if="isMobile" class="calendar-mobile-controls md:hidden">
+    <div v-if="isCompactNavigation" class="calendar-mobile-controls lg:hidden">
       <button
         @click="toggleDotsAnimation"
         class="calendar-arrow-button calendar-toggle-dots-mobile"
@@ -33,42 +31,48 @@
         <span class="calendar-square-toggle" aria-hidden="true"></span>
       </button>
 
-      <button
-        type="button"
-        class="calendar-lang-toggle calendar-lang-toggle-mobile"
-        :aria-label="t('common.ariaToggleLanguage')"
-        @click="toggleLanguage"
-      >
-        {{ locale === 'zh-TW' ? t('common.langEn') : 'CH' }}
-      </button>
+      <div class="calendar-mobile-control-actions">
+        <button
+          type="button"
+          class="calendar-lang-toggle calendar-lang-toggle-mobile"
+          :aria-label="t('common.ariaToggleLanguage')"
+          @click="toggleLanguage"
+        >
+          {{ locale === 'zh-TW' ? t('common.langEn') : 'CH' }}
+        </button>
+        <AppTourHelpButton toolbar @click="emit('open-tour')" />
+      </div>
     </div>
 
-    <button
-      type="button"
-      class="calendar-profile-button calendar-page-profile-button hidden md:flex"
-      :class="{ 'btn-bounce-green': profileBtnBouncing }"
-      @animationend="profileBtnBouncing = false"
-      :aria-label="t('calendar.openAccountMenu')"
-      @click="openProfileModal"
-    >
-      <img
-        v-if="showCurrentUserAvatar"
-        :src="currentUserAvatarSrc"
-        :alt="currentUser.display_name"
-        @error="handleCurrentUserAvatarError"
-        class="h-full w-full object-cover"
-      />
-      <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
-    </button>
-    <p class="calendar-mood-line" :aria-label="t('calendar.moodLineAria')">
-      <strong>BuJo</strong>
-      <span class="calendar-mood-divider"></span>
-      <span>{{ t('calendar.moodLinePart1') }}</span>
-      <span>{{ t('calendar.moodLinePart2') }}</span>
-      <span>{{ t('calendar.moodLinePart3') }}</span>
-      <span>.</span>
-      <span class="calendar-mood-flag" aria-hidden="true"></span>
-    </p>
+    <header class="calendar-page-header">
+      <p class="calendar-mood-line" :aria-label="t('calendar.moodLineAria')">
+        <strong>BuJo</strong>
+        <span class="calendar-mood-divider"></span>
+        <span>{{ t('calendar.moodLinePart1') }}</span>
+        <span>{{ t('calendar.moodLinePart2') }}</span>
+        <span>{{ t('calendar.moodLinePart3') }}</span>
+        <span>.</span>
+        <span class="calendar-mood-flag" aria-hidden="true"></span>
+      </p>
+
+      <button
+        type="button"
+        class="calendar-profile-button calendar-page-profile-button hidden lg:flex"
+        :class="{ 'btn-bounce-green': profileBtnBouncing }"
+        @animationend="profileBtnBouncing = false"
+        :aria-label="t('calendar.openAccountMenu')"
+        @click="openProfileModal"
+      >
+        <img
+          v-if="showCurrentUserAvatar"
+          :src="currentUserAvatarSrc"
+          :alt="currentUser.display_name"
+          @error="handleCurrentUserAvatarError"
+          class="h-full w-full object-cover"
+        />
+        <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
+      </button>
+    </header>
     <p v-if="activitiesFetchError" class="calendar-fetch-error" role="alert">
       {{ activitiesFetchError }}
     </p>
@@ -92,7 +96,7 @@
 
           <div class="calendar-hero-actions">
             <button
-              v-if="!isMobile"
+              v-if="!isCompactNavigation"
               @click="toggleDotsAnimation"
               class="calendar-arrow-button"
               :class="{ 'is-active': showDots }"
@@ -160,7 +164,7 @@
           <div
             class="calendar-grid grid grid-cols-7 md:flex-1 md:min-h-0"
             :style="{
-              gridTemplateRows: isMobile ? 'repeat(6, minmax(0, 1fr))' : 'repeat(6, 1fr)',
+              gridTemplateRows: isPhone ? 'repeat(6, minmax(0, 1fr))' : 'repeat(6, 1fr)',
             }"
           >
             <div
@@ -245,7 +249,7 @@
           </div>
 
           <p v-if="mobileHiddenUpcomingCount > 0" class="calendar-upcoming-hint">
-            {{ t('calendar.mobileHiddenCount', { count: mobileHiddenUpcomingCount }) }}
+            {{ t('calendar.horizontalScrollHint') }}
           </p>
         </section>
       </div>
@@ -282,8 +286,17 @@
           </div>
         </div>
 
-        <p v-if="desktopHiddenUpcomingCount > 0" class="calendar-upcoming-hint">
-          {{ t('calendar.desktopHiddenCount', { count: desktopHiddenUpcomingCount }) }}
+        <p
+          v-if="desktopHiddenUpcomingCount > 0"
+          class="calendar-upcoming-hint calendar-upcoming-hint--horizontal"
+        >
+          {{ t('calendar.horizontalScrollHint') }}
+        </p>
+        <p
+          v-if="desktopHiddenUpcomingCount > 0"
+          class="calendar-upcoming-hint calendar-upcoming-hint--vertical"
+        >
+          {{ t('calendar.verticalScrollHint') }}
         </p>
       </aside>
     </section>
@@ -341,6 +354,7 @@ import ActivityDetailModal from './ActivityDetailModal.vue'
 import DateEventsModal from './DateEventsModal.vue'
 import ProfileAccountModal from './ProfileAccountModal.vue'
 import EventPage from './EventPage.vue'
+import AppTourHelpButton from './AppTourHelpButton.vue'
 import { toAvatarSrc } from '@/utils/avatar'
 import { apiFetch } from '@/services/httpClient'
 
@@ -389,11 +403,14 @@ const props = defineProps({
     default: () => ({ formedByMe: true, formedByOthers: true }),
   },
 })
+const emit = defineEmits(['open-tour'])
 
-const isMobile = ref(window.innerWidth < 768)
+const isPhone = ref(window.innerWidth <= 640)
+const isCompactNavigation = ref(window.innerWidth < 1024)
 const showProfileModal = ref(false)
 const handleResize = () => {
-  isMobile.value = window.innerWidth < 768
+  isPhone.value = window.innerWidth <= 640
+  isCompactNavigation.value = window.innerWidth < 1024
 }
 
 const COLORS = ['var(--bujo-deco-pink)', 'var(--bujo-deco-blue)', 'var(--bujo-deco-green)']
@@ -748,6 +765,7 @@ function isToday(date) {
   gap: clamp(16px, 2vw, 26px);
   height: 100%;
   overflow: hidden;
+  padding: 24px 64px 64px;
   background-color: #f5f3ec;
   background-image: radial-gradient(circle, rgb(var(--bujo-line-rgb) / 0.11) 1px, transparent 1px);
   background-position: 0 0;
@@ -888,11 +906,25 @@ function isToday(date) {
   background: var(--bujo-white);
 }
 
-.calendar-page-profile-button {
+.calendar-page-header {
   position: absolute;
-  top: 22px;
-  right: 32px;
+  top: 0;
+  right: 64px;
+  left: 64px;
+  z-index: 7;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 240px);
+  gap: clamp(18px, 2.2vw, 34px);
+  height: calc(24px + clamp(92px, 13vh, 112px));
+  min-width: 0;
+  align-items: center;
+}
+
+.calendar-page-profile-button {
+  position: relative;
   z-index: 8;
+  grid-column: 2;
+  justify-self: end;
   width: 42px;
   height: 42px;
   overflow: visible;
@@ -1003,18 +1035,17 @@ function isToday(date) {
 }
 
 .calendar-mood-line {
-  position: fixed;
-  top: 22px;
-  left: 50vw;
-  transform: translateX(-50%);
-  z-index: 7;
+  grid-column: 1;
   display: flex;
-  max-width: calc(100% - 260px);
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
+  justify-self: center;
   gap: 6px;
+  margin: 0;
   color: var(--bujo-text-muted);
   font-family: 'Inter', var(--bujo-font-body);
-  font-size: 18px;
+  font-size: clamp(12px, 1.15vw, 18px);
   font-weight: 400;
   line-height: 1;
   white-space: nowrap;
@@ -1055,6 +1086,8 @@ function isToday(date) {
   gap: clamp(18px, 2.2vw, 34px);
   align-items: start;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
   margin-top: clamp(92px, 13vh, 112px);
   flex: 1;
 }
@@ -1471,6 +1504,10 @@ function isToday(date) {
   line-height: 1.4;
 }
 
+.calendar-upcoming-hint--horizontal {
+  display: none;
+}
+
 .calendar-mobile-pocket {
   display: none;
 }
@@ -1548,29 +1585,38 @@ function isToday(date) {
   animation: pixel-bounce-green 0.2s ease-in-out;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1199px) {
+  .calendar-main-shell {
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0 clamp(32px, 4vw, 48px) 32px;
+  }
+
+  .calendar-page-header {
+    right: clamp(32px, 4vw, 48px);
+    left: clamp(32px, 4vw, 48px);
+    grid-template-columns: 42px minmax(0, 1fr) 42px;
+    gap: 0;
+    height: 80px;
+  }
+
+  .calendar-page-profile-button {
+    grid-column: 3;
+  }
+
+  .calendar-content-composition {
+    grid-template-columns: minmax(0, 1fr);
+    flex: 0 0 auto;
+    margin-top: 80px;
+  }
+
   .calendar-mood-line {
-    display: none;
-  }
-
-  .calendar-hero-composition,
-  .calendar-content-composition {
-    grid-template-columns: 1fr;
-  }
-
-  .calendar-content-composition {
-    margin-top: 24px;
-  }
-
-  .calendar-hero-actions {
-    justify-content: flex-start;
-  }
-
-  .calendar-paper-page {
-    padding: 22px 18px 22px 54px;
+    grid-column: 2;
+    font-size: clamp(12px, 1.45vw, 16px);
   }
 
   .calendar-social-rail {
+    min-width: 0;
     border-left: 0;
     border-top: 1px solid rgb(var(--bujo-line-rgb) / 0.45);
     padding: 14px 0 0;
@@ -1593,36 +1639,101 @@ function isToday(date) {
   }
 
   .calendar-upcoming-card {
-    flex: 0 0 min(58vw, 210px);
+    flex: 0 0 210px;
     min-height: 88px;
     gap: 8px;
     padding: 12px 14px 11px;
+  }
+
+  .calendar-upcoming-hint--horizontal {
+    display: block;
+  }
+
+  .calendar-upcoming-hint--vertical {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .calendar-main-shell {
+    padding: 0 clamp(20px, 4vw, 40px) calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .calendar-page-header {
+    right: clamp(20px, 4vw, 40px);
+    left: clamp(20px, 4vw, 40px);
+    grid-template-columns: 88px minmax(0, 1fr) 88px;
+  }
+
+  .calendar-mood-line {
+    gap: 4px;
+    font-size: clamp(10px, 1.35vw, 14px);
+  }
+
+  .calendar-mood-divider {
+    height: 24px;
+  }
+
+  .calendar-mood-flag {
+    width: 26px;
+    height: 20px;
+  }
+
+  .calendar-mood-flag::after {
+    width: 24px;
+    height: 18px;
+  }
+
+  .calendar-mobile-controls {
+    position: absolute;
+    top: 22px;
+    right: clamp(20px, 4vw, 40px);
+    left: clamp(20px, 4vw, 40px);
+    z-index: 70;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 36px;
+  }
+
+  .calendar-mobile-control-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .calendar-toggle-dots-mobile,
+  .calendar-lang-toggle-mobile {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .calendar-paper-page {
+    padding: 22px 18px 22px 54px;
   }
 }
 
 @media (max-width: 640px) {
   .calendar-main-shell {
     gap: 14px;
-    padding: 8px 8px calc(84px + env(safe-area-inset-bottom, 0px));
+    padding: 0 8px calc(84px + env(safe-area-inset-bottom, 0px));
   }
 
-  .calendar-mobile-controls {
-    position: relative;
-    z-index: 70;
-    display: flex;
-    flex: 0 0 34px;
-    align-items: center;
-    justify-content: space-between;
-    height: 34px;
-    padding: 0 40px 0 8px;
+  .calendar-page-header {
+    display: none;
   }
 
   .calendar-content-composition {
-    margin-top: 6px;
+    margin-top: 80px;
   }
 
   .calendar-hero-composition {
     position: relative;
+    grid-template-columns: minmax(0, 1fr);
     margin-bottom: 24px;
     padding-right: 94px;
   }
@@ -1838,7 +1949,7 @@ function isToday(date) {
 
   .calendar-content-composition {
     min-height: 0;
-    margin-top: 0;
+    margin-top: 80px;
   }
 
   .calendar-paper-page {
@@ -1924,9 +2035,8 @@ function isToday(date) {
 
 @media (max-width: 640px) {
   .calendar-toggle-dots-mobile {
-    display: grid;
-    width: 26px;
-    height: 26px;
+    width: 36px;
+    height: 36px;
     border: 1px solid rgb(var(--bujo-line-rgb) / 0.72);
     background: transparent;
   }
@@ -1937,10 +2047,6 @@ function isToday(date) {
   }
 
   .calendar-lang-toggle-mobile {
-    display: grid;
-    width: 26px;
-    height: 26px;
-    padding: 0;
     font-size: 12px;
   }
 }

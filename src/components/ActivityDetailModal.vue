@@ -2320,6 +2320,45 @@ function formatTime(date) {
   background: var(--bujo-accent);
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .activity-detail-body {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .activity-detail-body::-webkit-scrollbar {
+    width: 7px;
+    display: block;
+  }
+
+  .activity-detail-body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .activity-detail-body::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    background: transparent;
+    background-clip: content-box;
+  }
+
+  .activity-detail-body:hover,
+  .activity-detail-body:focus-within {
+    scrollbar-color: rgb(var(--bujo-ink-rgb) / 0.28) transparent;
+  }
+
+  .activity-detail-body:hover::-webkit-scrollbar-thumb,
+  .activity-detail-body:focus-within::-webkit-scrollbar-thumb {
+    background: rgb(var(--bujo-ink-rgb) / 0.28);
+    background-clip: content-box;
+  }
+
+  .activity-detail-body::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--bujo-ink-rgb) / 0.48);
+    background-clip: content-box;
+  }
+}
+
 @media (max-width: 900px) {
   .activity-detail-panel {
     --activity-detail-scale: 1;
@@ -2433,6 +2472,61 @@ function formatTime(date) {
     font-size: 19px;
     line-height: 1.05;
     font-weight: 650;
+  }
+}
+
+@media (max-width: 360px) and (max-height: 600px) {
+  .activity-detail-header {
+    padding: 10px 12px 6px;
+  }
+
+  .activity-detail-top-row {
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .activity-detail-creator {
+    gap: 6px;
+    margin-bottom: 0;
+    font-size: 13px;
+  }
+
+  .activity-detail-creator .activity-detail-avatar {
+    width: 26px;
+    height: 26px;
+  }
+
+  .activity-detail-badge {
+    padding: 5px 7px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .activity-detail-header h2 {
+    font-size: 20px;
+    line-height: 1.04;
+  }
+
+  .activity-detail-date {
+    margin-top: 4px;
+    font-size: 16px;
+  }
+
+  .activity-detail-body {
+    padding: 8px 12px 10px;
+  }
+
+  .activity-detail-footer {
+    gap: 6px;
+    flex-wrap: nowrap;
+    padding: 6px 12px 8px;
+  }
+
+  .activity-detail-footer :deep(button) {
+    min-height: 28px;
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    white-space: nowrap;
   }
 }
 </style>

@@ -84,6 +84,12 @@ describe('ActivityDetailModal - 手機高度限制', () => {
     )
     expect(activityDetailModalSource).not.toContain('max-height: clamp(340px, 45dvh, 430px)')
   })
+
+  test('極短手機壓縮 header 與 footer，保留內容捲動和操作按鈕', () => {
+    expect(activityDetailModalSource).toMatch(
+      /@media \(max-width: 360px\) and \(max-height: 600px\)[^{]*{[\s\S]*?\.activity-detail-header\s*{[^}]*padding: 10px 12px 6px;[\s\S]*?\.activity-detail-badge\s*{[^}]*white-space: nowrap;[\s\S]*?\.activity-detail-body\s*{[^}]*padding: 8px 12px 10px;[\s\S]*?\.activity-detail-footer\s*{[^}]*flex-wrap: nowrap;[^}]*padding: 6px 12px 8px;/,
+    )
+  })
 })
 
 describe('ActivityDetailModal - 載入中顯示骨架圖，避免看起來像換了一個彈窗', () => {
@@ -115,6 +121,23 @@ describe('ActivityDetailModal - 載入中顯示骨架圖，避免看起來像換
     expect(wrapper.find('.activity-detail-skeleton').exists()).toBe(false)
     expect(wrapper.find('[class*="activity-detail-skeleton"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('揪團活動')
+  })
+})
+
+describe('ActivityDetailModal - 桌機捲動提示', () => {
+  test('精準滑鼠裝置 hover 或 focus 時顯示細捲軸，手機版仍維持隱藏', () => {
+    expect(activityDetailModalSource).toMatch(
+      /@media \(hover: hover\) and \(pointer: fine\)[^{]*{[\s\S]*?\.activity-detail-body\s*{[^}]*scrollbar-gutter: stable;[^}]*scrollbar-width: thin;[^}]*scrollbar-color: transparent transparent;/,
+    )
+    expect(activityDetailModalSource).toMatch(
+      /\.activity-detail-body:hover,\s*\.activity-detail-body:focus-within\s*{[^}]*scrollbar-color: rgb\(var\(--bujo-ink-rgb\) \/ 0\.28\) transparent;/,
+    )
+    expect(activityDetailModalSource).toMatch(
+      /\.activity-detail-body:hover::-webkit-scrollbar-thumb,\s*\.activity-detail-body:focus-within::-webkit-scrollbar-thumb\s*{[^}]*background: rgb\(var\(--bujo-ink-rgb\) \/ 0\.28\);/,
+    )
+    expect(activityDetailModalSource).toMatch(
+      /@media \(max-width: 900px\)[^{]*{[\s\S]*?\.activity-detail-body\s*{[^}]*scrollbar-width: none;[\s\S]*?\.activity-detail-body::-webkit-scrollbar\s*{[^}]*display: none;/,
+    )
   })
 })
 

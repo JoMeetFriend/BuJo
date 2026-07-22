@@ -1,7 +1,7 @@
 <template>
   <!-- 桌機版側邊欄 -->
   <aside
-    class="hidden md:flex flex-col justify-between bg-[#f3f5ef] border-r border-[var(--bujo-line)] transition-all duration-300 overflow-hidden"
+    class="hidden lg:flex flex-col justify-between bg-[#f3f5ef] border-r border-[var(--bujo-line)] transition-all duration-300 overflow-hidden"
     :class="isOpen ? 'w-[210px] px-5 py-6' : 'w-0 px-0 py-6'"
   >
     <div>
@@ -92,9 +92,7 @@
   </aside>
 
   <!-- 手機版底部導覽列 + 篩選抽屜 -->
-  <div class="md:hidden">
-    <!-- 新手導覽問號：手機版沒有側邊欄可以嵌，浮在畫面右上角 -->
-    <AppTourHelpButton v-if="isCalendarPage" floating calendar-aligned @click="emit('open-tour')" />
+  <div class="lg:hidden">
     <!-- 篩選抽屜 -->
     <div v-if="isCalendarPage && drawerOpen" class="bujo-mobile-filter-tray">
       <div class="bujo-mobile-filter-header">
