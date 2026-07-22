@@ -75,6 +75,9 @@ describe('ActivityView - 手機短螢幕響應式版面', () => {
       /\.activity-filter-toolbar\s*{[^}]*min-height: 56px;[^}]*border-top:[^;]+;[^}]*border-bottom:[^;]+;/s,
     )
     expect(activityViewSource).toMatch(
+      /\.activity-filter-scroller\s*{[^}]*margin-block: -4px;[^}]*padding-block: 4px;[^}]*overflow-x: auto;/s,
+    )
+    expect(activityViewSource).toMatch(
       /\.activity-filter\s*{[^}]*min-height: 40px;[^}]*font-size: 13px;[^}]*padding: 9px 16px;/s,
     )
     expect(activityViewSource).toMatch(/\.activity-filter b\s*{[^}]*font-size: 14px;/s)
@@ -163,12 +166,15 @@ describe('ActivityView - 手機短螢幕響應式版面', () => {
     )
   })
 
-  test('篩選墨線與活動小卡 hover 只在精準滑鼠裝置啟用', () => {
+  test('選中篩選使用浮起紙卡，精準滑鼠 hover 時再輕微上浮', () => {
+    expect(activityViewSource).toMatch(
+      /\.activity-filter--active\s*{[^}]*background: rgb\(var\(--bujo-white-rgb\) \/ 0\.78\);[^}]*border-color: rgb\(var\(--bujo-line-rgb\) \/ 0\.32\);[^}]*3px 4px 0 rgb\(var\(--bujo-line-rgb\) \/ 0\.18\),[^}]*0 3px 7px rgb\(var\(--bujo-ink-rgb\) \/ 0\.08\);[^}]*transform: translateY\(-2px\);/s,
+    )
     expect(activityViewSource).toMatch(
       /\.activity-filter::after\s*{[^}]*transform: scaleX\(0\);[^}]*transform-origin: left center;/s,
     )
     expect(activityViewSource).toMatch(
-      /\.activity-filter--active::after\s*{[^}]*transform: scaleX\(1\);/s,
+      /\.activity-filter--active::after\s*{[^}]*right: 23%;[^}]*left: 23%;[^}]*opacity: 0\.42;[^}]*transform: scaleX\(1\);/s,
     )
     expect(activityViewSource).toMatch(
       /\.activity-mini-card::before\s*{[^}]*top: 15px;[^}]*left: 0;[^}]*width: 2px;[^}]*height: 22px;[^}]*transform: scaleY\(0\);/s,
@@ -177,13 +183,13 @@ describe('ActivityView - 手機短螢幕響應式版面', () => {
       /\.activity-mini-card--active::before\s*{[^}]*transform: scaleY\(1\);/s,
     )
     expect(activityViewSource).toMatch(
-      /@media \(hover: hover\) and \(pointer: fine\)[^{]*{[\s\S]*?\.activity-filter:not\(\.activity-filter--active\):hover[\s\S]*?\.activity-mini-card:hover\s*{[^}]*transform: translateX\(-4px\);/,
+      /@media \(hover: hover\) and \(pointer: fine\)[^{]*{[\s\S]*?\.activity-filter:not\(\.activity-filter--active\):hover[\s\S]*?\.activity-filter--active:hover\s*{[^}]*4px 5px 0[^}]*transform: translateY\(-3px\);[\s\S]*?\.activity-mini-card:hover\s*{[^}]*transform: translateX\(-4px\);/,
     )
   })
 
   test('偏好減少動態時停用過場與位移但保留選中樣式', () => {
     expect(activityViewSource).toMatch(
-      /@media \(prefers-reduced-motion: reduce\)[^{]*{[\s\S]*?\.activity-filter,[\s\S]*?\.activity-focus-leave-active\)[^{]*{[^}]*transition: none;[\s\S]*?\.activity-mini-card:hover,[\s\S]*?\.activity-focus-leave-to\)[^{]*{[^}]*opacity: 1;[^}]*transform: none;/,
+      /@media \(prefers-reduced-motion: reduce\)[^{]*{[\s\S]*?\.activity-filter,[\s\S]*?\.activity-focus-leave-active\)[^{]*{[^}]*transition: none;[\s\S]*?\.activity-filter--active,[\s\S]*?\.activity-focus-leave-to\)[^{]*{[^}]*opacity: 1;[^}]*transform: none;/,
     )
   })
 

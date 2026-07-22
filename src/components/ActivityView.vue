@@ -387,6 +387,8 @@ onMounted(() => {
 .activity-filter-scroller {
   grid-column: 1;
   min-width: 0;
+  margin-block: -4px;
+  padding-block: 4px;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
   scrollbar-width: none;
@@ -439,6 +441,7 @@ onMounted(() => {
     color 160ms ease,
     background-color 160ms ease,
     border-color 160ms ease,
+    box-shadow 160ms ease,
     transform 160ms ease;
 }
 
@@ -475,13 +478,19 @@ onMounted(() => {
 }
 
 .activity-filter--active {
-  background: rgb(var(--bujo-white-rgb) / 0.62);
-  color: rgb(var(--bujo-ink-rgb) / 0.78);
-  border-color: rgb(var(--bujo-ink-rgb) / 0.34);
-  box-shadow: 1px 2px 0 rgb(var(--bujo-line-rgb) / 0.1);
+  background: rgb(var(--bujo-white-rgb) / 0.78);
+  color: rgb(var(--bujo-ink-rgb) / 0.82);
+  border-color: rgb(var(--bujo-line-rgb) / 0.32);
+  box-shadow:
+    3px 4px 0 rgb(var(--bujo-line-rgb) / 0.18),
+    0 3px 7px rgb(var(--bujo-ink-rgb) / 0.08);
+  transform: translateY(-2px);
 }
 
 .activity-filter--active::after {
+  right: 23%;
+  left: 23%;
+  opacity: 0.42;
   transform: scaleX(1);
 }
 
@@ -945,6 +954,13 @@ onMounted(() => {
     transform: scaleX(0.55);
   }
 
+  .activity-filter--active:hover {
+    box-shadow:
+      4px 5px 0 rgb(var(--bujo-line-rgb) / 0.2),
+      0 4px 8px rgb(var(--bujo-ink-rgb) / 0.09);
+    transform: translateY(-3px);
+  }
+
   .activity-mini-card:hover {
     background: var(--mini-card-hover-bg);
     filter: saturate(1.02);
@@ -1213,6 +1229,7 @@ onMounted(() => {
     transition: none;
   }
 
+  .activity-filter--active,
   .activity-filter:hover,
   .activity-mini-card:hover,
   .activity-stage :deep(.activity-focus-enter-from),
