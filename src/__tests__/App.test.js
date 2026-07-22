@@ -105,6 +105,10 @@ describe('App mobile viewport layout', () => {
     expect(appSource).toContain('class="hidden lg:flex"')
     expect(appSource).not.toContain('class="hidden md:flex"')
   })
+
+  test('頁面元件可將手機問號事件交給全站新手導覽', () => {
+    expect(appSource).toContain('@open-tour="startAppTour"')
+  })
 })
 
 describe('App LINE notification onboarding', () => {

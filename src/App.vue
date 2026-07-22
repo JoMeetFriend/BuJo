@@ -36,7 +36,12 @@
       ]"
     >
       <RouterView v-slot="{ Component }">
-        <component :is="Component" :sidebarOpen="sidebarOpen" :filters="filters" />
+        <component
+          :is="Component"
+          :sidebarOpen="sidebarOpen"
+          :filters="filters"
+          @open-tour="startAppTour"
+        />
       </RouterView>
     </main>
 

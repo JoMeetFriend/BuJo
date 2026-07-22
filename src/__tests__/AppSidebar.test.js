@@ -191,21 +191,19 @@ describe('AppSidebar', () => {
   })
 
   describe('新手導覽問號', () => {
-    test('手機版問號固定在右上工具組位置', () => {
+    test('手機版問號改由行事曆控制列渲染，不再使用 fixed 定位', () => {
+      expect(appSidebarSource).not.toContain('calendar-aligned')
+      expect(appTourHelpButtonSource).not.toContain('position: fixed')
       expect(appTourHelpButtonSource).toMatch(
-        /\.bujo-tour-help-btn--floating\s*\{[\s\S]*?top: 8px;[\s\S]*?right: 14px;[\s\S]*?width: 26px;[\s\S]*?height: 26px;/,
-      )
-      expect(appSidebarSource).toContain('calendar-aligned')
-      expect(appTourHelpButtonSource).toMatch(
-        /\.bujo-tour-help-btn--calendar-aligned\s*\{[^}]*top: 22px;[^}]*right: clamp\(20px, 4vw, 40px\);[^}]*width: 36px;[^}]*height: 36px;/,
+        /\.bujo-tour-help-btn--toolbar\s*\{[^}]*width: 36px;[^}]*height: 36px;/,
       )
     })
 
-    test('桌機版（CALENDAR FILTER 上方）與手機版（浮動右上角）各有一顆問號按鈕', async () => {
+    test('側邊欄只保留桌機版 CALENDAR FILTER 上方的問號按鈕', async () => {
       const wrapper = await mountAppSidebar({}, '/calendar')
 
       const buttons = wrapper.findAll('[aria-label="重新開啟新手導覽"]')
-      expect(buttons).toHaveLength(2)
+      expect(buttons).toHaveLength(1)
     })
 
     test('非日曆頁不顯示桌機版或手機版問號按鈕', async () => {
@@ -214,14 +212,13 @@ describe('AppSidebar', () => {
       expect(wrapper.findAll('[aria-label="重新開啟新手導覽"]')).toHaveLength(0)
     })
 
-    test('點擊任一顆問號按鈕都會 emit open-tour', async () => {
+    test('點擊桌機問號按鈕會 emit open-tour', async () => {
       const wrapper = await mountAppSidebar({}, '/calendar')
       const buttons = wrapper.findAll('[aria-label="重新開啟新手導覽"]')
 
       await buttons[0].trigger('click')
-      await buttons[1].trigger('click')
 
-      expect(wrapper.emitted('open-tour')).toHaveLength(2)
+      expect(wrapper.emitted('open-tour')).toHaveLength(1)
     })
   })
 })

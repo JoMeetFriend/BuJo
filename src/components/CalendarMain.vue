@@ -31,14 +31,17 @@
         <span class="calendar-square-toggle" aria-hidden="true"></span>
       </button>
 
-      <button
-        type="button"
-        class="calendar-lang-toggle calendar-lang-toggle-mobile"
-        :aria-label="t('common.ariaToggleLanguage')"
-        @click="toggleLanguage"
-      >
-        {{ locale === 'zh-TW' ? t('common.langEn') : 'CH' }}
-      </button>
+      <div class="calendar-mobile-control-actions">
+        <button
+          type="button"
+          class="calendar-lang-toggle calendar-lang-toggle-mobile"
+          :aria-label="t('common.ariaToggleLanguage')"
+          @click="toggleLanguage"
+        >
+          {{ locale === 'zh-TW' ? t('common.langEn') : 'CH' }}
+        </button>
+        <AppTourHelpButton toolbar @click="emit('open-tour')" />
+      </div>
     </div>
 
     <header class="calendar-page-header">
@@ -351,6 +354,7 @@ import ActivityDetailModal from './ActivityDetailModal.vue'
 import DateEventsModal from './DateEventsModal.vue'
 import ProfileAccountModal from './ProfileAccountModal.vue'
 import EventPage from './EventPage.vue'
+import AppTourHelpButton from './AppTourHelpButton.vue'
 import { toAvatarSrc } from '@/utils/avatar'
 import { apiFetch } from '@/services/httpClient'
 
@@ -399,6 +403,7 @@ const props = defineProps({
     default: () => ({ formedByMe: true, formedByOthers: true }),
   },
 })
+const emit = defineEmits(['open-tour'])
 
 const isPhone = ref(window.innerWidth <= 640)
 const isCompactNavigation = ref(window.innerWidth < 1024)
@@ -1689,7 +1694,12 @@ function isToday(date) {
     align-items: center;
     justify-content: space-between;
     height: 36px;
-    padding-right: 52px;
+  }
+
+  .calendar-mobile-control-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
   .calendar-toggle-dots-mobile,

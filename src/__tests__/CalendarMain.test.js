@@ -550,6 +550,10 @@ describe('CalendarMain', () => {
     window.dispatchEvent(new Event('resize'))
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.calendar-mobile-controls').exists()).toBe(true)
+    const mobileHelpButton = wrapper.get('.calendar-mobile-controls [data-tour="tour-help-button"]')
+    expect(wrapper.get('.calendar-mobile-control-actions').findAll('button')).toHaveLength(2)
+    await mobileHelpButton.trigger('click')
+    expect(wrapper.emitted('open-tour')).toHaveLength(1)
     expect(wrapper.get('.calendar-grid').attributes('style')).toContain('repeat(6, minmax(0, 1fr))')
 
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 641 })
@@ -633,6 +637,9 @@ describe('CalendarMain', () => {
     )
     expect(calendarMainSource).toMatch(
       /\.calendar-mobile-controls\s*\{[\s\S]*?top: 22px;[\s\S]*?display: flex;[\s\S]*?align-items: center;[\s\S]*?height: 36px;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /\.calendar-mobile-control-actions\s*\{[^}]*display: flex;[^}]*align-items: center;[^}]*gap: 12px;/,
     )
     expect(calendarMainSource).not.toContain('calendar-mobile-control-spacer')
     expect(calendarMainSource).toMatch(

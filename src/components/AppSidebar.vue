@@ -93,8 +93,6 @@
 
   <!-- 手機版底部導覽列 + 篩選抽屜 -->
   <div class="lg:hidden">
-    <!-- 新手導覽問號：手機版沒有側邊欄可以嵌，浮在畫面右上角 -->
-    <AppTourHelpButton v-if="isCalendarPage" floating calendar-aligned @click="emit('open-tour')" />
     <!-- 篩選抽屜 -->
     <div v-if="isCalendarPage && drawerOpen" class="bujo-mobile-filter-tray">
       <div class="bujo-mobile-filter-header">
