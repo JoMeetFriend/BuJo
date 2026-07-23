@@ -102,8 +102,8 @@ npm run format
 
 **測試環境（`dev`）**
 
-- 前端：[https://bu-jo-dev-fe.vercel.app](https://bu-jo-dev-fe.vercel.app)
-- 後端：[https://bujobackend-bkef.onrender.com](https://bujobackend-bkef.onrender.com)
+- 前端：[https://bu-jo-inky.vercel.app](https://bu-jo-inky.vercel.app)
+- 後端：[https://bujobackend-gnfd.onrender.com](https://bujobackend-gnfd.onrender.com)
 
 合併進 `main` 分支會自動部署到正式網址；合併進 `dev` 分支會自動部署到測試網址，方便 demo。
 
@@ -120,7 +120,7 @@ npm run format
 
 - 本地：[http://localhost:3000/api-docs](http://localhost:3000/api-docs)
 - 正式環境（main）：[https://api.bujo.live/api-docs](https://api.bujo.live/api-docs)
-- 測試環境（dev）：[https://bujobackend-bkef.onrender.com/api-docs](https://bujobackend-bkef.onrender.com/api-docs)
+- 測試環境（dev）：[https://bujobackend-gnfd.onrender.com/api-docs](https://bujobackend-gnfd.onrender.com/api-docs)
 
 ## 相關 Repo
 
@@ -166,7 +166,7 @@ docker build \
 - [廖家瑜](https://github.com/yuaangela)
   - 活動頁面與動態彈窗切版
   - 前端路由與頁面切換
-  - 萬用路由與 404 頁面
+  - 萬用路由與前端多語系
   - 好友功能/前後端串接
   - 個人編輯名稱與簡介
   - 前端部署
