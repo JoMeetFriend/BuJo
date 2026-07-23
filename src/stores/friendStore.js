@@ -1,13 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import axios from 'axios'
 import i18n from '@/i18n'
-
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  timeout: 5000,
-  withCredentials: true,
-})
+import { apiClient } from '@/services/httpClient'
 
 export const useFriendStore = defineStore('friend', () => {
   const friends = ref([])

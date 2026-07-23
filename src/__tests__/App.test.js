@@ -100,6 +100,15 @@ describe('App mobile viewport layout', () => {
     expect(appSource).toContain('height: 100vh;')
     expect(appSource).toContain('height: 100dvh;')
   })
+
+  test('側邊欄切換按鈕只在 1024px 以上的桌機導覽顯示', () => {
+    expect(appSource).toContain('class="hidden lg:flex"')
+    expect(appSource).not.toContain('class="hidden md:flex"')
+  })
+
+  test('頁面元件可將手機問號事件交給全站新手導覽', () => {
+    expect(appSource).toContain('@open-tour="startAppTour"')
+  })
 })
 
 describe('App LINE notification onboarding', () => {

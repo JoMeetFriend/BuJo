@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-
-const API = import.meta.env.VITE_API_URL
+import { apiFetch } from '@/services/httpClient'
 
 // Render 免費方案閒置後會休眠，冷啟動時第一批請求常常不會回錯誤、而是整個吊著不回應，
 // 所以喚醒不能只是等一次 fetch，而是要設逾時、逾時就視為失敗並重試，直到伺服器真的醒了
@@ -21,7 +20,7 @@ export const useAuthStore = defineStore('auth', () => {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), HEALTH_CHECK_TIMEOUT_MS)
     try {
-      const res = await fetch(`${API}/`, { signal: controller.signal })
+      const res = await apiFetch('/', { signal: controller.signal })
       return res.ok
     } catch {
       return false
@@ -43,7 +42,7 @@ export const useAuthStore = defineStore('auth', () => {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), FETCH_ME_TIMEOUT_MS)
     try {
-      const res = await fetch(`${API}/api/auth/me`, {
+      const res = await apiFetch('/api/auth/me', {
         credentials: 'include',
         signal: controller.signal,
       })
@@ -58,7 +57,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout() {
     try {
-      await fetch(`${API}/api/auth/logout`, { method: 'POST', credentials: 'include' })
+      await apiFetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
     } catch {
       // 網路或後端失敗都視同登出：清空本地狀態，讓呼叫端一定能導向 /login
     } finally {

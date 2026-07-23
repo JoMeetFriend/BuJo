@@ -12,6 +12,7 @@ const api = vi.hoisted(() => ({
   get: vi.fn(),
   patch: vi.fn(),
   post: vi.fn(),
+  interceptors: { request: { use: vi.fn() } },
 }))
 
 vi.mock('axios', () => ({

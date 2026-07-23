@@ -22,9 +22,10 @@
             class="grid size-24 shrink-0 place-items-center overflow-hidden border border-[var(--bujo-line)] bg-[var(--bujo-surface-muted)] md:size-28"
           >
             <img
-              v-if="avatarUrl"
+              v-if="showAvatar"
               :src="avatarUrl"
               :alt="t('profileEdit.avatarLabel')"
+              @error="handleAvatarImgError"
               class="size-full object-cover"
             />
             <span
@@ -364,7 +365,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ClipboardDocumentIcon, EnvelopeIcon } from '@heroicons/vue/24/outline'
@@ -377,15 +378,23 @@ import {
 } from '@/composables/useLineNotificationOnboarding'
 import { toAvatarSrc } from '@/utils/avatar'
 import { useUserStore } from '@/stores/userStore'
+import { apiFetch } from '@/services/httpClient'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
 const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
-const API = import.meta.env.VITE_API_URL || ''
 
 const avatarUrl = ref(toAvatarSrc(authStore.user?.avatar_url || ''))
+const avatarLoadFailed = ref(false)
+watch(avatarUrl, () => {
+  avatarLoadFailed.value = false
+})
+const showAvatar = computed(() => Boolean(avatarUrl.value) && !avatarLoadFailed.value)
+function handleAvatarImgError() {
+  avatarLoadFailed.value = true
+}
 const avatarLoading = ref(false)
 const avatarMsg = ref('')
 const avatarMsgType = ref('success')
@@ -449,7 +458,7 @@ const handleAvatarChange = async (event) => {
     const formData = new FormData()
     formData.append('avatar', file)
 
-    const res = await fetch(`${API}/api/users/me/avatar`, {
+    const res = await apiFetch('/api/users/me/avatar', {
       method: 'PATCH',
       credentials: 'include',
       body: formData,
@@ -508,7 +517,7 @@ const handleUnlink = async (provider) => {
   if (identityCount.value <= 1) return
   linkLoading.value = true
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/${provider}/unlink`, {
+    const res = await apiFetch(`/api/auth/${provider}/unlink`, {
       method: 'DELETE',
       credentials: 'include',
     })

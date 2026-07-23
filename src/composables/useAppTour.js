@@ -18,12 +18,21 @@ function getBrowserStorage() {
   }
 }
 
-// 桌機版側邊欄與手機版底部導覽列同時存在於 DOM，只有其中一個透過 CSS 顯示；
-// 用 offsetParent 找出目前實際可見的那個，driver.js 才能正確定位框選範圍。
+// 桌機版側邊欄與手機版底部導覽列同時存在於 DOM，只有其中一個透過 CSS 顯示。
+// 不能用 offsetParent 判斷，因為手機的「？」是 position: fixed，可見時 offsetParent 仍可能是 null。
+// 改用實際矩形與 computed style 找出畫面上可見的錨點，driver.js 才不會退回選到隱藏的桌機元素。
+function isVisibleTourElement(el) {
+  const style = globalThis.getComputedStyle?.(el)
+  if (style?.display === 'none' || style?.visibility === 'hidden') return false
+
+  const rect = el.getBoundingClientRect()
+  return rect.width > 0 && rect.height > 0
+}
+
 function resolveTourElement(selector) {
   const candidates = document.querySelectorAll(`[data-tour="${selector}"]`)
   for (const el of candidates) {
-    if (el.offsetParent !== null) return el
+    if (isVisibleTourElement(el)) return el
   }
   return candidates[0] ?? null
 }

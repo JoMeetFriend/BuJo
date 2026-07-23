@@ -49,7 +49,7 @@
             <div class="friend-stamp-avatar">
               <img
                 v-if="friend.avatar_url && !brokenImages.has(friend.id)"
-                :src="friend.avatar_url"
+                :src="toAvatarSrc(friend.avatar_url)"
                 :alt="t('friends.friendAvatar')"
                 @error="handleImageError(friend.id)"
                 class="h-full w-full object-cover"
@@ -85,6 +85,7 @@ import { useI18n } from 'vue-i18n'
 import { useFriendStore } from '@/stores/friendStore'
 import FriendAddModal from './FriendAddModal.vue'
 import PixelButton from './ui/PixelButton.vue'
+import { toAvatarSrc } from '@/utils/avatar'
 
 defineProps({
   sidebarOpen: Boolean,
