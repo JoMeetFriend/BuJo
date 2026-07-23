@@ -357,7 +357,12 @@ describe('EventPage - 活動名稱長度限制', () => {
 })
 
 describe('EventPage - 日期與時間模式 switch UI', () => {
-  const modeCopy = ['日期確定了！', '還沒～選幾天讓大家投票', '時間確定了！', '還沒～選時段讓大家投票']
+  const modeCopy = [
+    '日期確定了！',
+    '還沒～選幾天讓大家投票',
+    '時間確定了！',
+    '還沒～選時段讓大家投票',
+  ]
 
   test('預設兩個 switch 都在右側，對應 fixed/fixed，並隱藏整體說明', async () => {
     const wrapper = await mountEventPage()

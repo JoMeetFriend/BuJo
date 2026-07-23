@@ -51,6 +51,8 @@
       @link-start="rememberOnboardingReturnPath"
       @complete="markLineNotificationOnboardingSeen"
     />
+
+    <FloatingChat />
   </div>
 </template>
 
@@ -60,6 +62,7 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import AppSidebar from './components/AppSidebar.vue'
 import SidebarToggleButton from './components/ui/SidebarToggleButton.vue'
 import LineNotificationOnboardingModal from './components/LineNotificationOnboardingModal.vue'
+import FloatingChat from './components/FloatingChat.vue'
 import LoadingPage from './components/ui/LoadingPage.vue'
 import { useAuthStore } from './stores/auth'
 import {

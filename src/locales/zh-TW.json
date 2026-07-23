@@ -712,6 +712,20 @@
     "invalidUser": "無效的使用者",
     "sendFailed": "發送失敗，請重試"
   },
+  "chat": {
+    "title": "揪團聊天室",
+    "loading": "載入中...",
+    "noActivities": "目前沒有已參加的活動",
+    "members": "人",
+    "inputPlaceholder": "輸入訊息...",
+    "loadMore": "載入更多訊息",
+    "toggleAria": "切換聊天室",
+    "retry": "重新傳送",
+    "sendRateLimit": "傳送太頻繁，請稍後再試",
+    "sendFailed": "傳送失敗",
+    "networkError": "網路錯誤",
+    "fetchFailed": "載入失敗，請稍後再試"
+  },
   "composable": {
     "userSearchExpired": "登入已過期，請重新登入",
     "userSearchError": "搜尋發生錯誤"
