@@ -390,7 +390,11 @@ describe('CalendarMain - UPCOMING 活動側欄', () => {
     expect(desktopCards[3].get('.calendar-upcoming-relative').text()).toBe('3 天後')
     expect(desktopCards.slice(0, 4).every((card) => card.classes().includes('is-soon'))).toBe(true)
     expect(desktopCards.slice(4).every((card) => !card.classes().includes('is-soon'))).toBe(true)
-    expect(desktopRail.get('.calendar-upcoming-hint').text()).toBe('還有 2 個活動，往下捲動查看')
+    expect(desktopRail.get('.calendar-upcoming-hint--horizontal').text()).toBe(
+      '左右滑動查看更多活動',
+    )
+    expect(desktopRail.get('.calendar-upcoming-hint--vertical').text()).toBe('往下捲動查看更多活動')
+    expect(desktopRail.text()).not.toContain('還有 2 個活動')
 
     const mobileTitles = wrapper
       .get('.calendar-mobile-pocket')
@@ -406,7 +410,7 @@ describe('CalendarMain - UPCOMING 活動側欄', () => {
       desktopCards.map((card) => card.classes().includes('is-soon')),
     )
     expect(wrapper.get('.calendar-mobile-pocket .calendar-upcoming-hint').text()).toBe(
-      '還有 3 個活動，左右滑動查看',
+      '左右滑動查看更多活動',
     )
 
     wrapper.unmount()
@@ -519,9 +523,12 @@ describe('CalendarMain - UPCOMING 活動側欄', () => {
     )
     expect(calendarMainSource).not.toMatch(/\.calendar-upcoming-card:nth-child\(-n \+ 2\)/)
     expect(calendarMainSource).toMatch(
-      /@media \(max-width: 900px\) \{[\s\S]*?\.calendar-upcoming-list\s*\{[\s\S]*?overflow-x: auto;[\s\S]*?overflow-y: hidden;/,
+      /@media \(max-width: 1199px\) \{[\s\S]*?\.calendar-upcoming-list\s*\{[\s\S]*?overflow-x: auto;[\s\S]*?overflow-y: hidden;/,
     )
-    expect(calendarMainSource).toContain('flex: 0 0 min(58vw, 210px);')
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 1199px\) \{[\s\S]*?\.calendar-upcoming-hint--horizontal\s*\{[^}]*display: block;[\s\S]*?\.calendar-upcoming-hint--vertical\s*\{[^}]*display: none;/,
+    )
+    expect(calendarMainSource).toContain('flex: 0 0 210px;')
     expect(calendarMainSource).toContain('min-height: 88px;')
     expect(calendarMainSource).toMatch(
       /@media \(max-width: 640px\) \{[\s\S]*?\.calendar-mobile-pocket \.calendar-upcoming-card\s*{[^}]*flex-basis: min\(42vw, 160px\);[^}]*min-height: 72px;[^}]*gap: 5px;[^}]*padding: 9px 10px 8px;/,
@@ -535,6 +542,75 @@ describe('CalendarMain - UPCOMING 活動側欄', () => {
 })
 
 describe('CalendarMain', () => {
+  test('640、1024 與 1200px 斷點分離手機密度、平板導覽與桌機活動直欄', async () => {
+    const originalWidth = window.innerWidth
+    const wrapper = await mountCalendarMain()
+
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 640 })
+    window.dispatchEvent(new Event('resize'))
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.calendar-mobile-controls').exists()).toBe(true)
+    const mobileHelpButton = wrapper.get('.calendar-mobile-controls [data-tour="tour-help-button"]')
+    expect(wrapper.get('.calendar-mobile-control-actions').findAll('button')).toHaveLength(2)
+    await mobileHelpButton.trigger('click')
+    expect(wrapper.emitted('open-tour')).toHaveLength(1)
+    expect(wrapper.get('.calendar-grid').attributes('style')).toContain('repeat(6, minmax(0, 1fr))')
+
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 641 })
+    window.dispatchEvent(new Event('resize'))
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.calendar-mobile-controls').exists()).toBe(true)
+    expect(wrapper.get('.calendar-grid').attributes('style')).toContain('repeat(6, 1fr)')
+
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 })
+    window.dispatchEvent(new Event('resize'))
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.calendar-mobile-controls').exists()).toBe(false)
+    expect(wrapper.find('[aria-label="切換背景動畫"]').exists()).toBe(true)
+    const pageHeader = wrapper.get('header.calendar-page-header')
+    expect(pageHeader.find('.calendar-mood-line').exists()).toBe(true)
+    expect(pageHeader.find('.calendar-page-profile-button').exists()).toBe(true)
+
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 1199px\) \{[\s\S]*?\.calendar-content-composition\s*\{[^}]*grid-template-columns: minmax\(0, 1fr\);[^}]*flex: 0 0 auto;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 1199px\) \{[\s\S]*?\.calendar-content-composition\s*\{[^}]*margin-top: 80px;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /\.calendar-page-header\s*\{[^}]*position: absolute;[^}]*right: 64px;[^}]*left: 64px;[^}]*display: grid;[^}]*grid-template-columns: minmax\(0, 1fr\) minmax\(190px, 240px\);[^}]*gap: clamp\(18px, 2\.2vw, 34px\);[^}]*height: calc\(24px \+ clamp\(92px, 13vh, 112px\)\);[^}]*align-items: center;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /\.calendar-mood-line\s*\{[^}]*grid-column: 1;[^}]*align-items: center;[^}]*justify-self: center;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /\.calendar-page-profile-button\s*\{[^}]*position: relative;[^}]*grid-column: 2;[^}]*justify-self: end;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 1199px\) \{[\s\S]*?\.calendar-main-shell\s*\{[^}]*overflow-x: hidden;[^}]*overflow-y: auto;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 1023px\) \{[\s\S]*?padding: 0 clamp\(20px, 4vw, 40px\) calc\(84px \+ env\(safe-area-inset-bottom, 0px\)\);/,
+    )
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 1199px\) \{[\s\S]*?\.calendar-page-header\s*\{[^}]*height: 80px;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 1199px\) \{[\s\S]*?\.calendar-mood-line\s*\{[^}]*grid-column: 2;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 1023px\) \{[\s\S]*?\.calendar-page-header\s*\{[^}]*grid-template-columns: 88px minmax\(0, 1fr\) 88px;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 640px\) \{[\s\S]*?\.calendar-page-header\s*\{[^}]*display: none;/,
+    )
+    expect(calendarMainSource).not.toContain('left: 50vw;')
+
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth })
+    window.dispatchEvent(new Event('resize'))
+    wrapper.unmount()
+  })
+
   test('手機版日期格會把 +N 移至右上角，並替首筆活動標題保留更多寬度', () => {
     expect(calendarMainSource).toMatch(
       /@media \(max-width: 640px\) \{[\s\S]*?\.calendar-event-list\s*\{[^}]*padding-inline: 2px;/,
@@ -557,17 +633,23 @@ describe('CalendarMain', () => {
 
   test('短螢幕手機會避開固定控制項並讓月曆吸收剩餘高度', () => {
     expect(calendarMainSource).toContain(
-      'padding: 8px 8px calc(84px + env(safe-area-inset-bottom, 0px));',
+      'padding: 0 8px calc(84px + env(safe-area-inset-bottom, 0px));',
     )
     expect(calendarMainSource).toMatch(
-      /\.calendar-mobile-controls\s*\{[\s\S]*?display: flex;[\s\S]*?align-items: center;[\s\S]*?height: 34px;/,
+      /\.calendar-mobile-controls\s*\{[\s\S]*?top: 22px;[\s\S]*?display: flex;[\s\S]*?align-items: center;[\s\S]*?height: 36px;/,
+    )
+    expect(calendarMainSource).toMatch(
+      /\.calendar-mobile-control-actions\s*\{[^}]*display: flex;[^}]*align-items: center;[^}]*gap: 12px;/,
     )
     expect(calendarMainSource).not.toContain('calendar-mobile-control-spacer')
+    expect(calendarMainSource).toMatch(
+      /@media \(max-width: 640px\) and \(max-height: 700px\) \{[\s\S]*?\.calendar-content-composition\s*\{[^}]*margin-top: 80px;/,
+    )
     expect(calendarMainSource).toMatch(
       /@media \(max-width: 640px\) and \(max-height: 700px\) \{[\s\S]*?\.calendar-board\s*\{[\s\S]*?flex: 1 1 auto;[\s\S]*?height: clamp\(220px, calc\(100dvh - 330px\), 360px\);[\s\S]*?min-height: 220px;[\s\S]*?max-height: 360px;/,
     )
     expect(calendarMainSource).toMatch(
-      /\.calendar-toggle-dots-mobile\s*\{[\s\S]*?width: 26px;[\s\S]*?height: 26px;/,
+      /\.calendar-toggle-dots-mobile,[\s\S]*?\.calendar-lang-toggle-mobile\s*\{[\s\S]*?width: 36px;[\s\S]*?height: 36px;/,
     )
     expect(calendarMainSource).not.toMatch(
       /\.calendar-toggle-dots-mobile\s*\{[\s\S]*?position: fixed;/,
@@ -633,6 +715,20 @@ describe('CalendarMain', () => {
     const wrapper = await mountCalendarMain()
 
     const profileButton = wrapper.get('[aria-label="開啟個人帳號"]')
+    expect(profileButton.find('img').exists()).toBe(false)
+    expect(profileButton.find('.profile-pixel-face').exists()).toBe(true)
+  })
+
+  test('主頁右上角帳號按鈕頭像圖片載入失敗時改顯示 fallback', async () => {
+    const wrapper = await mountCalendarMain({
+      avatar_url: 'https://res.cloudinary.com/demo/avatar-dead-link.png',
+    })
+
+    const profileButton = wrapper.get('[aria-label="開啟個人帳號"]')
+    expect(profileButton.find('img').exists()).toBe(true)
+
+    await profileButton.get('img').trigger('error')
+
     expect(profileButton.find('img').exists()).toBe(false)
     expect(profileButton.find('.profile-pixel-face').exists()).toBe(true)
   })

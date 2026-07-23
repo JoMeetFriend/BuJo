@@ -169,7 +169,6 @@
 </template>
 
 <script setup>
-import axios from 'axios'
 import { TrashIcon } from '@heroicons/vue/24/outline'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -177,14 +176,9 @@ import { useI18n } from 'vue-i18n'
 import PixelButton from './ui/PixelButton.vue'
 import { useNotificationStore } from '@/stores/notificationStore'
 import { toAvatarSrc } from '@/utils/avatar'
+import { apiClient } from '@/services/httpClient'
 
 const { t } = useI18n()
-
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  timeout: 5000,
-  withCredentials: true,
-})
 
 const notificationStore = useNotificationStore()
 const router = useRouter()

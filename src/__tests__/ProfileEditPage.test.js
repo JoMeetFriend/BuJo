@@ -303,6 +303,19 @@ describe('ProfileEditPage', () => {
     expect(wrapper.find('[aria-label="預設使用者頭像"]').exists()).toBe(false)
   })
 
+  test('頭像圖片載入失敗時改顯示預設像素頭像', async () => {
+    const wrapper = await mountProfileEditPage({
+      avatar_url: 'https://res.cloudinary.com/demo/avatar-dead-link.png',
+    })
+
+    expect(wrapper.find('img[alt="使用者頭像"]').exists()).toBe(true)
+
+    await wrapper.get('img[alt="使用者頭像"]').trigger('error')
+
+    expect(wrapper.find('img[alt="使用者頭像"]').exists()).toBe(false)
+    expect(wrapper.get('[aria-label="預設使用者頭像"]').classes()).toContain('profile-edit-face')
+  })
+
   test('更換頭像會用 FormData 上傳並更新目前登入者頭像', async () => {
     fetch.mockResolvedValue({
       ok: true,
@@ -329,7 +342,9 @@ describe('ProfileEditPage', () => {
       }),
     )
     const requestOptions = fetch.mock.calls[0][1]
-    expect(requestOptions).not.toHaveProperty('headers')
+    // FormData 上傳不能手動設定 Content-Type，瀏覽器要自己補 multipart boundary，
+    // 不然後端會解析失敗——這裡只檔 Content-Type，其他 header（例如 Accept-Language）不受影響。
+    expect(requestOptions.headers?.['Content-Type']).toBeUndefined()
     expect(requestOptions.body.get('avatar')).toBe(file)
     expect(authStore.user.avatar_url).toBe('/uploads/avatars/avatar-user-1.png')
     expect(wrapper.find('img[alt="使用者頭像"]').attributes('src')).toContain(
@@ -383,10 +398,13 @@ describe('ProfileEditPage', () => {
     await wrapper.get('[aria-label="登出目前帳號"]').trigger('click')
     await flushPromises()
 
-    expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
-    })
+    expect(fetch).toHaveBeenCalledWith(
+      'http://localhost:3000/api/auth/logout',
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'include',
+      }),
+    )
     expect(authStore.user).toBeNull()
     expect(wrapper.vm.$router.currentRoute.value.path).toBe('/login')
   })

@@ -5,19 +5,31 @@
         <div v-if="activity" class="activity-detail-creator">
           <div class="activity-detail-avatar">
             <img
-              v-if="activity.creator.avatar_url"
-              :src="toAvatarSrc(activity.creator.avatar_url)"
+              v-if="personAvatarSrc(activity.creator)"
+              :src="personAvatarSrc(activity.creator)"
               alt=""
+              @error="handleAvatarError(activity.creator)"
             />
             <UserIcon v-else class="h-4 w-4" aria-hidden="true" />
           </div>
           <span>{{ activity.creator.display_name }}</span>
+        </div>
+        <div v-else-if="loading" class="activity-detail-creator" aria-hidden="true">
+          <div class="activity-detail-avatar activity-detail-skeleton-avatar"></div>
+          <span class="activity-detail-skeleton-line activity-detail-skeleton-line--name"></span>
         </div>
         <div class="activity-detail-top-actions">
           <div v-if="activity" class="activity-detail-badges">
             <span class="activity-detail-badge" :class="statusBadgeClass">
               {{ statusText }}
             </span>
+          </div>
+          <div
+            v-else-if="loading"
+            class="activity-detail-badges"
+            aria-hidden="true"
+          >
+            <span class="activity-detail-badge activity-detail-skeleton-badge"></span>
           </div>
           <button
             v-if="closable"
@@ -31,15 +43,37 @@
         </div>
       </div>
       <div class="activity-detail-header-content">
-        <h2 :title="activity?.title || t('activityDetail.title')">
+        <h2
+          v-if="!loading"
+          :title="activity?.title || t('activityDetail.title')"
+        >
           {{ activity?.title || t('activityDetail.title') }}
         </h2>
+        <span
+          v-else
+          class="activity-detail-skeleton-line activity-detail-skeleton-line--title"
+          :aria-label="t('activityDetail.loading')"
+        ></span>
         <div v-if="activity" class="activity-detail-date">{{ panelDate }}</div>
+        <span
+          v-else-if="loading"
+          class="activity-detail-skeleton-line activity-detail-skeleton-line--date"
+          aria-hidden="true"
+        ></span>
       </div>
     </header>
 
     <section class="activity-detail-body">
-      <div v-if="loading" class="activity-detail-state">{{ t('activityDetail.loading') }}</div>
+      <div v-if="loading" class="activity-detail-skeleton" role="status" :aria-label="t('activityDetail.loading')">
+        <div class="activity-detail-skeleton-block"></div>
+        <div class="activity-detail-skeleton-line activity-detail-skeleton-line--medium"></div>
+        <div class="activity-detail-skeleton-line activity-detail-skeleton-line--wide"></div>
+        <div class="activity-detail-skeleton-avatars">
+          <span class="activity-detail-skeleton-avatar"></span>
+          <span class="activity-detail-skeleton-avatar"></span>
+          <span class="activity-detail-skeleton-avatar"></span>
+        </div>
+      </div>
       <div v-else-if="fetchError" class="activity-detail-state activity-detail-state--error">
         {{ fetchError }}
       </div>
@@ -162,10 +196,11 @@
             >
               <template v-for="p in visibleParticipants" :key="p.id">
                 <img
-                  v-if="p.avatar_url"
+                  v-if="personAvatarSrc(p)"
                   class="activity-detail-avatar activity-detail-participant-avatar"
-                  :src="toAvatarSrc(p.avatar_url)"
+                  :src="personAvatarSrc(p)"
                   alt=""
+                  @error="handleAvatarError(p)"
                 />
                 <div
                   v-else
@@ -236,7 +271,12 @@
                   :key="p.user_id"
                   class="activity-detail-avatar"
                 >
-                  <img v-if="p.avatar_url" :src="toAvatarSrc(p.avatar_url)" alt="" />
+                  <img
+                    v-if="personAvatarSrc(p)"
+                    :src="personAvatarSrc(p)"
+                    alt=""
+                    @error="handleAvatarError(p)"
+                  />
                   <span v-else>{{ p.display_name?.slice(0, 1) ?? '?' }}</span>
                 </span>
                 <span
@@ -281,7 +321,12 @@
                   :key="p.user_id"
                   class="activity-detail-avatar"
                 >
-                  <img v-if="p.avatar_url" :src="toAvatarSrc(p.avatar_url)" alt="" />
+                  <img
+                    v-if="personAvatarSrc(p)"
+                    :src="personAvatarSrc(p)"
+                    alt=""
+                    @error="handleAvatarError(p)"
+                  />
                   <span v-else>{{ p.display_name?.slice(0, 1) ?? '?' }}</span>
                 </span>
                 <span
@@ -345,7 +390,12 @@
                 @touchmove="handleAvatarTouchEnd"
               >
                 <span v-for="s in entry.supporters" :key="s.user_id" class="activity-detail-avatar">
-                  <img v-if="s.avatar_url" :src="toAvatarSrc(s.avatar_url)" alt="" />
+                  <img
+                    v-if="personAvatarSrc(s)"
+                    :src="personAvatarSrc(s)"
+                    alt=""
+                    @error="handleAvatarError(s)"
+                  />
                   <span v-else>{{ s.display_name?.slice(0, 1) ?? '?' }}</span>
                 </span>
                 <span
@@ -371,6 +421,10 @@
         <p v-if="actionError" class="activity-detail-error">{{ actionError }}</p>
       </template>
     </section>
+
+    <footer v-if="loading" class="activity-detail-footer" aria-hidden="true">
+      <span class="activity-detail-skeleton-button"></span>
+    </footer>
 
     <footer v-if="activity" class="activity-detail-footer">
       <div v-if="successMessage" class="activity-detail-success">
@@ -536,6 +590,7 @@ import AvailabilityPickerModal from './AvailabilityPickerModal.vue'
 import { toAvatarSrc } from '@/utils/avatar'
 import { googleMapsSearchUrl } from '@/utils/mapLink'
 import { useI18n } from 'vue-i18n'
+import { apiFetch } from '@/services/httpClient'
 
 const { t } = useI18n()
 
@@ -852,6 +907,22 @@ function ratioText(count) {
     : `${count}${t('common.person')}`
 }
 
+const brokenAvatarIds = ref(new Set())
+
+function personAvatarSrc(person) {
+  if (!person?.avatar_url) return ''
+  // 沒有 id/user_id 時退回用 avatar_url 本身當 key，確保一定有東西可以標記為壞掉
+  const key = person.id ?? person.user_id ?? person.avatar_url
+  if (brokenAvatarIds.value.has(key)) return ''
+  return toAvatarSrc(person.avatar_url)
+}
+
+function handleAvatarError(person) {
+  const key = person?.id ?? person?.user_id ?? person?.avatar_url
+  if (key == null) return
+  brokenAvatarIds.value = new Set([...brokenAvatarIds.value, key])
+}
+
 const hasExpandableParticipants = computed(() => (activity.value?.current_count ?? 0) > 5)
 const visibleParticipants = computed(() => {
   const participants = activity.value?.participants ?? []
@@ -1088,7 +1159,7 @@ async function fetchActivity(id) {
   openSupportersKey.value = null
   participantsExpanded.value = false
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities/${id}`, {
+    const res = await apiFetch(`/api/activities/${id}`, {
       credentials: 'include',
       signal: controller.signal,
     })
@@ -1126,16 +1197,13 @@ async function callAction(path, method = 'POST', successMsg = '', body = undefin
   actionLoading.value = true
   actionError.value = ''
   try {
-    const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/activities/${props.activityId}/${path}`,
-      {
-        method,
-        credentials: 'include',
-        ...(body
-          ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
-          : {}),
-      },
-    )
+    const res = await apiFetch(`/api/activities/${props.activityId}/${path}`, {
+      method,
+      credentials: 'include',
+      ...(body
+        ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+        : {}),
+    })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) {
       actionError.value = data.message || t('activityDetail.operationFailed')
@@ -1511,6 +1579,85 @@ function formatTime(date) {
 .activity-detail-state--error,
 .activity-detail-error {
   color: var(--bujo-danger);
+}
+
+/* 載入中骨架圖：外形貼近載入完成後的版面，避免「空殼 → 填滿」看起來像換了一個彈窗 */
+@keyframes activity-detail-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
+
+.activity-detail-skeleton-line,
+.activity-detail-skeleton-block,
+.activity-detail-skeleton-avatar,
+.activity-detail-skeleton-badge,
+.activity-detail-skeleton-button {
+  display: block;
+  border-radius: 2px;
+  background: rgb(var(--bujo-ink-rgb) / 0.28);
+  animation: activity-detail-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.activity-detail-skeleton-line {
+  height: 12px;
+}
+
+.activity-detail-skeleton-line--title {
+  width: 60%;
+  height: 20px;
+  margin-bottom: 4px;
+}
+
+.activity-detail-skeleton-line--date {
+  width: 35%;
+  height: 11px;
+}
+
+.activity-detail-skeleton-line--name {
+  width: 64px;
+}
+
+.activity-detail-skeleton-line--wide {
+  width: 90%;
+}
+
+.activity-detail-skeleton-line--medium {
+  width: 65%;
+  margin-top: 10px;
+}
+
+.activity-detail-skeleton-badge {
+  width: 52px;
+  height: 20px;
+  border-radius: 999px;
+}
+
+.activity-detail-skeleton-block {
+  height: 46px;
+  width: 100%;
+}
+
+.activity-detail-skeleton-avatars {
+  display: flex;
+  gap: 6px;
+  margin-top: 22px;
+}
+
+.activity-detail-skeleton-avatar {
+  width: 25px;
+  height: 25px;
+  border-radius: 999px;
+}
+
+.activity-detail-skeleton-button {
+  width: 96px;
+  height: 32px;
+  border-radius: 2px;
 }
 
 .activity-detail-creator,
@@ -2173,6 +2320,45 @@ function formatTime(date) {
   background: var(--bujo-accent);
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .activity-detail-body {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .activity-detail-body::-webkit-scrollbar {
+    width: 7px;
+    display: block;
+  }
+
+  .activity-detail-body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .activity-detail-body::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    background: transparent;
+    background-clip: content-box;
+  }
+
+  .activity-detail-body:hover,
+  .activity-detail-body:focus-within {
+    scrollbar-color: rgb(var(--bujo-ink-rgb) / 0.28) transparent;
+  }
+
+  .activity-detail-body:hover::-webkit-scrollbar-thumb,
+  .activity-detail-body:focus-within::-webkit-scrollbar-thumb {
+    background: rgb(var(--bujo-ink-rgb) / 0.28);
+    background-clip: content-box;
+  }
+
+  .activity-detail-body::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--bujo-ink-rgb) / 0.48);
+    background-clip: content-box;
+  }
+}
+
 @media (max-width: 900px) {
   .activity-detail-panel {
     --activity-detail-scale: 1;
@@ -2286,6 +2472,61 @@ function formatTime(date) {
     font-size: 19px;
     line-height: 1.05;
     font-weight: 650;
+  }
+}
+
+@media (max-width: 360px) and (max-height: 600px) {
+  .activity-detail-header {
+    padding: 10px 12px 6px;
+  }
+
+  .activity-detail-top-row {
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .activity-detail-creator {
+    gap: 6px;
+    margin-bottom: 0;
+    font-size: 13px;
+  }
+
+  .activity-detail-creator .activity-detail-avatar {
+    width: 26px;
+    height: 26px;
+  }
+
+  .activity-detail-badge {
+    padding: 5px 7px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .activity-detail-header h2 {
+    font-size: 20px;
+    line-height: 1.04;
+  }
+
+  .activity-detail-date {
+    margin-top: 4px;
+    font-size: 16px;
+  }
+
+  .activity-detail-body {
+    padding: 8px 12px 10px;
+  }
+
+  .activity-detail-footer {
+    gap: 6px;
+    flex-wrap: nowrap;
+    padding: 6px 12px 8px;
+  }
+
+  .activity-detail-footer :deep(button) {
+    min-height: 28px;
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    white-space: nowrap;
   }
 }
 </style>

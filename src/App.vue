@@ -12,7 +12,7 @@
 
     <SidebarToggleButton
       v-if="showSidebar"
-      class="hidden md:flex"
+      class="hidden lg:flex"
       :class="
         sidebarOpen
           ? 'app-sidebar-toggle app-sidebar-toggle--open'
@@ -36,7 +36,12 @@
       ]"
     >
       <RouterView v-slot="{ Component }">
-        <component :is="Component" :sidebarOpen="sidebarOpen" :filters="filters" />
+        <component
+          :is="Component"
+          :sidebarOpen="sidebarOpen"
+          :filters="filters"
+          @open-tour="startAppTour"
+        />
       </RouterView>
     </main>
 

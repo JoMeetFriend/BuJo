@@ -1,7 +1,7 @@
 <template>
   <!-- 桌機版側邊欄 -->
   <aside
-    class="hidden md:flex flex-col justify-between bg-[#f3f5ef] border-r border-[var(--bujo-line)] transition-all duration-300 overflow-hidden"
+    class="hidden lg:flex flex-col justify-between bg-[#f3f5ef] border-r border-[var(--bujo-line)] transition-all duration-300 overflow-hidden"
     :class="isOpen ? 'w-[210px] px-5 py-6' : 'w-0 px-0 py-6'"
   >
     <div>
@@ -79,9 +79,10 @@
         @click="showProfileModal = true"
       >
         <img
-          v-if="userAvatarSrc"
+          v-if="showUserAvatar"
           :src="userAvatarSrc"
           :alt="authStore.user?.display_name || t('sidebar.meFallback')"
+          @error="handleUserAvatarError"
           class="w-8 h-8 object-cover shrink-0"
         />
         <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
@@ -91,9 +92,7 @@
   </aside>
 
   <!-- 手機版底部導覽列 + 篩選抽屜 -->
-  <div class="md:hidden">
-    <!-- 新手導覽問號：手機版沒有側邊欄可以嵌，浮在畫面右上角 -->
-    <AppTourHelpButton v-if="isCalendarPage" floating calendar-aligned @click="emit('open-tour')" />
+  <div class="lg:hidden">
     <!-- 篩選抽屜 -->
     <div v-if="isCalendarPage && drawerOpen" class="bujo-mobile-filter-tray">
       <div class="bujo-mobile-filter-header">
@@ -168,9 +167,10 @@
         :aria-label="t('sidebar.ariaMobileProfile')"
       >
         <img
-          v-if="userAvatarSrc"
+          v-if="showUserAvatar"
           :src="userAvatarSrc"
           :alt="authStore.user?.display_name || t('sidebar.meFallback')"
+          @error="handleUserAvatarError"
           class="w-full h-full object-cover"
         />
         <span v-else class="profile-pixel-face profile-pixel-face--small" aria-hidden="true"></span>
@@ -214,6 +214,14 @@ const notificationStore = useNotificationStore()
 const { t, locale } = useI18n()
 const isCalendarPage = computed(() => route.path === '/calendar')
 const userAvatarSrc = computed(() => toAvatarSrc(authStore.user?.avatar_url))
+const userAvatarFailed = ref(false)
+watch(userAvatarSrc, () => {
+  userAvatarFailed.value = false
+})
+const showUserAvatar = computed(() => Boolean(userAvatarSrc.value) && !userAvatarFailed.value)
+function handleUserAvatarError() {
+  userAvatarFailed.value = true
+}
 
 // 未讀數更新時機：掛載、瀏覽器分頁回到可見（如從 LINE 推播返回）、App 內換頁
 function refetchUnreadCountWhenVisible() {

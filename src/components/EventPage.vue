@@ -198,128 +198,171 @@
             </div>
 
             <div
-              v-for="row in scheduleRows"
-              :key="row.dateField"
               class="grid grid-cols-[72px_1fr] max-sm:grid-cols-[56px_1fr] items-start gap-3 max-sm:gap-2"
             >
-              <span :class="[fieldLabelClass, 'pt-2 text-right']">{{ row.label }}</span>
-              <div
-                class="grid gap-2"
-                :class="form.allDay ? 'grid-cols-1' : 'grid-cols-[1fr_150px] max-sm:grid-cols-1'"
-              >
-                <span class="relative block">
-                  <button
-                    :id="row.dateButtonId"
-                    :class="[pickerButtonClass, 'w-full']"
-                    type="button"
-                    :data-date-field="row.dateField"
-                    @click.stop="openPicker(row.dateField)"
-                  >
-                    {{ form[row.dateField] }}
-                  </button>
+              <span :class="[fieldLabelClass, 'pt-2 text-right']">{{ t('event.dateLabel') }}</span>
+              <span class="relative block">
+                <button
+                  id="event-start-date"
+                  :class="[pickerButtonClass, 'w-full']"
+                  type="button"
+                  data-date-field="startDate"
+                  @click.stop="openPicker('startDate')"
+                >
+                  {{ form.startDate }}
+                </button>
+
+                <div
+                  v-if="activePicker === 'startDate'"
+                  :class="[pickerPanelClass, 'left-0 w-[280px] max-sm:w-full']"
+                  role="dialog"
+                  :aria-label="t('event.startDateMenuLabel')"
+                  @click.stop
+                >
+                  <div class="mb-2 flex items-center justify-between gap-2">
+                    <button
+                      class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
+                      type="button"
+                      :aria-label="t('availabilityPicker.prevMonth')"
+                      @click="moveMonth(-1)"
+                    >
+                      ‹
+                    </button>
+                    <p class="m-0 text-center text-sm leading-none text-[var(--bujo-ink)]">
+                      {{ monthTitle }}
+                    </p>
+                    <button
+                      class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
+                      type="button"
+                      :aria-label="t('availabilityPicker.nextMonth')"
+                      @click="moveMonth(1)"
+                    >
+                      ›
+                    </button>
+                  </div>
 
                   <div
-                    v-if="activePicker === row.dateField"
-                    :class="[pickerPanelClass, 'left-0 w-[280px] max-sm:w-full']"
-                    role="dialog"
-                    :aria-label="row.dateMenuLabel"
-                    @click.stop
+                    class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]"
                   >
-                    <div class="mb-2 flex items-center justify-between gap-2">
-                      <button
-                        class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
-                        type="button"
-                        :aria-label="t('availabilityPicker.prevMonth')"
-                        @click="moveMonth(-1)"
-                      >
-                        ‹
-                      </button>
-                      <p class="m-0 text-center text-sm leading-none text-[var(--bujo-ink)]">
-                        {{ monthTitle }}
-                      </p>
-                      <button
-                        class="grid h-8 w-8 max-sm:h-7 max-sm:w-7 place-items-center border border-[var(--bujo-line)] bg-[var(--bujo-surface)] text-lg leading-none text-[var(--bujo-ink)] transition-colors duration-150 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-white)]"
-                        type="button"
-                        :aria-label="t('availabilityPicker.nextMonth')"
-                        @click="moveMonth(1)"
-                      >
-                        ›
-                      </button>
-                    </div>
+                    <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
+                  </div>
+
+                  <div class="grid grid-cols-7 gap-1">
+                    <button
+                      v-for="cell in dateCells"
+                      :key="cell.key"
+                      :class="dateButtonClass(cell)"
+                      type="button"
+                      :aria-label="cell.key"
+                      :data-date="cell.key"
+                      @click="selectDate(cell.date)"
+                    >
+                      {{ cell.label }}
+                    </button>
+                  </div>
+                </div>
+              </span>
+            </div>
+
+            <div
+              v-if="!form.allDay"
+              class="grid grid-cols-[72px_1fr] max-sm:grid-cols-[56px_1fr] items-start gap-3 max-sm:gap-2"
+            >
+              <span :class="[fieldLabelClass, 'pt-2 text-right']">{{ t('event.timeLabel') }}</span>
+              <div class="grid gap-2">
+                <div class="grid max-w-[280px] grid-cols-[1fr_12px_1fr] items-center gap-2">
+                  <span class="relative block">
+                    <button
+                      id="event-start-time"
+                      :class="[
+                        pickerButtonClass,
+                        'w-full',
+                        timeError ? 'border-[var(--bujo-danger)]' : '',
+                      ]"
+                      type="button"
+                      data-time-field="startTime"
+                      @click.stop="openPicker('startTime')"
+                    >
+                      <span :class="form.startTime ? '' : 'text-[var(--bujo-muted)]'">
+                        {{ form.startTime ?? '-- : --' }}
+                      </span>
+                    </button>
 
                     <div
-                      class="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-[var(--bujo-muted-strong)]"
+                      v-if="activePicker === 'startTime'"
+                      :class="[pickerPanelClass, 'left-0 w-full min-w-[160px]']"
+                      role="listbox"
+                      :aria-label="t('event.startTimeMenuLabel')"
+                      @click.stop
                     >
-                      <span v-for="weekday in weekdays" :key="weekday">{{ weekday }}</span>
+                      <div class="max-h-[208px] overflow-y-auto pr-1">
+                        <button
+                          v-for="time in startTimeOptions"
+                          :key="time"
+                          class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                          :class="timeButtonClass(time, 'startTime')"
+                          type="button"
+                          role="option"
+                          :aria-selected="form.startTime === time"
+                          :aria-label="time"
+                          :data-time="time"
+                          @click="selectTime(time)"
+                        >
+                          {{ time }}
+                        </button>
+                      </div>
                     </div>
+                  </span>
 
-                    <div class="grid grid-cols-7 gap-1">
-                      <button
-                        v-for="cell in dateCells"
-                        :key="cell.key"
-                        :class="dateButtonClass(cell)"
-                        type="button"
-                        :aria-label="cell.key"
-                        :data-date="cell.key"
-                        @click="selectDate(cell.date)"
-                      >
-                        {{ cell.label }}
-                      </button>
+                  <span class="text-center text-sm text-[var(--bujo-ink)]">–</span>
+
+                  <span class="relative block">
+                    <button
+                      id="event-end-time"
+                      :class="[pickerButtonClass, 'w-full']"
+                      type="button"
+                      data-time-field="endTime"
+                      @click.stop="openPicker('endTime')"
+                    >
+                      <span :class="form.endTime ? '' : 'text-[var(--bujo-muted)]'">
+                        {{ form.endTime ?? '-- : --' }}
+                      </span>
+                    </button>
+
+                    <div
+                      v-if="activePicker === 'endTime'"
+                      :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
+                      role="listbox"
+                      :aria-label="t('event.endTimeMenuLabel')"
+                      @click.stop
+                    >
+                      <div class="max-h-[208px] overflow-y-auto pr-1">
+                        <button
+                          v-for="time in endTimeOptions"
+                          :key="time"
+                          class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
+                          :class="timeButtonClass(time, 'endTime')"
+                          type="button"
+                          role="option"
+                          :aria-selected="form.endTime === time"
+                          :aria-label="time"
+                          :data-time="time"
+                          @click="selectTime(time)"
+                        >
+                          {{ time }}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </span>
+                  </span>
+                </div>
 
-                <span v-if="!form.allDay" class="relative block">
-                  <button
-                    :id="row.timeButtonId"
-                    :class="[
-                      pickerButtonClass,
-                      'w-full',
-                      row.timeField === 'startTime' && timeError
-                        ? 'border-[var(--bujo-danger)]'
-                        : '',
-                    ]"
-                    type="button"
-                    :data-time-field="row.timeField"
-                    @click.stop="openPicker(row.timeField)"
-                  >
-                    <span :class="form[row.timeField] ? '' : 'text-[var(--bujo-muted)]'">
-                      {{ form[row.timeField] ?? '-- : --' }}
-                    </span>
-                  </button>
-                  <p
-                    v-if="row.timeField === 'startTime' && timeError"
-                    class="mt-1 flex items-center gap-1 text-xs text-[var(--bujo-danger)]"
-                  >
-                    <ExclamationTriangleIcon class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                    {{ timeError }}
-                  </p>
-
-                  <div
-                    v-if="activePicker === row.timeField"
-                    :class="[pickerPanelClass, 'right-0 w-full min-w-[160px]']"
-                    role="listbox"
-                    :aria-label="row.timeMenuLabel"
-                    @click.stop
-                  >
-                    <div class="max-h-[208px] overflow-y-auto pr-1">
-                      <button
-                        v-for="time in currentPickerTimeOptions"
-                        :key="time"
-                        class="mb-1 block min-h-9 max-sm:min-h-8 w-full border border-[var(--bujo-line-soft)] bg-[var(--bujo-surface)] px-3 max-sm:px-2 py-1.5 text-left text-sm leading-none text-[var(--bujo-ink)] last:mb-0 hover:border-[var(--bujo-ink)] hover:bg-[var(--bujo-surface-muted)]"
-                        :class="timeButtonClass(time, row.timeField)"
-                        type="button"
-                        role="option"
-                        :aria-selected="form[row.timeField] === time"
-                        :aria-label="time"
-                        :data-time="time"
-                        @click="selectTime(time)"
-                      >
-                        {{ time }}
-                      </button>
-                    </div>
-                  </div>
-                </span>
+                <p
+                  v-if="timeError"
+                  class="mt-1 flex items-center gap-1 text-xs text-[var(--bujo-danger)]"
+                >
+                  <ExclamationTriangleIcon class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  {{ timeError }}
+                </p>
               </div>
             </div>
 
@@ -964,6 +1007,7 @@ import {
 } from '@/utils/timeFormat'
 import { useAuthStore } from '@/stores/auth'
 import { useEventScenarioGuide } from '@/composables/useEventScenarioGuide'
+import { apiFetch } from '@/services/httpClient'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -990,28 +1034,8 @@ const eventTypes = computed(() => [
   t('event.typeExhibition'),
   t('event.typeOther'),
 ])
-const dateFields = ['startDate', 'endDate', 'singleDate']
+const dateFields = ['startDate', 'singleDate']
 const timeFields = ['startTime', 'endTime']
-const scheduleRows = computed(() => [
-  {
-    label: t('event.startLabel'),
-    dateField: 'startDate',
-    timeField: 'startTime',
-    dateButtonId: 'event-start-date',
-    timeButtonId: 'event-start-time',
-    dateMenuLabel: t('event.startDateMenuLabel'),
-    timeMenuLabel: t('event.startTimeMenuLabel'),
-  },
-  {
-    label: t('event.endLabel'),
-    dateField: 'endDate',
-    timeField: 'endTime',
-    dateButtonId: 'event-end-date',
-    timeButtonId: 'event-end-time',
-    dateMenuLabel: t('event.endDateMenuLabel'),
-    timeMenuLabel: t('event.endTimeMenuLabel'),
-  },
-])
 
 const today = formatDateValue(new Date())
 const ACTIVITY_TITLE_MAX_LENGTH = 15
@@ -1387,14 +1411,7 @@ const startTimeOptions = computed(() =>
   excludePastHoursIfToday(form.startDate === formatDateValue(new Date()), timeOptions.value),
 )
 
-const endTimeOptions = computed(() => {
-  if (form.endDate !== form.startDate) return timeOptions.value
-  return excludeNotAfterStart(form.startTime, timeOptions.value)
-})
-
-const currentPickerTimeOptions = computed(() =>
-  activePicker.value === 'endTime' ? endTimeOptions.value : startTimeOptions.value,
-)
+const endTimeOptions = computed(() => excludeNotAfterStart(form.startTime, timeOptions.value))
 
 // 情境三：統一結束時間須晚於統一開始時間
 const uniformEndTimeOptions = computed(() =>
@@ -1446,11 +1463,10 @@ const monthTitle = computed(() => {
 
 const dateCells = computed(() => {
   const todayValue = formatDateValue(new Date())
-  const minDate = activeDateField.value === 'endDate' ? form.startDate : todayValue
   return buildMonthGridCells(visibleMonth.value).map((cell) => ({
     ...cell,
     isSelected: selectedDate.value ? isSameDate(cell.date, selectedDate.value) : false,
-    isDisabled: cell.key < minDate,
+    isDisabled: cell.key < todayValue,
   }))
 })
 
@@ -1583,7 +1599,7 @@ watch(
   () => form.startTime,
   (val) => {
     if (val) timeError.value = ''
-    if (val && form.endDate === form.startDate && form.endTime) {
+    if (val && form.endTime) {
       if (parseHourFromTimeStr(form.endTime) <= parseHourFromTimeStr(val)) {
         form.endTime = null
         endTimeUserSet.value = false
@@ -1602,26 +1618,15 @@ watch(
   },
 )
 
+// 情境一單一固定日期：endDate 不再是使用者可獨立編輯的欄位，永遠跟著 startDate 走
 watch(
   () => form.startDate,
   (val) => {
-    if (form.endDate < val) form.endDate = val
+    form.endDate = val
     const todayValue = formatDateValue(new Date())
     if (val === todayValue && form.startTime) {
       if (parseHourFromTimeStr(form.startTime) <= new Date().getHours()) {
         form.startTime = null
-      }
-    }
-  },
-)
-
-watch(
-  () => form.endDate,
-  (val) => {
-    if (val === form.startDate && form.endTime && form.startTime) {
-      if (parseHourFromTimeStr(form.endTime) <= parseHourFromTimeStr(form.startTime)) {
-        form.endTime = null
-        endTimeUserSet.value = false
       }
     }
   },
@@ -1634,7 +1639,9 @@ watch(
     const start = parseDateTimeValue(form.startDate, form.startTime)
     if (!start) return
     const newEnd = new Date(start.getTime() + 60 * 60 * 1000)
-    form.endDate = formatDateValue(newEnd)
+    // endDate 固定等於 startDate，跨午夜（例如 23:00 開始）算出的預設結束時間已經不屬於
+    // 同一天,不自動帶入,交給使用者自己在同一天內選一個有效的結束時間
+    if (formatDateValue(newEnd) !== form.startDate) return
     form.endTime = formatHourAsTimeString(newEnd.getHours())
   },
 )
@@ -1785,7 +1792,6 @@ async function doSubmitInternal() {
     return
   } else if (
     !form.allDay &&
-    form.endDate === form.startDate &&
     form.endTime &&
     !isEndAfterStart(form.startTime, form.endTime)
   ) {
@@ -1854,7 +1860,7 @@ async function doSubmitInternal() {
   }
 
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/activities`, {
+    const res = await apiFetch('/api/activities', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -1914,8 +1920,7 @@ function selectDate(date) {
   const pickedDate = new Date(date)
   const dateValue = formatDateValue(pickedDate)
   const todayValue = formatDateValue(new Date())
-  const minDate = activeDateField.value === 'endDate' ? form.startDate : todayValue
-  if (dateValue < minDate) return
+  if (dateValue < todayValue) return
 
   selectedDate.value = pickedDate
   form[activeDateField.value] = dateValue

@@ -1,12 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  timeout: 5000,
-  withCredentials: true,
-})
+import { apiClient } from '@/services/httpClient'
 
 export const useNotificationStore = defineStore('notification', () => {
   const unreadCount = ref(0)
