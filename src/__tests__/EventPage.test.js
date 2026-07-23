@@ -99,6 +99,167 @@ describe('EventPage - 情境一（日期X時間皆已確定）開始日期為今
   })
 })
 
+describe('EventPage - 情境一版面重構：日期／時間兩欄（回歸修正：結束日期不再能獨立選成跟開始日期不同天）', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 6, 15, 6, 0))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  test('情境一不再有獨立的結束日期選擇器，只有「日期」跟「時間」兩個欄位標籤', async () => {
+    const wrapper = await mountEventPage()
+
+    expect(queryBody('#event-end-date')).toBeNull()
+    expect(queryBody('#event-start-date')).not.toBeNull()
+    expect(queryBody('#event-start-time')).not.toBeNull()
+    expect(queryBody('#event-end-time')).not.toBeNull()
+    expect(document.body.textContent).toContain('日期：')
+    expect(document.body.textContent).toContain('時間：')
+    expect(document.body.textContent).not.toContain('開始：')
+    expect(document.body.textContent).not.toContain('結束：')
+
+    wrapper.unmount()
+  })
+
+  test('選未來日期後，form.endDate 自動跟著 form.startDate 一致', async () => {
+    const wrapper = await mountEventPage()
+
+    queryBody('#event-start-date').click()
+    await flushPromises()
+    queryBody('[data-date="2026/07/20"]').click()
+    await flushPromises()
+
+    expect(wrapper.vm.form.startDate).toBe('2026/07/20')
+    expect(wrapper.vm.form.endDate).toBe('2026/07/20')
+
+    wrapper.unmount()
+  })
+
+  test('整日模式勾選後，「時間」列（開始/結束時間選擇器）整個隱藏', async () => {
+    const wrapper = await mountEventPage()
+
+    queryBody('#event-start-date').click()
+    await flushPromises()
+    queryBody('[data-date="2026/07/20"]').click()
+    await flushPromises()
+
+    const allDayCheckbox = queryBody('[aria-label="整日"]')
+    allDayCheckbox.checked = true
+    allDayCheckbox.dispatchEvent(new Event('change'))
+    await flushPromises()
+
+    expect(queryBody('#event-start-time')).toBeNull()
+    expect(queryBody('#event-end-time')).toBeNull()
+
+    wrapper.unmount()
+  })
+
+  test('送出情境一活動時，payload 的 startDate 恆等於 endDate（非整日）', async () => {
+    const calls = stubActivitiesFetch()
+    const wrapper = await mountEventPage()
+
+    queryBody('#event-start-date').click()
+    await flushPromises()
+    queryBody('[data-date="2026/07/20"]').click()
+    await flushPromises()
+    queryBody('#event-start-time').click()
+    await flushPromises()
+    clickTimeOption('開始時間選單', '15:00')
+    await flushPromises()
+
+    wrapper.vm.form.name = '測試活動'
+    await flushPromises()
+    queryBody('button[form="event-form"][type="submit"]').click()
+    await flushPromises()
+
+    const call = calls.find((c) => c.url.includes('/api/activities'))
+    expect(call).toBeTruthy()
+    const body = JSON.parse(call.options.body)
+    expect(body.startDate).toBe(body.endDate)
+    expect(body.endDate).toBe('2026/07/20')
+
+    wrapper.unmount()
+  })
+
+  test('送出情境一整日活動時，payload 的 startDate 恆等於 endDate（整日）', async () => {
+    const calls = stubActivitiesFetch()
+    const wrapper = await mountEventPage()
+
+    queryBody('#event-start-date').click()
+    await flushPromises()
+    queryBody('[data-date="2026/07/20"]').click()
+    await flushPromises()
+
+    const allDayCheckbox = queryBody('[aria-label="整日"]')
+    allDayCheckbox.checked = true
+    allDayCheckbox.dispatchEvent(new Event('change'))
+    await flushPromises()
+
+    wrapper.vm.form.name = '測試整日活動'
+    await flushPromises()
+    queryBody('button[form="event-form"][type="submit"]').click()
+    await flushPromises()
+
+    const call = calls.find((c) => c.url.includes('/api/activities'))
+    expect(call).toBeTruthy()
+    const body = JSON.parse(call.options.body)
+    expect(body.startDate).toBe(body.endDate)
+    expect(body.endDate).toBe('2026/07/20')
+
+    wrapper.unmount()
+  })
+
+  test('開始時間選在 23:00 時，不自動帶入跨日的結束時間，交給使用者自己在同一天內選（endDate 固定跟隨 startDate 後，情境一的邊界行為比照情境二既有的同日限制）', async () => {
+    const wrapper = await mountEventPage()
+
+    queryBody('#event-start-date').click()
+    await flushPromises()
+    queryBody('[data-date="2026/07/20"]').click()
+    await flushPromises()
+    queryBody('#event-start-time').click()
+    await flushPromises()
+    clickTimeOption('開始時間選單', '23:00')
+    await flushPromises()
+
+    expect(wrapper.vm.form.endTime).toBeNull()
+
+    wrapper.unmount()
+  })
+
+  test('回歸測試：手動設定結束時間後，把開始時間調到超過結束時間，會自動清掉並回填新的預設結束時間', async () => {
+    const wrapper = await mountEventPage()
+
+    queryBody('#event-start-date').click()
+    await flushPromises()
+    queryBody('[data-date="2026/07/20"]').click()
+    await flushPromises()
+    queryBody('#event-start-time').click()
+    await flushPromises()
+    clickTimeOption('開始時間選單', '09:00')
+    await flushPromises()
+
+    expect(wrapper.vm.form.endTime).toBe('10:00')
+
+    queryBody('#event-end-time').click()
+    await flushPromises()
+    clickTimeOption('結束時間選單', '12:00')
+    await flushPromises()
+    expect(wrapper.vm.form.endTime).toBe('12:00')
+
+    queryBody('#event-start-time').click()
+    await flushPromises()
+    clickTimeOption('開始時間選單', '13:00')
+    await flushPromises()
+
+    expect(wrapper.vm.form.endTime).toBe('14:00')
+
+    wrapper.unmount()
+  })
+})
+
 function stubActivitiesFetch() {
   const calls = []
   globalThis.fetch = vi.fn((url, options = {}) => {

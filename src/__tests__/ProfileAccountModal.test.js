@@ -95,6 +95,18 @@ describe('ProfileAccountModal', () => {
     expect(wrapper.find('.profile-modal-face').exists()).toBe(true)
   })
 
+  test('頭像圖片載入失敗時改顯示 fallback face', async () => {
+    const wrapper = mountModal({
+      avatar_url: 'https://res.cloudinary.com/demo/avatar-dead-link.png',
+    })
+
+    expect(wrapper.find('img').exists()).toBe(true)
+    await wrapper.get('img').trigger('error')
+
+    expect(wrapper.find('img').exists()).toBe(false)
+    expect(wrapper.find('.profile-modal-face').exists()).toBe(true)
+  })
+
   test('複製按鈕只複製可見五碼並顯示成功回饋', async () => {
     const writeText = stubClipboard(vi.fn().mockResolvedValue())
     const wrapper = mountModal({

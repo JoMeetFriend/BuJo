@@ -2,8 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './auth'
 import i18n from '@/i18n'
-
-const API = import.meta.env.VITE_API_URL
+import { apiFetch } from '@/services/httpClient'
 
 export const useUserStore = defineStore('userAction', () => {
   const authStore = useAuthStore()
@@ -38,7 +37,7 @@ export const useUserStore = defineStore('userAction', () => {
     successMsg.value = ''
 
     try {
-      const res = await fetch(`${API}/api/users/me/name`, {
+      const res = await apiFetch('/api/users/me/name', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -84,7 +83,7 @@ export const useUserStore = defineStore('userAction', () => {
     }
 
     try {
-      const res = await fetch(`${API}/api/users/me/bio`, {
+      const res = await apiFetch('/api/users/me/bio', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
